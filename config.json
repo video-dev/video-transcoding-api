@@ -1,0 +1,9 @@
+{
+    "HTTPPort": 8080,
+    "Log": "/var/nyt/logs/transcoding-api/app.log",
+    "HTTPAccessLog": "/var/nyt/logs/tra/access.log",
+    "MongoDB": {
+      "Hosts": "localhost:27017",
+      "DB": "transcoding-api",
+    }
+}
