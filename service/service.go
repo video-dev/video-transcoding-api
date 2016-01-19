@@ -10,16 +10,16 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-// JSONService will implement server.JSONService and
-// handle all requests to the server.
-type JSONService struct {
+// TranscodingService will implement server.JSONService and handle all requests
+// to the server.
+type TranscodingService struct {
 	providers map[string]provider.ProviderFactory
 }
 
-// NewJSONService will instantiate a JSONService
+// NewTranscodingService will instantiate a JSONService
 // with the given configuration.
-func NewJSONService(cfg *config.Config) *JSONService {
-	return &JSONService{
+func NewTranscodingService(cfg *config.Config) *TranscodingService {
+	return &TranscodingService{
 		providers: map[string]provider.ProviderFactory{
 			"encoding.com": provider.EncodingComProvider,
 		},
@@ -28,21 +28,21 @@ func NewJSONService(cfg *config.Config) *JSONService {
 
 // Prefix returns the string prefix used for all endpoints within
 // this service.
-func (s *JSONService) Prefix() string {
+func (s *TranscodingService) Prefix() string {
 	return ""
 }
 
 // Middleware provides an http.Handler hook wrapped around all requests.
 // In this implementation, we're using a GzipHandler middleware to
 // compress our responses.
-func (s *JSONService) Middleware(h http.Handler) http.Handler {
+func (s *TranscodingService) Middleware(h http.Handler) http.Handler {
 	return gziphandler.GzipHandler(h)
 }
 
 // JSONMiddleware provides a JSONEndpoint hook wrapped around all requests.
 // In this implementation, we're using it to provide application logging and to check errors
 // and provide generic responses.
-func (s *JSONService) JSONMiddleware(j server.JSONEndpoint) server.JSONEndpoint {
+func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEndpoint {
 	return func(r *http.Request) (int, interface{}, error) {
 
 		status, res, err := j(r)
@@ -59,7 +59,7 @@ func (s *JSONService) JSONMiddleware(j server.JSONEndpoint) server.JSONEndpoint 
 }
 
 // JSONEndpoints is a listing of all endpoints available in the JSONService.
-func (s *JSONService) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
+func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
 	return map[string]map[string]server.JSONEndpoint{
 		"/jobs": map[string]server.JSONEndpoint{
 			"POST": s.newTranscodeJob,
