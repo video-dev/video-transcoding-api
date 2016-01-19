@@ -7,6 +7,7 @@ import (
 	"github.com/NYTimes/gziphandler"
 	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
 // JSONService will implement server.JSONService and
@@ -17,7 +18,7 @@ type JSONService struct {
 
 // NewJSONService will instantiate a JSONService
 // with the given configuration.
-func NewJSONService(cfg *Config) *JSONService {
+func NewJSONService(cfg *config.Config) *JSONService {
 	return &JSONService{
 		providers: map[string]provider.ProviderFactory{
 			"encoding.com": provider.EncodingComProvider,
