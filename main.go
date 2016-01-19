@@ -1,18 +1,19 @@
 package main
 
 import (
-	"github.com/NYTimes/gizmo/config"
+	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
+	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/service"
 )
 
 func main() {
-	var cfg *service.Config
-	config.LoadJSONFile("./config.json", &cfg)
-	config.LoadEnvConfig(&cfg)
+	var cfg config.Config
+	gizmoConfig.LoadJSONFile("./config.json", &cfg)
+	gizmoConfig.LoadEnvConfig(&cfg)
 
 	server.Init("video-transcoding-api", cfg.Server)
-	err := server.Register(service.NewJSONService(cfg))
+	err := server.Register(service.NewTranscodingService(&cfg))
 	if err != nil {
 		server.Log.Fatal("unable to register service: ", err)
 	}
