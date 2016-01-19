@@ -61,10 +61,10 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 // JSONEndpoints is a listing of all endpoints available in the JSONService.
 func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
 	return map[string]map[string]server.JSONEndpoint{
-		"/jobs": map[string]server.JSONEndpoint{
+		"/jobs": {
 			"POST": s.newTranscodeJob,
 		},
-		"/jobs/{jobID}": map[string]server.JSONEndpoint{
+		"/jobs/{jobID}": {
 			"GET": s.getTranscodeJob,
 		},
 	}
