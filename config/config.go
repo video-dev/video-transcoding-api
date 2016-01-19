@@ -2,8 +2,8 @@ package config
 
 import "github.com/NYTimes/gizmo/config"
 
-// Config is a struct to contain all the needed
-// configuration for our JSONService
+// Config is a struct to contain all the needed configuration for the
+// Transcoding API.
 type Config struct {
 	*config.Server
 	EncodingComUserID  string `envconfig:"ENCODINGCOM_USER_ID"`
