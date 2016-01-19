@@ -1,42 +1,27 @@
 package provider
 
-import (
-	"github.com/NYTimes/encoding-wrapper/encodingcom"
-	"github.com/nytm/video-transcoding-api/config"
-)
+import "github.com/nytm/video-transcoding-api/config"
 
+// TranscodingProvider represents a provider of transcoding.
+//
+// It defines a basic API for transcoding a media and query the status of a
+// Job. The underlying provider should handle the profileSpec as deisired (it
+// might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
 	Transcode(sourceMedia string, profileSpec []byte) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
 }
 
+// Factory is the function responsible for creating the instance of a
+// provider.
+type Factory func(cfg *config.Config) (TranscodingProvider, error)
+
+// JobStatus is the representation of the status as the provide sees it. The
+// provider is able to add customized information in the ProviderStatus field.
 type JobStatus struct {
 	ProviderJobID  string
 	Status         string
 	ProviderName   string
 	StatusMessage  string
 	ProviderStatus map[string]interface{}
-}
-
-type encodingComProvider struct {
-	client *encodingcom.Client
-}
-
-func (e *encodingComProvider) Transcode(sourceMedia string, profileSpec []byte) (*JobStatus, error) {
-	return nil, nil
-}
-
-func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
-	return nil, nil
-}
-
-type ProviderFactory func(cfg *config.Config) (TranscodingProvider, error)
-
-func EncodingComProvider(cfg *config.Config) (TranscodingProvider, error) {
-	// add validation
-	// create client
-	var client encodingcom.Client
-	return &encodingComProvider{
-		client: &client,
-	}, nil
 }

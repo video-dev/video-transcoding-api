@@ -13,14 +13,14 @@ import (
 // TranscodingService will implement server.JSONService and handle all requests
 // to the server.
 type TranscodingService struct {
-	providers map[string]provider.ProviderFactory
+	providers map[string]provider.Factory
 }
 
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config) *TranscodingService {
 	return &TranscodingService{
-		providers: map[string]provider.ProviderFactory{
+		providers: map[string]provider.Factory{
 			"encoding.com": provider.EncodingComProvider,
 		},
 	}
