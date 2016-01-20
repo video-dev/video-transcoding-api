@@ -2,6 +2,7 @@ package provider
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
@@ -16,7 +17,36 @@ type encodingComProvider struct {
 }
 
 func (e *encodingComProvider) Transcode(sourceMedia, destination string, profile Profile) (*JobStatus, error) {
-	return nil, nil
+	format := e.profileToFormat(profile)
+	format.Destination = []string{destination}
+	resp, err := e.client.AddMedia([]string{sourceMedia}, format)
+	if err != nil {
+		return nil, err
+	}
+	return &JobStatus{ProviderJobID: resp.MediaID, StatusMessage: resp.Message}, nil
+}
+
+func (e *encodingComProvider) profileToFormat(profile Profile) *encodingcom.Format {
+	format := encodingcom.Format{
+		Output:              []string{profile.Output},
+		Size:                profile.Size.String(),
+		AudioCodec:          profile.AudioCodec,
+		AudioBitrate:        profile.AudioBitRate,
+		AudioChannelsNumber: profile.AudioChannelsNumber,
+		AudioSampleRate:     profile.AudioSampleRate,
+		Bitrate:             profile.BitRate,
+		Framerate:           profile.FrameRate,
+		KeepAspectRatio:     encodingcom.YesNoBoolean(profile.KeepAspectRatio),
+		VideoCodec:          profile.VideoCodec,
+		Keyframe:            []string{profile.KeyFrame},
+		AudioVolume:         profile.AudioVolume,
+	}
+	if profile.Rotate.set {
+		format.Rotate = strconv.FormatUint(uint64(profile.Rotate.value), 10)
+	} else {
+		format.Rotate = "def"
+	}
+	return &format
 }
 
 func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
