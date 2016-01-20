@@ -9,7 +9,7 @@ type encodingComProvider struct {
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) Transcode(sourceMedia string, profileSpec []byte) (*JobStatus, error) {
+func (e *encodingComProvider) Transcode(sourceMedia, destination string, profile Profile) (*JobStatus, error) {
 	return nil, nil
 }
 
