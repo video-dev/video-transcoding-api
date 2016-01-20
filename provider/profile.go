@@ -1,8 +1,14 @@
 package provider
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
-type rotation *uint
+type rotation struct {
+	value uint
+	set   bool
+}
 
 var (
 	// Rotate0Degrees represents 0 degrees rotation (no rotation).
@@ -20,9 +26,23 @@ var (
 )
 
 func newRotation(n uint) rotation {
-	v := new(uint)
-	*v = n
-	return rotation(v)
+	return rotation{value: n, set: true}
+}
+
+func (r *rotation) UnmarshalJSON(b []byte) error {
+	value, err := strconv.ParseUint(string(b), 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid value for rotation: %s. It must be a positive integer", b)
+	}
+	switch value {
+	case 0, 90, 180, 270:
+		r.value = uint(value)
+		r.set = true
+		return nil
+	default:
+		r.set = false
+		return fmt.Errorf("invalid value for rotation: %d", value)
+	}
 }
 
 // Profile contains the set of options for transcoding a media.
