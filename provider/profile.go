@@ -1,5 +1,7 @@
 package provider
 
+import "fmt"
+
 type rotation *uint
 
 var (
@@ -26,7 +28,7 @@ func newRotation(n uint) rotation {
 // Profile contains the set of options for transcoding a media.
 type Profile struct {
 	Output string
-	Size   string
+	Size   Size
 
 	AudioCodec          string
 	AudioBitRate        string
@@ -41,4 +43,14 @@ type Profile struct {
 	KeyFrame    string
 	AudioVolume uint
 	Rotate      rotation
+}
+
+// Size represents the size of the media in pixels.
+type Size struct {
+	Width  uint `json:",omitempty"`
+	Height uint `json:",omitempty"`
+}
+
+func (s *Size) String() string {
+	return fmt.Sprintf("%dx%d", s.Width, s.Height)
 }
