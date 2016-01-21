@@ -50,7 +50,39 @@ func (e *encodingComProvider) profileToFormat(profile Profile) *encodingcom.Form
 }
 
 func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
-	return nil, nil
+	resp, err := e.client.GetStatus([]string{id})
+	if err != nil {
+		return nil, err
+	}
+	if len(resp) < 1 {
+		return nil, errors.New("invalid value returned by the Encoding.com API: []")
+	}
+	return &JobStatus{
+		ProviderJobID: id,
+		ProviderName:  "encoding.com",
+		Status:        e.statusMap(resp[0].MediaStatus),
+		ProviderStatus: map[string]interface{}{
+			"progress":   resp[0].Progress,
+			"sourcefile": resp[0].SourceFile,
+			"timeleft":   resp[0].TimeLeft,
+			"created":    resp[0].CreateDate,
+			"started":    resp[0].StartDate,
+			"finished":   resp[0].FinishDate,
+		},
+	}, nil
+}
+
+func (e *encodingComProvider) statusMap(encodingComStatus string) status {
+	switch encodingComStatus {
+	case "New":
+		return StatusQueued
+	case "Downloading", "Ready to process", "Waiting for encoder", "Processing", "Saving":
+		return StatusStarted
+	case "Finished":
+		return StatusFinished
+	default:
+		return StatusFailed
+	}
 }
 
 // EncodingComProvider is the factory function for the Encoding.com provider.

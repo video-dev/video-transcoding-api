@@ -3,6 +3,7 @@ package provider
 import (
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
@@ -125,6 +126,81 @@ func TestProfileToFormatRotation(t *testing.T) {
 		format := p.profileToFormat(profile)
 		if format.Rotate != test.expected {
 			t.Errorf("profileToFormat: expected rotate to be %q. Got %q.", test.expected, format.Rotate)
+		}
+	}
+}
+
+func TestJobStatus(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	now := time.Now().In(time.UTC).Truncate(time.Second)
+	media := fakeMedia{
+		ID:       "mymedia",
+		Status:   "Finished",
+		Created:  now.Add(-time.Hour),
+		Started:  now.Add(-50 * time.Minute),
+		Finished: now.Add(-10 * time.Minute),
+	}
+	server.medias["mymedia"] = &media
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	provider := encodingComProvider{client: client}
+	jobStatus, err := provider.JobStatus("mymedia")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := JobStatus{
+		ProviderJobID: "mymedia",
+		ProviderName:  "encoding.com",
+		Status:        StatusFinished,
+		StatusMessage: "",
+		ProviderStatus: map[string]interface{}{
+			"progress":   100.0,
+			"sourcefile": "http://some.source.file",
+			"timeleft":   "1",
+			"created":    media.Created,
+			"started":    media.Started,
+			"finished":   media.Finished,
+		},
+	}
+	if !reflect.DeepEqual(*jobStatus, expected) {
+		t.Errorf("JobStatus: wrong job returned.\nWant %#v.\nGot  %#v.", expected, *jobStatus)
+	}
+}
+
+func TestJobStatusMediaNotFound(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	provider := encodingComProvider{client: client}
+	jobStatus, err := provider.JobStatus("non-existent-job")
+	if err == nil {
+		t.Errorf("JobStatus: got unexpected <nil> err.")
+	}
+	if jobStatus != nil {
+		t.Errorf("JobStatus: got unexpected non-nil result: %#v", jobStatus)
+	}
+}
+
+func TestJobStatusMap(t *testing.T) {
+	var tests = []struct {
+		encodingComStatus string
+		expected          status
+	}{
+		{"New", StatusQueued},
+		{"Downloading", StatusStarted},
+		{"Ready to process", StatusStarted},
+		{"Waiting for encoder", StatusStarted},
+		{"Processing", StatusStarted},
+		{"Saving", StatusStarted},
+		{"Finished", StatusFinished},
+		{"Error", StatusFailed},
+		{"Unknown", StatusFailed},
+	}
+	var p encodingComProvider
+	for _, test := range tests {
+		got := p.statusMap(test.encodingComStatus)
+		if got != test.expected {
+			t.Errorf("statusMap(%q): wrong value. Want %q. Got %q", test.encodingComStatus, test.expected, got)
 		}
 	}
 }
