@@ -20,8 +20,25 @@ type Factory func(cfg *config.Config) (TranscodingProvider, error)
 // provider is able to add customized information in the ProviderStatus field.
 type JobStatus struct {
 	ProviderJobID  string
-	Status         string
+	Status         status
 	ProviderName   string
 	StatusMessage  string
 	ProviderStatus map[string]interface{}
 }
+
+type status string
+
+const (
+	// StatusQueued is the status for a job that is in the queue for
+	// execution.
+	StatusQueued = status("queued")
+
+	// StatusStarted is the status for a job that is being executed.
+	StatusStarted = status("started")
+
+	// StatusFinished is the status for a job that finished successfully.
+	StatusFinished = status("finished")
+
+	// StatusFailed is the status for a job that has failed.
+	StatusFailed = status("failed")
+)
