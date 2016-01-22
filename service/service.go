@@ -13,6 +13,7 @@ import (
 // TranscodingService will implement server.JSONService and handle all requests
 // to the server.
 type TranscodingService struct {
+	config    *config.Config
 	providers map[string]provider.Factory
 }
 
@@ -20,6 +21,7 @@ type TranscodingService struct {
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config) *TranscodingService {
 	return &TranscodingService{
+		config: cfg,
 		providers: map[string]provider.Factory{
 			"encoding.com": provider.EncodingComProvider,
 		},
@@ -29,7 +31,7 @@ func NewTranscodingService(cfg *config.Config) *TranscodingService {
 // Prefix returns the string prefix used for all endpoints within
 // this service.
 func (s *TranscodingService) Prefix() string {
-	return ""
+	return "/"
 }
 
 // Middleware provides an http.Handler hook wrapped around all requests.
@@ -47,10 +49,13 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 
 		status, res, err := j(r)
 		if err != nil {
-			server.LogWithFields(r).WithFields(logrus.Fields{
-				"error": err,
-			}).Error("problems with serving request")
-			return http.StatusServiceUnavailable, nil, &jsonErr{"sorry, this service is unavailable"}
+			if status == http.StatusServiceUnavailable {
+				server.LogWithFields(r).WithFields(logrus.Fields{
+					"error": err,
+				}).Error("problems with serving request")
+				return http.StatusServiceUnavailable, nil, &jsonErr{"sorry, this service is unavailable"}
+			}
+			return status, nil, &jsonErr{err.Error()}
 		}
 
 		server.LogWithFields(r).Info("success!")
