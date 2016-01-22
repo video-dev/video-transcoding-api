@@ -45,12 +45,16 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	if providerFactory == nil {
 		return http.StatusBadRequest, nil, fmt.Errorf("Unknown provider found in request: %s", reqObject.Provider)
 	}
-	provider, err := providerFactory(s.config)
+	providerObj, err := providerFactory(s.config)
 	if err != nil {
-		return http.StatusBadRequest, nil, fmt.Errorf("Error initializing provider %s: %s", provider, err)
+		statusCode := http.StatusInternalServerError
+		if _, ok := err.(provider.InvalidConfigError); ok {
+			statusCode = http.StatusBadRequest
+		}
+		return statusCode, nil, fmt.Errorf("Error initializing provider %s: %s", providerObj, err)
 	}
 
-	jobStatus, err := provider.Transcode(reqObject.Source, reqObject.Destination, reqProfile)
+	jobStatus, err := providerObj.Transcode(reqObject.Source, reqObject.Destination, reqProfile)
 	jobStatus.ProviderName = reqObject.Provider
 	return 200, jobStatus, nil
 }
