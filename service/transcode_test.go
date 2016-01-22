@@ -106,7 +106,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": "Invalid provider name found in request",
+				"error": "Unknown provider found in request: nonexistent-provider",
 			},
 		},
 	}

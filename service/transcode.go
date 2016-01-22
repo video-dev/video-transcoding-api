@@ -43,7 +43,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	}
 	providerFactory := s.providers[reqObject.Provider]
 	if providerFactory == nil {
-		return http.StatusBadRequest, nil, fmt.Errorf("Invalid provider name found in request")
+		return http.StatusBadRequest, nil, fmt.Errorf("Unknown provider found in request: %s", reqObject.Provider)
 	}
 	provider, err := providerFactory(s.config)
 	if err != nil {
