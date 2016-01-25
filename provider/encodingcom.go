@@ -13,6 +13,7 @@ import (
 var ErrMissingData = InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY")
 
 type encodingComProvider struct {
+	config *config.Config
 	client *encodingcom.Client
 }
 
@@ -94,5 +95,5 @@ func EncodingComProvider(cfg *config.Config) (TranscodingProvider, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &encodingComProvider{client: client}, nil
+	return &encodingComProvider{client: client, config: cfg}, nil
 }

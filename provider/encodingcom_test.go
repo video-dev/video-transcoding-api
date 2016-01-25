@@ -30,6 +30,9 @@ func TestFactory(t *testing.T) {
 	if !reflect.DeepEqual(*ecomProvider.client, expected) {
 		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, *ecomProvider.client)
 	}
+	if !reflect.DeepEqual(*ecomProvider.config, cfg) {
+		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", cfg, *ecomProvider.config)
+	}
 }
 
 func TestFactoryValidation(t *testing.T) {
