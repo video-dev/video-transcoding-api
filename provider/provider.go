@@ -16,14 +16,21 @@ type TranscodingProvider interface {
 // provider.
 type Factory func(cfg *config.Config) (TranscodingProvider, error)
 
+// InvalidConfigError is returned if a provider could not be configured properly
+type InvalidConfigError string
+
+func (err InvalidConfigError) Error() string {
+	return string(err)
+}
+
 // JobStatus is the representation of the status as the provide sees it. The
 // provider is able to add customized information in the ProviderStatus field.
 type JobStatus struct {
-	ProviderJobID  string
-	Status         status
-	ProviderName   string
-	StatusMessage  string
-	ProviderStatus map[string]interface{}
+	ProviderJobID  string                 `json:"providerJobId,omitempty"`
+	Status         status                 `json:"status,omitempty"`
+	ProviderName   string                 `json:"providerName,omitempty"`
+	StatusMessage  string                 `json:"statusMessage,omitempty"`
+	ProviderStatus map[string]interface{} `json:"providerStatus,omitempty"`
 }
 
 type status string

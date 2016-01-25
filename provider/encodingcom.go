@@ -10,7 +10,7 @@ import (
 
 // ErrMissingData is the error returned by the factory when required data is
 // missing.
-var ErrMissingData = errors.New("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY")
+var ErrMissingData = InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY")
 
 type encodingComProvider struct {
 	client *encodingcom.Client
