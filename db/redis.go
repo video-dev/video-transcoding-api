@@ -55,7 +55,19 @@ func (r *redisRepository) DeleteJob(job *Job) error {
 }
 
 func (r *redisRepository) GetJob(id string) (*Job, error) {
-	return nil, nil
+	result, err := r.redisClient().HGetAllMap(r.jobKey(&Job{ID: id})).Result()
+	if err != nil {
+		return nil, err
+	}
+	if len(result) == 0 {
+		return nil, ErrJobNotFound
+	}
+	return &Job{
+		ID:            id,
+		ProviderJobID: result["providerJobID"],
+		ProviderName:  result["providerName"],
+		Status:        result["status"],
+	}, nil
 }
 
 func (r *redisRepository) jobKey(j *Job) string {

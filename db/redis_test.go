@@ -157,6 +157,47 @@ func TestDeleteJobNotFound(t *testing.T) {
 	}
 }
 
+func TestGetJob(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisJobRepository(&config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: "myjob", Status: "Downloading"}
+	err = repo.SaveJob(&job)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotJob, err := repo.GetJob(job.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(*gotJob, job) {
+		t.Errorf("Wrong job. Want %#v. Got %#v.", job, *gotJob)
+	}
+}
+
+func TestGetJobNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisJobRepository(&config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotJob, err := repo.GetJob("job:myjob")
+	if err != ErrJobNotFound {
+		t.Errorf("Wrong error returned. Want ErrJobNotFound. Got %#v.", err)
+	}
+	if gotJob != nil {
+		t.Errorf("Unexpected non-nil job: %#v.", gotJob)
+	}
+}
+
 func cleanRedis() error {
 	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
