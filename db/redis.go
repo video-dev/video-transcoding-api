@@ -1,0 +1,65 @@
+package db
+
+import (
+	"crypto/rand"
+	"fmt"
+	"io"
+
+	"github.com/nytm/video-transcoding-api/config"
+	"gopkg.in/redis.v3"
+)
+
+type redisRepository struct {
+	config *config.Config
+	client *redis.Client
+}
+
+// NewRedisJobRepository creates a new JobRepository that uses Redis for
+// persistence.
+func NewRedisJobRepository(cfg *config.Config) (JobRepository, error) {
+	return &redisRepository{config: cfg}, nil
+}
+
+func (r *redisRepository) SaveJob(job *Job) error {
+	if job.ID == "" {
+		jobID, err := r.generateID()
+		if err != nil {
+			return err
+		}
+		job.ID = jobID
+	}
+	jobKey := "job:" + job.ID
+	pipeline := r.redisClient().Pipeline()
+	pipeline.HSet(jobKey, "providerName", job.ProviderName)
+	pipeline.HSet(jobKey, "providerJobID", job.ProviderJobID)
+	pipeline.HSet(jobKey, "status", job.Status)
+	_, err := pipeline.Exec()
+	return err
+}
+
+func (r *redisRepository) DeleteJob(job *Job) error {
+	return nil
+}
+
+func (r *redisRepository) GetJob(id string) (*Job, error) {
+	return nil, nil
+}
+
+func (r *redisRepository) generateID() (string, error) {
+	var raw [8]byte
+	n, err := rand.Read(raw[:])
+	if err != nil {
+		return "", err
+	}
+	if n != 8 {
+		return "", io.ErrShortWrite
+	}
+	return fmt.Sprintf("%x", raw), nil
+}
+
+func (r *redisRepository) redisClient() *redis.Client {
+	if r.client == nil {
+		r.client = r.config.RedisClient()
+	}
+	return r.client
+}
