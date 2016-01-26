@@ -29,11 +29,16 @@ func (r *redisRepository) SaveJob(job *Job) error {
 		job.ID = jobID
 	}
 	jobKey := "job:" + job.ID
-	pipeline := r.redisClient().Pipeline()
-	pipeline.HSet(jobKey, "providerName", job.ProviderName)
-	pipeline.HSet(jobKey, "providerJobID", job.ProviderJobID)
-	pipeline.HSet(jobKey, "status", job.Status)
-	_, err := pipeline.Exec()
+	multi, err := r.redisClient().Watch(jobKey)
+	if err != nil {
+		return err
+	}
+	_, err = multi.Exec(func() error {
+		multi.HSet(jobKey, "providerName", job.ProviderName)
+		multi.HSet(jobKey, "providerJobID", job.ProviderJobID)
+		multi.HSet(jobKey, "status", job.Status)
+		return nil
+	})
 	return err
 }
 

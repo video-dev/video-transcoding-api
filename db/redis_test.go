@@ -2,6 +2,7 @@ package db
 
 import (
 	"reflect"
+	"sync"
 	"testing"
 
 	"github.com/nytm/video-transcoding-api/config"
@@ -88,6 +89,31 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	if !reflect.DeepEqual(jobMap, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, jobMap)
 	}
+}
+
+func TestSaveJobIsSafe(t *testing.T) {
+	jobs := []Job{
+		{ID: "abcabc", Status: "Downloading", ProviderName: "elastictranscoder"},
+		{ID: "abcabc", Status: "Downloaded", ProviderJobID: "abf-123", ProviderName: "encoding.com"},
+		{ID: "abcabc", Status: "Finished", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
+		{ID: "abcabc", Status: "Failed", ProviderJobID: "ff12", ProviderName: "encoding.com"},
+	}
+	repo, err := NewRedisJobRepository(&config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var wg sync.WaitGroup
+	for i := 0; i < 8; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			err = repo.SaveJob(&jobs[i])
+			if err != nil && err != redis.TxFailedErr {
+				t.Error(err)
+			}
+		}(i % len(jobs))
+	}
+	wg.Wait()
 }
 
 func cleanRedis() error {
