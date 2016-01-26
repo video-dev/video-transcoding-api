@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io"
+	"strings"
 
 	"github.com/nytm/video-transcoding-api/config"
 	"gopkg.in/redis.v3"
@@ -64,7 +65,26 @@ func (r *redisRepository) generateID() (string, error) {
 
 func (r *redisRepository) redisClient() *redis.Client {
 	if r.client == nil {
-		r.client = r.config.RedisClient()
+		var sentinelAddrs []string
+		if r.config.SentinelAddrs != "" {
+			sentinelAddrs = strings.Split(r.config.SentinelAddrs, ",")
+		}
+		if len(sentinelAddrs) > 0 {
+			r.client = redis.NewFailoverClient(&redis.FailoverOptions{
+				SentinelAddrs: sentinelAddrs,
+				MasterName:    r.config.SentinelMasterName,
+				Password:      r.config.Password,
+			})
+		} else {
+			redisAddr := r.config.RedisAddr
+			if redisAddr == "" {
+				redisAddr = "127.0.0.1:6379"
+			}
+			r.client = redis.NewClient(&redis.Options{
+				Addr:     redisAddr,
+				Password: r.config.Password,
+			})
+		}
 	}
 	return r.client
 }
