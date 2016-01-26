@@ -29,7 +29,7 @@ func (r *redisRepository) SaveJob(job *Job) error {
 		}
 		job.ID = jobID
 	}
-	jobKey := "job:" + job.ID
+	jobKey := r.jobKey(job)
 	multi, err := r.redisClient().Watch(jobKey)
 	if err != nil {
 		return err
@@ -44,11 +44,22 @@ func (r *redisRepository) SaveJob(job *Job) error {
 }
 
 func (r *redisRepository) DeleteJob(job *Job) error {
+	n, err := r.redisClient().Del(r.jobKey(job)).Result()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return ErrJobNotFound
+	}
 	return nil
 }
 
 func (r *redisRepository) GetJob(id string) (*Job, error) {
 	return nil, nil
+}
+
+func (r *redisRepository) jobKey(j *Job) string {
+	return "job:" + j.ID
 }
 
 func (r *redisRepository) generateID() (string, error) {

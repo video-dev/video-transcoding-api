@@ -89,6 +89,10 @@ func TestSaveJobPredefinedID(t *testing.T) {
 }
 
 func TestSaveJobIsSafe(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
 	jobs := []Job{
 		{ID: "abcabc", Status: "Downloading", ProviderName: "elastictranscoder"},
 		{ID: "abcabc", Status: "Downloaded", ProviderJobID: "abf-123", ProviderName: "encoding.com"},
@@ -111,6 +115,46 @@ func TestSaveJobIsSafe(t *testing.T) {
 		}(i % len(jobs))
 	}
 	wg.Wait()
+}
+
+func TestDeleteJob(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisJobRepository(&config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := Job{ID: "myjob", Status: "Downloading"}
+	err = repo.SaveJob(&job)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeleteJob(&Job{ID: job.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := repo.(*redisRepository).redisClient()
+	result := client.HGetAllMap("job:myjob")
+	if len(result.Val()) != 0 {
+		t.Errorf("Unexpected value after delete call: %v", result.Val())
+	}
+}
+
+func TestDeleteJobNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisJobRepository(&config.Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeleteJob(&Job{ID: "myjob"})
+	if err != ErrJobNotFound {
+		t.Errorf("Wrong error returned by DeleteJob. Want ErrJobNotFound. Got %#v.", err)
+	}
 }
 
 func cleanRedis() error {
