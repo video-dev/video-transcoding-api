@@ -77,24 +77,14 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	}
 	client := repo.(*redisRepository).redisClient()
 	defer client.Close()
-	items, err := client.HGetAll("job:myjob").Result()
-	if err != nil {
-		t.Fatal(err)
-	}
-	jobMap := make(map[string]string)
-	for i, item := range items {
-		switch item {
-		case "providerName", "providerJobID", "status":
-			jobMap[item] = items[i+1]
-		}
-	}
+	items, err := client.HGetAllMap("job:myjob").Result()
 	expected := map[string]string{
 		"providerName":  "encoding.com",
 		"providerJobID": "",
 		"status":        "Downloaded",
 	}
-	if !reflect.DeepEqual(jobMap, expected) {
-		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, jobMap)
+	if !reflect.DeepEqual(items, expected) {
+		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
 	}
 }
 
