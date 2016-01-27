@@ -207,7 +207,7 @@ func TestTranscode(t *testing.T) {
 		})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
-			db:     &fakeDBObj,
+			db:     fakeDBObj,
 			providers: map[string]provider.Factory{
 				"fake": fakeProviderFactory,
 			},

@@ -63,8 +63,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	}
 	jobStatus.ProviderName = reqObject.Provider
 
-	jobDB := *s.db
-	err = jobDB.SaveJob(&db.Job{
+	err = s.db.SaveJob(&db.Job{
 		ProviderName:  jobStatus.ProviderName,
 		ProviderJobID: jobStatus.ProviderJobID,
 		Status:        "finished",
@@ -77,8 +76,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 
 func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{}, error) {
 	jobID := mux.Vars(r)["jobId"]
-	jobDB := *s.db
-	job, err := jobDB.GetJob(jobID)
+	job, err := s.db.GetJob(jobID)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
 		if _, ok := err.(db.ErrJobNotFound); ok {

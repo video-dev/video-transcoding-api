@@ -16,7 +16,7 @@ import (
 // to the server.
 type TranscodingService struct {
 	config    *config.Config
-	db        *db.JobRepository
+	db        db.JobRepository
 	providers map[string]provider.Factory
 }
 
@@ -29,7 +29,7 @@ func NewTranscodingService(cfg *config.Config) *TranscodingService {
 	}
 	return &TranscodingService{
 		config: cfg,
-		db:     &dbRepo,
+		db:     dbRepo,
 		providers: map[string]provider.Factory{
 			"encoding.com": provider.EncodingComProvider,
 		},
