@@ -82,6 +82,7 @@ func (d *fakeDB) SaveJob(job *db.Job) error {
 	if d.TriggerDBError {
 		return fmt.Errorf("Database error")
 	}
+	job.ID = "12345"
 	return nil
 }
 
@@ -125,14 +126,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusOK,
 			map[string]interface{}{
-				"providerJobId": "provider-job-123",
-				"status":        "finished",
-				"providerName":  "fake",
-				"statusMessage": "The job is finished",
-				"providerStatus": map[string]interface{}{
-					"progress":   100.0,
-					"sourcefile": "http://some.source.file",
-				},
+				"jobId": "12345",
 			},
 		},
 		{

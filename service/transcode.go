@@ -63,15 +63,16 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	}
 	jobStatus.ProviderName = reqObject.Provider
 
-	err = s.db.SaveJob(&db.Job{
+	job := db.Job{
 		ProviderName:  jobStatus.ProviderName,
 		ProviderJobID: jobStatus.ProviderJobID,
 		Status:        "finished",
-	})
+	}
+	err = s.db.SaveJob(&job)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return 200, jobStatus, nil
+	return 200, map[string]string{"jobId": job.ID}, nil
 }
 
 func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{}, error) {
