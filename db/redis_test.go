@@ -152,7 +152,7 @@ func TestDeleteJobNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = repo.DeleteJob(&Job{ID: "myjob"})
-	if err != ErrJobNotFound {
+	if _, ok := err.(ErrJobNotFound); ok == false {
 		t.Errorf("Wrong error returned by DeleteJob. Want ErrJobNotFound. Got %#v.", err)
 	}
 }
@@ -190,7 +190,7 @@ func TestGetJobNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 	gotJob, err := repo.GetJob("job:myjob")
-	if err != ErrJobNotFound {
+	if _, ok := err.(ErrJobNotFound); ok == false {
 		t.Errorf("Wrong error returned. Want ErrJobNotFound. Got %#v.", err)
 	}
 	if gotJob != nil {

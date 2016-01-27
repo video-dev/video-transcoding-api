@@ -1,10 +1,12 @@
 package db
 
-import "errors"
-
 // ErrJobNotFound is the error returned when the job is not found on GetJob or
 // DeleteJob.
-var ErrJobNotFound = errors.New("job not found")
+type ErrJobNotFound string
+
+func (err ErrJobNotFound) Error() string {
+	return string(err)
+}
 
 // JobRepository is the interface that defines the method for managing Job
 // persistence.

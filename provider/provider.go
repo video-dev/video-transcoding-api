@@ -19,7 +19,14 @@ type Factory func(cfg *config.Config) (TranscodingProvider, error)
 // InvalidConfigError is returned if a provider could not be configured properly
 type InvalidConfigError string
 
+// JobIDNotFound is returned if a job with a given id could not be found by the provider
+type JobIDNotFound string
+
 func (err InvalidConfigError) Error() string {
+	return string(err)
+}
+
+func (err JobIDNotFound) Error() string {
 	return string(err)
 }
 

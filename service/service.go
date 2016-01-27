@@ -1,12 +1,14 @@
 package service
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/gziphandler"
 	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -14,14 +16,20 @@ import (
 // to the server.
 type TranscodingService struct {
 	config    *config.Config
+	db        *db.JobRepository
 	providers map[string]provider.Factory
 }
 
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config) *TranscodingService {
+	dbRepo, err := db.NewRedisJobRepository(cfg)
+	if err != nil {
+		log.Panicf("Error initializing Redis client: %s", err)
+	}
 	return &TranscodingService{
 		config: cfg,
+		db:     &dbRepo,
 		providers: map[string]provider.Factory{
 			"encoding.com": provider.EncodingComProvider,
 		},
@@ -69,7 +77,7 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		"/jobs": {
 			"POST": s.newTranscodeJob,
 		},
-		"/jobs/{jobID}": {
+		"/jobs/{jobId:[^/]+}": {
 			"GET": s.getTranscodeJob,
 		},
 	}

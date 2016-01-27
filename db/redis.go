@@ -18,6 +18,8 @@ type redisRepository struct {
 // NewRedisJobRepository creates a new JobRepository that uses Redis for
 // persistence.
 func NewRedisJobRepository(cfg *config.Config) (JobRepository, error) {
+	repo := &redisRepository{config: cfg}
+	repo.client = repo.redisClient()
 	return &redisRepository{config: cfg}, nil
 }
 
@@ -49,7 +51,7 @@ func (r *redisRepository) DeleteJob(job *Job) error {
 		return err
 	}
 	if n == 0 {
-		return ErrJobNotFound
+		return ErrJobNotFound("job not found")
 	}
 	return nil
 }
@@ -60,7 +62,7 @@ func (r *redisRepository) GetJob(id string) (*Job, error) {
 		return nil, err
 	}
 	if len(result) == 0 {
-		return nil, ErrJobNotFound
+		return nil, ErrJobNotFound("job not found")
 	}
 	return &Job{
 		ID:            id,
