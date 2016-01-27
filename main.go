@@ -13,11 +13,14 @@ func main() {
 	gizmoConfig.LoadEnvConfig(&cfg)
 
 	server.Init("video-transcoding-api", cfg.Server)
-	err := server.Register(service.NewTranscodingService(&cfg))
+	service, err := service.NewTranscodingService(&cfg)
+	if err != nil {
+		server.Log.Fatal("unable to initialize service: ", err)
+	}
+	err = server.Register(service)
 	if err != nil {
 		server.Log.Fatal("unable to register service: ", err)
 	}
-
 	err = server.Run()
 	if err != nil {
 		server.Log.Fatal("server encountered a fatal error: ", err)

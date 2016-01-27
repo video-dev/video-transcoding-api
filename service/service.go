@@ -1,7 +1,7 @@
 package service
 
 import (
-	"log"
+	"fmt"
 	"net/http"
 
 	"github.com/NYTimes/gizmo/server"
@@ -22,10 +22,10 @@ type TranscodingService struct {
 
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
-func NewTranscodingService(cfg *config.Config) *TranscodingService {
+func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
 	dbRepo, err := db.NewRedisJobRepository(cfg)
 	if err != nil {
-		log.Panicf("Error initializing Redis client: %s", err)
+		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}
 	return &TranscodingService{
 		config: cfg,
@@ -33,7 +33,7 @@ func NewTranscodingService(cfg *config.Config) *TranscodingService {
 		providers: map[string]provider.Factory{
 			"encoding.com": provider.EncodingComProvider,
 		},
-	}
+	}, nil
 }
 
 // Prefix returns the string prefix used for all endpoints within
