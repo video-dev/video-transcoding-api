@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/mux"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -51,14 +53,55 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		if _, ok := err.(provider.InvalidConfigError); ok {
 			statusCode = http.StatusBadRequest
 		}
-		return statusCode, nil, fmt.Errorf("Error initializing provider %s: %s", providerObj, err)
+		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %s %s", reqObject.Provider, providerObj, err)
 	}
 
 	jobStatus, err := providerObj.Transcode(reqObject.Source, reqObject.Destination, reqProfile)
+	if err != nil {
+		providerError := fmt.Errorf("Error with provider '%s': %s", reqObject.Provider, err)
+		return http.StatusInternalServerError, nil, providerError
+	}
 	jobStatus.ProviderName = reqObject.Provider
-	return 200, jobStatus, nil
+
+	job := db.Job{
+		ProviderName:  jobStatus.ProviderName,
+		ProviderJobID: jobStatus.ProviderJobID,
+		Status:        "finished",
+	}
+	err = s.db.SaveJob(&job)
+	if err != nil {
+		return http.StatusInternalServerError, nil, err
+	}
+	return 200, map[string]string{"jobId": job.ID}, nil
 }
 
 func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{}, error) {
-	return 0, nil, nil
+	jobID := mux.Vars(r)["jobId"]
+	job, err := s.db.GetJob(jobID)
+	if err != nil {
+		statusCode := http.StatusInternalServerError
+		if err == db.ErrJobNotFound {
+			statusCode = http.StatusNotFound
+		}
+		return statusCode, nil, fmt.Errorf("Error retrieving job with id '%s': %s", jobID, err)
+	}
+	providerFactory := s.providers[job.ProviderName]
+	if providerFactory == nil {
+		return http.StatusInternalServerError, nil, fmt.Errorf("Unknown provider '%s' for job id '%s'", job.ProviderName, jobID)
+	}
+	providerObj, err := providerFactory(s.config)
+	if err != nil {
+		return http.StatusInternalServerError, nil, fmt.Errorf("Error initializing provider '%s' on job id '%s': %s %s", job.ProviderName, jobID, providerObj, err)
+	}
+	jobStatus, err := providerObj.JobStatus(job.ProviderJobID)
+	if err != nil {
+		providerError := fmt.Errorf("Error with provider '%s' when trying to retrieve job id '%s': %s", job.ProviderName, jobID, err)
+		statusCode := http.StatusInternalServerError
+		if _, ok := err.(provider.JobNotFoundError); ok {
+			statusCode = http.StatusNotFound
+		}
+		return statusCode, nil, providerError
+	}
+	jobStatus.ProviderName = job.ProviderName
+	return 200, jobStatus, nil
 }

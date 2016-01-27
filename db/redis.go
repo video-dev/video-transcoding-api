@@ -18,6 +18,8 @@ type redisRepository struct {
 // NewRedisJobRepository creates a new JobRepository that uses Redis for
 // persistence.
 func NewRedisJobRepository(cfg *config.Config) (JobRepository, error) {
+	repo := &redisRepository{config: cfg}
+	repo.client = repo.redisClient()
 	return &redisRepository{config: cfg}, nil
 }
 
