@@ -67,7 +67,7 @@ func (e *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 			},
 		}, nil
 	}
-	return nil, provider.JobIDNotFound(fmt.Sprintf("Could not find job with id: %s", id))
+	return nil, provider.JobNotFoundError{ID: id}
 }
 
 func fakeProviderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {

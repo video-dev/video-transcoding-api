@@ -96,7 +96,7 @@ func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{},
 	if err != nil {
 		providerError := fmt.Errorf("Error with provider '%s' when trying to retrieve job id '%s': %s", job.ProviderName, jobID, err)
 		statusCode := http.StatusInternalServerError
-		if _, ok := err.(provider.JobIDNotFound); ok {
+		if _, ok := err.(provider.JobNotFoundError); ok {
 			statusCode = http.StatusNotFound
 		}
 		return statusCode, nil, providerError

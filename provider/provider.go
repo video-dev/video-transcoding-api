@@ -1,6 +1,10 @@
 package provider
 
-import "github.com/nytm/video-transcoding-api/config"
+import (
+	"fmt"
+
+	"github.com/nytm/video-transcoding-api/config"
+)
 
 // TranscodingProvider represents a provider of transcoding.
 //
@@ -19,15 +23,17 @@ type Factory func(cfg *config.Config) (TranscodingProvider, error)
 // InvalidConfigError is returned if a provider could not be configured properly
 type InvalidConfigError string
 
-// JobIDNotFound is returned if a job with a given id could not be found by the provider
-type JobIDNotFound string
+// JobNotFoundError is returned if a job with a given id could not be found by the provider
+type JobNotFoundError struct {
+	ID string
+}
 
 func (err InvalidConfigError) Error() string {
 	return string(err)
 }
 
-func (err JobIDNotFound) Error() string {
-	return string(err)
+func (err JobNotFoundError) Error() string {
+	return fmt.Sprintf("could not found job with id: %s", err.ID)
 }
 
 // JobStatus is the representation of the status as the provide sees it. The
