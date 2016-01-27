@@ -98,7 +98,7 @@ func (d *fakeDB) GetJob(id string) (*db.Job, error) {
 			Status:        "finished",
 		}, nil
 	}
-	return nil, db.ErrJobNotFound("job not found")
+	return nil, db.ErrJobNotFound
 }
 
 func TestTranscode(t *testing.T) {

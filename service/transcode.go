@@ -79,7 +79,7 @@ func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{},
 	job, err := s.db.GetJob(jobID)
 	if err != nil {
 		statusCode := http.StatusInternalServerError
-		if _, ok := err.(db.ErrJobNotFound); ok {
+		if err == db.ErrJobNotFound {
 			statusCode = http.StatusNotFound
 		}
 		return statusCode, nil, fmt.Errorf("Error retrieving job with id '%s': %s", jobID, err)

@@ -51,7 +51,7 @@ func (r *redisRepository) DeleteJob(job *Job) error {
 		return err
 	}
 	if n == 0 {
-		return ErrJobNotFound("job not found")
+		return ErrJobNotFound
 	}
 	return nil
 }
@@ -62,7 +62,7 @@ func (r *redisRepository) GetJob(id string) (*Job, error) {
 		return nil, err
 	}
 	if len(result) == 0 {
-		return nil, ErrJobNotFound("job not found")
+		return nil, ErrJobNotFound
 	}
 	return &Job{
 		ID:            id,
