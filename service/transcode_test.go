@@ -19,7 +19,7 @@ import (
 
 const testProfileString = `{
    "output":"webm",
-   "size":"0x360",
+   "size":{"height":360},
    "bitrate":"900k",
    "audio_bitrate":"64k",
    "audio_sample_rate":"48000",

@@ -3,7 +3,6 @@ package provider
 import (
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type rotation struct {
@@ -76,27 +75,4 @@ type Size struct {
 
 func (s *Size) String() string {
 	return fmt.Sprintf("%dx%d", s.Width, s.Height)
-}
-
-// UnmarshalJSON for Size will parse a Size struct out of given slice of bytes
-func (s *Size) UnmarshalJSON(b []byte) error {
-	sizeString, err := strconv.Unquote(string(b))
-	if err != nil {
-		return fmt.Errorf("Size expression needs quotes")
-	}
-	sizeSlice := strings.Split(sizeString, "x")
-	if len(sizeSlice) != 2 {
-		return fmt.Errorf("Size expression is invalid (needs to be NxN): %s", sizeString)
-	}
-	width, err := strconv.ParseUint(sizeSlice[0], 10, 64)
-	if err != nil {
-		return fmt.Errorf("Size expression has invalid width: %s", sizeSlice[0])
-	}
-	height, err := strconv.ParseUint(sizeSlice[1], 10, 64)
-	if err != nil {
-		return fmt.Errorf("Size expression has invalid height: %s", sizeSlice[1])
-	}
-	s.Width = width
-	s.Height = height
-	return nil
 }
