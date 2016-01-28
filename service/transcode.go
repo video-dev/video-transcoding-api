@@ -49,7 +49,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		if _, ok := err.(provider.InvalidConfigError); ok {
 			statusCode = http.StatusBadRequest
 		}
-		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %s %s", reqObject.Provider, providerObj, err)
+		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %v %s", reqObject.Provider, providerObj, err)
 	}
 
 	jobStatus, err := providerObj.Transcode(reqObject.Source, reqProfile)
