@@ -28,6 +28,7 @@ type Redis struct {
 // EncodingCom represents the set of configurations for the Encoding.com
 // provider.
 type EncodingCom struct {
-	UserID  string `envconfig:"ENCODINGCOM_USER_ID"`
-	UserKey string `envconfig:"ENCODINGCOM_USER_KEY"`
+	UserID      string `envconfig:"ENCODINGCOM_USER_ID"`
+	UserKey     string `envconfig:"ENCODINGCOM_USER_KEY"`
+	Destination string `envconfig:"ENCODINGCOM_DESTINATION"`
 }

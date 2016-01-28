@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 	"strconv"
+	"strings"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
@@ -17,14 +18,20 @@ type encodingComProvider struct {
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) Transcode(sourceMedia, destination string, profile Profile) (*JobStatus, error) {
+func (e *encodingComProvider) Transcode(sourceMedia string, profile Profile) (*JobStatus, error) {
 	format := e.profileToFormat(profile)
-	format.Destination = []string{destination}
+	format.Destination = []string{e.getDestination(sourceMedia)}
 	resp, err := e.client.AddMedia([]string{sourceMedia}, format)
 	if err != nil {
 		return nil, err
 	}
 	return &JobStatus{ProviderJobID: resp.MediaID, StatusMessage: resp.Message}, nil
+}
+
+func (e *encodingComProvider) getDestination(sourceMedia string) string {
+	sourceParts := strings.Split(sourceMedia, "/")
+	lastPart := sourceParts[len(sourceParts)-1]
+	return strings.TrimRight(e.config.Destination, "/") + "/" + lastPart
 }
 
 func (e *encodingComProvider) profileToFormat(profile Profile) *encodingcom.Format {

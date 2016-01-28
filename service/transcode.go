@@ -12,10 +12,9 @@ import (
 )
 
 type newTranscodeRequest struct {
-	Source      string
-	Destination string
-	Profile     string
-	Provider    string
+	Source   string
+	Profile  string
+	Provider string
 }
 
 func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{}, error) {
@@ -30,9 +29,6 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	}
 	if reqObject.Source == "" {
 		return http.StatusBadRequest, nil, fmt.Errorf("Missing source from request")
-	}
-	if reqObject.Destination == "" {
-		return http.StatusBadRequest, nil, fmt.Errorf("Missing destination from request")
 	}
 	if reqObject.Profile == "" {
 		return http.StatusBadRequest, nil, fmt.Errorf("Missing profile from request")
@@ -56,7 +52,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %s %s", reqObject.Provider, providerObj, err)
 	}
 
-	jobStatus, err := providerObj.Transcode(reqObject.Source, reqObject.Destination, reqProfile)
+	jobStatus, err := providerObj.Transcode(reqObject.Source, reqProfile)
 	if err != nil {
 		providerError := fmt.Errorf("Error with provider '%s': %s", reqObject.Provider, err)
 		return http.StatusInternalServerError, nil, providerError

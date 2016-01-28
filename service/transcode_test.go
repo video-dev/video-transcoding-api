@@ -17,7 +17,7 @@ import (
 	"github.com/rcrowley/go-metrics"
 )
 
-const testProfileString = `{  
+const testProfileString = `{
    "output":"webm",
    "size":"0x360",
    "bitrate":"900k",
@@ -43,7 +43,7 @@ const testProfileString = `{
 
 type fakeProvider struct{}
 
-func (e *fakeProvider) Transcode(sourceMedia string, destination string, profile provider.Profile) (*provider.JobStatus, error) {
+func (e *fakeProvider) Transcode(sourceMedia string, profile provider.Profile) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderJobID: "provider-job-123",
 		Status:        provider.StatusFinished,

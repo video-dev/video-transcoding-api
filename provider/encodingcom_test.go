@@ -64,9 +64,15 @@ func TestEncodingComTranscode(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
-	provider := encodingComProvider{client: client}
+	provider := encodingComProvider{
+		client: client,
+		config: &config.Config{
+			EncodingCom: config.EncodingCom{
+				Destination: "https://mybucket.s3.amazonaws.com/destination-dir/",
+			},
+		},
+	}
 	source := "http://some.nice/video.mp4"
-	destination := "http://some.nice.transcoded/video.mp4"
 	profile := Profile{
 		Output:              "webm",
 		Size:                Size{Height: 360},
@@ -82,7 +88,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		AudioVolume:         100,
 		TwoPassEncoding:     true,
 	}
-	jobStatus, err := provider.Transcode(source, destination, profile)
+	jobStatus, err := provider.Transcode(source, profile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +101,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	expectedFormat := encodingcom.Format{
 		Output:              []string{"webm"},
-		Destination:         []string{destination},
+		Destination:         []string{provider.config.Destination + "video.mp4"},
 		Size:                "0x360",
 		AudioCodec:          "libvorbis",
 		AudioBitrate:        "64k",

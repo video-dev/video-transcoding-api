@@ -12,7 +12,7 @@ import (
 // Job. The underlying provider should handle the profileSpec as deisired (it
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
-	Transcode(sourceMedia, destination string, profile Profile) (*JobStatus, error)
+	Transcode(sourceMedia string, profile Profile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
 }
 
