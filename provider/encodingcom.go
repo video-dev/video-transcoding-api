@@ -89,10 +89,10 @@ func (e *encodingComProvider) statusMap(encodingComStatus string) status {
 
 // EncodingComProvider is the factory function for the Encoding.com provider.
 func EncodingComProvider(cfg *config.Config) (TranscodingProvider, error) {
-	if cfg.EncodingComUserID == "" || cfg.EncodingComUserKey == "" {
+	if cfg.EncodingCom.UserID == "" || cfg.EncodingCom.UserKey == "" {
 		return nil, ErrMissingData
 	}
-	client, err := encodingcom.NewClient("https://manage.encoding.com", cfg.EncodingComUserID, cfg.EncodingComUserKey)
+	client, err := encodingcom.NewClient("https://manage.encoding.com", cfg.EncodingCom.UserID, cfg.EncodingCom.UserKey)
 	if err != nil {
 		return nil, err
 	}

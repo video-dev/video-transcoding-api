@@ -11,8 +11,10 @@ import (
 
 func TestFactory(t *testing.T) {
 	cfg := config.Config{
-		EncodingComUserID:  "myuser",
-		EncodingComUserKey: "secret-key",
+		EncodingCom: config.EncodingCom{
+			UserID:  "myuser",
+			UserKey: "secret-key",
+		},
 	}
 	provider, err := EncodingComProvider(&cfg)
 	if err != nil {
@@ -45,7 +47,9 @@ func TestFactoryValidation(t *testing.T) {
 		{"myuser", ""},
 	}
 	for _, test := range tests {
-		cfg := config.Config{EncodingComUserID: test.userID, EncodingComUserKey: test.userKey}
+		cfg := config.Config{
+			EncodingCom: config.EncodingCom{UserID: test.userID, UserKey: test.userKey},
+		}
 		provider, err := EncodingComProvider(&cfg)
 		if provider != nil {
 			t.Errorf("Unexpected non-nil provider: %#v", provider)

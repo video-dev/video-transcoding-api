@@ -8,9 +8,7 @@ type Config struct {
 	*config.Server
 	*config.S3
 	RedisConfig
-
-	EncodingComUserID  string `envconfig:"ENCODINGCOM_USER_ID"`
-	EncodingComUserKey string `envconfig:"ENCODINGCOM_USER_KEY"`
+	EncodingCom
 }
 
 // RedisConfig represents the Redis configuration. RedisAddr and SentinelAddrs
@@ -25,4 +23,11 @@ type RedisConfig struct {
 
 	RedisAddr string `envconfig:"REDIS_ADDR"`
 	Password  string `envconfig:"REDIS_PASSWORD"`
+}
+
+// EncodingCom represents the set of configurations for the Encoding.com
+// provider.
+type EncodingCom struct {
+	UserID  string `envconfig:"ENCODINGCOM_USER_ID"`
+	UserKey string `envconfig:"ENCODINGCOM_USER_KEY"`
 }
