@@ -64,6 +64,8 @@ type Profile struct {
 	KeyFrame    string
 	AudioVolume uint
 	Rotate      rotation
+
+	TwoPassEncoding bool
 }
 
 // Size represents the size of the media in pixels.
