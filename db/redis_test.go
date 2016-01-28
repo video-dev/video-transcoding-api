@@ -232,7 +232,7 @@ func TestRedisClientRedisAddr(t *testing.T) {
 	}
 	defer proc.Signal(os.Interrupt)
 	cfg := config.Config{
-		RedisConfig: config.RedisConfig{
+		Redis: config.Redis{
 			RedisAddr: "127.0.0.1:49153",
 			Password:  "not-secret",
 		},
@@ -256,7 +256,7 @@ func TestRedisClientRedisSentinel(t *testing.T) {
 	}
 	defer cleanup()
 	cfg := config.Config{
-		RedisConfig: config.RedisConfig{
+		Redis: config.Redis{
 			SentinelAddrs:      "127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381",
 			SentinelMasterName: "mymaster",
 		},

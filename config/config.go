@@ -7,14 +7,14 @@ import "github.com/NYTimes/gizmo/config"
 type Config struct {
 	*config.Server
 	*config.S3
-	RedisConfig
+	Redis
 	EncodingCom
 }
 
-// RedisConfig represents the Redis configuration. RedisAddr and SentinelAddrs
+// Redis represents the Redis configuration. RedisAddr and SentinelAddrs
 // configs are exclusive, and the API will prefer to use SentinelAddrs when
 // both are defined.
-type RedisConfig struct {
+type Redis struct {
 	// Comma-separated list of sentinel servers.
 	//
 	// Example: 10.10.10.10:6379,10.10.10.1:6379,10.10.10.2:6379.
