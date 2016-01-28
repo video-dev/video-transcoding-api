@@ -71,12 +71,13 @@ func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
 		ProviderName:  "encoding.com",
 		Status:        e.statusMap(resp[0].MediaStatus),
 		ProviderStatus: map[string]interface{}{
-			"progress":   resp[0].Progress,
-			"sourcefile": resp[0].SourceFile,
-			"timeleft":   resp[0].TimeLeft,
-			"created":    resp[0].CreateDate,
-			"started":    resp[0].StartDate,
-			"finished":   resp[0].FinishDate,
+			"progress":          resp[0].Progress,
+			"sourcefile":        resp[0].SourceFile,
+			"timeleft":          resp[0].TimeLeft,
+			"created":           resp[0].CreateDate,
+			"started":           resp[0].StartDate,
+			"finished":          resp[0].FinishDate,
+			"destinationStatus": resp[0].Formats[0].Destinations,
 		},
 	}, nil
 }

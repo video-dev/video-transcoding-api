@@ -169,12 +169,13 @@ func TestJobStatus(t *testing.T) {
 		Status:        StatusFinished,
 		StatusMessage: "",
 		ProviderStatus: map[string]interface{}{
-			"progress":   100.0,
-			"sourcefile": "http://some.source.file",
-			"timeleft":   "1",
-			"created":    media.Created,
-			"started":    media.Started,
-			"finished":   media.Finished,
+			"progress":          100.0,
+			"sourcefile":        "http://some.source.file",
+			"timeleft":          "1",
+			"created":           media.Created,
+			"started":           media.Started,
+			"finished":          media.Finished,
+			"destinationStatus": []encodingcom.DestinationStatus(nil),
 		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
