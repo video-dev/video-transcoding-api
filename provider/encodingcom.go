@@ -82,12 +82,12 @@ func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
 }
 
 func (e *encodingComProvider) statusMap(encodingComStatus string) status {
-	switch encodingComStatus {
-	case "New":
+	switch strings.ToLower(encodingComStatus) {
+	case "new":
 		return StatusQueued
-	case "Downloading", "Ready to process", "Waiting for encoder", "Processing", "Saving":
+	case "downloading", "ready to process", "waiting for encoder", "processing", "saving":
 		return StatusStarted
-	case "Finished":
+	case "finished":
 		return StatusFinished
 	default:
 		return StatusFailed

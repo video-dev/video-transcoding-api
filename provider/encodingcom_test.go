@@ -210,6 +210,15 @@ func TestJobStatusMap(t *testing.T) {
 		{"Finished", StatusFinished},
 		{"Error", StatusFailed},
 		{"Unknown", StatusFailed},
+		{"new", StatusQueued},
+		{"downloading", StatusStarted},
+		{"ready to process", StatusStarted},
+		{"waiting for encoder", StatusStarted},
+		{"processing", StatusStarted},
+		{"saving", StatusStarted},
+		{"finished", StatusFinished},
+		{"error", StatusFailed},
+		{"unknown", StatusFailed},
 	}
 	var p encodingComProvider
 	for _, test := range tests {
