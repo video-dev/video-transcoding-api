@@ -1,6 +1,5 @@
 {
     "HTTPPort": 8080,
-    "Log": "app.log",
     "HTTPAccessLog": "access.log",
     "MongoDB": {
       "Hosts": "localhost:27017",
