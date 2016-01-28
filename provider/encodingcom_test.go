@@ -76,6 +76,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		VideoCodec:          "libvpx",
 		KeyFrame:            "90",
 		AudioVolume:         100,
+		TwoPassEncoding:     true,
 	}
 	jobStatus, err := provider.Transcode(source, destination, profile)
 	if err != nil {
@@ -102,6 +103,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		VideoCodec:          "libvpx",
 		Keyframe:            []string{"90"},
 		AudioVolume:         100,
+		TwoPass:             encodingcom.YesNoBoolean(true),
 		Rotate:              "def",
 	}
 	if !reflect.DeepEqual(*media.Request.Format, expectedFormat) {

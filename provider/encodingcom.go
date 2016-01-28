@@ -41,6 +41,7 @@ func (e *encodingComProvider) profileToFormat(profile Profile) *encodingcom.Form
 		VideoCodec:          profile.VideoCodec,
 		Keyframe:            []string{profile.KeyFrame},
 		AudioVolume:         profile.AudioVolume,
+		TwoPass:             encodingcom.YesNoBoolean(profile.TwoPassEncoding),
 	}
 	if profile.Rotate.set {
 		format.Rotate = strconv.FormatUint(uint64(profile.Rotate.value), 10)
