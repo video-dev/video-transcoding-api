@@ -32,3 +32,14 @@ type EncodingCom struct {
 	UserKey     string `envconfig:"ENCODINGCOM_USER_KEY"`
 	Destination string `envconfig:"ENCODINGCOM_DESTINATION"`
 }
+
+// LoadConfigFromEnv loads the configuration of the API using environment
+// variables.
+func LoadConfigFromEnv() *Config {
+	var cfg Config
+	config.LoadJSONFile("./config.json", &cfg)
+	config.LoadEnvConfig(&cfg)
+	config.LoadEnvConfig(&cfg.Redis)
+	config.LoadEnvConfig(&cfg.EncodingCom)
+	return &cfg
+}

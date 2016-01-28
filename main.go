@@ -1,19 +1,16 @@
 package main
 
 import (
-	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/service"
 )
 
 func main() {
-	var cfg config.Config
-	gizmoConfig.LoadJSONFile("./config.json", &cfg)
-	gizmoConfig.LoadEnvConfig(&cfg)
+	cfg := config.LoadConfigFromEnv()
 
 	server.Init("video-transcoding-api", cfg.Server)
-	service, err := service.NewTranscodingService(&cfg)
+	service, err := service.NewTranscodingService(cfg)
 	if err != nil {
 		server.Log.Fatal("unable to initialize service: ", err)
 	}
