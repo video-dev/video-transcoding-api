@@ -7,8 +7,8 @@ import "github.com/NYTimes/gizmo/config"
 type Config struct {
 	*config.Server
 	*config.S3
-	Redis
-	EncodingCom
+	Redis       *Redis
+	EncodingCom *EncodingCom
 }
 
 // Redis represents the Redis configuration. RedisAddr and SentinelAddrs
@@ -33,13 +33,20 @@ type EncodingCom struct {
 	Destination string `envconfig:"ENCODINGCOM_DESTINATION"`
 }
 
-// LoadConfigFromEnv loads the configuration of the API using environment
-// variables.
-func LoadConfigFromEnv() *Config {
+// LoadConfig loads the configuration of the API using the provided file and
+// environment variables. It will override settings defined in the file with
+// the value of environment variables.
+func LoadConfig(fileName string) *Config {
 	var cfg Config
-	config.LoadJSONFile("./config.json", &cfg)
+	config.LoadJSONFile(fileName, &cfg)
 	config.LoadEnvConfig(&cfg)
-	config.LoadEnvConfig(&cfg.Redis)
-	config.LoadEnvConfig(&cfg.EncodingCom)
+	if cfg.Redis == nil {
+		cfg.Redis = new(Redis)
+	}
+	if cfg.EncodingCom == nil {
+		cfg.EncodingCom = new(EncodingCom)
+	}
+	config.LoadEnvConfig(cfg.Redis)
+	config.LoadEnvConfig(cfg.EncodingCom)
 	return &cfg
 }

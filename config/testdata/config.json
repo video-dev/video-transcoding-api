@@ -1,0 +1,15 @@
+{
+    "HTTPPort": 8090,
+    "HTTPAccessLog": "/var/log/myapp/access.log",
+    "Redis": {
+	    "SentinelAddrs": "127.0.0.1:26379,127.0.0.2:26379,127.0.0.3:26379",
+	    "SentinelMasterName": "mymaster",
+	    "RedisAddr": "127.0.0.1:6379",
+	    "Password": "secret"
+    },
+    "EncodingCom": {
+	    "UserID": "myuser",
+	    "UserKey": "superkey",
+	    "Destination": "http://nice-destination"
+    }
+}
