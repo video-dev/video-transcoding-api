@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	cfg := config.LoadConfigFromEnv()
+	cfg := config.LoadConfig("./config.json")
 
 	server.Init("video-transcoding-api", cfg.Server)
 	service, err := service.NewTranscodingService(cfg)
