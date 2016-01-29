@@ -21,8 +21,10 @@ type Redis struct {
 	SentinelAddrs      string `envconfig:"SENTINEL_ADDRS"`
 	SentinelMasterName string `envconfig:"SENTINEL_MASTER_NAME"`
 
-	RedisAddr string `envconfig:"REDIS_ADDR"`
-	Password  string `envconfig:"REDIS_PASSWORD"`
+	RedisAddr   string `envconfig:"REDIS_ADDR"`
+	Password    string `envconfig:"REDIS_PASSWORD"`
+	PoolSize    int    `envconfig:"REDIS_POOL_SIZE"`
+	PoolTimeout int    `envconfig:"REDIS_POOL_TIMEOUT_SECONDS"`
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com

@@ -22,6 +22,8 @@ func TestLoadConfigFromFile(t *testing.T) {
 			SentinelMasterName: "mymaster",
 			RedisAddr:          "127.0.0.1:6379",
 			Password:           "secret",
+			PoolSize:           90,
+			PoolTimeout:        5,
 		},
 		EncodingCom: &EncodingCom{
 			UserID:      "myuser",
@@ -42,13 +44,15 @@ func TestLoadConfigFromFile(t *testing.T) {
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	setEnvs(map[string]string{
-		"SENTINEL_ADDRS":          "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-		"SENTINEL_MASTER_NAME":    "supermaster",
-		"REDIS_ADDR":              "localhost:6379",
-		"REDIS_PASSWORD":          "super-secret",
-		"ENCODINGCOM_USER_ID":     "myuser",
-		"ENCODINGCOM_USER_KEY":    "secret-key",
-		"ENCODINGCOM_DESTINATION": "https://safe-stuff",
+		"SENTINEL_ADDRS":             "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
+		"SENTINEL_MASTER_NAME":       "supermaster",
+		"REDIS_ADDR":                 "localhost:6379",
+		"REDIS_PASSWORD":             "super-secret",
+		"REDIS_POOL_SIZE":            "100",
+		"REDIS_POOL_TIMEOUT_SECONDS": "10",
+		"ENCODINGCOM_USER_ID":        "myuser",
+		"ENCODINGCOM_USER_KEY":       "secret-key",
+		"ENCODINGCOM_DESTINATION":    "https://safe-stuff",
 	})
 	fileName := "testdata/empty.json"
 	cfg := LoadConfig(fileName)
@@ -58,6 +62,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			SentinelMasterName: "supermaster",
 			RedisAddr:          "localhost:6379",
 			Password:           "super-secret",
+			PoolSize:           100,
+			PoolTimeout:        10,
 		},
 		EncodingCom: &EncodingCom{
 			UserID:      "myuser",
@@ -93,6 +99,8 @@ func TestLoadConfigOverride(t *testing.T) {
 			SentinelMasterName: "mymaster",
 			RedisAddr:          "127.0.0.1:6379",
 			Password:           "super-secret",
+			PoolSize:           90,
+			PoolTimeout:        5,
 		},
 		EncodingCom: &EncodingCom{
 			UserID:      "myuser",
@@ -115,7 +123,7 @@ func cleanEnvs() {
 	envs := []string{
 		"SENTINEL_ADDRS", "SENTINEL_MASTER_NAME", "REDIS_ADDR",
 		"REDIS_PASSWORD", "ENCODINGCOM_USER_ID", "ENCODINGCOM_USER_KEY",
-		"ENCODINGCOM_DESTINATION",
+		"ENCODINGCOM_DESTINATION", "REDIS_POOL_SIZE", "REDIS_POOL_TIMEOUT_SECONDS",
 	}
 	for _, env := range envs {
 		os.Unsetenv(env)
