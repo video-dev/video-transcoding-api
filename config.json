@@ -1,8 +1,4 @@
 {
     "HTTPPort": 8080,
-    "HTTPAccessLog": "access.log",
-    "MongoDB": {
-      "Hosts": "localhost:27017",
-      "DB": "transcoding-api"
-    }
+    "HTTPAccessLog": "access.log"
 }
