@@ -31,7 +31,7 @@ func (e *encodingComProvider) Transcode(sourceMedia string, profiles []Profile) 
 func (e *encodingComProvider) getDestination(sourceMedia string) string {
 	sourceParts := strings.Split(sourceMedia, "/")
 	lastPart := sourceParts[len(sourceParts)-1]
-	return strings.TrimRight(e.config.Destination, "/") + "/" + lastPart
+	return strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + lastPart
 }
 
 func (e *encodingComProvider) profileToFormat(profile Profile) *encodingcom.Format {

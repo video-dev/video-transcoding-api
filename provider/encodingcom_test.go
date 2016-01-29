@@ -11,7 +11,7 @@ import (
 
 func TestFactory(t *testing.T) {
 	cfg := config.Config{
-		EncodingCom: config.EncodingCom{
+		EncodingCom: &config.EncodingCom{
 			UserID:  "myuser",
 			UserKey: "secret-key",
 		},
@@ -48,7 +48,7 @@ func TestFactoryValidation(t *testing.T) {
 	}
 	for _, test := range tests {
 		cfg := config.Config{
-			EncodingCom: config.EncodingCom{UserID: test.userID, UserKey: test.userKey},
+			EncodingCom: &config.EncodingCom{UserID: test.userID, UserKey: test.userKey},
 		}
 		provider, err := EncodingComProvider(&cfg)
 		if provider != nil {
@@ -67,7 +67,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	provider := encodingComProvider{
 		client: client,
 		config: &config.Config{
-			EncodingCom: config.EncodingCom{
+			EncodingCom: &config.EncodingCom{
 				Destination: "https://mybucket.s3.amazonaws.com/destination-dir/",
 			},
 		},
@@ -101,7 +101,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	expectedFormat := encodingcom.Format{
 		Output:              []string{"webm"},
-		Destination:         []string{provider.config.Destination + "video.mp4"},
+		Destination:         []string{provider.config.EncodingCom.Destination + "video.mp4"},
 		Size:                "0x360",
 		AudioCodec:          "libvorbis",
 		AudioBitrate:        "64k",
