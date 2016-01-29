@@ -22,6 +22,7 @@ func TestSaveJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
+	cfg.Redis = new(config.Redis)
 	repo, err := NewRedisJobRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -63,6 +64,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
+	cfg.Redis = new(config.Redis)
 	repo, err := NewRedisJobRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -99,7 +101,7 @@ func TestSaveJobIsSafe(t *testing.T) {
 		{ID: "abcabc", Status: "Finished", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
 		{ID: "abcabc", Status: "Failed", ProviderJobID: "ff12", ProviderName: "encoding.com"},
 	}
-	repo, err := NewRedisJobRepository(&config.Config{})
+	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +124,7 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{})
+	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +149,7 @@ func TestDeleteJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{})
+	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +164,7 @@ func TestGetJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{})
+	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +187,7 @@ func TestGetJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{})
+	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -213,6 +215,7 @@ func cleanRedis() error {
 
 func TestRedisClientRedisDefaultConfig(t *testing.T) {
 	var cfg config.Config
+	cfg.Redis = new(config.Redis)
 	repo, err := NewRedisJobRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -232,7 +235,7 @@ func TestRedisClientRedisAddr(t *testing.T) {
 	}
 	defer proc.Signal(os.Interrupt)
 	cfg := config.Config{
-		Redis: config.Redis{
+		Redis: &config.Redis{
 			RedisAddr: "127.0.0.1:49153",
 			Password:  "not-secret",
 		},
@@ -256,7 +259,7 @@ func TestRedisClientRedisSentinel(t *testing.T) {
 	}
 	defer cleanup()
 	cfg := config.Config{
-		Redis: config.Redis{
+		Redis: &config.Redis{
 			SentinelAddrs:      "127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381",
 			SentinelMasterName: "mymaster",
 		},

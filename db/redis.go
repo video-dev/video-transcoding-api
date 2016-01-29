@@ -91,23 +91,23 @@ func (r *redisRepository) generateID() (string, error) {
 func (r *redisRepository) redisClient() *redis.Client {
 	if r.client == nil {
 		var sentinelAddrs []string
-		if r.config.SentinelAddrs != "" {
-			sentinelAddrs = strings.Split(r.config.SentinelAddrs, ",")
+		if r.config.Redis.SentinelAddrs != "" {
+			sentinelAddrs = strings.Split(r.config.Redis.SentinelAddrs, ",")
 		}
 		if len(sentinelAddrs) > 0 {
 			r.client = redis.NewFailoverClient(&redis.FailoverOptions{
 				SentinelAddrs: sentinelAddrs,
-				MasterName:    r.config.SentinelMasterName,
-				Password:      r.config.Password,
+				MasterName:    r.config.Redis.SentinelMasterName,
+				Password:      r.config.Redis.Password,
 			})
 		} else {
-			redisAddr := r.config.RedisAddr
+			redisAddr := r.config.Redis.RedisAddr
 			if redisAddr == "" {
 				redisAddr = "127.0.0.1:6379"
 			}
 			r.client = redis.NewClient(&redis.Options{
 				Addr:     redisAddr,
-				Password: r.config.Password,
+				Password: r.config.Redis.Password,
 			})
 		}
 	}
