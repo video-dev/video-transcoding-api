@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
 	"gopkg.in/redis.v3"
@@ -99,6 +100,8 @@ func (r *redisRepository) redisClient() *redis.Client {
 				SentinelAddrs: sentinelAddrs,
 				MasterName:    r.config.Redis.SentinelMasterName,
 				Password:      r.config.Redis.Password,
+				PoolSize:      r.config.Redis.PoolSize,
+				PoolTimeout:   time.Duration(r.config.Redis.PoolTimeout) * time.Second,
 			})
 		} else {
 			redisAddr := r.config.Redis.RedisAddr
@@ -106,8 +109,10 @@ func (r *redisRepository) redisClient() *redis.Client {
 				redisAddr = "127.0.0.1:6379"
 			}
 			r.client = redis.NewClient(&redis.Options{
-				Addr:     redisAddr,
-				Password: r.config.Redis.Password,
+				Addr:        redisAddr,
+				Password:    r.config.Redis.Password,
+				PoolSize:    r.config.Redis.PoolSize,
+				PoolTimeout: time.Duration(r.config.Redis.PoolTimeout) * time.Second,
 			})
 		}
 	}
