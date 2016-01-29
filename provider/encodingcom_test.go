@@ -88,7 +88,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		AudioVolume:         100,
 		TwoPassEncoding:     true,
 	}
-	jobStatus, err := provider.Transcode(source, profile)
+	jobStatus, err := provider.Transcode(source, []Profile{profile})
 	if err != nil {
 		t.Fatal(err)
 	}
