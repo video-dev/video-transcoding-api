@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"reflect"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -43,7 +42,7 @@ const testProfileString = `{
 
 type fakeProvider struct{}
 
-func (e *fakeProvider) Transcode(sourceMedia string, profile provider.Profile) (*provider.JobStatus, error) {
+func (e *fakeProvider) Transcode(sourceMedia string, profiles []provider.Profile) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderJobID: "provider-job-123",
 		Status:        provider.StatusFinished,
@@ -119,9 +118,9 @@ func TestTranscode(t *testing.T) {
 			fmt.Sprintf(`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profile": %s,
+  "profiles": [%s],
   "provider": "fake"
-}`, strconv.Quote(testProfileString)),
+}`, testProfileString),
 			false,
 
 			http.StatusOK,
@@ -135,9 +134,9 @@ func TestTranscode(t *testing.T) {
 			fmt.Sprintf(`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profile": %s,
+  "profiles": [%s],
   "provider": "fake"
-}`, strconv.Quote(testProfileString)),
+}`, testProfileString),
 			true,
 
 			http.StatusInternalServerError,
@@ -151,9 +150,9 @@ func TestTranscode(t *testing.T) {
 			fmt.Sprintf(`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profile": %s,
+  "profiles": [%s],
   "provider": "nonexistent-provider"
-}`, strconv.Quote(testProfileString)),
+}`, testProfileString),
 			false,
 
 			http.StatusBadRequest,

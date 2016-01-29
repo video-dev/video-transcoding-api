@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/nytm/video-transcoding-api/db"
@@ -13,7 +12,7 @@ import (
 
 type newTranscodeRequest struct {
 	Source   string
-	Profile  string
+	Profiles []provider.Profile
 	Provider string
 }
 
@@ -30,14 +29,8 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	if reqObject.Source == "" {
 		return http.StatusBadRequest, nil, fmt.Errorf("Missing source from request")
 	}
-	if reqObject.Profile == "" {
-		return http.StatusBadRequest, nil, fmt.Errorf("Missing profile from request")
-	}
-	decoder = json.NewDecoder(strings.NewReader(reqObject.Profile))
-	var reqProfile provider.Profile
-	err = decoder.Decode(&reqProfile)
-	if err != nil {
-		return http.StatusBadRequest, nil, fmt.Errorf("Error while parsing profile in request: %s", err)
+	if len(reqObject.Profiles) == 0 {
+		return http.StatusBadRequest, nil, fmt.Errorf("Missing profiles from request")
 	}
 	providerFactory := s.providers[reqObject.Provider]
 	if providerFactory == nil {
@@ -52,7 +45,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %v %s", reqObject.Provider, providerObj, err)
 	}
 
-	jobStatus, err := providerObj.Transcode(reqObject.Source, reqProfile)
+	jobStatus, err := providerObj.Transcode(reqObject.Source, reqObject.Profiles)
 	if err != nil {
 		providerError := fmt.Errorf("Error with provider '%s': %s", reqObject.Provider, err)
 		return http.StatusInternalServerError, nil, providerError
