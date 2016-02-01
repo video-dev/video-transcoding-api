@@ -47,7 +47,7 @@ func (r *rotation) UnmarshalJSON(b []byte) error {
 
 // Profile contains the set of options for transcoding a media.
 type Profile struct {
-	Output string
+	Output []string
 	Size   Size
 
 	AudioCodec          string

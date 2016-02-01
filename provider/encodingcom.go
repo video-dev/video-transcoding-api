@@ -2,6 +2,7 @@ package provider
 
 import (
 	"errors"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -19,8 +20,7 @@ type encodingComProvider struct {
 }
 
 func (e *encodingComProvider) Transcode(sourceMedia string, profiles []Profile) (*JobStatus, error) {
-	format := e.profileToFormat(profiles[0])
-	format.Destination = []string{e.getDestination(sourceMedia)}
+	format := e.profilesToFormats(sourceMedia, profiles)
 	resp, err := e.client.AddMedia([]string{sourceMedia}, format)
 	if err != nil {
 		return nil, err
@@ -28,34 +28,73 @@ func (e *encodingComProvider) Transcode(sourceMedia string, profiles []Profile) 
 	return &JobStatus{ProviderJobID: resp.MediaID, StatusMessage: resp.Message}, nil
 }
 
-func (e *encodingComProvider) getDestination(sourceMedia string) string {
-	sourceParts := strings.Split(sourceMedia, "/")
-	lastPart := sourceParts[len(sourceParts)-1]
-	return strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + lastPart
+func (e *encodingComProvider) getExtension(output string, format encodingcom.Format) string {
+	if output == "advanced_hls" {
+		return "hls"
+	} else if output == "thumbnail" {
+		return "thumb"
+	}
+	return "." + output
 }
 
-func (e *encodingComProvider) profileToFormat(profile Profile) *encodingcom.Format {
-	format := encodingcom.Format{
-		Output:              []string{profile.Output},
-		Size:                profile.Size.String(),
-		AudioCodec:          profile.AudioCodec,
-		AudioBitrate:        profile.AudioBitRate,
-		AudioChannelsNumber: profile.AudioChannelsNumber,
-		AudioSampleRate:     profile.AudioSampleRate,
-		Bitrate:             profile.BitRate,
-		Framerate:           profile.FrameRate,
-		KeepAspectRatio:     encodingcom.YesNoBoolean(profile.KeepAspectRatio),
-		VideoCodec:          profile.VideoCodec,
-		Keyframe:            []string{profile.KeyFrame},
-		AudioVolume:         profile.AudioVolume,
-		TwoPass:             encodingcom.YesNoBoolean(profile.TwoPassEncoding),
+func (e *encodingComProvider) getResolution(output string, format encodingcom.Format) string {
+	if output == "advanced_hls" || output == "thumbnail" {
+		return ""
 	}
-	if profile.Rotate.set {
-		format.Rotate = strconv.FormatUint(uint64(profile.Rotate.value), 10)
-	} else {
-		format.Rotate = "def"
+	sizeSlice := strings.Split(format.Size, "x")
+	if len(sizeSlice) > 1 {
+		return sizeSlice[1] + "p"
 	}
-	return &format
+	return ""
+}
+
+func (e *encodingComProvider) getDestinations(sourceMedia string, format encodingcom.Format) []string {
+	var destinations []string
+	for _, output := range format.Output {
+		extension := e.getExtension(output, format)
+		resolution := e.getResolution(output, format)
+
+		sourceParts := strings.Split(sourceMedia, "/")
+		sourceFilenamePart := sourceParts[len(sourceParts)-1]
+		sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
+
+		outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/"
+		finalDestination := outputDestination + sourceFileName + "_" + resolution + extension
+		if output == "advanced_hls" {
+			finalDestination = outputDestination + sourceFileName + "_hls/video.m3u8"
+		}
+		destinations = append(destinations, finalDestination)
+	}
+	return destinations
+}
+
+func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []Profile) []encodingcom.Format {
+	var formats []encodingcom.Format
+	for _, profile := range profiles {
+		format := encodingcom.Format{
+			Output:              profile.Output,
+			Size:                profile.Size.String(),
+			AudioCodec:          profile.AudioCodec,
+			AudioBitrate:        profile.AudioBitRate,
+			AudioChannelsNumber: profile.AudioChannelsNumber,
+			AudioSampleRate:     profile.AudioSampleRate,
+			Bitrate:             profile.BitRate,
+			Framerate:           profile.FrameRate,
+			KeepAspectRatio:     encodingcom.YesNoBoolean(profile.KeepAspectRatio),
+			VideoCodec:          profile.VideoCodec,
+			Keyframe:            []string{profile.KeyFrame},
+			AudioVolume:         profile.AudioVolume,
+			TwoPass:             encodingcom.YesNoBoolean(profile.TwoPassEncoding),
+		}
+		if profile.Rotate.set {
+			format.Rotate = strconv.FormatUint(uint64(profile.Rotate.value), 10)
+		} else {
+			format.Rotate = "def"
+		}
+		format.Destination = e.getDestinations(sourceMedia, format)
+		formats = append(formats, format)
+	}
+	return formats
 }
 
 func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {

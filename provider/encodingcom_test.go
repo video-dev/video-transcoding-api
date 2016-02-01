@@ -74,7 +74,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	source := "http://some.nice/video.mp4"
 	profile := Profile{
-		Output:              "webm",
+		Output:              []string{"webm"},
 		Size:                Size{Height: 360},
 		AudioCodec:          "libvorbis",
 		AudioBitRate:        "64k",
@@ -101,7 +101,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	expectedFormat := encodingcom.Format{
 		Output:              []string{"webm"},
-		Destination:         []string{provider.config.EncodingCom.Destination + "video.mp4"},
+		Destination:         []string{provider.config.EncodingCom.Destination + "video_360p.webm"},
 		Size:                "0x360",
 		AudioCodec:          "libvorbis",
 		AudioBitrate:        "64k",
@@ -116,8 +116,8 @@ func TestEncodingComTranscode(t *testing.T) {
 		TwoPass:             encodingcom.YesNoBoolean(true),
 		Rotate:              "def",
 	}
-	if !reflect.DeepEqual(*media.Request.Format, expectedFormat) {
-		t.Errorf("Wrong format. Want %#v. Got %#v.", expectedFormat, *media.Request.Format)
+	if !reflect.DeepEqual(media.Request.Format[0], expectedFormat) {
+		t.Errorf("Wrong format. Want %#v. Got %#v.", expectedFormat, media.Request.Format[0])
 	}
 	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
@@ -138,9 +138,11 @@ func TestProfileToFormatRotation(t *testing.T) {
 	var p encodingComProvider
 	for _, test := range tests {
 		profile := Profile{Rotate: test.r}
-		format := p.profileToFormat(profile)
-		if format.Rotate != test.expected {
-			t.Errorf("profileToFormat: expected rotate to be %q. Got %q.", test.expected, format.Rotate)
+		formats := p.profilesToFormats("sourceFile", []Profile{profile})
+		for _, format := range formats {
+			if format.Rotate != test.expected {
+				t.Errorf("profileToFormat: expected rotate to be %q. Got %q.", test.expected, format.Rotate)
+			}
 		}
 	}
 }

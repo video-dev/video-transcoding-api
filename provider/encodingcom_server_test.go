@@ -17,10 +17,10 @@ const encodingComDateFormat = "2006-01-02 15:04:05"
 var errMediaNotFound = errors.New("media not found")
 
 type request struct {
-	Action  string              `json:"action"`
-	MediaID string              `json:"mediaid"`
-	Source  []string            `json:"source"`
-	Format  *encodingcom.Format `json:"format"`
+	Action  string               `json:"action"`
+	MediaID string               `json:"mediaid"`
+	Source  []string             `json:"source"`
+	Format  []encodingcom.Format `json:"format"`
 }
 
 type errorResponse struct {
