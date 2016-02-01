@@ -28,17 +28,8 @@ func (e *encodingComProvider) Transcode(sourceMedia string, profiles []Profile) 
 	return &JobStatus{ProviderJobID: resp.MediaID, StatusMessage: resp.Message}, nil
 }
 
-func (e *encodingComProvider) getExtension(output string, format encodingcom.Format) string {
-	if output == "advanced_hls" {
-		return "hls"
-	} else if output == "thumbnail" {
-		return "thumb"
-	}
-	return "." + output
-}
-
 func (e *encodingComProvider) getResolution(output string, format encodingcom.Format) string {
-	if output == "advanced_hls" || output == "thumbnail" {
+	if output == "hls" || output == "thumb" {
 		return ""
 	}
 	sizeSlice := strings.Split(format.Size, "x")
@@ -51,7 +42,7 @@ func (e *encodingComProvider) getResolution(output string, format encodingcom.Fo
 func (e *encodingComProvider) getDestinations(sourceMedia string, format encodingcom.Format) []string {
 	var destinations []string
 	for _, output := range format.Output {
-		extension := e.getExtension(output, format)
+		extension := "." + output
 		resolution := e.getResolution(output, format)
 
 		sourceParts := strings.Split(sourceMedia, "/")
@@ -60,12 +51,25 @@ func (e *encodingComProvider) getDestinations(sourceMedia string, format encodin
 
 		outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/"
 		finalDestination := outputDestination + sourceFileName + "_" + resolution + extension
-		if output == "advanced_hls" {
+		if output == "hls" {
 			finalDestination = outputDestination + sourceFileName + "_hls/video.m3u8"
 		}
 		destinations = append(destinations, finalDestination)
 	}
 	return destinations
+}
+
+func (e *encodingComProvider) mapOutputs(outputs []string) []string {
+	outputMap := map[string]string{
+		"hls":   "advanced_hls",
+		"thumb": "thumbnail",
+	}
+	for i, o := range outputs {
+		if output, ok := outputMap[o]; ok {
+			outputs[i] = output
+		}
+	}
+	return outputs
 }
 
 func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []Profile) []encodingcom.Format {
@@ -92,6 +96,7 @@ func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []P
 			format.Rotate = "def"
 		}
 		format.Destination = e.getDestinations(sourceMedia, format)
+		format.Output = e.mapOutputs(format.Output)
 		formats = append(formats, format)
 	}
 	return formats

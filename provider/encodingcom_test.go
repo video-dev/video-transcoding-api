@@ -74,7 +74,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	source := "http://some.nice/video.mp4"
 	profile := Profile{
-		Output:              []string{"webm"},
+		Output:              []string{"webm", "hls"},
 		Size:                Size{Height: 360},
 		AudioCodec:          "libvorbis",
 		AudioBitRate:        "64k",
@@ -99,9 +99,13 @@ func TestEncodingComTranscode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	expectedDestination := []string{
+		provider.config.EncodingCom.Destination + "video_360p.webm",
+		provider.config.EncodingCom.Destination + "video_hls/video.m3u8",
+	}
 	expectedFormat := encodingcom.Format{
-		Output:              []string{"webm"},
-		Destination:         []string{provider.config.EncodingCom.Destination + "video_360p.webm"},
+		Output:              []string{"webm", "advanced_hls"},
+		Destination:         expectedDestination,
 		Size:                "0x360",
 		AudioCodec:          "libvorbis",
 		AudioBitrate:        "64k",
