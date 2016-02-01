@@ -17,7 +17,7 @@ import (
 )
 
 const testProfileString = `{
-   "output":"webm",
+   "output":["webm"],
    "size":{"height":360},
    "bitrate":"900k",
    "audio_bitrate":"64k",
@@ -104,6 +104,7 @@ func (d *fakeDB) GetJob(id string) (*db.Job, error) {
 func TestTranscode(t *testing.T) {
 
 	tests := []struct {
+		givenTestCase       string
 		givenURI            string
 		givenHTTPMethod     string
 		givenRequestBody    string
@@ -113,6 +114,7 @@ func TestTranscode(t *testing.T) {
 		wantBody interface{}
 	}{
 		{
+			"New job",
 			"/jobs",
 			"POST",
 			fmt.Sprintf(`{
@@ -129,6 +131,7 @@ func TestTranscode(t *testing.T) {
 			},
 		},
 		{
+			"New job with database error",
 			"/jobs",
 			"POST",
 			fmt.Sprintf(`{
@@ -145,6 +148,7 @@ func TestTranscode(t *testing.T) {
 			},
 		},
 		{
+			"New job with invalid provider",
 			"/jobs",
 			"POST",
 			fmt.Sprintf(`{
@@ -162,6 +166,7 @@ func TestTranscode(t *testing.T) {
 		},
 
 		{
+			"Get job",
 			"/jobs/12345",
 			"GET",
 			"",
@@ -180,6 +185,7 @@ func TestTranscode(t *testing.T) {
 			},
 		},
 		{
+			"Get job with inexistent job id",
 			"/jobs/non_existent_job",
 			"GET",
 			"",
@@ -216,17 +222,17 @@ func TestTranscode(t *testing.T) {
 		srvr.ServeHTTP(w, r)
 
 		if w.Code != test.wantCode {
-			t.Errorf("expected response code of %d; got %d", test.wantCode, w.Code)
+			t.Errorf("%s: expected response code of %d; got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 
 		var got interface{}
 		err := json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
-			t.Error("unable to JSON decode response body: ", err)
+			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
 
 		if !reflect.DeepEqual(got, test.wantBody) {
-			t.Errorf("expected response body of\n%#v;\ngot\n%#v", test.wantBody, got)
+			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
 
 		// ** THIS IS REQUIRED in order to run the test multiple times.
