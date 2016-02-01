@@ -27,7 +27,7 @@ func TestSaveJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{Status: "Downloading", ProviderName: "encoding.com"}
+	job := Job{ProviderName: "encoding.com"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -51,7 +51,6 @@ func TestSaveJob(t *testing.T) {
 	expected := map[string]string{
 		"providerName":  "encoding.com",
 		"providerJobID": "",
-		"status":        "Downloading",
 	}
 	if !reflect.DeepEqual(jobMap, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, jobMap)
@@ -69,7 +68,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: "myjob", Status: "Downloaded", ProviderName: "encoding.com"}
+	job := Job{ID: "myjob", ProviderName: "encoding.com"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -83,7 +82,6 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	expected := map[string]string{
 		"providerName":  "encoding.com",
 		"providerJobID": "",
-		"status":        "Downloaded",
 	}
 	if !reflect.DeepEqual(items, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
@@ -96,10 +94,10 @@ func TestSaveJobIsSafe(t *testing.T) {
 		t.Fatal(err)
 	}
 	jobs := []Job{
-		{ID: "abcabc", Status: "Downloading", ProviderName: "elastictranscoder"},
-		{ID: "abcabc", Status: "Downloaded", ProviderJobID: "abf-123", ProviderName: "encoding.com"},
-		{ID: "abcabc", Status: "Finished", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
-		{ID: "abcabc", Status: "Failed", ProviderJobID: "ff12", ProviderName: "encoding.com"},
+		{ID: "abcabc", ProviderName: "elastictranscoder"},
+		{ID: "abcabc", ProviderJobID: "abf-123", ProviderName: "encoding.com"},
+		{ID: "abcabc", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
+		{ID: "abcabc", ProviderJobID: "ff12", ProviderName: "encoding.com"},
 	}
 	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
@@ -128,7 +126,7 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: "myjob", Status: "Downloading"}
+	job := Job{ID: "myjob"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -168,7 +166,7 @@ func TestGetJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: "myjob", Status: "Downloading"}
+	job := Job{ID: "myjob"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)

@@ -40,7 +40,6 @@ func (r *redisRepository) SaveJob(job *Job) error {
 	_, err = multi.Exec(func() error {
 		multi.HSet(jobKey, "providerName", job.ProviderName)
 		multi.HSet(jobKey, "providerJobID", job.ProviderJobID)
-		multi.HSet(jobKey, "status", job.Status)
 		return nil
 	})
 	return err
@@ -69,7 +68,6 @@ func (r *redisRepository) GetJob(id string) (*Job, error) {
 		ID:            id,
 		ProviderJobID: result["providerJobID"],
 		ProviderName:  result["providerName"],
-		Status:        result["status"],
 	}, nil
 }
 

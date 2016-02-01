@@ -52,11 +52,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	}
 	jobStatus.ProviderName = reqObject.Provider
 
-	job := db.Job{
-		ProviderName:  jobStatus.ProviderName,
-		ProviderJobID: jobStatus.ProviderJobID,
-		Status:        "finished",
-	}
+	job := db.Job{ProviderName: jobStatus.ProviderName, ProviderJobID: jobStatus.ProviderJobID}
 	err = s.db.SaveJob(&job)
 	if err != nil {
 		return http.StatusInternalServerError, nil, err

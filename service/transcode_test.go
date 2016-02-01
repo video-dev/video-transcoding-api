@@ -95,7 +95,6 @@ func (d *fakeDB) GetJob(id string) (*db.Job, error) {
 			ID:            "12345",
 			ProviderName:  "fake",
 			ProviderJobID: "provider-job-123",
-			Status:        "finished",
 		}, nil
 	}
 	return nil, db.ErrJobNotFound
