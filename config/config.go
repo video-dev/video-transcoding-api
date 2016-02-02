@@ -38,9 +38,14 @@ type EncodingCom struct {
 // LoadConfig loads the configuration of the API using the provided file and
 // environment variables. It will override settings defined in the file with
 // the value of environment variables.
+//
+// Provide an empty file name for loading configuration exclusively from the
+// environemtn.
 func LoadConfig(fileName string) *Config {
 	var cfg Config
-	config.LoadJSONFile(fileName, &cfg)
+	if fileName != "" {
+		config.LoadJSONFile(fileName, &cfg)
+	}
 	config.LoadEnvConfig(&cfg)
 	if cfg.Redis == nil {
 		cfg.Redis = new(Redis)

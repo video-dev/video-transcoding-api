@@ -54,8 +54,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"ENCODINGCOM_USER_KEY":       "secret-key",
 		"ENCODINGCOM_DESTINATION":    "https://safe-stuff",
 	})
-	fileName := "testdata/empty.json"
-	cfg := LoadConfig(fileName)
+	cfg := LoadConfig("")
 	expectedCfg := Config{
 		Redis: &Redis{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
@@ -72,10 +71,10 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		},
 	}
 	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
-		t.Errorf("LoadConfig(%q): wrong Redis config returned. Want %#v. Got %#v.", fileName, *expectedCfg.Redis, *cfg.Redis)
+		t.Errorf("LoadConfig(%q): wrong Redis config returned. Want %#v. Got %#v.", "", *expectedCfg.Redis, *cfg.Redis)
 	}
 	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
-		t.Errorf("LoadConfig(%q): wrong EncodingCom config returned. Want %#v. Got %#v.", fileName, *expectedCfg.EncodingCom, *cfg.EncodingCom)
+		t.Errorf("LoadConfig(%q): wrong EncodingCom config returned. Want %#v. Got %#v.", "", *expectedCfg.EncodingCom, *cfg.EncodingCom)
 	}
 }
 
