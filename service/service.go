@@ -31,7 +31,8 @@ func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
 		config: cfg,
 		db:     dbRepo,
 		providers: map[string]provider.Factory{
-			"encoding.com": provider.EncodingComProvider,
+			"encoding.com":      provider.EncodingComProvider,
+			"elastictranscoder": provider.ElasticTranscoderProvider,
 		},
 	}, nil
 }
