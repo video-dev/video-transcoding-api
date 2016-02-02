@@ -12,8 +12,19 @@ import (
 // Job. The underlying provider should handle the profileSpec as deisired (it
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
-	Transcode(sourceMedia string, profiles []Profile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
+}
+
+// PresetTranscodingProvider is a transcoding provider that supports
+// transcoding media using preset names.
+type PresetTranscodingProvider interface {
+	TranscodeWithPresets(sourceMedia string, presets []string) (*JobStatus, error)
+}
+
+// ProfileTranscodingProvider is a transcsoding provider that suppports
+// transcoding media using provided profiles.
+type ProfileTranscodingProvider interface {
+	TranscodeWithProfiles(sourceMedia string, profiles []Profile) (*JobStatus, error)
 }
 
 // Factory is the function responsible for creating the instance of a

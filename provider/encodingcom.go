@@ -19,7 +19,7 @@ type encodingComProvider struct {
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) Transcode(sourceMedia string, profiles []Profile) (*JobStatus, error) {
+func (e *encodingComProvider) TranscodeWithProfiles(sourceMedia string, profiles []Profile) (*JobStatus, error) {
 	format := e.profilesToFormats(sourceMedia, profiles)
 	resp, err := e.client.AddMedia([]string{sourceMedia}, format)
 	if err != nil {
