@@ -54,8 +54,8 @@ func TestEncodingComFactoryValidation(t *testing.T) {
 		if provider != nil {
 			t.Errorf("Unexpected non-nil provider: %#v", provider)
 		}
-		if err != errMissingData {
-			t.Errorf("Wrong error returned. Want errMissingData. Got %#v", err)
+		if err != errEncodingComInvalidConfig {
+			t.Errorf("Wrong error returned. Want errEncodingComInvalidConfig. Got %#v", err)
 		}
 	}
 }
