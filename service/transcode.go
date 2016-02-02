@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -13,6 +14,7 @@ import (
 type newTranscodeRequest struct {
 	Source   string
 	Profiles []provider.Profile
+	Presets  []string
 	Provider string
 }
 
@@ -24,13 +26,16 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		return http.StatusBadRequest, nil, fmt.Errorf("Error while parsing request: %s", err)
 	}
 	if reqObject.Provider == "" {
-		return http.StatusBadRequest, nil, fmt.Errorf("Missing provider from request")
+		return http.StatusBadRequest, nil, errors.New("Missing provider from request")
 	}
 	if reqObject.Source == "" {
-		return http.StatusBadRequest, nil, fmt.Errorf("Missing source from request")
+		return http.StatusBadRequest, nil, errors.New("Missing source from request")
 	}
-	if len(reqObject.Profiles) == 0 {
-		return http.StatusBadRequest, nil, fmt.Errorf("Missing profiles from request")
+	if len(reqObject.Profiles) == 0 && len(reqObject.Presets) == 0 {
+		return http.StatusBadRequest, nil, errors.New("Please specify either the list of presets or the list of profiles")
+	}
+	if len(reqObject.Profiles) > 0 && len(reqObject.Presets) > 0 {
+		return http.StatusBadRequest, nil, errors.New("Presets and profiles are mutually exclusive, please use only one of them")
 	}
 	providerFactory := s.providers[reqObject.Provider]
 	if providerFactory == nil {
@@ -45,7 +50,21 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %v %s", reqObject.Provider, providerObj, err)
 	}
 
-	jobStatus, err := providerObj.Transcode(reqObject.Source, reqObject.Profiles)
+	var jobStatus *provider.JobStatus
+	if len(reqObject.Profiles) > 0 {
+		profileProvider, ok := providerObj.(provider.ProfileTranscodingProvider)
+		if !ok {
+			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support profile-based encoding", reqObject.Provider)
+		}
+		jobStatus, err = profileProvider.TranscodeWithProfiles(reqObject.Source, reqObject.Profiles)
+	} else if len(reqObject.Presets) > 0 {
+		presetProvider, ok := providerObj.(provider.PresetTranscodingProvider)
+		if !ok {
+			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support preset-based encoding", reqObject.Provider)
+		}
+		jobStatus, err = presetProvider.TranscodeWithPresets(reqObject.Source, reqObject.Presets)
+	}
+
 	if err != nil {
 		providerError := fmt.Errorf("Error with provider '%s': %s", reqObject.Provider, err)
 		return http.StatusInternalServerError, nil, providerError

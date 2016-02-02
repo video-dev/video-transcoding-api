@@ -40,39 +40,6 @@ const testProfileString = `{
    "hint":"no"
 }`
 
-type fakeProvider struct{}
-
-func (e *fakeProvider) Transcode(sourceMedia string, profiles []provider.Profile) (*provider.JobStatus, error) {
-	return &provider.JobStatus{
-		ProviderJobID: "provider-job-123",
-		Status:        provider.StatusFinished,
-		StatusMessage: "The job is finished",
-		ProviderStatus: map[string]interface{}{
-			"progress":   100.0,
-			"sourcefile": "http://some.source.file",
-		},
-	}, nil
-}
-
-func (e *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
-	if id == "provider-job-123" {
-		return &provider.JobStatus{
-			ProviderJobID: "provider-job-123",
-			Status:        provider.StatusFinished,
-			StatusMessage: "The job is finished",
-			ProviderStatus: map[string]interface{}{
-				"progress":   100.0,
-				"sourcefile": "http://some.source.file",
-			},
-		}, nil
-	}
-	return nil, provider.JobNotFoundError{ID: id}
-}
-
-func fakeProviderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	return &fakeProvider{}, nil
-}
-
 type fakeDB struct {
 	TriggerDBError bool
 }
@@ -101,7 +68,6 @@ func (d *fakeDB) GetJob(id string) (*db.Job, error) {
 }
 
 func TestTranscode(t *testing.T) {
-
 	tests := []struct {
 		givenTestCase       string
 		givenURI            string
@@ -113,7 +79,7 @@ func TestTranscode(t *testing.T) {
 		wantBody interface{}
 	}{
 		{
-			"New job",
+			"New job with profile based encoding",
 			"/jobs",
 			"POST",
 			fmt.Sprintf(`{
@@ -122,6 +88,23 @@ func TestTranscode(t *testing.T) {
   "profiles": [%s],
   "provider": "fake"
 }`, testProfileString),
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{
+				"jobId": "12345",
+			},
+		},
+		{
+			"New job with preset based encoding",
+			"/jobs",
+			"POST",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_1080p"],
+  "provider": "fake"
+}`,
 			false,
 
 			http.StatusOK,
@@ -163,6 +146,74 @@ func TestTranscode(t *testing.T) {
 				"error": "Unknown provider found in request: nonexistent-provider",
 			},
 		},
+		{
+			"New job missing profiles and presets",
+			"/jobs",
+			"POST",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "Please specify either the list of presets or the list of profiles",
+			},
+		},
+		{
+			"New job with both profiles and presets",
+			"/jobs",
+			"POST",
+			fmt.Sprintf(`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_1080p"],
+  "profiles": [%s],
+  "provider": "fake"
+}`, testProfileString),
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "Presets and profiles are mutually exclusive, please use only one of them",
+			},
+		},
+		{
+			"New job with unsupported profile-based",
+			"/jobs",
+			"POST",
+			fmt.Sprintf(`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "profiles": [%s],
+  "provider": "preset-fake"
+}`, testProfileString),
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": `Provider "preset-fake" does not support profile-based encoding`,
+			},
+		},
+		{
+			"New job with unsupported preset-based",
+			"/jobs",
+			"POST",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_1080p"],
+  "provider": "profile-fake"
+}`,
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": `Provider "profile-fake" does not support preset-based encoding`,
+			},
+		},
 
 		{
 			"Get job",
@@ -198,7 +249,6 @@ func TestTranscode(t *testing.T) {
 	}
 
 	for _, test := range tests {
-
 		srvr := server.NewSimpleServer(nil)
 		fakeDBObj := db.JobRepository(&fakeDB{
 			TriggerDBError: test.givenTriggerDBError,
@@ -207,10 +257,11 @@ func TestTranscode(t *testing.T) {
 			config: &config.Config{},
 			db:     fakeDBObj,
 			providers: map[string]provider.Factory{
-				"fake": fakeProviderFactory,
+				"fake":         fakeProviderFactory,
+				"profile-fake": profileFakeProviderFactory,
+				"preset-fake":  presetFakeProviderFactory,
 			},
 		})
-
 		r, _ := http.NewRequest(
 			test.givenHTTPMethod,
 			test.givenURI,
@@ -219,23 +270,18 @@ func TestTranscode(t *testing.T) {
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
-
 		if w.Code != test.wantCode {
 			t.Errorf("%s: expected response code of %d; got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
-
 		var got interface{}
 		err := json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
-
 		if !reflect.DeepEqual(got, test.wantBody) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
-
 		// ** THIS IS REQUIRED in order to run the test multiple times.
 		metrics.DefaultRegistry.UnregisterAll()
 	}
-
 }
