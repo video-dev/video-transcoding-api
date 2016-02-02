@@ -9,7 +9,7 @@ import (
 	"github.com/nytm/video-transcoding-api/config"
 )
 
-func TestFactory(t *testing.T) {
+func TestEncodingComFactory(t *testing.T) {
 	cfg := config.Config{
 		EncodingCom: &config.EncodingCom{
 			UserID:  "myuser",
@@ -37,7 +37,7 @@ func TestFactory(t *testing.T) {
 	}
 }
 
-func TestFactoryValidation(t *testing.T) {
+func TestEncodingComFactoryValidation(t *testing.T) {
 	var tests = []struct {
 		userID  string
 		userKey string
