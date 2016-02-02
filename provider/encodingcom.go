@@ -10,9 +10,7 @@ import (
 	"github.com/nytm/video-transcoding-api/config"
 )
 
-// ErrMissingData is the error returned by the factory when required data is
-// missing.
-var ErrMissingData = InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY")
+var errMissingData = InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
 
 type encodingComProvider struct {
 	config *config.Config
@@ -142,7 +140,7 @@ func (e *encodingComProvider) statusMap(encodingComStatus string) status {
 // EncodingComProvider is the factory function for the Encoding.com provider.
 func EncodingComProvider(cfg *config.Config) (TranscodingProvider, error) {
 	if cfg.EncodingCom.UserID == "" || cfg.EncodingCom.UserKey == "" {
-		return nil, ErrMissingData
+		return nil, errMissingData
 	}
 	client, err := encodingcom.NewClient("https://manage.encoding.com", cfg.EncodingCom.UserID, cfg.EncodingCom.UserKey)
 	if err != nil {

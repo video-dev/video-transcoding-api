@@ -54,8 +54,8 @@ func TestFactoryValidation(t *testing.T) {
 		if provider != nil {
 			t.Errorf("Unexpected non-nil provider: %#v", provider)
 		}
-		if err != ErrMissingData {
-			t.Errorf("Wrong error returned. Want ErrMissingData. Got %#v", err)
+		if err != errMissingData {
+			t.Errorf("Wrong error returned. Want errMissingData. Got %#v", err)
 		}
 	}
 }
