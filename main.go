@@ -1,22 +1,13 @@
 package main
 
 import (
-	"flag"
-
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/service"
 )
 
-var configFile string
-
-func init() {
-	flag.StringVar(&configFile, "c", "", "path to the configuration file")
-	flag.Parse()
-}
-
 func main() {
-	cfg := config.LoadConfig(configFile)
+	cfg := config.LoadConfig("./config.json")
 
 	server.Init("video-transcoding-api", cfg.Server)
 	service, err := service.NewTranscodingService(cfg)
