@@ -44,15 +44,19 @@ func TestLoadConfigFromFile(t *testing.T) {
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	setEnvs(map[string]string{
-		"SENTINEL_ADDRS":             "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-		"SENTINEL_MASTER_NAME":       "supermaster",
-		"REDIS_ADDR":                 "localhost:6379",
-		"REDIS_PASSWORD":             "super-secret",
-		"REDIS_POOL_SIZE":            "100",
-		"REDIS_POOL_TIMEOUT_SECONDS": "10",
-		"ENCODINGCOM_USER_ID":        "myuser",
-		"ENCODINGCOM_USER_KEY":       "secret-key",
-		"ENCODINGCOM_DESTINATION":    "https://safe-stuff",
+		"SENTINEL_ADDRS":                "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
+		"SENTINEL_MASTER_NAME":          "supermaster",
+		"REDIS_ADDR":                    "localhost:6379",
+		"REDIS_PASSWORD":                "super-secret",
+		"REDIS_POOL_SIZE":               "100",
+		"REDIS_POOL_TIMEOUT_SECONDS":    "10",
+		"ENCODINGCOM_USER_ID":           "myuser",
+		"ENCODINGCOM_USER_KEY":          "secret-key",
+		"ENCODINGCOM_DESTINATION":       "https://safe-stuff",
+		"AWS_ACCESS_KEY_ID":             "AKIANOTREALLY",
+		"AWS_SECRET_ACCESS_KEY":         "secret-key",
+		"AWS_REGION":                    config.AWSRegionUSEast1,
+		"ELASTICTRANSCODER_PIPELINE_ID": "mypipeline",
 	})
 	cfg := LoadConfig("")
 	expectedCfg := Config{
@@ -69,12 +73,21 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			UserKey:     "secret-key",
 			Destination: "https://safe-stuff",
 		},
+		ElasticTranscoder: &ElasticTranscoder{
+			AccessKeyID:     "AKIANOTREALLY",
+			SecretAccessKey: "secret-key",
+			Region:          config.AWSRegionUSEast1,
+			PipelineID:      "mypipeline",
+		},
 	}
 	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
 		t.Errorf("LoadConfig(%q): wrong Redis config returned. Want %#v. Got %#v.", "", *expectedCfg.Redis, *cfg.Redis)
 	}
 	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
 		t.Errorf("LoadConfig(%q): wrong EncodingCom config returned. Want %#v. Got %#v.", "", *expectedCfg.EncodingCom, *cfg.EncodingCom)
+	}
+	if !reflect.DeepEqual(*cfg.ElasticTranscoder, *expectedCfg.ElasticTranscoder) {
+		t.Errorf("LoadConfig(%q): wrong ElasticTranscoder config returned. Want %#v. Got %#v.", "", *expectedCfg.ElasticTranscoder, *cfg.ElasticTranscoder)
 	}
 }
 
@@ -123,6 +136,8 @@ func cleanEnvs() {
 		"SENTINEL_ADDRS", "SENTINEL_MASTER_NAME", "REDIS_ADDR",
 		"REDIS_PASSWORD", "ENCODINGCOM_USER_ID", "ENCODINGCOM_USER_KEY",
 		"ENCODINGCOM_DESTINATION", "REDIS_POOL_SIZE", "REDIS_POOL_TIMEOUT_SECONDS",
+		"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION",
+		"ELASTICTRANSCODER_PIPELINE_ID",
 	}
 	for _, env := range envs {
 		os.Unsetenv(env)

@@ -6,8 +6,9 @@ import "github.com/NYTimes/gizmo/config"
 // Transcoding API.
 type Config struct {
 	*config.Server
-	Redis       *Redis
-	EncodingCom *EncodingCom
+	Redis             *Redis
+	EncodingCom       *EncodingCom
+	ElasticTranscoder *ElasticTranscoder
 }
 
 // Redis represents the Redis configuration. RedisAddr and SentinelAddrs
@@ -34,6 +35,15 @@ type EncodingCom struct {
 	Destination string `envconfig:"ENCODINGCOM_DESTINATION"`
 }
 
+// ElasticTranscoder represents the set of configurations for the Elastic
+// Transcoder provider.
+type ElasticTranscoder struct {
+	AccessKeyID     string `envconfig:"AWS_ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"AWS_SECRET_ACCESS_KEY"`
+	Region          string `envconfig:"AWS_REGION"`
+	PipelineID      string `envconfig:"ELASTICTRANSCODER_PIPELINE_ID"`
+}
+
 // LoadConfig loads the configuration of the API using the provided file and
 // environment variables. It will override settings defined in the file with
 // the value of environment variables.
@@ -52,7 +62,11 @@ func LoadConfig(fileName string) *Config {
 	if cfg.EncodingCom == nil {
 		cfg.EncodingCom = new(EncodingCom)
 	}
+	if cfg.ElasticTranscoder == nil {
+		cfg.ElasticTranscoder = new(ElasticTranscoder)
+	}
 	config.LoadEnvConfig(cfg.Redis)
 	config.LoadEnvConfig(cfg.EncodingCom)
+	config.LoadEnvConfig(cfg.ElasticTranscoder)
 	return &cfg
 }
