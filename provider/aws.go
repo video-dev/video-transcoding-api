@@ -2,6 +2,7 @@ package provider
 
 import (
 	"errors"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -18,6 +19,36 @@ var errAWSInvalidConfig = errors.New("invalid Elastic Transcoder config. Please 
 type awsProvider struct {
 	c      elastictranscoderiface.ElasticTranscoderAPI
 	config *config.ElasticTranscoder
+}
+
+func (p *awsProvider) TranscodeWithPresets(source string, presets []string) (*JobStatus, error) {
+	input := elastictranscoder.CreateJobInput{
+		PipelineId: aws.String(p.config.PipelineID),
+		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
+	}
+	input.Outputs = make([]*elastictranscoder.CreateJobOutput, len(presets))
+	for i, preset := range presets {
+		input.Outputs[i] = &elastictranscoder.CreateJobOutput{
+			PresetId: aws.String(preset),
+			Key:      p.outputKey(source, preset),
+		}
+	}
+	resp, err := p.c.CreateJob(&input)
+	if err != nil {
+		return nil, err
+	}
+	return &JobStatus{
+		ProviderJobID: *resp.Job.Id,
+		Status:        StatusQueued,
+	}, nil
+}
+
+func (p *awsProvider) outputKey(source, preset string) *string {
+	parts := strings.Split(source, "/")
+	lastIndex := len(parts) - 1
+	preset = strings.Replace(preset, ":", "", -1)
+	parts = append(parts[0:lastIndex], preset, parts[lastIndex])
+	return aws.String(strings.Join(parts, "/"))
 }
 
 func (p *awsProvider) JobStatus(id string) (*JobStatus, error) {

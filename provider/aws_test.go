@@ -1,9 +1,12 @@
 package provider
 
 import (
+	"errors"
 	"reflect"
+	"regexp"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/nytm/video-transcoding-api/config"
@@ -105,5 +108,69 @@ func TestElasticTranscoderProviderValidation(t *testing.T) {
 		if err != errAWSInvalidConfig {
 			t.Errorf("Wrong error returned. Want errAWSInvalidConfig. Got %#v", err)
 		}
+	}
+}
+
+func TestAWSTranscode(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	source := "dir/file.mp4"
+	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832:0001", "93239832:0002"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, _ := regexp.MatchString(`^job-[a-f0-9]{8}$`, jobStatus.ProviderJobID); !m {
+		t.Errorf("Elastic Transcoder: invalid id returned - %q", jobStatus.ProviderJobID)
+	}
+	if jobStatus.Status != StatusQueued {
+		t.Errorf("Elastic Transcoder: wrong status returned. Want queued. Got %v", jobStatus.Status)
+	}
+
+	if len(fakeTranscoder.jobs) != 1 {
+		t.Fatal("Did not send any job request to the server.")
+	}
+	jobInput := fakeTranscoder.jobs[0]
+
+	expectedJobInput := elastictranscoder.CreateJobInput{
+		PipelineId: aws.String("mypipeline"),
+		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
+		Outputs: []*elastictranscoder.CreateJobOutput{
+			{PresetId: aws.String("93239832:0001"), Key: aws.String("dir/932398320001/file.mp4")},
+			{PresetId: aws.String("93239832:0002"), Key: aws.String("dir/932398320002/file.mp4")},
+		},
+	}
+	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
+		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
+	}
+}
+
+func TestAWSTranscodeAWSFailure(t *testing.T) {
+	prepErr := errors.New("something went wrong")
+	fakeTranscoder := newFakeElasticTranscoder()
+	fakeTranscoder.prepareFailure("CreateJob", prepErr)
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	source := "dir/file.mp4"
+	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832:0001", "93239832:0002"})
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil status: %#v", jobStatus)
+	}
+	if err != prepErr {
+		t.Errorf("Got wrong error. Want %q. Got %q", prepErr.Error(), err.Error())
 	}
 }

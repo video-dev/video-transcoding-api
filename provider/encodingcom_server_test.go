@@ -1,10 +1,8 @@
 package provider
 
 import (
-	"crypto/rand"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -77,7 +75,7 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 }
 
 func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {
-	id := generateID()
+	id := generateID(8)
 	created := time.Now().In(time.UTC)
 	s.medias[id] = &fakeMedia{
 		ID:      id,
@@ -139,10 +137,4 @@ func (s *encodingComFakeServer) getMedia(id string) (*fakeMedia, error) {
 		return nil, errMediaNotFound
 	}
 	return media, nil
-}
-
-func generateID() string {
-	var id [16]byte
-	rand.Read(id[:])
-	return fmt.Sprintf("%x", id[:])
 }
