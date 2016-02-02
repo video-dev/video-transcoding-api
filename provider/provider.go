@@ -72,4 +72,7 @@ const (
 
 	// StatusFailed is the status for a job that has failed.
 	StatusFailed = status("failed")
+
+	// StatusCanceled is the status for a job that has been canceled.
+	StatusCanceled = status("canceled")
 )
