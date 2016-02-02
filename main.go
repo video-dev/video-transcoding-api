@@ -1,13 +1,17 @@
 package main
 
 import (
+	"flag"
+
+	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/service"
 )
 
 func main() {
-	cfg := config.LoadConfig("./config.json")
+	flag.Parse()
+	cfg := config.LoadConfig(*gizmoConfig.ConfigLocationCLI)
 
 	server.Init("video-transcoding-api", cfg.Server)
 	service, err := service.NewTranscodingService(cfg)
