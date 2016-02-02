@@ -137,7 +137,7 @@ func TestAWSTranscode(t *testing.T) {
 	if len(fakeTranscoder.jobs) != 1 {
 		t.Fatal("Did not send any job request to the server.")
 	}
-	jobInput := fakeTranscoder.jobs[0]
+	jobInput := fakeTranscoder.jobs[jobStatus.ProviderJobID]
 
 	expectedJobInput := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String("mypipeline"),
@@ -172,5 +172,101 @@ func TestAWSTranscodeAWSFailure(t *testing.T) {
 	}
 	if err != prepErr {
 		t.Errorf("Got wrong error. Want %q. Got %q", prepErr.Error(), err.Error())
+	}
+}
+
+func TestAWSJobStatus(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	jobStatus, err := provider.TranscodeWithPresets("dir/file.mp4", []string{"93239832:0001", "93239832:0002"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	id := jobStatus.ProviderJobID
+	jobStatus, err = provider.JobStatus(id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedJobStatus := JobStatus{
+		ProviderJobID: id,
+		Status:        StatusFinished,
+	}
+	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
+		t.Errorf("Wrong JobStatus. Want %#v. Got %#v.", expectedJobStatus, *jobStatus)
+	}
+}
+
+func TestAWSJobStatusNotFound(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	jobStatus, err := provider.JobStatus("idk")
+	if err == nil {
+		t.Fatal("Got unexpected <nil> error")
+	}
+	expectedErrMsg := "job not found"
+	if err.Error() != expectedErrMsg {
+		t.Errorf("Got wrong error message. Want %q. Got %q", expectedErrMsg, err.Error())
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
+	}
+}
+
+func TestAWSJobStatusInternalError(t *testing.T) {
+	prepErr := errors.New("failed to get job status")
+	fakeTranscoder := newFakeElasticTranscoder()
+	fakeTranscoder.prepareFailure("ReadJob", prepErr)
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	jobStatus, err := provider.JobStatus("idk")
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
+	}
+	if err != prepErr {
+		t.Errorf("Got wrong error. Want %q. Got %q", prepErr.Error(), err.Error())
+	}
+}
+
+func TestAWSStatusMap(t *testing.T) {
+	var tests = []struct {
+		input  string
+		output status
+	}{
+		{"Submitted", StatusQueued},
+		{"Progressing", StatusStarted},
+		{"Canceled", StatusCanceled},
+		{"Error", StatusFailed},
+		{"Complete", StatusFinished},
+		{"unknown", StatusFailed},
+	}
+	var prov awsProvider
+	for _, test := range tests {
+		result := prov.statusMap(test.input)
+		if result != test.output {
+			t.Errorf("statusMap(%q): wrong result. Want %q. Got %q", test.input, test.output, result)
+		}
 	}
 }

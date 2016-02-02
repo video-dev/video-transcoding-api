@@ -52,7 +52,29 @@ func (p *awsProvider) outputKey(source, preset string) *string {
 }
 
 func (p *awsProvider) JobStatus(id string) (*JobStatus, error) {
-	return nil, nil
+	resp, err := p.c.ReadJob(&elastictranscoder.ReadJobInput{Id: aws.String(id)})
+	if err != nil {
+		return nil, err
+	}
+	return &JobStatus{
+		ProviderJobID: *resp.Job.Id,
+		Status:        p.statusMap(*resp.Job.Status),
+	}, nil
+}
+
+func (p *awsProvider) statusMap(awsStatus string) status {
+	switch awsStatus {
+	case "Submitted":
+		return StatusQueued
+	case "Progressing":
+		return StatusStarted
+	case "Complete":
+		return StatusFinished
+	case "Canceled":
+		return StatusCanceled
+	default:
+		return StatusFailed
+	}
 }
 
 // ElasticTranscoderProvider is the factory function for the AWS Elastic
