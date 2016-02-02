@@ -6,7 +6,6 @@ import "github.com/NYTimes/gizmo/config"
 // Transcoding API.
 type Config struct {
 	*config.Server
-	*config.S3
 	Redis       *Redis
 	EncodingCom *EncodingCom
 }
