@@ -286,7 +286,7 @@ func startRedis(port, password string) (*os.Process, error) {
 	if err != nil {
 		return nil, err
 	}
-	waitListening(10, "127.0.0.1:"+port)
+	waitListening(30, "127.0.0.1:"+port)
 	return cmd.Process, nil
 }
 
@@ -318,7 +318,7 @@ func startSentinels(ports []string) (func(), error) {
 		processes[i] = cmd.Process
 		addrs[i] = "127.0.0.1:" + port
 	}
-	waitListening(10, addrs...)
+	waitListening(30, addrs...)
 	return func() {
 		for i, process := range processes {
 			process.Signal(os.Interrupt)
@@ -338,7 +338,7 @@ func waitListening(maxTries int, addrs ...string) {
 					conn.Close()
 					return
 				} else {
-					time.Sleep(300e6)
+					time.Sleep(10e6)
 				}
 			}
 		}(addr)
