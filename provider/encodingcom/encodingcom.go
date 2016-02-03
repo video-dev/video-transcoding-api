@@ -1,4 +1,19 @@
-package provider
+// Package encodingcom provides a implementation of the provider that uses the
+// Encoding.com API for transcoding media files.
+//
+// It doesn't expose any public type. In order to use the provider, one must
+// import this package and then grab the factory from the provider package:
+//
+//     import (
+//         "github.com/nytm/video-transcoding-api/provider"
+//         "github.com/nytm/video-transcoding-api/provider/encodingcom"
+//     )
+//
+//     func UseProvider() {
+//         factory, err := provider.GetProviderFactory(encodingcom.Name)
+//         // handle err and use factory to get an instance of the provider.
+//     }
+package encodingcom
 
 import (
 	"errors"
@@ -8,22 +23,35 @@ import (
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
-var errEncodingComInvalidConfig = InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
+// Name is the name used for registering the Encoding.com provider in the
+// registry of providers.
+const Name = "encodingcom"
+
+var errEncodingComInvalidConfig = provider.InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
+
+func init() {
+	provider.Register(Name, encodingComFactory)
+}
 
 type encodingComProvider struct {
 	config *config.Config
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) TranscodeWithProfiles(sourceMedia string, profiles []Profile) (*JobStatus, error) {
+func (e *encodingComProvider) TranscodeWithProfiles(sourceMedia string, profiles []provider.Profile) (*provider.JobStatus, error) {
 	format := e.profilesToFormats(sourceMedia, profiles)
 	resp, err := e.client.AddMedia([]string{sourceMedia}, format)
 	if err != nil {
 		return nil, err
 	}
-	return &JobStatus{ProviderJobID: resp.MediaID, StatusMessage: resp.Message}, nil
+	return &provider.JobStatus{
+		ProviderJobID: resp.MediaID,
+		StatusMessage: resp.Message,
+		ProviderName:  Name,
+	}, nil
 }
 
 func (e *encodingComProvider) getResolution(output string, format encodingcom.Format) string {
@@ -70,7 +98,7 @@ func (e *encodingComProvider) mapOutputs(outputs []string) []string {
 	return outputs
 }
 
-func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []Profile) []encodingcom.Format {
+func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []provider.Profile) []encodingcom.Format {
 	var formats []encodingcom.Format
 	for _, profile := range profiles {
 		format := encodingcom.Format{
@@ -88,8 +116,8 @@ func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []P
 			AudioVolume:         profile.AudioVolume,
 			TwoPass:             encodingcom.YesNoBoolean(profile.TwoPassEncoding),
 		}
-		if profile.Rotate.set {
-			format.Rotate = strconv.FormatUint(uint64(profile.Rotate.value), 10)
+		if val, set := profile.Rotate.Value(); set {
+			format.Rotate = strconv.FormatUint(uint64(val), 10)
 		} else {
 			format.Rotate = "def"
 		}
@@ -100,7 +128,7 @@ func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []P
 	return formats
 }
 
-func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
+func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	resp, err := e.client.GetStatus([]string{id})
 	if err != nil {
 		return nil, err
@@ -108,7 +136,7 @@ func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
 	if len(resp) < 1 {
 		return nil, errors.New("invalid value returned by the Encoding.com API: []")
 	}
-	return &JobStatus{
+	return &provider.JobStatus{
 		ProviderJobID: id,
 		ProviderName:  "encoding.com",
 		Status:        e.statusMap(resp[0].MediaStatus),
@@ -124,21 +152,20 @@ func (e *encodingComProvider) JobStatus(id string) (*JobStatus, error) {
 	}, nil
 }
 
-func (e *encodingComProvider) statusMap(encodingComStatus string) status {
+func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Status {
 	switch strings.ToLower(encodingComStatus) {
 	case "new":
-		return StatusQueued
+		return provider.StatusQueued
 	case "downloading", "ready to process", "waiting for encoder", "processing", "saving":
-		return StatusStarted
+		return provider.StatusStarted
 	case "finished":
-		return StatusFinished
+		return provider.StatusFinished
 	default:
-		return StatusFailed
+		return provider.StatusFailed
 	}
 }
 
-// EncodingComProvider is the factory function for the Encoding.com provider.
-func EncodingComProvider(cfg *config.Config) (TranscodingProvider, error) {
+func encodingComFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.EncodingCom.UserID == "" || cfg.EncodingCom.UserKey == "" {
 		return nil, errEncodingComInvalidConfig
 	}

@@ -1,4 +1,4 @@
-package provider
+package encodingcom
 
 import (
 	"reflect"
@@ -7,7 +7,15 @@ import (
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/provider"
 )
+
+func TestFactoryIsRegistered(t *testing.T) {
+	_, err := provider.GetProviderFactory(Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestEncodingComFactory(t *testing.T) {
 	cfg := config.Config{
@@ -16,7 +24,7 @@ func TestEncodingComFactory(t *testing.T) {
 			UserKey: "secret-key",
 		},
 	}
-	provider, err := EncodingComProvider(&cfg)
+	provider, err := encodingComFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +58,7 @@ func TestEncodingComFactoryValidation(t *testing.T) {
 		cfg := config.Config{
 			EncodingCom: &config.EncodingCom{UserID: test.userID, UserKey: test.userKey},
 		}
-		provider, err := EncodingComProvider(&cfg)
+		provider, err := encodingComFactory(&cfg)
 		if provider != nil {
 			t.Errorf("Unexpected non-nil provider: %#v", provider)
 		}
@@ -64,7 +72,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
-	provider := encodingComProvider{
+	prov := encodingComProvider{
 		client: client,
 		config: &config.Config{
 			EncodingCom: &config.EncodingCom{
@@ -73,9 +81,9 @@ func TestEncodingComTranscode(t *testing.T) {
 		},
 	}
 	source := "http://some.nice/video.mp4"
-	profile := Profile{
+	profile := provider.Profile{
 		Output:              []string{"webm", "hls"},
-		Size:                Size{Height: 360},
+		Size:                provider.Size{Height: 360},
 		AudioCodec:          "libvorbis",
 		AudioBitRate:        "64k",
 		AudioChannelsNumber: "2",
@@ -88,20 +96,23 @@ func TestEncodingComTranscode(t *testing.T) {
 		AudioVolume:         100,
 		TwoPassEncoding:     true,
 	}
-	jobStatus, err := provider.TranscodeWithProfiles(source, []Profile{profile})
+	jobStatus, err := prov.TranscodeWithProfiles(source, []provider.Profile{profile})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if expected := "it worked"; jobStatus.StatusMessage != expected {
 		t.Errorf("wrong StatusMessage. Want %q. Got %q", expected, jobStatus.StatusMessage)
 	}
+	if jobStatus.ProviderName != Name {
+		t.Errorf("wrong ProviderName. Want %q. Got %q", Name, jobStatus.ProviderName)
+	}
 	media, err := server.getMedia(jobStatus.ProviderJobID)
 	if err != nil {
 		t.Fatal(err)
 	}
 	expectedDestination := []string{
-		provider.config.EncodingCom.Destination + "video_360p.webm",
-		provider.config.EncodingCom.Destination + "video_hls/video.m3u8",
+		prov.config.EncodingCom.Destination + "video_360p.webm",
+		prov.config.EncodingCom.Destination + "video_hls/video.m3u8",
 	}
 	expectedFormat := encodingcom.Format{
 		Output:              []string{"webm", "advanced_hls"},
@@ -130,19 +141,19 @@ func TestEncodingComTranscode(t *testing.T) {
 
 func TestProfileToFormatRotation(t *testing.T) {
 	var tests = []struct {
-		r        rotation
+		r        provider.Rotation
 		expected string
 	}{
-		{Rotate0Degrees, "0"},
-		{Rotate90Degrees, "90"},
-		{Rotate180Degrees, "180"},
-		{Rotate270Degrees, "270"},
-		{rotation{}, "def"},
+		{provider.Rotate0Degrees, "0"},
+		{provider.Rotate90Degrees, "90"},
+		{provider.Rotate180Degrees, "180"},
+		{provider.Rotate270Degrees, "270"},
+		{provider.Rotation{}, "def"},
 	}
 	var p encodingComProvider
 	for _, test := range tests {
-		profile := Profile{Rotate: test.r}
-		formats := p.profilesToFormats("sourceFile", []Profile{profile})
+		profile := provider.Profile{Rotate: test.r}
+		formats := p.profilesToFormats("sourceFile", []provider.Profile{profile})
 		for _, format := range formats {
 			if format.Rotate != test.expected {
 				t.Errorf("profileToFormat: expected rotate to be %q. Got %q.", test.expected, format.Rotate)
@@ -164,15 +175,15 @@ func TestJobStatus(t *testing.T) {
 	}
 	server.medias["mymedia"] = &media
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
-	provider := encodingComProvider{client: client}
-	jobStatus, err := provider.JobStatus("mymedia")
+	prov := encodingComProvider{client: client}
+	jobStatus, err := prov.JobStatus("mymedia")
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := JobStatus{
+	expected := provider.JobStatus{
 		ProviderJobID: "mymedia",
 		ProviderName:  "encoding.com",
-		Status:        StatusFinished,
+		Status:        provider.StatusFinished,
 		StatusMessage: "",
 		ProviderStatus: map[string]interface{}{
 			"progress":          100.0,
@@ -206,26 +217,26 @@ func TestJobStatusMediaNotFound(t *testing.T) {
 func TestJobStatusMap(t *testing.T) {
 	var tests = []struct {
 		encodingComStatus string
-		expected          status
+		expected          provider.Status
 	}{
-		{"New", StatusQueued},
-		{"Downloading", StatusStarted},
-		{"Ready to process", StatusStarted},
-		{"Waiting for encoder", StatusStarted},
-		{"Processing", StatusStarted},
-		{"Saving", StatusStarted},
-		{"Finished", StatusFinished},
-		{"Error", StatusFailed},
-		{"Unknown", StatusFailed},
-		{"new", StatusQueued},
-		{"downloading", StatusStarted},
-		{"ready to process", StatusStarted},
-		{"waiting for encoder", StatusStarted},
-		{"processing", StatusStarted},
-		{"saving", StatusStarted},
-		{"finished", StatusFinished},
-		{"error", StatusFailed},
-		{"unknown", StatusFailed},
+		{"New", provider.StatusQueued},
+		{"Downloading", provider.StatusStarted},
+		{"Ready to process", provider.StatusStarted},
+		{"Waiting for encoder", provider.StatusStarted},
+		{"Processing", provider.StatusStarted},
+		{"Saving", provider.StatusStarted},
+		{"Finished", provider.StatusFinished},
+		{"Error", provider.StatusFailed},
+		{"Unknown", provider.StatusFailed},
+		{"new", provider.StatusQueued},
+		{"downloading", provider.StatusStarted},
+		{"ready to process", provider.StatusStarted},
+		{"waiting for encoder", provider.StatusStarted},
+		{"processing", provider.StatusStarted},
+		{"saving", provider.StatusStarted},
+		{"finished", provider.StatusFinished},
+		{"error", provider.StatusFailed},
+		{"unknown", provider.StatusFailed},
 	}
 	var p encodingComProvider
 	for _, test := range tests {

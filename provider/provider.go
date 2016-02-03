@@ -1,9 +1,20 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/nytm/video-transcoding-api/config"
+)
+
+var (
+	// ErrProviderAlreadyRegistered is the error returned when trying to register a
+	// provider twice.
+	ErrProviderAlreadyRegistered = errors.New("provider is already registered")
+
+	// ErrProviderNotFound is the error returned when asking for a provider
+	// that is not registered.
+	ErrProviderNotFound = errors.New("provider not found")
 )
 
 // TranscodingProvider represents a provider of transcoding.
@@ -51,28 +62,53 @@ func (err JobNotFoundError) Error() string {
 // provider is able to add customized information in the ProviderStatus field.
 type JobStatus struct {
 	ProviderJobID  string                 `json:"providerJobId,omitempty"`
-	Status         status                 `json:"status,omitempty"`
+	Status         Status                 `json:"status,omitempty"`
 	ProviderName   string                 `json:"providerName,omitempty"`
 	StatusMessage  string                 `json:"statusMessage,omitempty"`
 	ProviderStatus map[string]interface{} `json:"providerStatus,omitempty"`
 }
 
-type status string
+// Status is the status of a transcoding job.
+type Status string
 
 const (
 	// StatusQueued is the status for a job that is in the queue for
 	// execution.
-	StatusQueued = status("queued")
+	StatusQueued = Status("queued")
 
 	// StatusStarted is the status for a job that is being executed.
-	StatusStarted = status("started")
+	StatusStarted = Status("started")
 
 	// StatusFinished is the status for a job that finished successfully.
-	StatusFinished = status("finished")
+	StatusFinished = Status("finished")
 
 	// StatusFailed is the status for a job that has failed.
-	StatusFailed = status("failed")
+	StatusFailed = Status("failed")
 
 	// StatusCanceled is the status for a job that has been canceled.
-	StatusCanceled = status("canceled")
+	StatusCanceled = Status("canceled")
 )
+
+var providers map[string]Factory
+
+// Register register a new provider in the internal list of providers.
+func Register(name string, provider Factory) error {
+	if providers == nil {
+		providers = make(map[string]Factory)
+	}
+	if _, ok := providers[name]; ok {
+		return ErrProviderAlreadyRegistered
+	}
+	providers[name] = provider
+	return nil
+}
+
+// GetProviderFactory looks up the list of registered providers and returns the
+// factory function for the given provider name, if it's available.
+func GetProviderFactory(name string) (Factory, error) {
+	factory, ok := providers[name]
+	if !ok {
+		return nil, ErrProviderNotFound
+	}
+	return factory, nil
+}

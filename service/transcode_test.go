@@ -12,7 +12,6 @@ import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/provider"
 	"github.com/rcrowley/go-metrics"
 )
 
@@ -133,7 +132,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": "Unknown provider found in request: nonexistent-provider",
+				"error": "provider not found",
 			},
 		},
 		{
@@ -203,15 +202,7 @@ func TestTranscode(t *testing.T) {
 		fakeDBObj := db.JobRepository(&fakeDB{
 			TriggerDBError: test.givenTriggerDBError,
 		})
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDBObj,
-			providers: map[string]provider.Factory{
-				"fake":         fakeProviderFactory,
-				"profile-fake": profileFakeProviderFactory,
-				"preset-fake":  presetFakeProviderFactory,
-			},
-		})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -275,11 +266,7 @@ func TestGetTranscodeJob(t *testing.T) {
 		fakeDBObj := db.JobRepository(&fakeDB{
 			TriggerDBError: test.givenTriggerDBError,
 		})
-		srvr.Register(&TranscodingService{
-			config:    &config.Config{},
-			db:        fakeDBObj,
-			providers: map[string]provider.Factory{"fake": fakeProviderFactory},
-		})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("GET", test.givenURI, nil)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
