@@ -123,7 +123,7 @@ func TestAWSTranscode(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832:0001", "93239832:0002"})
+	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -143,8 +143,8 @@ func TestAWSTranscode(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832:0001"), Key: aws.String("dir/932398320001/file.mp4")},
-			{PresetId: aws.String("93239832:0002"), Key: aws.String("dir/932398320002/file.mp4")},
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/93239832-0001/file.mp4")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/93239832-0002/file.mp4")},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
@@ -166,7 +166,7 @@ func TestAWSTranscodeAWSFailure(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832:0001", "93239832:0002"})
+	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"})
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil status: %#v", jobStatus)
 	}
@@ -186,7 +186,7 @@ func TestAWSJobStatus(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	jobStatus, err := provider.TranscodeWithPresets("dir/file.mp4", []string{"93239832:0001", "93239832:0002"})
+	jobStatus, err := provider.TranscodeWithPresets("dir/file.mp4", []string{"93239832-0001", "93239832-0002"})
 	if err != nil {
 		t.Fatal(err)
 	}

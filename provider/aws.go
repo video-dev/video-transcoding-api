@@ -46,7 +46,6 @@ func (p *awsProvider) TranscodeWithPresets(source string, presets []string) (*Jo
 func (p *awsProvider) outputKey(source, preset string) *string {
 	parts := strings.Split(source, "/")
 	lastIndex := len(parts) - 1
-	preset = strings.Replace(preset, ":", "", -1)
 	parts = append(parts[0:lastIndex], preset, parts[lastIndex])
 	return aws.String(strings.Join(parts, "/"))
 }
