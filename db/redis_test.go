@@ -108,7 +108,7 @@ func TestSaveJobIsSafe(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			err = repo.SaveJob(&jobs[i])
+			err := repo.SaveJob(&jobs[i])
 			if err != nil && err != redis.TxFailedErr {
 				t.Error(err)
 			}

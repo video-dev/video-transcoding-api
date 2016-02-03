@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
@@ -14,6 +15,7 @@ import (
 type redisRepository struct {
 	config *config.Config
 	client *redis.Client
+	once   sync.Once
 }
 
 // NewRedisJobRepository creates a new JobRepository that uses Redis for
@@ -79,7 +81,7 @@ func (r *redisRepository) generateID() (string, error) {
 }
 
 func (r *redisRepository) redisClient() *redis.Client {
-	if r.client == nil {
+	r.once.Do(func() {
 		var sentinelAddrs []string
 		if r.config.Redis.SentinelAddrs != "" {
 			sentinelAddrs = strings.Split(r.config.Redis.SentinelAddrs, ",")
@@ -104,6 +106,6 @@ func (r *redisRepository) redisClient() *redis.Client {
 				PoolTimeout: time.Duration(r.config.Redis.PoolTimeout) * time.Second,
 			})
 		}
-	}
+	})
 	return r.client
 }
