@@ -209,6 +209,12 @@ func TestAWSJobStatus(t *testing.T) {
 	expectedJobStatus := provider.JobStatus{
 		ProviderJobID: id,
 		Status:        provider.StatusFinished,
+		ProviderStatus: map[string]interface{}{
+			"outputs": map[string]interface{}{
+				"dir/93239832-0001/file.mp4": "it's finished!",
+				"dir/93239832-0002/file.mp4": "it's finished!",
+			},
+		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
 		t.Errorf("Wrong JobStatus. Want %#v. Got %#v.", expectedJobStatus, *jobStatus)

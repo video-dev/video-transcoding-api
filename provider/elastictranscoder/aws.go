@@ -82,9 +82,14 @@ func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, err
 	}
+	outputs := make(map[string]interface{})
+	for _, output := range resp.Job.Outputs {
+		outputs[*output.Key] = *output.StatusDetail
+	}
 	return &provider.JobStatus{
-		ProviderJobID: *resp.Job.Id,
-		Status:        p.statusMap(*resp.Job.Status),
+		ProviderJobID:  *resp.Job.Id,
+		Status:         p.statusMap(*resp.Job.Status),
+		ProviderStatus: map[string]interface{}{"outputs": outputs},
 	}, nil
 }
 

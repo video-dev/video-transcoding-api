@@ -52,12 +52,20 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 	if !ok {
 		return nil, errors.New("job not found")
 	}
+	outputs := make([]*elastictranscoder.JobOutput, len(createJobInput.Outputs))
+	for i, createJobOutput := range createJobInput.Outputs {
+		outputs[i] = &elastictranscoder.JobOutput{
+			Key:          createJobOutput.Key,
+			StatusDetail: aws.String("it's finished!"),
+		}
+	}
 	return &elastictranscoder.ReadJobOutput{
 		Job: &elastictranscoder.Job{
 			Id:         input.Id,
 			Input:      createJobInput.Input,
 			PipelineId: createJobInput.PipelineId,
 			Status:     aws.String("Complete"),
+			Outputs:    outputs,
 		},
 	}, nil
 }
