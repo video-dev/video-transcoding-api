@@ -37,9 +37,9 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	if len(reqObject.Profiles) > 0 && len(reqObject.Presets) > 0 {
 		return http.StatusBadRequest, nil, errors.New("Presets and profiles are mutually exclusive, please use only one of them")
 	}
-	providerFactory := s.providers[reqObject.Provider]
-	if providerFactory == nil {
-		return http.StatusBadRequest, nil, fmt.Errorf("Unknown provider found in request: %s", reqObject.Provider)
+	providerFactory, err := provider.GetProviderFactory(reqObject.Provider)
+	if err != nil {
+		return http.StatusBadRequest, nil, err
 	}
 	providerObj, err := providerFactory(s.config)
 	if err != nil {
@@ -89,8 +89,8 @@ func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{},
 		}
 		return statusCode, nil, fmt.Errorf("Error retrieving job with id '%s': %s", jobID, err)
 	}
-	providerFactory := s.providers[job.ProviderName]
-	if providerFactory == nil {
+	providerFactory, err := provider.GetProviderFactory(job.ProviderName)
+	if err != nil {
 		return http.StatusInternalServerError, nil, fmt.Errorf("Unknown provider '%s' for job id '%s'", job.ProviderName, jobID)
 	}
 	providerObj, err := providerFactory(s.config)

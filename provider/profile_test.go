@@ -26,9 +26,20 @@ func TestSizeString(t *testing.T) {
 	}
 }
 
+func TestRotationValue(t *testing.T) {
+	rot := Rotation{set: true, value: 10}
+	val, set := rot.Value()
+	if set != rot.set {
+		t.Errorf("Rotation.Value(): got wrong set flag. Want %v. Got %v", rot.set, set)
+	}
+	if val != rot.value {
+		t.Errorf("Rotation.Value(): got wrong value. Want %d. Got %d", rot.value, val)
+	}
+}
+
 func TestRotationVariables(t *testing.T) {
 	var tests = []struct {
-		input    rotation
+		input    Rotation
 		expected uint
 	}{
 		{Rotate0Degrees, 0},
@@ -48,7 +59,7 @@ func TestRotationVariables(t *testing.T) {
 
 func TestRotationUnmarshalJSON(t *testing.T) {
 	var tests = []struct {
-		input       rotation
+		input       Rotation
 		expectedErr error
 	}{
 		{Rotate0Degrees, nil},
@@ -58,7 +69,7 @@ func TestRotationUnmarshalJSON(t *testing.T) {
 		{newRotation(500), errors.New("invalid value for rotation: 500")},
 		{newRotation(3), errors.New("invalid value for rotation: 3")},
 	}
-	var m map[string]rotation
+	var m map[string]Rotation
 	for _, test := range tests {
 		data := []byte(fmt.Sprintf(`{"value": %d}`, test.input.value))
 		err := json.Unmarshal(data, &m)

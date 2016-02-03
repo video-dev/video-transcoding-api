@@ -9,15 +9,13 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/provider"
 )
 
 // TranscodingService will implement server.JSONService and handle all requests
 // to the server.
 type TranscodingService struct {
-	config    *config.Config
-	db        db.JobRepository
-	providers map[string]provider.Factory
+	config *config.Config
+	db     db.JobRepository
 }
 
 // NewTranscodingService will instantiate a JSONService
@@ -27,14 +25,7 @@ func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}
-	return &TranscodingService{
-		config: cfg,
-		db:     dbRepo,
-		providers: map[string]provider.Factory{
-			"encoding.com":      provider.EncodingComProvider,
-			"elastictranscoder": provider.ElasticTranscoderProvider,
-		},
-	}, nil
+	return &TranscodingService{config: cfg, db: dbRepo}, nil
 }
 
 // Prefix returns the string prefix used for all endpoints within

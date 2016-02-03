@@ -6,6 +6,8 @@ import (
 	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
+	_ "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
+	_ "github.com/nytm/video-transcoding-api/provider/encodingcom"
 	"github.com/nytm/video-transcoding-api/service"
 )
 

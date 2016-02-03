@@ -1,7 +1,9 @@
-package provider
+package elastictranscoder
 
 import (
+	"crypto/rand"
 	"errors"
+	"fmt"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
@@ -30,7 +32,7 @@ func (c *fakeElasticTranscoder) CreateJob(input *elastictranscoder.CreateJobInpu
 	if err := c.getError("CreateJob"); err != nil {
 		return nil, err
 	}
-	id := "job-" + generateID(4)
+	id := fmt.Sprintf("job-%x", generateID())
 	c.jobs[id] = input
 	return &elastictranscoder.CreateJobResponse{
 		Job: &elastictranscoder.Job{
@@ -74,4 +76,10 @@ func (c *fakeElasticTranscoder) getError(op string) error {
 	default:
 	}
 	return nil
+}
+
+func generateID() []byte {
+	var b [4]byte
+	rand.Read(b[:])
+	return b[:]
 }

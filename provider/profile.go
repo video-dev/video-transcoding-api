@@ -5,11 +5,6 @@ import (
 	"strconv"
 )
 
-type rotation struct {
-	value uint
-	set   bool
-}
-
 var (
 	// Rotate0Degrees represents 0 degrees rotation (no rotation).
 	Rotate0Degrees = newRotation(0)
@@ -25,11 +20,27 @@ var (
 	Rotate270Degrees = newRotation(270)
 )
 
-func newRotation(n uint) rotation {
-	return rotation{value: n, set: true}
+// Rotation presents rotation configuration in the provider. It's composed by
+// two interval values: the rotation in degrees and whether it has been
+// defined.
+type Rotation struct {
+	value uint
+	set   bool
 }
 
-func (r *rotation) UnmarshalJSON(b []byte) error {
+// Value returns the underlying rotation data.
+func (r Rotation) Value() (uint, bool) {
+	return r.value, r.set
+}
+
+func newRotation(n uint) Rotation {
+	return Rotation{value: n, set: true}
+}
+
+// UnmarshalJSON is the method used for unmarshaling a rotation instance from
+// JSON format. It validates whether this is a valid rotation and  then set the
+// values.
+func (r *Rotation) UnmarshalJSON(b []byte) error {
 	value, err := strconv.ParseUint(string(b), 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid value for rotation: %s. It must be a positive integer", b)
@@ -62,7 +73,7 @@ type Profile struct {
 
 	KeyFrame    string
 	AudioVolume uint
-	Rotate      rotation
+	Rotate      Rotation
 
 	TwoPassEncoding bool
 }

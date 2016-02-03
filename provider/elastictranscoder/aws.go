@@ -1,4 +1,19 @@
-package provider
+// Package elastictranscoder provides a implementation of the provider that
+// uses AWS Elastic Transcoder for transcoding media files.
+//
+// It doesn't expose any public type. In order to use the provider, one must
+// import this package and then grab the factory from the provider package:
+//
+//     import (
+//         "github.com/nytm/video-transcoding-api/provider"
+//         "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
+//     )
+//
+//     func UseProvider() {
+//         factory, err := provider.GetProviderFactory(elastictranscoder.Name)
+//         // handle err and use factory to get an instance of the provider.
+//     }
+package elastictranscoder
 
 import (
 	"errors"
@@ -10,18 +25,29 @@ import (
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder/elastictranscoderiface"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
-const defaultAWSRegion = "us-east-1"
+const (
+	// Name is the name used for registering the Elastic Transcoder
+	// provider in the registry of providers.
+	Name = "elastictranscoder"
+
+	defaultAWSRegion = "us-east-1"
+)
 
 var errAWSInvalidConfig = errors.New("invalid Elastic Transcoder config. Please define the configuration entries in the config file or environment variables")
+
+func init() {
+	provider.Register(Name, elasticTranscoderProvider)
+}
 
 type awsProvider struct {
 	c      elastictranscoderiface.ElasticTranscoderAPI
 	config *config.ElasticTranscoder
 }
 
-func (p *awsProvider) TranscodeWithPresets(source string, presets []string) (*JobStatus, error) {
+func (p *awsProvider) TranscodeWithPresets(source string, presets []string) (*provider.JobStatus, error) {
 	input := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
@@ -37,9 +63,10 @@ func (p *awsProvider) TranscodeWithPresets(source string, presets []string) (*Jo
 	if err != nil {
 		return nil, err
 	}
-	return &JobStatus{
+	return &provider.JobStatus{
+		ProviderName:  Name,
 		ProviderJobID: *resp.Job.Id,
-		Status:        StatusQueued,
+		Status:        provider.StatusQueued,
 	}, nil
 }
 
@@ -50,35 +77,33 @@ func (p *awsProvider) outputKey(source, preset string) *string {
 	return aws.String(strings.Join(parts, "/"))
 }
 
-func (p *awsProvider) JobStatus(id string) (*JobStatus, error) {
+func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	resp, err := p.c.ReadJob(&elastictranscoder.ReadJobInput{Id: aws.String(id)})
 	if err != nil {
 		return nil, err
 	}
-	return &JobStatus{
+	return &provider.JobStatus{
 		ProviderJobID: *resp.Job.Id,
 		Status:        p.statusMap(*resp.Job.Status),
 	}, nil
 }
 
-func (p *awsProvider) statusMap(awsStatus string) status {
+func (p *awsProvider) statusMap(awsStatus string) provider.Status {
 	switch awsStatus {
 	case "Submitted":
-		return StatusQueued
+		return provider.StatusQueued
 	case "Progressing":
-		return StatusStarted
+		return provider.StatusStarted
 	case "Complete":
-		return StatusFinished
+		return provider.StatusFinished
 	case "Canceled":
-		return StatusCanceled
+		return provider.StatusCanceled
 	default:
-		return StatusFailed
+		return provider.StatusFailed
 	}
 }
 
-// ElasticTranscoderProvider is the factory function for the AWS Elastic
-// Transcoder provider.
-func ElasticTranscoderProvider(cfg *config.Config) (TranscodingProvider, error) {
+func elasticTranscoderProvider(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.ElasticTranscoder.AccessKeyID == "" || cfg.ElasticTranscoder.SecretAccessKey == "" || cfg.ElasticTranscoder.PipelineID == "" {
 		return nil, errAWSInvalidConfig
 	}

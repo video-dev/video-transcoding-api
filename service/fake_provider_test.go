@@ -5,6 +5,12 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
+func init() {
+	provider.Register("fake", fakeProviderFactory)
+	provider.Register("profile-fake", profileFakeProviderFactory)
+	provider.Register("preset-fake", presetFakeProviderFactory)
+}
+
 type baseFakeProvider struct{}
 
 func (e *baseFakeProvider) JobStatus(id string) (*provider.JobStatus, error) {

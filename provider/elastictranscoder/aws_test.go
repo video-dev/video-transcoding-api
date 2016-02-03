@@ -1,4 +1,4 @@
-package provider
+package elastictranscoder
 
 import (
 	"errors"
@@ -10,7 +10,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/provider"
 )
+
+func TestFactoryIsRegistered(t *testing.T) {
+	_, err := provider.GetProviderFactory(Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestElasticTranscoderProvider(t *testing.T) {
 	cfg := config.Config{
@@ -21,7 +29,7 @@ func TestElasticTranscoderProvider(t *testing.T) {
 			Region:          "sa-east-1",
 		},
 	}
-	provider, err := ElasticTranscoderProvider(&cfg)
+	provider, err := elasticTranscoderProvider(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -55,7 +63,7 @@ func TestElasticTranscoderProviderDefaultRegion(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	provider, err := ElasticTranscoderProvider(&cfg)
+	provider, err := elasticTranscoderProvider(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,7 +109,7 @@ func TestElasticTranscoderProviderValidation(t *testing.T) {
 				PipelineID:      test.pipelineID,
 			},
 		}
-		provider, err := ElasticTranscoderProvider(&cfg)
+		provider, err := elasticTranscoderProvider(&cfg)
 		if provider != nil {
 			t.Errorf("Got unexpected non-nil provider: %#v", provider)
 		}
@@ -113,7 +121,7 @@ func TestElasticTranscoderProviderValidation(t *testing.T) {
 
 func TestAWSTranscode(t *testing.T) {
 	fakeTranscoder := newFakeElasticTranscoder()
-	provider := &awsProvider{
+	prov := &awsProvider{
 		c: fakeTranscoder,
 		config: &config.ElasticTranscoder{
 			AccessKeyID:     "AKIA",
@@ -123,15 +131,18 @@ func TestAWSTranscode(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"})
+	jobStatus, err := prov.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if m, _ := regexp.MatchString(`^job-[a-f0-9]{8}$`, jobStatus.ProviderJobID); !m {
 		t.Errorf("Elastic Transcoder: invalid id returned - %q", jobStatus.ProviderJobID)
 	}
-	if jobStatus.Status != StatusQueued {
+	if jobStatus.Status != provider.StatusQueued {
 		t.Errorf("Elastic Transcoder: wrong status returned. Want queued. Got %v", jobStatus.Status)
+	}
+	if jobStatus.ProviderName != Name {
+		t.Errorf("Elastic Transcoder: wrong provider name returned. Want %q. Got %q", Name, jobStatus.ProviderName)
 	}
 
 	if len(fakeTranscoder.jobs) != 1 {
@@ -177,7 +188,7 @@ func TestAWSTranscodeAWSFailure(t *testing.T) {
 
 func TestAWSJobStatus(t *testing.T) {
 	fakeTranscoder := newFakeElasticTranscoder()
-	provider := &awsProvider{
+	prov := &awsProvider{
 		c: fakeTranscoder,
 		config: &config.ElasticTranscoder{
 			AccessKeyID:     "AKIA",
@@ -186,18 +197,18 @@ func TestAWSJobStatus(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	jobStatus, err := provider.TranscodeWithPresets("dir/file.mp4", []string{"93239832-0001", "93239832-0002"})
+	jobStatus, err := prov.TranscodeWithPresets("dir/file.mp4", []string{"93239832-0001", "93239832-0002"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	id := jobStatus.ProviderJobID
-	jobStatus, err = provider.JobStatus(id)
+	jobStatus, err = prov.JobStatus(id)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedJobStatus := JobStatus{
+	expectedJobStatus := provider.JobStatus{
 		ProviderJobID: id,
-		Status:        StatusFinished,
+		Status:        provider.StatusFinished,
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
 		t.Errorf("Wrong JobStatus. Want %#v. Got %#v.", expectedJobStatus, *jobStatus)
@@ -253,14 +264,14 @@ func TestAWSJobStatusInternalError(t *testing.T) {
 func TestAWSStatusMap(t *testing.T) {
 	var tests = []struct {
 		input  string
-		output status
+		output provider.Status
 	}{
-		{"Submitted", StatusQueued},
-		{"Progressing", StatusStarted},
-		{"Canceled", StatusCanceled},
-		{"Error", StatusFailed},
-		{"Complete", StatusFinished},
-		{"unknown", StatusFailed},
+		{"Submitted", provider.StatusQueued},
+		{"Progressing", provider.StatusStarted},
+		{"Canceled", provider.StatusCanceled},
+		{"Error", provider.StatusFailed},
+		{"Complete", provider.StatusFinished},
+		{"unknown", provider.StatusFailed},
 	}
 	var prov awsProvider
 	for _, test := range tests {
