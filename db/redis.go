@@ -32,17 +32,8 @@ func (r *redisRepository) SaveJob(job *Job) error {
 		}
 		job.ID = jobID
 	}
-	jobKey := r.jobKey(job)
-	multi, err := r.redisClient().Watch(jobKey)
-	if err != nil {
-		return err
-	}
-	_, err = multi.Exec(func() error {
-		multi.HSet(jobKey, "providerName", job.ProviderName)
-		multi.HSet(jobKey, "providerJobID", job.ProviderJobID)
-		return nil
-	})
-	return err
+	result := r.redisClient().HMSet(r.jobKey(job), "providerName", job.ProviderName, "providerJobID", job.ProviderJobID)
+	return result.Err()
 }
 
 func (r *redisRepository) DeleteJob(job *Job) error {
