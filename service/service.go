@@ -42,8 +42,6 @@ func (s *TranscodingService) Middleware(h http.Handler) http.Handler {
 }
 
 // JSONMiddleware provides a JSONEndpoint hook wrapped around all requests.
-// In this implementation, we're using it to provide application logging and to check errors
-// and provide generic responses.
 func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEndpoint {
 	return func(r *http.Request) (int, interface{}, error) {
 
