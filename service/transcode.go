@@ -54,13 +54,13 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 	if len(reqObject.Profiles) > 0 {
 		profileProvider, ok := providerObj.(provider.ProfileTranscodingProvider)
 		if !ok {
-			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support profile-based encoding", reqObject.Provider)
+			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support profile-based transcoding", reqObject.Provider)
 		}
 		jobStatus, err = profileProvider.TranscodeWithProfiles(reqObject.Source, reqObject.Profiles)
 	} else {
 		presetProvider, ok := providerObj.(provider.PresetTranscodingProvider)
 		if !ok {
-			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support preset-based encoding", reqObject.Provider)
+			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support preset-based transcoding", reqObject.Provider)
 		}
 		jobStatus, err = presetProvider.TranscodeWithPresets(reqObject.Source, reqObject.Presets)
 	}

@@ -77,7 +77,7 @@ func TestTranscode(t *testing.T) {
 		wantBody interface{}
 	}{
 		{
-			"New job with profile based encoding",
+			"New job with profile-based transcoding",
 			fmt.Sprintf(`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -92,7 +92,7 @@ func TestTranscode(t *testing.T) {
 			},
 		},
 		{
-			"New job with preset based encoding",
+			"New job with preset-based transcoding",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -178,7 +178,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": `Provider "preset-fake" does not support profile-based encoding`,
+				"error": `Provider "preset-fake" does not support profile-based transcoding`,
 			},
 		},
 		{
@@ -193,7 +193,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": `Provider "profile-fake" does not support preset-based encoding`,
+				"error": `Provider "profile-fake" does not support preset-based transcoding`,
 			},
 		},
 	}
