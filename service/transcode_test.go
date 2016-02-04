@@ -39,33 +39,6 @@ const testProfileString = `{
    "hint":"no"
 }`
 
-type fakeDB struct {
-	TriggerDBError bool
-}
-
-func (d *fakeDB) SaveJob(job *db.Job) error {
-	if d.TriggerDBError {
-		return fmt.Errorf("Database error")
-	}
-	job.ID = "12345"
-	return nil
-}
-
-func (d *fakeDB) DeleteJob(job *db.Job) error {
-	return nil
-}
-
-func (d *fakeDB) GetJob(id string) (*db.Job, error) {
-	if id == "12345" {
-		return &db.Job{
-			ID:            "12345",
-			ProviderName:  "fake",
-			ProviderJobID: "provider-job-123",
-		}, nil
-	}
-	return nil, db.ErrJobNotFound
-}
-
 func TestTranscode(t *testing.T) {
 	tests := []struct {
 		givenTestCase       string
@@ -117,7 +90,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusInternalServerError,
 			map[string]interface{}{
-				"error": "Database error",
+				"error": "database error",
 			},
 		},
 		{
@@ -199,9 +172,7 @@ func TestTranscode(t *testing.T) {
 
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDBObj := db.JobRepository(&fakeDB{
-			TriggerDBError: test.givenTriggerDBError,
-		})
+		fakeDBObj := newFakeDB(test.givenTriggerDBError)
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
@@ -263,9 +234,8 @@ func TestGetTranscodeJob(t *testing.T) {
 
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDBObj := db.JobRepository(&fakeDB{
-			TriggerDBError: test.givenTriggerDBError,
-		})
+		fakeDBObj := newFakeDB(test.givenTriggerDBError)
+		fakeDBObj.SaveJob(&db.Job{ProviderName: "fake", ProviderJobID: "provider-job-123"})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("GET", test.givenURI, nil)
 		r.Header.Set("Content-Type", "application/json")

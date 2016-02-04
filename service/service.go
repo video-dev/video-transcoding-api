@@ -16,7 +16,7 @@ import (
 // to the server.
 type TranscodingService struct {
 	config *config.Config
-	db     db.JobRepository
+	db     db.Repository
 }
 
 // NewTranscodingService will instantiate a JSONService
@@ -26,7 +26,7 @@ func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}
-	return &TranscodingService{config: cfg, db: dbRepo.(db.JobRepository)}, nil
+	return &TranscodingService{config: cfg, db: dbRepo}, nil
 }
 
 // Prefix returns the string prefix used for all endpoints within
@@ -45,7 +45,6 @@ func (s *TranscodingService) Middleware(h http.Handler) http.Handler {
 // JSONMiddleware provides a JSONEndpoint hook wrapped around all requests.
 func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEndpoint {
 	return func(r *http.Request) (int, interface{}, error) {
-
 		status, res, err := j(r)
 		if err != nil {
 			if status == http.StatusServiceUnavailable {
@@ -56,7 +55,6 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 			}
 			return status, nil, &jsonErr{err.Error()}
 		}
-
 		server.LogWithFields(r).Info("success!")
 		return status, res, nil
 	}
@@ -70,6 +68,9 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		},
 		"/jobs/{jobId:[^/]+}": {
 			"GET": s.getTranscodeJob,
+		},
+		"/presets": {
+			"POST": s.newPreset,
 		},
 	}
 }
