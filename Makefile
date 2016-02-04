@@ -1,3 +1,5 @@
+.PHONY: all testdeps checkfmt lint test build run vet
+
 all: test
 
 testdeps:
