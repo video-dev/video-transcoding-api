@@ -21,11 +21,11 @@ type TranscodingService struct {
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
-	dbRepo, err := db.NewRedisJobRepository(cfg)
+	dbRepo, err := db.NewRedisRepository(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}
-	return &TranscodingService{config: cfg, db: dbRepo}, nil
+	return &TranscodingService{config: cfg, db: dbRepo.(db.JobRepository)}, nil
 }
 
 // Prefix returns the string prefix used for all endpoints within

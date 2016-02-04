@@ -2,14 +2,34 @@ package db
 
 import "errors"
 
-// ErrJobNotFound is the error returned when the job is not found on GetJob or
-// DeleteJob.
-var ErrJobNotFound = errors.New("job not found")
+var (
+	// ErrJobNotFound is the error returned when the job is not found on GetJob or
+	// DeleteJob.
+	ErrJobNotFound = errors.New("job not found")
 
-// JobRepository is the interface that defines the method for managing Job
+	// ErrPresetNotFound is the error returned when the preset is not found
+	// on GetPreset or DeletePreset.
+	ErrPresetNotFound = errors.New("preset not found")
+)
+
+// Repository represents the repository for persisting types of the API.
+type Repository interface {
+	JobRepository
+	PresetRepository
+}
+
+// JobRepository is the interface that defines the set of methods for managing Job
 // persistence.
 type JobRepository interface {
 	SaveJob(*Job) error
 	DeleteJob(*Job) error
 	GetJob(id string) (*Job, error)
+}
+
+// PresetRepository is the interface that defines the set of methods for
+// managing Preset persistence.
+type PresetRepository interface {
+	SavePreset(*Preset) error
+	DeletePreset(*Preset) error
+	GetPreset(id string) (*Preset, error)
 }

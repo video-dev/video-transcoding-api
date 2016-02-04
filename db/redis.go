@@ -2,8 +2,10 @@ package db
 
 import (
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -12,15 +14,16 @@ import (
 	"gopkg.in/redis.v3"
 )
 
+var errNotFound = errors.New("not found")
+
 type redisRepository struct {
 	config *config.Config
 	client *redis.Client
 	once   sync.Once
 }
 
-// NewRedisJobRepository creates a new JobRepository that uses Redis for
-// persistence.
-func NewRedisJobRepository(cfg *config.Config) (JobRepository, error) {
+// NewRedisRepository creates a new Repository that uses Redis for persistence.
+func NewRedisRepository(cfg *config.Config) (Repository, error) {
 	repo := &redisRepository{config: cfg}
 	repo.client = repo.redisClient()
 	return &redisRepository{config: cfg}, nil
@@ -34,38 +37,217 @@ func (r *redisRepository) SaveJob(job *Job) error {
 		}
 		job.ID = jobID
 	}
-	result := r.redisClient().HMSet(r.jobKey(job), "providerName", job.ProviderName, "providerJobID", job.ProviderJobID)
-	return result.Err()
+	return r.save(r.jobKey(job.ID), job)
 }
 
 func (r *redisRepository) DeleteJob(job *Job) error {
-	n, err := r.redisClient().Del(r.jobKey(job)).Result()
+	return r.delete(r.jobKey(job.ID), ErrJobNotFound)
+}
+
+func (r *redisRepository) GetJob(id string) (*Job, error) {
+	job := Job{ID: id}
+	err := r.load(r.jobKey(id), &job)
+	if err == errNotFound {
+		return nil, ErrJobNotFound
+	}
+	return &job, err
+}
+
+func (r *redisRepository) jobKey(id string) string {
+	return "job:" + id
+}
+
+func (r *redisRepository) SavePreset(preset *Preset) error {
+	if preset.ID == "" {
+		id, err := r.generateID()
+		if err != nil {
+			return err
+		}
+		preset.ID = id
+	}
+	return r.save(r.presetKey(preset.ID), preset)
+}
+
+func (r *redisRepository) DeletePreset(preset *Preset) error {
+	return r.delete(r.presetKey(preset.ID), ErrPresetNotFound)
+}
+
+func (r *redisRepository) GetPreset(id string) (*Preset, error) {
+	preset := Preset{ID: id, ProviderMapping: make(map[string]string)}
+	err := r.load(r.presetKey(id), &preset)
+	if err == errNotFound {
+		return nil, ErrPresetNotFound
+	}
+	return &preset, err
+}
+
+func (r *redisRepository) presetKey(id string) string {
+	return "preset:" + id
+}
+
+func (r *redisRepository) save(key string, hash interface{}) error {
+	var (
+		fields []string
+		err    error
+	)
+	if hash == nil {
+		return errors.New("no fields provided")
+	}
+	value := reflect.ValueOf(hash)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+	switch value.Kind() {
+	case reflect.Map:
+		fields, err = r.mapToFieldList(hash)
+		if err != nil {
+			return err
+		}
+	case reflect.Struct:
+		fields, err = r.structToFieldList(value)
+		if err != nil {
+			return err
+		}
+	default:
+		return errors.New("please provide a map or a struct")
+	}
+	return r.redisClient().HMSet(key, fields[0], fields[1], fields[2:]...).Err()
+}
+
+func (r *redisRepository) mapToFieldList(hash interface{}) ([]string, error) {
+	m, ok := hash.(map[string]string)
+	if !ok {
+		return nil, errors.New("please provide a map[string]string")
+	}
+	if len(m) < 1 {
+		return nil, errors.New("please provide a map[string]string with at least one element")
+	}
+	fields := make([]string, 0, len(m)*2)
+	for key, value := range m {
+		fields = append(fields, key, value)
+	}
+	return fields, nil
+}
+
+func (r *redisRepository) structToFieldList(value reflect.Value) ([]string, error) {
+	fields := make([]string, 0, value.NumField())
+	for i := 0; i < value.NumField(); i++ {
+		field := value.Type().Field(i)
+		if field.PkgPath != "" {
+			continue
+		}
+		fieldName := field.Tag.Get("redis-hash")
+		if fieldName == "-" {
+			continue
+		}
+		parts := strings.Split(fieldName, ",")
+		fieldValue := value.Field(i)
+		if len(parts) > 1 && parts[len(parts)-1] == "expand" {
+			if fieldValue.Kind() == reflect.Ptr {
+				fieldValue = fieldValue.Elem()
+			}
+			switch fieldValue.Kind() {
+			case reflect.Struct:
+				expandedFields, err := r.structToFieldList(fieldValue)
+				if err != nil {
+					return nil, err
+				}
+				fields = append(fields, expandedFields...)
+			case reflect.Map:
+				expandedFields, err := r.mapToFieldList(fieldValue.Interface())
+				if err != nil {
+					return nil, err
+				}
+				fields = append(fields, expandedFields...)
+			default:
+				return nil, errors.New("can only expand structs and maps")
+			}
+		} else {
+			fields = append(fields, parts[0], fmt.Sprintf("%v", fieldValue.Interface()))
+		}
+	}
+	return fields, nil
+}
+
+func (r *redisRepository) load(key string, out interface{}) error {
+	result, err := r.redisClient().HGetAllMap(key).Result()
 	if err != nil {
 		return err
 	}
-	if n == 0 {
-		return ErrJobNotFound
+	if len(result) < 1 {
+		return errNotFound
+	}
+	value := reflect.ValueOf(out)
+	if value.Kind() != reflect.Ptr {
+		return errors.New("please provide a pointer for getting result from the database")
+	}
+	value = value.Elem()
+	switch value.Kind() {
+	case reflect.Map:
+		return r.loadMap(result, value)
+	case reflect.Struct:
+		return r.loadStruct(result, value)
+	default:
+		return errors.New("please provider a pointer to a struct or a map for getting result from the database")
+	}
+}
+
+func (r *redisRepository) loadMap(in map[string]string, out reflect.Value) error {
+	if out.Type().Key().Kind() != reflect.String || out.Type().Elem().Kind() != reflect.String {
+		return errors.New("please provide a map[string]string")
+	}
+	for k, v := range in {
+		out.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(v))
 	}
 	return nil
 }
 
-func (r *redisRepository) GetJob(id string) (*Job, error) {
-	result, err := r.redisClient().HGetAllMap(r.jobKey(&Job{ID: id})).Result()
-	if err != nil {
-		return nil, err
+func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value) error {
+	for i := 0; i < out.NumField(); i++ {
+		field := out.Type().Field(i)
+		if field.PkgPath != "" {
+			continue
+		}
+		tagValue := field.Tag.Get("redis-hash")
+		if tagValue == "-" {
+			continue
+		}
+		parts := strings.Split(tagValue, ",")
+		fieldValue := out.Field(i)
+		if len(parts) > 1 && parts[len(parts)-1] == "expand" {
+			if fieldValue.Kind() == reflect.Ptr {
+				fieldValue = fieldValue.Elem()
+			}
+			switch fieldValue.Kind() {
+			case reflect.Map:
+				err := r.loadMap(in, fieldValue)
+				if err != nil {
+					return err
+				}
+			case reflect.Struct:
+				err := r.loadStruct(in, fieldValue)
+				if err != nil {
+					return err
+				}
+			default:
+				return errors.New("can only expand values to structs or maps")
+			}
+		} else if value, ok := in[parts[0]]; ok {
+			fieldValue.SetString(value)
+		}
 	}
-	if len(result) == 0 {
-		return nil, ErrJobNotFound
-	}
-	return &Job{
-		ID:            id,
-		ProviderJobID: result["providerJobID"],
-		ProviderName:  result["providerName"],
-	}, nil
+	return nil
 }
 
-func (r *redisRepository) jobKey(j *Job) string {
-	return "job:" + j.ID
+func (r *redisRepository) delete(key string, notFoundErr error) error {
+	n, err := r.redisClient().Del(key).Result()
+	if err != nil {
+		return err
+	}
+	if n == 0 {
+		return notFoundErr
+	}
+	return nil
 }
 
 func (r *redisRepository) generateID() (string, error) {

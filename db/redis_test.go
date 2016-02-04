@@ -23,7 +23,7 @@ func TestSaveJob(t *testing.T) {
 	}
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisJobRepository(&cfg)
+	repo, err := NewRedisRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,23 +37,16 @@ func TestSaveJob(t *testing.T) {
 	}
 	client := repo.(*redisRepository).redisClient()
 	defer client.Close()
-	items, err := client.HGetAll("job:" + job.ID).Result()
+	items, err := client.HGetAllMap("job:" + job.ID).Result()
 	if err != nil {
 		t.Fatal(err)
-	}
-	jobMap := make(map[string]string)
-	for i, item := range items {
-		switch item {
-		case "providerName", "providerJobID", "status":
-			jobMap[item] = items[i+1]
-		}
 	}
 	expected := map[string]string{
 		"providerName":  "encoding.com",
 		"providerJobID": "",
 	}
-	if !reflect.DeepEqual(jobMap, expected) {
-		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, jobMap)
+	if !reflect.DeepEqual(items, expected) {
+		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
 	}
 }
 
@@ -64,7 +57,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	}
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisJobRepository(&cfg)
+	repo, err := NewRedisRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +92,7 @@ func TestSaveJobIsSafe(t *testing.T) {
 		{ID: "abcabc", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
 		{ID: "abcabc", ProviderJobID: "ff12", ProviderName: "encoding.com"},
 	}
-	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +115,7 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +140,7 @@ func TestDeleteJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +155,7 @@ func TestGetJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +178,7 @@ func TestGetJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisJobRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,10 +191,171 @@ func TestGetJobNotFound(t *testing.T) {
 	}
 }
 
+func TestSavePreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg config.Config
+	cfg.Redis = new(config.Redis)
+	repo, err := NewRedisRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := Preset{
+		ProviderMapping: map[string]string{
+			"elementalcloud":    "abc123",
+			"elastictranscoder": "1281742-93939",
+		},
+	}
+	err = repo.SavePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preset.ID == "" {
+		t.Fatal("Preset ID should have been generated on SavePreset")
+	}
+	client := repo.(*redisRepository).redisClient()
+	defer client.Close()
+	items, err := client.HGetAllMap("preset:" + preset.ID).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(items, preset.ProviderMapping) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", preset.ProviderMapping, items)
+	}
+}
+
+func TestSavePresetPredefinedID(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg config.Config
+	cfg.Redis = new(config.Redis)
+	repo, err := NewRedisRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := Preset{
+		ID:              "mypreset",
+		ProviderMapping: map[string]string{"elemental": "123"},
+	}
+	err = repo.SavePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if preset.ID != "mypreset" {
+		t.Errorf("Preset ID should not be regenerated when it's already defined. Got %q instead of %q.", preset.ID, "preset")
+	}
+	client := repo.(*redisRepository).redisClient()
+	defer client.Close()
+	items, err := client.HGetAllMap("preset:mypreset").Result()
+	if !reflect.DeepEqual(items, preset.ProviderMapping) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v.", preset.ProviderMapping, items)
+	}
+}
+
+func TestDeletePreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := Preset{ID: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.SavePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeletePreset(&Preset{ID: preset.ID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := repo.(*redisRepository).redisClient()
+	result := client.HGetAllMap("preset:mypreset")
+	if len(result.Val()) != 0 {
+		t.Errorf("Unexpected value after delete call: %v", result.Val())
+	}
+}
+
+func TestDeletePresetNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeletePreset(&Preset{ID: "mypreset"})
+	if err != ErrPresetNotFound {
+		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
+	}
+}
+
+func TestGetPreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := Preset{
+		ID: "mypreset",
+		ProviderMapping: map[string]string{
+			"elementalcloud":    "abc-123",
+			"elastictranscoder": "0129291-0001",
+			"encoding.com":      "wait what?",
+		},
+	}
+	err = repo.SavePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotPreset, err := repo.GetPreset(preset.ID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(*gotPreset, preset) {
+		t.Errorf("Wrong preset. Want %#v. Got %#v.", preset, *gotPreset)
+	}
+}
+
+func TestGetPresetNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotPreset, err := repo.GetPreset("mypreset")
+	if err != ErrPresetNotFound {
+		t.Errorf("Wrong error returned. Want ErrPresetNotFound. Got %#v.", err)
+	}
+	if gotPreset != nil {
+		t.Errorf("Unexpected non-nil preset: %#v.", gotPreset)
+	}
+}
+
 func cleanRedis() error {
 	client := redis.NewClient(&redis.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
-	keys, err := client.Keys("job:*").Result()
+	err := deleteKeys("job:*", client)
+	if err != nil {
+		return err
+	}
+	return deleteKeys("preset:*", client)
+}
+
+func deleteKeys(pattern string, client *redis.Client) error {
+	keys, err := client.Keys(pattern).Result()
 	if err != nil {
 		return err
 	}
@@ -214,7 +368,7 @@ func cleanRedis() error {
 func TestRedisClientRedisDefaultConfig(t *testing.T) {
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisJobRepository(&cfg)
+	repo, err := NewRedisRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -238,7 +392,7 @@ func TestRedisClientRedisAddr(t *testing.T) {
 			Password:  "not-secret",
 		},
 	}
-	repo, err := NewRedisJobRepository(&cfg)
+	repo, err := NewRedisRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -262,7 +416,7 @@ func TestRedisClientRedisSentinel(t *testing.T) {
 			SentinelMasterName: "mymaster",
 		},
 	}
-	repo, err := NewRedisJobRepository(&cfg)
+	repo, err := NewRedisRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
