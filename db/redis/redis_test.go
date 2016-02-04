@@ -1,4 +1,4 @@
-package db
+package redis
 
 import (
 	"fmt"
@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"gopkg.in/redis.v3"
 )
 
@@ -27,7 +28,7 @@ func TestSaveJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ProviderName: "encoding.com"}
+	job := db.Job{ProviderName: "encoding.com"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -61,7 +62,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: "myjob", ProviderName: "encoding.com"}
+	job := db.Job{ID: "myjob", ProviderName: "encoding.com"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -86,7 +87,7 @@ func TestSaveJobIsSafe(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jobs := []Job{
+	jobs := []db.Job{
 		{ID: "abcabc", ProviderName: "elastictranscoder"},
 		{ID: "abcabc", ProviderJobID: "abf-123", ProviderName: "encoding.com"},
 		{ID: "abcabc", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
@@ -119,12 +120,12 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: "myjob"}
+	job := db.Job{ID: "myjob"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeleteJob(&Job{ID: job.ID})
+	err = repo.DeleteJob(&db.Job{ID: job.ID})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,8 +145,8 @@ func TestDeleteJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeleteJob(&Job{ID: "myjob"})
-	if err != ErrJobNotFound {
+	err = repo.DeleteJob(&db.Job{ID: "myjob"})
+	if err != db.ErrJobNotFound {
 		t.Errorf("Wrong error returned by DeleteJob. Want ErrJobNotFound. Got %#v.", err)
 	}
 }
@@ -159,7 +160,7 @@ func TestGetJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := Job{ID: "myjob"}
+	job := db.Job{ID: "myjob"}
 	err = repo.SaveJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -183,7 +184,7 @@ func TestGetJobNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 	gotJob, err := repo.GetJob("job:myjob")
-	if err != ErrJobNotFound {
+	if err != db.ErrJobNotFound {
 		t.Errorf("Wrong error returned. Want ErrJobNotFound. Got %#v.", err)
 	}
 	if gotJob != nil {
@@ -202,7 +203,7 @@ func TestSavePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := Preset{
+	preset := db.Preset{
 		ProviderMapping: map[string]string{
 			"elementalcloud":    "abc123",
 			"elastictranscoder": "1281742-93939",
@@ -237,7 +238,7 @@ func TestSavePresetPredefinedID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := Preset{
+	preset := db.Preset{
 		ID:              "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
@@ -265,12 +266,12 @@ func TestDeletePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := Preset{ID: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	preset := db.Preset{ID: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
 	err = repo.SavePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&Preset{ID: preset.ID})
+	err = repo.DeletePreset(&db.Preset{ID: preset.ID})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -290,8 +291,8 @@ func TestDeletePresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&Preset{ID: "mypreset"})
-	if err != ErrPresetNotFound {
+	err = repo.DeletePreset(&db.Preset{ID: "mypreset"})
+	if err != db.ErrPresetNotFound {
 		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
 	}
 }
@@ -305,7 +306,7 @@ func TestGetPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := Preset{
+	preset := db.Preset{
 		ID: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalcloud":    "abc-123",
@@ -336,7 +337,7 @@ func TestGetPresetNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 	gotPreset, err := repo.GetPreset("mypreset")
-	if err != ErrPresetNotFound {
+	if err != db.ErrPresetNotFound {
 		t.Errorf("Wrong error returned. Want ErrPresetNotFound. Got %#v.", err)
 	}
 	if gotPreset != nil {

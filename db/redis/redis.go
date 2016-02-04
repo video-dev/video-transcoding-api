@@ -1,4 +1,4 @@
-package db
+package redis
 
 import (
 	"crypto/rand"
@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"gopkg.in/redis.v3"
 )
 
@@ -23,13 +24,13 @@ type redisRepository struct {
 }
 
 // NewRedisRepository creates a new Repository that uses Redis for persistence.
-func NewRedisRepository(cfg *config.Config) (Repository, error) {
+func NewRedisRepository(cfg *config.Config) (db.Repository, error) {
 	repo := &redisRepository{config: cfg}
 	repo.client = repo.redisClient()
 	return &redisRepository{config: cfg}, nil
 }
 
-func (r *redisRepository) SaveJob(job *Job) error {
+func (r *redisRepository) SaveJob(job *db.Job) error {
 	if job.ID == "" {
 		jobID, err := r.generateID()
 		if err != nil {
@@ -40,15 +41,15 @@ func (r *redisRepository) SaveJob(job *Job) error {
 	return r.save(r.jobKey(job.ID), job)
 }
 
-func (r *redisRepository) DeleteJob(job *Job) error {
-	return r.delete(r.jobKey(job.ID), ErrJobNotFound)
+func (r *redisRepository) DeleteJob(job *db.Job) error {
+	return r.delete(r.jobKey(job.ID), db.ErrJobNotFound)
 }
 
-func (r *redisRepository) GetJob(id string) (*Job, error) {
-	job := Job{ID: id}
+func (r *redisRepository) GetJob(id string) (*db.Job, error) {
+	job := db.Job{ID: id}
 	err := r.load(r.jobKey(id), &job)
 	if err == errNotFound {
-		return nil, ErrJobNotFound
+		return nil, db.ErrJobNotFound
 	}
 	return &job, err
 }
@@ -57,7 +58,7 @@ func (r *redisRepository) jobKey(id string) string {
 	return "job:" + id
 }
 
-func (r *redisRepository) SavePreset(preset *Preset) error {
+func (r *redisRepository) SavePreset(preset *db.Preset) error {
 	if preset.ID == "" {
 		id, err := r.generateID()
 		if err != nil {
@@ -68,15 +69,15 @@ func (r *redisRepository) SavePreset(preset *Preset) error {
 	return r.save(r.presetKey(preset.ID), preset)
 }
 
-func (r *redisRepository) DeletePreset(preset *Preset) error {
-	return r.delete(r.presetKey(preset.ID), ErrPresetNotFound)
+func (r *redisRepository) DeletePreset(preset *db.Preset) error {
+	return r.delete(r.presetKey(preset.ID), db.ErrPresetNotFound)
 }
 
-func (r *redisRepository) GetPreset(id string) (*Preset, error) {
-	preset := Preset{ID: id, ProviderMapping: make(map[string]string)}
+func (r *redisRepository) GetPreset(id string) (*db.Preset, error) {
+	preset := db.Preset{ID: id, ProviderMapping: make(map[string]string)}
 	err := r.load(r.presetKey(id), &preset)
 	if err == errNotFound {
-		return nil, ErrPresetNotFound
+		return nil, db.ErrPresetNotFound
 	}
 	return &preset, err
 }

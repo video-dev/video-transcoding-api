@@ -9,6 +9,7 @@ import (
 	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/db/redis"
 )
 
 // TranscodingService will implement server.JSONService and handle all requests
@@ -21,7 +22,7 @@ type TranscodingService struct {
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
-	dbRepo, err := db.NewRedisRepository(cfg)
+	dbRepo, err := redis.NewRedisRepository(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}
