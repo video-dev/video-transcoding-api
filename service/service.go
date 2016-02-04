@@ -22,7 +22,7 @@ type TranscodingService struct {
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
-	dbRepo, err := redis.NewRedisRepository(cfg)
+	dbRepo, err := redis.NewRepository(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}

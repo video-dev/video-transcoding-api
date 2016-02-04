@@ -18,7 +18,7 @@ import (
 func TestRedisClientRedisDefaultConfig(t *testing.T) {
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func TestRedisClientRedisAddr(t *testing.T) {
 			Password:  "not-secret",
 		},
 	}
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -66,7 +66,7 @@ func TestRedisClientRedisSentinel(t *testing.T) {
 			SentinelMasterName: "mymaster",
 		},
 	}
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -15,7 +15,7 @@ func TestSavePreset(t *testing.T) {
 	}
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -50,7 +50,7 @@ func TestSavePresetPredefinedID(t *testing.T) {
 	}
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -78,7 +78,7 @@ func TestDeletePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +103,7 @@ func TestDeletePresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +118,7 @@ func TestGetPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -148,7 +148,7 @@ func TestGetPresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}

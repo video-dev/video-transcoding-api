@@ -17,8 +17,8 @@ import (
 
 var errNotFound = errors.New("not found")
 
-// NewRedisRepository creates a new Repository that uses Redis for persistence.
-func NewRedisRepository(cfg *config.Config) (db.Repository, error) {
+// NewRepository creates a new Repository that uses Redis for persistence.
+func NewRepository(cfg *config.Config) (db.Repository, error) {
 	repo := &redisRepository{config: cfg}
 	repo.client = repo.redisClient()
 	return &redisRepository{config: cfg}, nil

@@ -17,7 +17,7 @@ func TestSaveJob(t *testing.T) {
 	}
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	}
 	var cfg config.Config
 	cfg.Redis = new(config.Redis)
-	repo, err := NewRedisRepository(&cfg)
+	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,7 +86,7 @@ func TestSaveJobIsSafe(t *testing.T) {
 		{ID: "abcabc", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
 		{ID: "abcabc", ProviderJobID: "ff12", ProviderName: "encoding.com"},
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -134,7 +134,7 @@ func TestDeleteJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func TestGetJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -172,7 +172,7 @@ func TestGetJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRedisRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
 	if err != nil {
 		t.Fatal(err)
 	}
