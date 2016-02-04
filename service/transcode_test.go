@@ -12,7 +12,6 @@ import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
-	"github.com/rcrowley/go-metrics"
 )
 
 const testProfileString = `{
@@ -227,8 +226,6 @@ func TestTranscode(t *testing.T) {
 				t.Error(err)
 			}
 		}
-		// ** THIS IS REQUIRED in order to run the test multiple times.
-		metrics.DefaultRegistry.UnregisterAll()
 	}
 }
 
@@ -290,7 +287,5 @@ func TestGetTranscodeJob(t *testing.T) {
 		if !reflect.DeepEqual(got, test.wantBody) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
-		// ** THIS IS REQUIRED in order to run the test multiple times.
-		metrics.DefaultRegistry.UnregisterAll()
 	}
 }

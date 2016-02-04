@@ -10,7 +10,6 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
-	"github.com/rcrowley/go-metrics"
 )
 
 func TestNewPreset(t *testing.T) {
@@ -70,7 +69,5 @@ func TestNewPreset(t *testing.T) {
 				t.Errorf("%s: didn't save the preset in the database. Want %#v. Got %#v", test.givenTestCase, test.givenRequestData, preset.ProviderMapping)
 			}
 		}
-		// ** THIS IS REQUIRED in order to run the test multiple times.
-		metrics.DefaultRegistry.UnregisterAll()
 	}
 }
