@@ -19,6 +19,7 @@ type newTranscodeRequest struct {
 }
 
 func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{}, error) {
+	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
 	var reqObject newTranscodeRequest
 	err := decoder.Decode(&reqObject)
