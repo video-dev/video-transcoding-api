@@ -213,13 +213,19 @@ func TestTranscode(t *testing.T) {
 		if w.Code != test.wantCode {
 			t.Errorf("%s: expected response code of %d; got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
-		var got interface{}
+		var got map[string]interface{}
 		err := json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
 		if !reflect.DeepEqual(got, test.wantBody) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+		if test.wantCode == http.StatusOK {
+			_, err = fakeDBObj.GetJob(got["jobId"].(string))
+			if err != nil {
+				t.Error(err)
+			}
 		}
 		// ** THIS IS REQUIRED in order to run the test multiple times.
 		metrics.DefaultRegistry.UnregisterAll()
