@@ -13,5 +13,11 @@
 	    "UserID": "myuser",
 	    "UserKey": "superkey",
 	    "Destination": "http://nice-destination"
+    },
+    "ElementalCloud": {
+      "Host": "some-server",
+      "UserLogin": "myuser",
+      "APIKey": "superkey",
+      "AuthExpires": 45
     }
 }

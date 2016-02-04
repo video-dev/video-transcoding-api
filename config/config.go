@@ -9,6 +9,7 @@ type Config struct {
 	Redis             *Redis
 	EncodingCom       *EncodingCom
 	ElasticTranscoder *ElasticTranscoder
+	ElementalCloud    *ElementalCloud
 }
 
 // Redis represents the Redis configuration. RedisAddr and SentinelAddrs
@@ -44,6 +45,15 @@ type ElasticTranscoder struct {
 	PipelineID      string `envconfig:"ELASTICTRANSCODER_PIPELINE_ID"`
 }
 
+// ElementalCloud represents the set of configurations for the Elemental
+// Cloud provider.
+type ElementalCloud struct {
+	Host        string `envconfig:"ELEMENTALCLOUD_HOST"`
+	UserLogin   string `envconfig:"ELEMENTALCLOUD_USER_LOGIN"`
+	APIKey      string `envconfig:"ELEMENTALCLOUD_API_KEY"`
+	AuthExpires int    `envconfig:"ELEMENTALCLOUD_AUTH_EXPIRES"`
+}
+
 // LoadConfig loads the configuration of the API using the provided file and
 // environment variables. It will override settings defined in the file with
 // the value of environment variables.
@@ -65,8 +75,12 @@ func LoadConfig(fileName string) *Config {
 	if cfg.ElasticTranscoder == nil {
 		cfg.ElasticTranscoder = new(ElasticTranscoder)
 	}
+	if cfg.ElementalCloud == nil {
+		cfg.ElementalCloud = new(ElementalCloud)
+	}
 	config.LoadEnvConfig(cfg.Redis)
 	config.LoadEnvConfig(cfg.EncodingCom)
 	config.LoadEnvConfig(cfg.ElasticTranscoder)
+	config.LoadEnvConfig(cfg.ElementalCloud)
 	return &cfg
 }
