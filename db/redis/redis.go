@@ -65,7 +65,7 @@ func (r *redisRepository) mapToFieldList(hash interface{}) ([]string, error) {
 		return nil, errors.New("please provide a map[string]string")
 	}
 	if len(m) < 1 {
-		return nil, errors.New("please provide a map[string]string with at least one element")
+		return nil, errors.New("please provide a map[string]string with at least one item")
 	}
 	fields := make([]string, 0, len(m)*2)
 	for key, value := range m {
@@ -108,7 +108,9 @@ func (r *redisRepository) structToFieldList(value reflect.Value) ([]string, erro
 				return nil, errors.New("can only expand structs and maps")
 			}
 		} else {
-			fields = append(fields, parts[0], fmt.Sprintf("%v", fieldValue.Interface()))
+			if parts[0] != "" {
+				fields = append(fields, parts[0], fmt.Sprintf("%v", fieldValue.Interface()))
+			}
 		}
 	}
 	return fields, nil
