@@ -10,6 +10,7 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 )
 
 func TestNewPreset(t *testing.T) {
@@ -67,6 +68,46 @@ func TestNewPreset(t *testing.T) {
 				t.Error(err)
 			} else if !reflect.DeepEqual(preset.ProviderMapping, test.givenRequestData) {
 				t.Errorf("%s: didn't save the preset in the database. Want %#v. Got %#v", test.givenTestCase, test.givenRequestData, preset.ProviderMapping)
+			}
+		}
+	}
+}
+
+func TestDeletePreset(t *testing.T) {
+	tests := []struct {
+		givenTestCase string
+		givenPresetID string
+		wantCode      int
+	}{
+		{
+			"Delete preset",
+			"preset-1",
+			http.StatusOK,
+		},
+		{
+			"Delete preset not found",
+			"preset-unknown",
+			http.StatusNotFound,
+		},
+	}
+	for _, test := range tests {
+		srvr := server.NewSimpleServer(nil)
+		fakeDB := newFakeDB(false)
+		fakeDB.SavePreset(&db.Preset{ID: "preset-1"})
+		srvr.Register(&TranscodingService{
+			config: &config.Config{},
+			db:     fakeDB,
+		})
+		r, _ := http.NewRequest("DELETE", "/presets/"+test.givenPresetID, nil)
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+		if test.wantCode == http.StatusOK {
+			_, err := fakeDB.GetPreset(test.givenPresetID)
+			if err != db.ErrPresetNotFound {
+				t.Errorf("%s: didn't delete the job in the database", test.givenTestCase)
 			}
 		}
 	}

@@ -63,7 +63,7 @@ func (d *fakeDB) GetPreset(id string) (*db.Preset, error) {
 }
 
 func (d *fakeDB) DeletePreset(preset *db.Preset) error {
-	if _, ok := d.presets[preset.ID]; ok {
+	if _, ok := d.presets[preset.ID]; !ok {
 		return db.ErrPresetNotFound
 	}
 	delete(d.presets, preset.ID)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/nytm/video-transcoding-api/db"
 )
 
@@ -20,4 +21,17 @@ func (s *TranscodingService) newPreset(r *http.Request) (int, interface{}, error
 		return http.StatusInternalServerError, nil, err
 	}
 	return http.StatusOK, map[string]string{"presetId": preset.ID}, nil
+}
+
+func (s *TranscodingService) deletePreset(r *http.Request) (int, interface{}, error) {
+	presetID := mux.Vars(r)["presetId"]
+	err := s.db.DeletePreset(&db.Preset{ID: presetID})
+	statusCode := http.StatusOK
+	if err != nil {
+		statusCode = http.StatusInternalServerError
+		if err == db.ErrPresetNotFound {
+			statusCode = http.StatusNotFound
+		}
+	}
+	return statusCode, nil, err
 }
