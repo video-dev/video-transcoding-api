@@ -63,7 +63,22 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{},
 		if !ok {
 			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support preset-based transcoding", reqObject.Provider)
 		}
-		jobStatus, err = presetProvider.TranscodeWithPresets(reqObject.Source, reqObject.Presets)
+		presets := make([]string, len(reqObject.Presets))
+		for i, presetID := range reqObject.Presets {
+			preset, err := s.db.GetPreset(presetID)
+			if err != nil {
+				statusCode := http.StatusInternalServerError
+				if err == db.ErrPresetNotFound {
+					statusCode = http.StatusBadRequest
+				}
+				return statusCode, nil, err
+			}
+			presets[i] = preset.ProviderMapping[reqObject.Provider]
+			if presets[i] == "" {
+				return http.StatusBadRequest, nil, errors.New("preset not defined on this provider")
+			}
+		}
+		jobStatus, err = presetProvider.TranscodeWithPresets(reqObject.Source, presets)
 	}
 
 	if err != nil {

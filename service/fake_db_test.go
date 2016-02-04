@@ -48,7 +48,9 @@ func (d *fakeDB) SavePreset(preset *db.Preset) error {
 	if d.triggerDBError {
 		return errors.New("database error")
 	}
-	preset.ID = "12345"
+	if preset.ID == "" {
+		preset.ID = "12345"
+	}
 	d.presets[preset.ID] = preset
 	return nil
 }

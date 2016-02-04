@@ -79,6 +79,36 @@ func TestTranscode(t *testing.T) {
 			},
 		},
 		{
+			"New job with preset-based transcoding with preset not found",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_720p"],
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": db.ErrPresetNotFound.Error(),
+			},
+		},
+		{
+			"New job with preset-based transcoding with preset undefined for the provider",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_360p"],
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "preset not defined on this provider",
+			},
+		},
+		{
 			"New job with database error",
 			fmt.Sprintf(`{
   "source": "http://another.non.existent/video.mp4",
@@ -173,6 +203,8 @@ func TestTranscode(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDBObj := newFakeDB(test.givenTriggerDBError)
+		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
+		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_360p", ProviderMapping: map[string]string{"elementalcloud": "172712"}})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
