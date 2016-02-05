@@ -32,4 +32,5 @@ type PresetRepository interface {
 	SavePreset(*Preset) error
 	DeletePreset(*Preset) error
 	GetPreset(id string) (*Preset, error)
+	ListPresets() ([]Preset, error)
 }
