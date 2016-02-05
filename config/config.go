@@ -48,10 +48,13 @@ type ElasticTranscoder struct {
 // ElementalCloud represents the set of configurations for the Elemental
 // Cloud provider.
 type ElementalCloud struct {
-	Host        string `envconfig:"ELEMENTALCLOUD_HOST"`
-	UserLogin   string `envconfig:"ELEMENTALCLOUD_USER_LOGIN"`
-	APIKey      string `envconfig:"ELEMENTALCLOUD_API_KEY"`
-	AuthExpires int    `envconfig:"ELEMENTALCLOUD_AUTH_EXPIRES"`
+	Host            string `envconfig:"ELEMENTALCLOUD_HOST"`
+	UserLogin       string `envconfig:"ELEMENTALCLOUD_USER_LOGIN"`
+	APIKey          string `envconfig:"ELEMENTALCLOUD_API_KEY"`
+	AuthExpires     int    `envconfig:"ELEMENTALCLOUD_AUTH_EXPIRES"`
+	AccessKeyID     string `envconfig:"ELEMENTALCLOUD_AWS_ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"ELEMENTALCLOUD_AWS_SECRET_ACCESS_KEY"`
+	Destination     string `envconfig:"ELEMENTALCLOUD_DESTINATION"`
 }
 
 // LoadConfig loads the configuration of the API using the provided file and

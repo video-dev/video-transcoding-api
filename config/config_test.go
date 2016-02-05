@@ -53,23 +53,26 @@ func TestLoadConfigFromFile(t *testing.T) {
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	setEnvs(map[string]string{
-		"SENTINEL_ADDRS":                "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-		"SENTINEL_MASTER_NAME":          "supermaster",
-		"REDIS_ADDR":                    "localhost:6379",
-		"REDIS_PASSWORD":                "super-secret",
-		"REDIS_POOL_SIZE":               "100",
-		"REDIS_POOL_TIMEOUT_SECONDS":    "10",
-		"ENCODINGCOM_USER_ID":           "myuser",
-		"ENCODINGCOM_USER_KEY":          "secret-key",
-		"ENCODINGCOM_DESTINATION":       "https://safe-stuff",
-		"AWS_ACCESS_KEY_ID":             "AKIANOTREALLY",
-		"AWS_SECRET_ACCESS_KEY":         "secret-key",
-		"AWS_REGION":                    config.AWSRegionUSEast1,
-		"ELASTICTRANSCODER_PIPELINE_ID": "mypipeline",
-		"ELEMENTALCLOUD_HOST":           "elemental-server",
-		"ELEMENTALCLOUD_USER_LOGIN":     "myuser",
-		"ELEMENTALCLOUD_API_KEY":        "secret-key",
-		"ELEMENTALCLOUD_AUTH_EXPIRES":   "30",
+		"SENTINEL_ADDRS":                       "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
+		"SENTINEL_MASTER_NAME":                 "supermaster",
+		"REDIS_ADDR":                           "localhost:6379",
+		"REDIS_PASSWORD":                       "super-secret",
+		"REDIS_POOL_SIZE":                      "100",
+		"REDIS_POOL_TIMEOUT_SECONDS":           "10",
+		"ENCODINGCOM_USER_ID":                  "myuser",
+		"ENCODINGCOM_USER_KEY":                 "secret-key",
+		"ENCODINGCOM_DESTINATION":              "https://safe-stuff",
+		"AWS_ACCESS_KEY_ID":                    "AKIANOTREALLY",
+		"AWS_SECRET_ACCESS_KEY":                "secret-key",
+		"AWS_REGION":                           config.AWSRegionUSEast1,
+		"ELASTICTRANSCODER_PIPELINE_ID":        "mypipeline",
+		"ELEMENTALCLOUD_HOST":                  "elemental-server",
+		"ELEMENTALCLOUD_USER_LOGIN":            "myuser",
+		"ELEMENTALCLOUD_API_KEY":               "secret-key",
+		"ELEMENTALCLOUD_AUTH_EXPIRES":          "30",
+		"ELEMENTALCLOUD_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
+		"ELEMENTALCLOUD_AWS_SECRET_ACCESS_KEY": "secret-key",
+		"ELEMENTALCLOUD_DESTINATION":           "https://safe-stuff",
 	})
 	cfg := LoadConfig("")
 	expectedCfg := Config{
@@ -93,10 +96,13 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 		ElementalCloud: &ElementalCloud{
-			Host:        "elemental-server",
-			UserLogin:   "myuser",
-			APIKey:      "secret-key",
-			AuthExpires: 30,
+			Host:            "elemental-server",
+			UserLogin:       "myuser",
+			APIKey:          "secret-key",
+			AuthExpires:     30,
+			AccessKeyID:     "AKIANOTREALLY",
+			SecretAccessKey: "secret-key",
+			Destination:     "https://safe-stuff",
 		},
 	}
 	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
@@ -174,7 +180,8 @@ func cleanEnvs() {
 		"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION",
 		"ELASTICTRANSCODER_PIPELINE_ID", "ELEMENTALCLOUD_HOST",
 		"ELEMENTALCLOUD_USER_LOGIN", "ELEMENTALCLOUD_API_KEY",
-		"ELEMENTALCLOUD_AUTH_EXPIRES",
+		"ELEMENTALCLOUD_AUTH_EXPIRES", "ELEMENTALCLOUD_AWS_ACCESS_KEY_ID",
+		"ELEMENTALCLOUD_AWS_SECRET_ACCESS_KEY", "ELEMENTALCLOUD_DESTINATION",
 	}
 	for _, env := range envs {
 		os.Unsetenv(env)
