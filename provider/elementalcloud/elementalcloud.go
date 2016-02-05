@@ -45,7 +45,7 @@ type elementalCloudProvider struct {
 }
 
 func (p *elementalCloudProvider) TranscodeWithPresets(source string, presets []string) (*provider.JobStatus, error) {
-	newJob := p.NewJob(source, presets)
+	newJob := p.newJob(source, presets)
 	resp, err := p.client.PostJob(newJob)
 	if err != nil {
 		return nil, err
@@ -94,8 +94,8 @@ func buildOutputsAndStreamAssemblies(presets []string) ([]elementalcloud.Output,
 	return outputList, streamAssemblyList
 }
 
-// NewJob constructs a job spec from the given source and presets
-func (p *elementalCloudProvider) NewJob(source string, presets []string) *elementalcloud.Job {
+// newJob constructs a job spec from the given source and presets
+func (p *elementalCloudProvider) newJob(source string, presets []string) *elementalcloud.Job {
 	inputLocation := elementalcloud.Location{
 		URI:      source,
 		Username: p.client.AccessKeyID,
@@ -106,8 +106,7 @@ func (p *elementalCloudProvider) NewJob(source string, presets []string) *elemen
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
-	outputList, streamAssemblyList :=
-		buildOutputsAndStreamAssemblies(presets)
+	outputList, streamAssemblyList := buildOutputsAndStreamAssemblies(presets)
 	newJob := elementalcloud.Job{
 		Input: elementalcloud.Input{
 			FileInput: inputLocation,
