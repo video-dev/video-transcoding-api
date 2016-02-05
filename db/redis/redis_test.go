@@ -411,7 +411,11 @@ func cleanRedis() error {
 	if err != nil {
 		return err
 	}
-	return deleteKeys("preset:*", client)
+	err = deleteKeys("preset:*", client)
+	if err != nil {
+		return err
+	}
+	return deleteKeys(presetsSetKey, client)
 }
 
 func deleteKeys(pattern string, client *redis.Client) error {

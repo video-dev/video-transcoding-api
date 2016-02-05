@@ -160,3 +160,63 @@ func TestGetPresetNotFound(t *testing.T) {
 		t.Errorf("Unexpected non-nil preset: %#v.", gotPreset)
 	}
 }
+
+func TestListPresets(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg config.Config
+	cfg.Redis = new(config.Redis)
+	repo, err := NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presets := []db.Preset{
+		{
+			ProviderMapping: map[string]string{
+				"elementalcloud":    "abc123",
+				"elastictranscoder": "1281742-93939",
+			},
+		},
+		{
+			ProviderMapping: map[string]string{
+				"elementalcloud":    "abc124",
+				"elastictranscoder": "1281743-93939",
+			},
+		},
+		{
+			ProviderMapping: map[string]string{
+				"elementalcloud":    "abc125",
+				"elastictranscoder": "1281744-93939",
+			},
+		},
+	}
+	for i := range presets {
+		err = repo.SavePreset(&presets[i])
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	gotPresets, err := repo.ListPresets()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Why? The "list" of IDs is a set on Redis, so we need to make sure
+	// that order is not important before invoking reflect.DeepEqual.
+	expected := presetListToMap(presets)
+	got := presetListToMap(gotPresets)
+
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("ListPresets(): wrong list. Want %#v. Got %#v.", presets, gotPresets)
+	}
+}
+
+func presetListToMap(presets []db.Preset) map[string]db.Preset {
+	result := make(map[string]db.Preset, len(presets))
+	for _, preset := range presets {
+		result[preset.ID] = preset
+	}
+	return result
+}

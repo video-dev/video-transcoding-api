@@ -31,12 +31,16 @@ type redisRepository struct {
 }
 
 func (r *redisRepository) save(key string, hash interface{}) error {
-	var (
-		fields []string
-		err    error
-	)
+	fields, err := r.fieldList(hash)
+	if err != nil {
+		return err
+	}
+	return r.redisClient().HMSet(key, fields[0], fields[1], fields[2:]...).Err()
+}
+
+func (r *redisRepository) fieldList(hash interface{}) ([]string, error) {
 	if hash == nil {
-		return errors.New("no fields provided")
+		return nil, errors.New("no fields provided")
 	}
 	value := reflect.ValueOf(hash)
 	if value.Kind() == reflect.Ptr {
@@ -44,19 +48,12 @@ func (r *redisRepository) save(key string, hash interface{}) error {
 	}
 	switch value.Kind() {
 	case reflect.Map:
-		fields, err = r.mapToFieldList(hash)
-		if err != nil {
-			return err
-		}
+		return r.mapToFieldList(hash)
 	case reflect.Struct:
-		fields, err = r.structToFieldList(value)
-		if err != nil {
-			return err
-		}
+		return r.structToFieldList(value)
 	default:
-		return errors.New("please provide a map or a struct")
+		return nil, errors.New("please provide a map or a struct")
 	}
-	return r.redisClient().HMSet(key, fields[0], fields[1], fields[2:]...).Err()
 }
 
 func (r *redisRepository) mapToFieldList(hash interface{}) ([]string, error) {
