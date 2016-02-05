@@ -13,6 +13,10 @@ checkfmt: testdeps
 		echo && echo "Please fix them using 'gofmt -s -w .'" && \
 		export status=1; exit $${status:-0}
 
+deadcode:
+	go get github.com/reillywatson/go-misc/deadcode
+	go list ./... | sed -e "s;github.com/nytm/video-transcoding-api;.;" | xargs deadcode
+
 lint: testdeps
 	go get github.com/golang/lint/golint
 	@for file in $$(find . -name '*.go' | grep -v '_test'); do \
@@ -21,7 +25,7 @@ lint: testdeps
 	done; \
 	exit $${status:-0}
 
-test: checkfmt lint vet
+test: checkfmt lint vet deadcode
 	go test ./...
 
 build:
