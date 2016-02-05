@@ -112,3 +112,77 @@ func TestDeletePreset(t *testing.T) {
 		}
 	}
 }
+
+func TestListPresets(t *testing.T) {
+	tests := []struct {
+		givenTestCase string
+		givenPresets  []db.Preset
+
+		wantCode int
+		wantBody map[string]db.Preset
+	}{
+		{
+			"List presets",
+			[]db.Preset{
+				{
+					ID:              "preset-1",
+					ProviderMapping: map[string]string{"elementalcloud": "abc123"},
+				},
+				{
+					ID:              "preset-2",
+					ProviderMapping: map[string]string{"elementalcloud": "abc124"},
+				},
+				{
+					ID:              "preset-3",
+					ProviderMapping: map[string]string{"elementalcloud": "abc125"},
+				},
+			},
+			http.StatusOK,
+			map[string]db.Preset{
+				"preset-1": {
+					ID:              "preset-1",
+					ProviderMapping: map[string]string{"elementalcloud": "abc123"},
+				},
+				"preset-2": {
+					ID:              "preset-2",
+					ProviderMapping: map[string]string{"elementalcloud": "abc124"},
+				},
+				"preset-3": {
+					ID:              "preset-3",
+					ProviderMapping: map[string]string{"elementalcloud": "abc125"},
+				},
+			},
+		},
+		{
+			"Empty list of presets",
+			nil,
+			http.StatusOK,
+			map[string]db.Preset{},
+		},
+	}
+	for _, test := range tests {
+		srvr := server.NewSimpleServer(nil)
+		fakeDB := newFakeDB(false)
+		for i := range test.givenPresets {
+			fakeDB.SavePreset(&test.givenPresets[i])
+		}
+		srvr.Register(&TranscodingService{
+			config: &config.Config{},
+			db:     fakeDB,
+		})
+		r, _ := http.NewRequest("GET", "/presets", nil)
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+		var got map[string]db.Preset
+		err := json.NewDecoder(w.Body).Decode(&got)
+		if err != nil {
+			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
+		}
+		if !reflect.DeepEqual(got, test.wantBody) {
+			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+	}
+}

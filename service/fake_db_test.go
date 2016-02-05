@@ -69,3 +69,11 @@ func (d *fakeDB) DeletePreset(preset *db.Preset) error {
 	delete(d.presets, preset.ID)
 	return nil
 }
+
+func (d *fakeDB) ListPresets() ([]db.Preset, error) {
+	presets := make([]db.Preset, 0, len(d.presets))
+	for _, preset := range d.presets {
+		presets = append(presets, *preset)
+	}
+	return presets, nil
+}
