@@ -1,50 +1,50 @@
-// Package elementalcloud provides a implementation of the provider that uses the
-// Elemental Cloud API for transcoding media files.
+// Package elementalconductor provides a implementation of the provider that uses the
+// Elemental Conductor API for transcoding media files.
 //
 // It doesn't expose any public type. In order to use the provider, one must
 // import this package and then grab the factory from the provider package:
 //
 //     import (
 //         "github.com/nytm/video-transcoding-api/provider"
-//         "github.com/nytm/video-transcoding-api/provider/elementalcloud"
+//         "github.com/nytm/video-transcoding-api/provider/elementalconductor"
 //     )
 //
 //     func UseProvider() {
-//         factory, err := provider.GetProviderFactory(elementalcloud.Name)
+//         factory, err := provider.GetProviderFactory(elementalconductor.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package elementalcloud
+package elementalconductor
 
 import (
 	"path/filepath"
 	"strconv"
 	"strings"
 
-	"github.com/NYTimes/encoding-wrapper/elementalcloud"
+	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-// Name is the name used for registering the Elemental Cloud provider in the
+// Name is the name used for registering the Elemental Conductor provider in the
 // registry of providers.
-const Name = "elementalcloud"
+const Name = "elementalconductor"
 
 const defaultJobPriority = 50
 const defaultOutputGroupOrder = 1
 const defaultExtension = ".mp4"
 
-var errElementalCloudInvalidConfig = provider.InvalidConfigError("missing Elemental user login or api key. Please define the environment variables ELEMENTALCLOUD_USER_LOGIN and ELEMENTALCLOUD_API_KEY or set these values in the configuration file")
+var errElementalConductorInvalidConfig = provider.InvalidConfigError("missing Elemental user login or api key. Please define the environment variables ELEMENTALCONDUCTOR_USER_LOGIN and ELEMENTALCONDUCTOR_API_KEY or set these values in the configuration file")
 
 func init() {
-	provider.Register(Name, elementalCloudFactory)
+	provider.Register(Name, elementalConductorFactory)
 }
 
-type elementalCloudProvider struct {
+type elementalConductorProvider struct {
 	config *config.Config
-	client *elementalcloud.Client
+	client *elementalconductor.Client
 }
 
-func (p *elementalCloudProvider) TranscodeWithPresets(source string, presets []string) (*provider.JobStatus, error) {
+func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []string) (*provider.JobStatus, error) {
 	newJob := p.newJob(source, presets)
 	resp, err := p.client.PostJob(newJob)
 	if err != nil {
@@ -57,7 +57,7 @@ func (p *elementalCloudProvider) TranscodeWithPresets(source string, presets []s
 	}, nil
 }
 
-func (p *elementalCloudProvider) JobStatus(id string) (*provider.JobStatus, error) {
+func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	_, err := p.client.GetJob(id)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (p *elementalCloudProvider) JobStatus(id string) (*provider.JobStatus, erro
 	return &provider.JobStatus{ProviderName: Name}, nil
 }
 
-func (p *elementalCloudProvider) buildFullDestination(source string) string {
+func (p *elementalConductorProvider) buildFullDestination(source string) string {
 	sourceParts := strings.Split(source, "/")
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
@@ -73,18 +73,18 @@ func (p *elementalCloudProvider) buildFullDestination(source string) string {
 	return destination + "/" + sourceFileName
 }
 
-func buildOutputsAndStreamAssemblies(presets []string) ([]elementalcloud.Output, []elementalcloud.StreamAssembly) {
-	var outputList []elementalcloud.Output
-	var streamAssemblyList []elementalcloud.StreamAssembly
+func buildOutputsAndStreamAssemblies(presets []string) ([]elementalconductor.Output, []elementalconductor.StreamAssembly) {
+	var outputList []elementalconductor.Output
+	var streamAssemblyList []elementalconductor.StreamAssembly
 	for index, preset := range presets {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
-		output := elementalcloud.Output{
+		output := elementalconductor.Output{
 			StreamAssemblyName: streamAssemblyName,
 			Order:              index,
 			Extension:          defaultExtension,
 		}
-		streamAssembly := elementalcloud.StreamAssembly{
+		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,
 			Preset: preset,
 		}
@@ -95,26 +95,26 @@ func buildOutputsAndStreamAssemblies(presets []string) ([]elementalcloud.Output,
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalCloudProvider) newJob(source string, presets []string) *elementalcloud.Job {
-	inputLocation := elementalcloud.Location{
+func (p *elementalConductorProvider) newJob(source string, presets []string) *elementalconductor.Job {
+	inputLocation := elementalconductor.Location{
 		URI:      source,
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
-	outputLocation := elementalcloud.Location{
+	outputLocation := elementalconductor.Location{
 		URI:      p.buildFullDestination(source),
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
 	outputList, streamAssemblyList := buildOutputsAndStreamAssemblies(presets)
-	newJob := elementalcloud.Job{
-		Input: elementalcloud.Input{
+	newJob := elementalconductor.Job{
+		Input: elementalconductor.Input{
 			FileInput: inputLocation,
 		},
 		Priority: defaultJobPriority,
-		OutputGroup: elementalcloud.OutputGroup{
+		OutputGroup: elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
-			FileGroupSettings: elementalcloud.FileGroupSettings{
+			FileGroupSettings: elementalconductor.FileGroupSettings{
 				Destination: outputLocation,
 			},
 			Type:   "file_group_settings",
@@ -125,19 +125,19 @@ func (p *elementalCloudProvider) newJob(source string, presets []string) *elemen
 	return &newJob
 }
 
-func elementalCloudFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	if cfg.ElementalCloud.Host == "" || cfg.ElementalCloud.UserLogin == "" ||
-		cfg.ElementalCloud.APIKey == "" || cfg.ElementalCloud.AuthExpires == 0 {
-		return nil, errElementalCloudInvalidConfig
+func elementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
+	if cfg.ElementalConductor.Host == "" || cfg.ElementalConductor.UserLogin == "" ||
+		cfg.ElementalConductor.APIKey == "" || cfg.ElementalConductor.AuthExpires == 0 {
+		return nil, errElementalConductorInvalidConfig
 	}
-	client := elementalcloud.NewClient(
-		cfg.ElementalCloud.Host,
-		cfg.ElementalCloud.UserLogin,
-		cfg.ElementalCloud.APIKey,
-		cfg.ElementalCloud.AuthExpires,
-		cfg.ElementalCloud.AccessKeyID,
-		cfg.ElementalCloud.SecretAccessKey,
-		cfg.ElementalCloud.Destination,
+	client := elementalconductor.NewClient(
+		cfg.ElementalConductor.Host,
+		cfg.ElementalConductor.UserLogin,
+		cfg.ElementalConductor.APIKey,
+		cfg.ElementalConductor.AuthExpires,
+		cfg.ElementalConductor.AccessKeyID,
+		cfg.ElementalConductor.SecretAccessKey,
+		cfg.ElementalConductor.Destination,
 	)
-	return &elementalCloudProvider{client: client, config: cfg}, nil
+	return &elementalConductorProvider{client: client, config: cfg}, nil
 }

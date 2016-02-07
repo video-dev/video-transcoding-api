@@ -6,10 +6,10 @@ import "github.com/NYTimes/gizmo/config"
 // Transcoding API.
 type Config struct {
 	*config.Server
-	Redis             *Redis
-	EncodingCom       *EncodingCom
-	ElasticTranscoder *ElasticTranscoder
-	ElementalCloud    *ElementalCloud
+	Redis              *Redis
+	EncodingCom        *EncodingCom
+	ElasticTranscoder  *ElasticTranscoder
+	ElementalConductor *ElementalConductor
 }
 
 // Redis represents the Redis configuration. RedisAddr and SentinelAddrs
@@ -45,16 +45,16 @@ type ElasticTranscoder struct {
 	PipelineID      string `envconfig:"ELASTICTRANSCODER_PIPELINE_ID"`
 }
 
-// ElementalCloud represents the set of configurations for the Elemental
-// Cloud provider.
-type ElementalCloud struct {
-	Host            string `envconfig:"ELEMENTALCLOUD_HOST"`
-	UserLogin       string `envconfig:"ELEMENTALCLOUD_USER_LOGIN"`
-	APIKey          string `envconfig:"ELEMENTALCLOUD_API_KEY"`
-	AuthExpires     int    `envconfig:"ELEMENTALCLOUD_AUTH_EXPIRES"`
-	AccessKeyID     string `envconfig:"ELEMENTALCLOUD_AWS_ACCESS_KEY_ID"`
-	SecretAccessKey string `envconfig:"ELEMENTALCLOUD_AWS_SECRET_ACCESS_KEY"`
-	Destination     string `envconfig:"ELEMENTALCLOUD_DESTINATION"`
+// ElementalConductor represents the set of configurations for the Elemental
+// Conductor provider.
+type ElementalConductor struct {
+	Host            string `envconfig:"ELEMENTALCONDUCTOR_HOST"`
+	UserLogin       string `envconfig:"ELEMENTALCONDUCTOR_USER_LOGIN"`
+	APIKey          string `envconfig:"ELEMENTALCONDUCTOR_API_KEY"`
+	AuthExpires     int    `envconfig:"ELEMENTALCONDUCTOR_AUTH_EXPIRES"`
+	AccessKeyID     string `envconfig:"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY"`
+	Destination     string `envconfig:"ELEMENTALCONDUCTOR_DESTINATION"`
 }
 
 // LoadConfig loads the configuration of the API using the provided file and
@@ -78,12 +78,12 @@ func LoadConfig(fileName string) *Config {
 	if cfg.ElasticTranscoder == nil {
 		cfg.ElasticTranscoder = new(ElasticTranscoder)
 	}
-	if cfg.ElementalCloud == nil {
-		cfg.ElementalCloud = new(ElementalCloud)
+	if cfg.ElementalConductor == nil {
+		cfg.ElementalConductor = new(ElementalConductor)
 	}
 	config.LoadEnvConfig(cfg.Redis)
 	config.LoadEnvConfig(cfg.EncodingCom)
 	config.LoadEnvConfig(cfg.ElasticTranscoder)
-	config.LoadEnvConfig(cfg.ElementalCloud)
+	config.LoadEnvConfig(cfg.ElementalConductor)
 	return &cfg
 }

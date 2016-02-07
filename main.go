@@ -7,7 +7,7 @@ import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	_ "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
-	_ "github.com/nytm/video-transcoding-api/provider/elementalcloud"
+	_ "github.com/nytm/video-transcoding-api/provider/elementalconductor"
 	_ "github.com/nytm/video-transcoding-api/provider/encodingcom"
 	"github.com/nytm/video-transcoding-api/service"
 )

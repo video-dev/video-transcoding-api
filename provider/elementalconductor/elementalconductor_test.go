@@ -1,10 +1,10 @@
-package elementalcloud
+package elementalconductor
 
 import (
 	"reflect"
 	"testing"
 
-	"github.com/NYTimes/encoding-wrapper/elementalcloud"
+	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/provider"
 )
@@ -16,38 +16,38 @@ func TestFactoryIsRegistered(t *testing.T) {
 	}
 }
 
-func TestElementalCloudFactory(t *testing.T) {
+func TestElementalConductorFactory(t *testing.T) {
 	cfg := config.Config{
-		ElementalCloud: &config.ElementalCloud{
+		ElementalConductor: &config.ElementalConductor{
 			Host:        "elemental-server",
 			UserLogin:   "myuser",
 			APIKey:      "secret-key",
 			AuthExpires: 30,
 		},
 	}
-	provider, err := elementalCloudFactory(&cfg)
+	provider, err := elementalConductorFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	ecloudProvider, ok := provider.(*elementalCloudProvider)
+	econductorProvider, ok := provider.(*elementalConductorProvider)
 	if !ok {
-		t.Fatalf("Wrong provider returned. Want elementalCloudProvider instance. Got %#v.", provider)
+		t.Fatalf("Wrong provider returned. Want elementalConductorProvider instance. Got %#v.", provider)
 	}
-	expected := elementalcloud.Client{
+	expected := elementalconductor.Client{
 		Host:        "elemental-server",
 		UserLogin:   "myuser",
 		APIKey:      "secret-key",
 		AuthExpires: 30,
 	}
-	if !reflect.DeepEqual(*ecloudProvider.client, expected) {
-		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, *ecloudProvider.client)
+	if !reflect.DeepEqual(*econductorProvider.client, expected) {
+		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, *econductorProvider.client)
 	}
-	if !reflect.DeepEqual(*ecloudProvider.config, cfg) {
-		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", cfg, *ecloudProvider.config)
+	if !reflect.DeepEqual(*econductorProvider.config, cfg) {
+		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", cfg, *econductorProvider.config)
 	}
 }
 
-func TestElementalCloudFactoryValidation(t *testing.T) {
+func TestElementalConductorFactoryValidation(t *testing.T) {
 	var tests = []struct {
 		host        string
 		userLogin   string
@@ -62,19 +62,19 @@ func TestElementalCloudFactoryValidation(t *testing.T) {
 	}
 	for _, test := range tests {
 		cfg := config.Config{
-			ElementalCloud: &config.ElementalCloud{
+			ElementalConductor: &config.ElementalConductor{
 				Host:        test.host,
 				UserLogin:   test.userLogin,
 				APIKey:      test.apiKey,
 				AuthExpires: test.authExpires,
 			},
 		}
-		provider, err := elementalCloudFactory(&cfg)
+		provider, err := elementalConductorFactory(&cfg)
 		if provider != nil {
 			t.Errorf("Unexpected non-nil provider: %#v", provider)
 		}
-		if err != errElementalCloudInvalidConfig {
-			t.Errorf("Wrong error returned. Want errElementalCloudInvalidConfig. Got %#v", err)
+		if err != errElementalConductorInvalidConfig {
+			t.Errorf("Wrong error returned. Want errElementalConductorInvalidConfig. Got %#v", err)
 		}
 	}
 }

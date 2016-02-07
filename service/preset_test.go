@@ -24,7 +24,7 @@ func TestNewPreset(t *testing.T) {
 	}{
 		{
 			"New preset",
-			map[string]string{"elementalcloud": "18", "elastictranscoder": "18384284-0002"},
+			map[string]string{"elementalconductor": "18", "elastictranscoder": "18384284-0002"},
 			false,
 
 			http.StatusOK,
@@ -32,7 +32,7 @@ func TestNewPreset(t *testing.T) {
 		},
 		{
 			"New preset DB failure",
-			map[string]string{"elementalcloud": "18", "elastictranscoder": "18384284-0002"},
+			map[string]string{"elementalconductor": "18", "elastictranscoder": "18384284-0002"},
 			true,
 
 			http.StatusInternalServerError,
@@ -126,30 +126,30 @@ func TestListPresets(t *testing.T) {
 			[]db.Preset{
 				{
 					ID:              "preset-1",
-					ProviderMapping: map[string]string{"elementalcloud": "abc123"},
+					ProviderMapping: map[string]string{"elementalconductor": "abc123"},
 				},
 				{
 					ID:              "preset-2",
-					ProviderMapping: map[string]string{"elementalcloud": "abc124"},
+					ProviderMapping: map[string]string{"elementalconductor": "abc124"},
 				},
 				{
 					ID:              "preset-3",
-					ProviderMapping: map[string]string{"elementalcloud": "abc125"},
+					ProviderMapping: map[string]string{"elementalconductor": "abc125"},
 				},
 			},
 			http.StatusOK,
 			map[string]db.Preset{
 				"preset-1": {
 					ID:              "preset-1",
-					ProviderMapping: map[string]string{"elementalcloud": "abc123"},
+					ProviderMapping: map[string]string{"elementalconductor": "abc123"},
 				},
 				"preset-2": {
 					ID:              "preset-2",
-					ProviderMapping: map[string]string{"elementalcloud": "abc124"},
+					ProviderMapping: map[string]string{"elementalconductor": "abc124"},
 				},
 				"preset-3": {
 					ID:              "preset-3",
-					ProviderMapping: map[string]string{"elementalcloud": "abc125"},
+					ProviderMapping: map[string]string{"elementalconductor": "abc125"},
 				},
 			},
 		},

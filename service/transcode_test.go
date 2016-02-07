@@ -203,7 +203,7 @@ func TestTranscode(t *testing.T) {
 		srvr := server.NewSimpleServer(nil)
 		fakeDBObj := newFakeDB(test.givenTriggerDBError)
 		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
-		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_360p", ProviderMapping: map[string]string{"elementalcloud": "172712"}})
+		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")

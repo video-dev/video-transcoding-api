@@ -30,7 +30,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 			UserKey:     "superkey",
 			Destination: "http://nice-destination",
 		},
-		ElementalCloud: &ElementalCloud{
+		ElementalConductor: &ElementalConductor{
 			Host:        "some-server",
 			UserLogin:   "myuser",
 			APIKey:      "superkey",
@@ -46,33 +46,33 @@ func TestLoadConfigFromFile(t *testing.T) {
 	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
 		t.Errorf("LoadConfig(%q): wrong EncodingCom config returned. Want %#v. Got %#v.", fileName, *expectedCfg.EncodingCom, *cfg.EncodingCom)
 	}
-	if !reflect.DeepEqual(*cfg.ElementalCloud, *expectedCfg.ElementalCloud) {
-		t.Errorf("LoadConfig(%q): wrong Elemental Cloud config returned. Want %#v. Got %#v.", fileName, *expectedCfg.ElementalCloud, *cfg.ElementalCloud)
+	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
+		t.Errorf("LoadConfig(%q): wrong Elemental Conductor config returned. Want %#v. Got %#v.", fileName, *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
 	}
 }
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	setEnvs(map[string]string{
-		"SENTINEL_ADDRS":                       "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-		"SENTINEL_MASTER_NAME":                 "supermaster",
-		"REDIS_ADDR":                           "localhost:6379",
-		"REDIS_PASSWORD":                       "super-secret",
-		"REDIS_POOL_SIZE":                      "100",
-		"REDIS_POOL_TIMEOUT_SECONDS":           "10",
-		"ENCODINGCOM_USER_ID":                  "myuser",
-		"ENCODINGCOM_USER_KEY":                 "secret-key",
-		"ENCODINGCOM_DESTINATION":              "https://safe-stuff",
-		"AWS_ACCESS_KEY_ID":                    "AKIANOTREALLY",
-		"AWS_SECRET_ACCESS_KEY":                "secret-key",
-		"AWS_REGION":                           config.AWSRegionUSEast1,
-		"ELASTICTRANSCODER_PIPELINE_ID":        "mypipeline",
-		"ELEMENTALCLOUD_HOST":                  "elemental-server",
-		"ELEMENTALCLOUD_USER_LOGIN":            "myuser",
-		"ELEMENTALCLOUD_API_KEY":               "secret-key",
-		"ELEMENTALCLOUD_AUTH_EXPIRES":          "30",
-		"ELEMENTALCLOUD_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
-		"ELEMENTALCLOUD_AWS_SECRET_ACCESS_KEY": "secret-key",
-		"ELEMENTALCLOUD_DESTINATION":           "https://safe-stuff",
+		"SENTINEL_ADDRS":                           "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
+		"SENTINEL_MASTER_NAME":                     "supermaster",
+		"REDIS_ADDR":                               "localhost:6379",
+		"REDIS_PASSWORD":                           "super-secret",
+		"REDIS_POOL_SIZE":                          "100",
+		"REDIS_POOL_TIMEOUT_SECONDS":               "10",
+		"ENCODINGCOM_USER_ID":                      "myuser",
+		"ENCODINGCOM_USER_KEY":                     "secret-key",
+		"ENCODINGCOM_DESTINATION":                  "https://safe-stuff",
+		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
+		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
+		"AWS_REGION":                               config.AWSRegionUSEast1,
+		"ELASTICTRANSCODER_PIPELINE_ID":            "mypipeline",
+		"ELEMENTALCONDUCTOR_HOST":                  "elemental-server",
+		"ELEMENTALCONDUCTOR_USER_LOGIN":            "myuser",
+		"ELEMENTALCONDUCTOR_API_KEY":               "secret-key",
+		"ELEMENTALCONDUCTOR_AUTH_EXPIRES":          "30",
+		"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
+		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY": "secret-key",
+		"ELEMENTALCONDUCTOR_DESTINATION":           "https://safe-stuff",
 	})
 	cfg := LoadConfig("")
 	expectedCfg := Config{
@@ -95,7 +95,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			Region:          config.AWSRegionUSEast1,
 			PipelineID:      "mypipeline",
 		},
-		ElementalCloud: &ElementalCloud{
+		ElementalConductor: &ElementalConductor{
 			Host:            "elemental-server",
 			UserLogin:       "myuser",
 			APIKey:          "secret-key",
@@ -114,22 +114,22 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	if !reflect.DeepEqual(*cfg.ElasticTranscoder, *expectedCfg.ElasticTranscoder) {
 		t.Errorf("LoadConfig(%q): wrong ElasticTranscoder config returned. Want %#v. Got %#v.", "", *expectedCfg.ElasticTranscoder, *cfg.ElasticTranscoder)
 	}
-	if !reflect.DeepEqual(*cfg.ElementalCloud, *expectedCfg.ElementalCloud) {
-		t.Errorf("LoadConfig(%q): wrong Elemental Cloud config returned. Want %#v. Got %#v.", "", *expectedCfg.ElementalCloud, *cfg.ElementalCloud)
+	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
+		t.Errorf("LoadConfig(%q): wrong Elemental Conductor config returned. Want %#v. Got %#v.", "", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
 	}
 }
 
 func TestLoadConfigOverride(t *testing.T) {
 	cleanEnvs()
 	setEnvs(map[string]string{
-		"REDIS_PASSWORD":              "super-secret",
-		"ENCODINGCOM_USER_ID":         "myuser",
-		"ENCODINGCOM_USER_KEY":        "secret-key",
-		"ENCODINGCOM_DESTINATION":     "https://safe-stuff",
-		"ELEMENTALCLOUD_HOST":         "elemental-server",
-		"ELEMENTALCLOUD_USER_LOGIN":   "myuser",
-		"ELEMENTALCLOUD_API_KEY":      "secret-key",
-		"ELEMENTALCLOUD_AUTH_EXPIRES": "30",
+		"REDIS_PASSWORD":                  "super-secret",
+		"ENCODINGCOM_USER_ID":             "myuser",
+		"ENCODINGCOM_USER_KEY":            "secret-key",
+		"ENCODINGCOM_DESTINATION":         "https://safe-stuff",
+		"ELEMENTALCONDUCTOR_HOST":         "elemental-server",
+		"ELEMENTALCONDUCTOR_USER_LOGIN":   "myuser",
+		"ELEMENTALCONDUCTOR_API_KEY":      "secret-key",
+		"ELEMENTALCONDUCTOR_AUTH_EXPIRES": "30",
 	})
 	fileName := "testdata/config.json"
 	cfg := LoadConfig(fileName)
@@ -151,7 +151,7 @@ func TestLoadConfigOverride(t *testing.T) {
 			UserKey:     "secret-key",
 			Destination: "https://safe-stuff",
 		},
-		ElementalCloud: &ElementalCloud{
+		ElementalConductor: &ElementalConductor{
 			Host:        "elemental-server",
 			UserLogin:   "myuser",
 			APIKey:      "secret-key",
@@ -167,8 +167,8 @@ func TestLoadConfigOverride(t *testing.T) {
 	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
 		t.Errorf("LoadConfig(%q): wrong EncodingCom config returned. Want %#v. Got %#v.", fileName, *expectedCfg.EncodingCom, *cfg.EncodingCom)
 	}
-	if !reflect.DeepEqual(*cfg.ElementalCloud, *expectedCfg.ElementalCloud) {
-		t.Errorf("LoadConfig(%q): wrong Elemental Cloud config returned. Want %#v. Got %#v.", fileName, *expectedCfg.ElementalCloud, *cfg.ElementalCloud)
+	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
+		t.Errorf("LoadConfig(%q): wrong Elemental Conductor config returned. Want %#v. Got %#v.", fileName, *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
 	}
 }
 
@@ -178,10 +178,10 @@ func cleanEnvs() {
 		"REDIS_PASSWORD", "ENCODINGCOM_USER_ID", "ENCODINGCOM_USER_KEY",
 		"ENCODINGCOM_DESTINATION", "REDIS_POOL_SIZE", "REDIS_POOL_TIMEOUT_SECONDS",
 		"AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY", "AWS_REGION",
-		"ELASTICTRANSCODER_PIPELINE_ID", "ELEMENTALCLOUD_HOST",
-		"ELEMENTALCLOUD_USER_LOGIN", "ELEMENTALCLOUD_API_KEY",
-		"ELEMENTALCLOUD_AUTH_EXPIRES", "ELEMENTALCLOUD_AWS_ACCESS_KEY_ID",
-		"ELEMENTALCLOUD_AWS_SECRET_ACCESS_KEY", "ELEMENTALCLOUD_DESTINATION",
+		"ELASTICTRANSCODER_PIPELINE_ID", "ELEMENTALCONDUCTOR_HOST",
+		"ELEMENTALCONDUCTOR_USER_LOGIN", "ELEMENTALCONDUCTOR_API_KEY",
+		"ELEMENTALCONDUCTOR_AUTH_EXPIRES", "ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID",
+		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY", "ELEMENTALCONDUCTOR_DESTINATION",
 	}
 	for _, env := range envs {
 		os.Unsetenv(env)

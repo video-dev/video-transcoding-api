@@ -14,7 +14,7 @@
 	    "UserKey": "superkey",
 	    "Destination": "http://nice-destination"
     },
-    "ElementalCloud": {
+    "ElementalConductor": {
       "Host": "some-server",
       "UserLogin": "myuser",
       "APIKey": "superkey",

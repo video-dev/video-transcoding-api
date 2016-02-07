@@ -21,8 +21,8 @@ func TestSavePreset(t *testing.T) {
 	}
 	preset := db.Preset{
 		ProviderMapping: map[string]string{
-			"elementalcloud":    "abc123",
-			"elastictranscoder": "1281742-93939",
+			"elementalconductor": "abc123",
+			"elastictranscoder":  "1281742-93939",
 		},
 	}
 	err = repo.SavePreset(&preset)
@@ -125,9 +125,9 @@ func TestGetPreset(t *testing.T) {
 	preset := db.Preset{
 		ID: "mypreset",
 		ProviderMapping: map[string]string{
-			"elementalcloud":    "abc-123",
-			"elastictranscoder": "0129291-0001",
-			"encoding.com":      "wait what?",
+			"elementalconductor": "abc-123",
+			"elastictranscoder":  "0129291-0001",
+			"encoding.com":       "wait what?",
 		},
 	}
 	err = repo.SavePreset(&preset)
@@ -175,20 +175,20 @@ func TestListPresets(t *testing.T) {
 	presets := []db.Preset{
 		{
 			ProviderMapping: map[string]string{
-				"elementalcloud":    "abc123",
-				"elastictranscoder": "1281742-93939",
+				"elementalconductor": "abc123",
+				"elastictranscoder":  "1281742-93939",
 			},
 		},
 		{
 			ProviderMapping: map[string]string{
-				"elementalcloud":    "abc124",
-				"elastictranscoder": "1281743-93939",
+				"elementalconductor": "abc124",
+				"elastictranscoder":  "1281743-93939",
 			},
 		},
 		{
 			ProviderMapping: map[string]string{
-				"elementalcloud":    "abc125",
-				"elastictranscoder": "1281744-93939",
+				"elementalconductor": "abc125",
+				"elastictranscoder":  "1281744-93939",
 			},
 		},
 	}
