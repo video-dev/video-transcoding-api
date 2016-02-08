@@ -73,6 +73,40 @@ func TestNewPreset(t *testing.T) {
 	}
 }
 
+func TestGetPreset(t *testing.T) {
+	tests := []struct {
+		givenTestCase string
+		givenPresetID string
+		wantCode      int
+	}{
+		{
+			"Get preset",
+			"preset-1",
+			http.StatusOK,
+		},
+		{
+			"Get preset not found",
+			"preset-unknown",
+			http.StatusNotFound,
+		},
+	}
+	for _, test := range tests {
+		srvr := server.NewSimpleServer(nil)
+		fakeDB := newFakeDB(false)
+		fakeDB.SavePreset(&db.Preset{ID: "preset-1"})
+		srvr.Register(&TranscodingService{
+			config: &config.Config{},
+			db:     fakeDB,
+		})
+		r, _ := http.NewRequest("GET", "/presets/"+test.givenPresetID, nil)
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+	}
+}
+
 func TestDeletePreset(t *testing.T) {
 	tests := []struct {
 		givenTestCase string

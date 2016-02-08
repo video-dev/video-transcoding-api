@@ -23,6 +23,19 @@ func (s *TranscodingService) newPreset(r *http.Request) (int, interface{}, error
 	return http.StatusOK, map[string]string{"presetId": preset.ID}, nil
 }
 
+func (s *TranscodingService) getPreset(r *http.Request) (int, interface{}, error) {
+	presetID := mux.Vars(r)["presetId"]
+	preset, err := s.db.GetPreset(presetID)
+	statusCode := http.StatusOK
+	if err != nil {
+		statusCode = http.StatusInternalServerError
+		if err == db.ErrPresetNotFound {
+			statusCode = http.StatusNotFound
+		}
+	}
+	return statusCode, preset, err
+}
+
 func (s *TranscodingService) deletePreset(r *http.Request) (int, interface{}, error) {
 	presetID := mux.Vars(r)["presetId"]
 	err := s.db.DeletePreset(&db.Preset{ID: presetID})
