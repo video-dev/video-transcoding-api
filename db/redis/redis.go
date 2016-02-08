@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
+	"log"
 	"reflect"
 	"strings"
 	"sync"
@@ -16,6 +18,10 @@ import (
 )
 
 var errNotFound = errors.New("not found")
+
+func init() {
+	redis.Logger = log.New(ioutil.Discard, "", log.LstdFlags)
+}
 
 // NewRepository creates a new Repository that uses Redis for persistence.
 func NewRepository(cfg *config.Config) (db.Repository, error) {
