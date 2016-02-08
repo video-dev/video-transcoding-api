@@ -58,11 +58,54 @@ func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets
 }
 
 func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, error) {
-	_, err := p.client.GetJob(id)
+	resp, err := p.client.GetJob(id)
 	if err != nil {
 		return nil, err
 	}
-	return &provider.JobStatus{ProviderName: Name}, nil
+	providerStatus := map[string]interface{}{
+		"status":       resp.Status,
+		"pct_complete": strconv.Itoa(resp.PercentComplete),
+		"submitted":    resp.Submitted,
+	}
+	if !resp.StartTime.IsZero() {
+		providerStatus["start_time"] = resp.StartTime
+	}
+	if !resp.CompleteTime.IsZero() {
+		providerStatus["complete_time"] = resp.CompleteTime
+	}
+	if !resp.ErroredTime.IsZero() {
+		providerStatus["errored_time"] = resp.ErroredTime
+	}
+	if len(resp.ErrorMessages) > 0 {
+		providerStatus["error_messages"] = resp.ErrorMessages
+	}
+	return &provider.JobStatus{
+		ProviderName:   Name,
+		ProviderJobID:  resp.GetID(),
+		Status:         p.statusMap(resp.Status),
+		ProviderStatus: providerStatus,
+	}, nil
+}
+
+func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) provider.Status {
+	switch strings.ToLower(elementalConductorStatus) {
+	case "pending":
+		return provider.StatusQueued
+	case "preprocessing":
+		return provider.StatusStarted
+	case "running":
+		return provider.StatusStarted
+	case "postprocessing":
+		return provider.StatusStarted
+	case "complete":
+		return provider.StatusFinished
+	case "cancelled":
+		return provider.StatusCanceled
+	case "archived":
+		return provider.StatusArchived
+	default:
+		return provider.StatusFailed
+	}
 }
 
 func (p *elementalConductorProvider) buildFullDestination(source string) string {
