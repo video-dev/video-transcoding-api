@@ -1,6 +1,7 @@
 package elementalconductor
 
 import (
+	"encoding/xml"
 	"reflect"
 	"testing"
 
@@ -76,5 +77,82 @@ func TestElementalConductorFactoryValidation(t *testing.T) {
 		if err != errElementalConductorInvalidConfig {
 			t.Errorf("Wrong error returned. Want errElementalConductorInvalidConfig. Got %#v", err)
 		}
+	}
+}
+
+func TestElementalNewJob(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	prov, err := elementalConductorFactory(&elementalConductorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presetProvider, ok := prov.(*elementalConductorProvider)
+	if !ok {
+		t.Fatal("Could not type assert test provider to elementalConductorProvider")
+	}
+	source := "http://some.nice/video.mov"
+	presets := []string{"15", "20"}
+	newJob := presetProvider.newJob(source, presets)
+
+	expectedJob := elementalconductor.Job{
+		XMLName: xml.Name{
+			Local: "job",
+		},
+		Input: elementalconductor.Input{
+			FileInput: elementalconductor.Location{
+				URI:      "http://some.nice/video.mov",
+				Username: "aws-access-key",
+				Password: "aws-secret-key",
+			},
+		},
+		Priority: 50,
+		OutputGroup: elementalconductor.OutputGroup{
+			Order: 1,
+			FileGroupSettings: elementalconductor.FileGroupSettings{
+				Destination: elementalconductor.Location{
+					URI:      "s3://destination/video",
+					Username: "aws-access-key",
+					Password: "aws-secret-key",
+				},
+			},
+			Type: "file_group_settings",
+			Output: []elementalconductor.Output{
+				{
+					StreamAssemblyName: "stream_0",
+					NameModifier:       "_15",
+					Order:              0,
+					Extension:          ".mp4",
+				},
+				{
+					StreamAssemblyName: "stream_1",
+					NameModifier:       "_20",
+					Order:              1,
+					Extension:          ".mp4",
+				},
+			},
+		},
+		StreamAssembly: []elementalconductor.StreamAssembly{
+			{
+				Name:   "stream_0",
+				Preset: "15",
+			},
+			{
+				Name:   "stream_1",
+				Preset: "20",
+			},
+		},
+	}
+	if !reflect.DeepEqual(&expectedJob, newJob) {
+		t.Errorf("New job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
 	}
 }
