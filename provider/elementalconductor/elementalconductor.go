@@ -16,6 +16,7 @@
 package elementalconductor
 
 import (
+	"encoding/xml"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -124,6 +125,7 @@ func buildOutputsAndStreamAssemblies(presets []string) ([]elementalconductor.Out
 		streamAssemblyName := "stream_" + indexString
 		output := elementalconductor.Output{
 			StreamAssemblyName: streamAssemblyName,
+			NameModifier:       "_" + preset,
 			Order:              index,
 			Extension:          defaultExtension,
 		}
@@ -151,6 +153,9 @@ func (p *elementalConductorProvider) newJob(source string, presets []string) *el
 	}
 	outputList, streamAssemblyList := buildOutputsAndStreamAssemblies(presets)
 	newJob := elementalconductor.Job{
+		XMLName: xml.Name{
+			Local: "job",
+		},
 		Input: elementalconductor.Input{
 			FileInput: inputLocation,
 		},
