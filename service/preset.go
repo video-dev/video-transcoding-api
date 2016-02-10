@@ -20,7 +20,7 @@ func (s *TranscodingService) newPreset(r *http.Request) (int, interface{}, error
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	return http.StatusOK, map[string]string{"presetId": preset.ID}, nil
+	return http.StatusOK, preset, nil
 }
 
 func (s *TranscodingService) getPreset(r *http.Request) (int, interface{}, error) {

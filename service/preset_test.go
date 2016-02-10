@@ -28,7 +28,13 @@ func TestNewPreset(t *testing.T) {
 			false,
 
 			http.StatusOK,
-			map[string]interface{}{"presetId": "12345"},
+			map[string]interface{}{
+				"presetId": "12345",
+				"providerMapping": map[string]interface{}{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
 		},
 		{
 			"New preset DB failure",
