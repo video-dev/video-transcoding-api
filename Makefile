@@ -1,4 +1,4 @@
-.PHONY: all testdeps checkfmt lint test build run vet
+.PHONY: all testdeps checkfmt lint test build run vet swagger
 
 all: test
 
@@ -37,3 +37,7 @@ run: build
 vet: testdeps
 	go get golang.org/x/tools/cmd/vet
 	go vet ./...
+
+swagger:
+	go get github.com/go-swagger/go-swagger/cmd/swagger
+	swagger generate spec -o ./swagger.json
