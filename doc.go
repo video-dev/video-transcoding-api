@@ -9,7 +9,7 @@
 // b: [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)
 // b: [Encoding.com](http://api.encoding.com)
 //
-// Schemes: http
+// Schemes: https
 // BasePath: /
 // Version: 1.0.0
 // License: Apache 2.0 http://www.apache.org/licenses/LICENSE-2.0.html
