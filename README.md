@@ -5,7 +5,8 @@ edit it.
 
 #video-transcoding-api
 
-HTTP API for transcoding media files into different formats using pluggable providers.
+HTTP API for transcoding media files into different formats using pluggable
+providers.
 
 ##Currently supported providers
 

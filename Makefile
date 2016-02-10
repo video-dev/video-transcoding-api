@@ -40,6 +40,6 @@ vet: testdeps
 
 swagger:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
-	swagger generate spec -o ./swagger.json
+	swagger generate spec -o swagger.json
 	go build -o generate-readme ./doc
 	./generate-readme -i swagger.json -o README.md
