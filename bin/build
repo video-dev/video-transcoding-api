@@ -23,6 +23,7 @@ pushd $CODE
 GOPATH=$GOTMP go get -t
 GOPATH=$GOTMP go test
 GOPATH=$GOTMP GOARCH=amd64 GOOS=linux go build -o $OUTPUT/video-transcoding-api
+cp config.json $OUTPUT/.
 popd
 
 # Create the output tarball
