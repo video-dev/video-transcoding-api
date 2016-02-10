@@ -9,11 +9,16 @@ type Job struct {
 }
 
 // Preset represents the preset that is persisted in the repository of the
-// Transcoding API.
+// Transcoding API
 //
 // Each preset is just an aggregator of provider presets, where each preset in
-// the API maps to a preset on each provider.
+// the API maps to a preset on each provider
+//
+// swagger:model
 type Preset struct {
-	ID              string            `redis-hash:"-" json:"presetId"`
+	// unique identifier of the preset.
+	ID string `redis-hash:"-" json:"presetId"`
+
+	// mapping of provider name to provider's internal preset id.
 	ProviderMapping map[string]string `redis-hash:",expand" json:"providerMapping"`
 }

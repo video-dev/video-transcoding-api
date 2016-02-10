@@ -49,14 +49,26 @@ func (s *TranscodingService) deletePreset(r *http.Request) (int, interface{}, er
 	return statusCode, nil, err
 }
 
+// swagger:route GET /presets listPresets presets
+//
+// List available presets on the API.
+//
+//     Responses:
+//       200: listPresets
 func (s *TranscodingService) listPresets(r *http.Request) (int, interface{}, error) {
 	presets, err := s.db.ListPresets()
 	if err != nil {
 		return http.StatusInternalServerError, nil, err
 	}
-	presetsMap := make(map[string]db.Preset, len(presets))
+	resp := listPresetsResponse{PresetsMap: make(map[string]db.Preset, len(presets))}
 	for _, preset := range presets {
-		presetsMap[preset.ID] = preset
+		resp.PresetsMap[preset.ID] = preset
 	}
-	return http.StatusOK, presetsMap, nil
+	return http.StatusOK, resp.PresetsMap, nil
+}
+
+// swagger:response listPresets
+type listPresetsResponse struct {
+	// in: body
+	PresetsMap map[string]db.Preset
 }
