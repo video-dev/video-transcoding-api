@@ -88,8 +88,8 @@ const (
 	// StatusCanceled is the status for a job that has been canceled.
 	StatusCanceled = Status("canceled")
 
-	// StatusArchived is the status for a job that has been archived.
-	StatusArchived = Status("archived")
+	// StatusUnknown is an unexpected status for a job.
+	StatusUnknown = Status("unknown")
 )
 
 var providers map[string]Factory

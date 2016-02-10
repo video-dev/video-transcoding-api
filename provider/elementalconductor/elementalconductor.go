@@ -102,10 +102,10 @@ func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) 
 		return provider.StatusFinished
 	case "cancelled":
 		return provider.StatusCanceled
-	case "archived":
-		return provider.StatusArchived
-	default:
+	case "error":
 		return provider.StatusFailed
+	default:
+		return provider.StatusUnknown
 	}
 }
 

@@ -156,3 +156,27 @@ func TestElementalNewJob(t *testing.T) {
 		t.Errorf("New job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
 	}
 }
+
+func TestJobStatusMap(t *testing.T) {
+	var tests = []struct {
+		elementalConductorStatus string
+		expected                 provider.Status
+	}{
+		{"pending", provider.StatusQueued},
+		{"preprocessing", provider.StatusStarted},
+		{"running", provider.StatusStarted},
+		{"postprocessing", provider.StatusStarted},
+		{"complete", provider.StatusFinished},
+		{"cancelled", provider.StatusCanceled},
+		{"error", provider.StatusFailed},
+		{"unknown", provider.StatusUnknown},
+		{"someotherstatus", provider.StatusUnknown},
+	}
+	var p elementalConductorProvider
+	for _, test := range tests {
+		got := p.statusMap(test.elementalConductorStatus)
+		if got != test.expected {
+			t.Errorf("statusMap(%q): wrong value. Want %q. Got %q", test.elementalConductorStatus, test.expected, got)
+		}
+	}
+}
