@@ -160,8 +160,10 @@ func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Statu
 		return provider.StatusStarted
 	case "finished":
 		return provider.StatusFinished
-	default:
+	case "error":
 		return provider.StatusFailed
+	default:
+		return provider.StatusUnknown
 	}
 }
 

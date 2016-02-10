@@ -227,7 +227,7 @@ func TestJobStatusMap(t *testing.T) {
 		{"Saving", provider.StatusStarted},
 		{"Finished", provider.StatusFinished},
 		{"Error", provider.StatusFailed},
-		{"Unknown", provider.StatusFailed},
+		{"Unknown", provider.StatusUnknown},
 		{"new", provider.StatusQueued},
 		{"downloading", provider.StatusStarted},
 		{"ready to process", provider.StatusStarted},
@@ -236,7 +236,7 @@ func TestJobStatusMap(t *testing.T) {
 		{"saving", provider.StatusStarted},
 		{"finished", provider.StatusFinished},
 		{"error", provider.StatusFailed},
-		{"unknown", provider.StatusFailed},
+		{"unknown", provider.StatusUnknown},
 	}
 	var p encodingComProvider
 	for _, test := range tests {
