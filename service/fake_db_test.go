@@ -50,27 +50,25 @@ func (d *fakeDB) SavePreset(preset *db.Preset) error {
 	if d.triggerDBError {
 		return errors.New("database error")
 	}
-	if preset.ID == "" {
-		preset.ID = "12345"
-	} else if _, ok := d.presets[preset.ID]; ok {
+	if _, ok := d.presets[preset.Name]; ok {
 		return db.ErrPresetAlreadyExists
 	}
-	d.presets[preset.ID] = preset
+	d.presets[preset.Name] = preset
 	return nil
 }
 
-func (d *fakeDB) GetPreset(id string) (*db.Preset, error) {
-	if preset, ok := d.presets[id]; ok {
+func (d *fakeDB) GetPreset(name string) (*db.Preset, error) {
+	if preset, ok := d.presets[name]; ok {
 		return preset, nil
 	}
 	return nil, db.ErrPresetNotFound
 }
 
 func (d *fakeDB) DeletePreset(preset *db.Preset) error {
-	if _, ok := d.presets[preset.ID]; !ok {
+	if _, ok := d.presets[preset.Name]; !ok {
 		return db.ErrPresetNotFound
 	}
-	delete(d.presets, preset.ID)
+	delete(d.presets, preset.Name)
 	return nil
 }
 

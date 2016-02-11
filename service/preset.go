@@ -14,6 +14,7 @@ import (
 //
 //     Responses:
 //       200: preset
+//       400: validationError
 //       409: presetAlreadyExists
 //       500: genericError
 func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
@@ -23,9 +24,11 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	if err != nil {
 		return newErrorResponse(err)
 	}
+	if fieldName, valid := params.Validate(); !valid {
+		return newInvalidPresetResponse(fieldName)
+	}
 	preset := params.Preset()
 	err = s.db.SavePreset(&preset)
-
 	switch err {
 	case nil:
 		return newPresetResponse(&preset)
@@ -36,17 +39,17 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route GET /presets/{presetId} getPreset
+// swagger:route GET /presets/{name} getPreset
 //
-// Finds a preset using its id.
+// Finds a preset using its name.
 //
 //     Responses:
 //       200: preset
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
-	presetID := mux.Vars(r)["presetId"]
-	preset, err := s.db.GetPreset(presetID)
+	name := mux.Vars(r)["name"]
+	preset, err := s.db.GetPreset(name)
 
 	switch err {
 	case nil:
@@ -58,17 +61,17 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route DELETE /presets/{presetId} deletePreset
+// swagger:route DELETE /presets/{name} deletePreset
 //
-// Deletes a preset by id.
+// Deletes a preset by name.
 //
 //     Responses:
 //       200: emptyResponse
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
-	presetID := mux.Vars(r)["presetId"]
-	err := s.db.DeletePreset(&db.Preset{ID: presetID})
+	name := mux.Vars(r)["name"]
+	err := s.db.DeletePreset(&db.Preset{Name: name})
 
 	switch err {
 	case nil:

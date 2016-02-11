@@ -65,7 +65,7 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 			"POST": handlerToEndpoint(s.newPreset),
 			"GET":  handlerToEndpoint(s.listPresets),
 		},
-		"/presets/{presetId:[^/]+}": {
+		"/presets/{name:[^/]+}": {
 			"GET":    handlerToEndpoint(s.getPreset),
 			"DELETE": handlerToEndpoint(s.deletePreset),
 		},

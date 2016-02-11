@@ -16,9 +16,14 @@ type Job struct {
 //
 // swagger:model
 type Preset struct {
-	// unique identifier of the preset.
-	ID string `redis-hash:"-" json:"presetId"`
+	// name of the preset
+	//
+	// unique: true
+	// required: true
+	Name string `redis-hash:"-" json:"name"`
 
 	// mapping of provider name to provider's internal preset id.
+	//
+	// required: true
 	ProviderMapping map[string]string `redis-hash:",expand" json:"providerMapping"`
 }

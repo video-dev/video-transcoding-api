@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/nytm/video-transcoding-api/db"
@@ -39,6 +40,21 @@ func (r *presetNotFoundResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
+// swagger:response invalidPreset
+type invalidPresetResponse struct {
+	// in: body
+	Error *errorResponse
+}
+
+func newInvalidPresetResponse(field string) *invalidPresetResponse {
+	err := fmt.Errorf("missing field %s from the request", field)
+	return &invalidPresetResponse{Error: newErrorResponse(err).withStatus(http.StatusBadRequest)}
+}
+
+func (r *invalidPresetResponse) Result() (int, interface{}, error) {
+	return r.Error.Result()
+}
+
 // swagger:response presetAlreadyExists
 type presetAlreadyExistsResponse struct {
 	// in: body
@@ -66,7 +82,7 @@ type listPresetsResponse struct {
 func newListPresetsResponse(presets []db.Preset) *listPresetsResponse {
 	presetsMap := make(map[string]db.Preset, len(presets))
 	for _, preset := range presets {
-		presetsMap[preset.ID] = preset
+		presetsMap[preset.Name] = preset
 	}
 	return &listPresetsResponse{
 		baseResponse: baseResponse{
