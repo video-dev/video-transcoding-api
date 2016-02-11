@@ -14,7 +14,7 @@ import (
 //
 //     Responses:
 //       200: preset
-//       400: validationError
+//       400: invalidPreset
 //       409: presetAlreadyExists
 //       500: genericError
 func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
