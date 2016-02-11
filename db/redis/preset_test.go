@@ -73,6 +73,29 @@ func TestSavePresetPredefinedID(t *testing.T) {
 	}
 }
 
+func TestSavePresetDuplicate(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := db.Preset{
+		ID:              "mypreset",
+		ProviderMapping: map[string]string{"elemental": "123"},
+	}
+	err = repo.SavePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.SavePreset(&preset)
+	if err != db.ErrPresetAlreadyExists {
+		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrPresetAlreadyExists, err)
+	}
+}
+
 func TestDeletePreset(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {

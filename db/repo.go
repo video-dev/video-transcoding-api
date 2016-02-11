@@ -10,6 +10,10 @@ var (
 	// ErrPresetNotFound is the error returned when the preset is not found
 	// on GetPreset or DeletePreset.
 	ErrPresetNotFound = errors.New("preset not found")
+
+	// ErrPresetAlreadyExists is the error returned when the preset already
+	// exists.
+	ErrPresetAlreadyExists = errors.New("preset already exists")
 )
 
 // Repository represents the repository for persisting types of the API.

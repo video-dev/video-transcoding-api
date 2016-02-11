@@ -11,6 +11,8 @@ func (r *redisRepository) SavePreset(preset *db.Preset) error {
 			return err
 		}
 		preset.ID = id
+	} else if _, err := r.GetPreset(preset.ID); err == nil {
+		return db.ErrPresetAlreadyExists
 	}
 	fields, err := r.fieldList(preset)
 	if err != nil {
