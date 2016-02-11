@@ -1,4 +1,4 @@
-.PHONY: all testdeps checkfmt lint test build run vet swagger
+.PHONY: all testdeps checkfmt lint test build run vet checkswagger swagger
 
 all: test
 
@@ -25,7 +25,7 @@ lint: testdeps
 	done; \
 	exit $${status:-0}
 
-test: checkfmt lint vet deadcode
+test: checkfmt lint vet deadcode checkswagger
 	go test ./...
 
 build:
@@ -43,3 +43,6 @@ swagger:
 	swagger generate spec -o swagger.json
 	go build -o generate-readme ./doc
 	./generate-readme -i swagger.json -o README.md
+
+checkswagger:
+	swagger validate swagger.json

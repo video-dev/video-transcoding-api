@@ -14,7 +14,7 @@ type partialJob struct {
 	JobID string `json:"jobId"`
 }
 
-// represents the job after creation, includes the id of the job only, that can
+// JSON-encoded version of the Job, includes only the id of the job, that can
 // be used for querying the current status of the job.
 //
 // swagger:response job
@@ -34,6 +34,9 @@ func newJobResponse(jobID string) *jobResponse {
 	}
 }
 
+// JSON-encoded JobStatus, containing status information given by the
+// underlying provider.
+//
 // swagger:response jobStatus
 type jobStatusResponse struct {
 	// in: body
@@ -51,6 +54,8 @@ func newJobStatusResponse(jobStatus *provider.JobStatus) *jobStatusResponse {
 	}
 }
 
+// error returned when the given job data is not valid.
+//
 // swagger:response invalidJob
 type invalidJobResponse struct {
 	// in: body
@@ -65,6 +70,8 @@ func (r *invalidJobResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
+// error returned the given job id could not be found on the API.
+//
 // swagger:response jobNotFound
 type jobNotFoundResponse struct {
 	// in: body
@@ -79,6 +86,9 @@ func (r *jobNotFoundResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
+// error returned when the given job id could not be found on the underlying
+// provider.
+//
 // swagger:response jobNotFoundInTheProvider
 type jobNotFoundProviderResponse struct {
 	// in: body

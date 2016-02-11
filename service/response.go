@@ -15,7 +15,7 @@ func (r *baseResponse) Result() (int, interface{}, error) {
 // emptyResponse represents an empty response returned by the API, it's
 // composed only by the HTTP status code.
 //
-// swagger:model
+// swagger:response
 type emptyResponse int
 
 func (r emptyResponse) Result() (int, interface{}, error) {
@@ -25,11 +25,11 @@ func (r emptyResponse) Result() (int, interface{}, error) {
 // errorReponse represents the basic error returned by the API on operation
 // failures.
 //
-// swagger:model
+// swagger:response genericError
 type errorResponse struct {
 	// the error message
 	//
-	// required: true
+	// in: body
 	Message string `json:"error"`
 
 	baseResponse

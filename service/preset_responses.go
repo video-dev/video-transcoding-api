@@ -7,6 +7,8 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
+// JSON-encoded preset returned on the newPreset and getPreset operations.
+//
 // swagger:response preset
 type presetResponse struct {
 	// in: body
@@ -24,6 +26,9 @@ func newPresetResponse(preset *db.Preset) *presetResponse {
 	}
 }
 
+// error returned when the given preset name is not found on the API (either on
+// getPreset or deletePreset operations).
+//
 // swagger:response presetNotFound
 type presetNotFoundResponse struct {
 	// in: body
@@ -38,6 +43,8 @@ func (r *presetNotFoundResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
+// error returned when the given preset data is not valid.
+//
 // swagger:response invalidPreset
 type invalidPresetResponse struct {
 	// in: body
@@ -53,6 +60,9 @@ func (r *invalidPresetResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
+// error returned when trying to create a new preset using a name that is
+// already in-use.
+//
 // swagger:response presetAlreadyExists
 type presetAlreadyExistsResponse struct {
 	// in: body
@@ -67,6 +77,9 @@ func (r *presetAlreadyExistsResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
+// response for the listPresets operation. It's actually a JSON-encoded object
+// instead of an array, in the format `presetName: presetObject`
+//
 // swagger:response listPresets
 type listPresetsResponse struct {
 	// in: body
