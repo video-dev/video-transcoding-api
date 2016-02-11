@@ -60,6 +60,8 @@ func (err JobNotFoundError) Error() string {
 
 // JobStatus is the representation of the status as the provide sees it. The
 // provider is able to add customized information in the ProviderStatus field.
+//
+// swagger:model
 type JobStatus struct {
 	ProviderJobID  string                 `json:"providerJobId,omitempty"`
 	Status         Status                 `json:"status,omitempty"`

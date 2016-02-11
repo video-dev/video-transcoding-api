@@ -56,10 +56,10 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
 	return map[string]map[string]server.JSONEndpoint{
 		"/jobs": {
-			"POST": s.newTranscodeJob,
+			"POST": handlerToEndpoint(s.newTranscodeJob),
 		},
 		"/jobs/{jobId:[^/]+}": {
-			"GET": s.getTranscodeJob,
+			"GET": handlerToEndpoint(s.getTranscodeJob),
 		},
 		"/presets": {
 			"POST": handlerToEndpoint(s.newPreset),

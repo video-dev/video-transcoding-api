@@ -11,117 +11,113 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-type newTranscodeRequest struct {
-	Source   string
-	Profiles []provider.Profile
-	Presets  []string
-	Provider string
-}
-
-func (s *TranscodingService) newTranscodeJob(r *http.Request) (int, interface{}, error) {
+// swagger:route POST /jobs newJob
+//
+// Creates a new transcoding job.
+//
+//     Responses:
+//       200: job
+//       400: invalidJob
+//       500: genericError
+func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
-	var reqObject newTranscodeRequest
-	err := decoder.Decode(&reqObject)
+	var params newTranscodeParams
+	err := decoder.Decode(&params)
 	if err != nil {
-		return http.StatusBadRequest, nil, fmt.Errorf("Error while parsing request: %s", err)
+		return newErrorResponse(err)
 	}
-	if reqObject.Provider == "" {
-		return http.StatusBadRequest, nil, errors.New("Missing provider from request")
-	}
-	if reqObject.Source == "" {
-		return http.StatusBadRequest, nil, errors.New("Missing source from request")
-	}
-	if len(reqObject.Profiles) == 0 && len(reqObject.Presets) == 0 {
-		return http.StatusBadRequest, nil, errors.New("Please specify either the list of presets or the list of profiles")
-	}
-	if len(reqObject.Profiles) > 0 && len(reqObject.Presets) > 0 {
-		return http.StatusBadRequest, nil, errors.New("Presets and profiles are mutually exclusive, please use only one of them")
-	}
-	providerFactory, err := provider.GetProviderFactory(reqObject.Provider)
+	providerFactory, err := params.ProviderFactory()
 	if err != nil {
-		return http.StatusBadRequest, nil, err
+		return newInvalidJobResponse(err)
 	}
 	providerObj, err := providerFactory(s.config)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
+		formattedErr := fmt.Errorf("Error initializing provider %s for new job: %v %s", params.Provider, providerObj, err)
 		if _, ok := err.(provider.InvalidConfigError); ok {
-			statusCode = http.StatusBadRequest
+			return newInvalidJobResponse(formattedErr)
 		}
-		return statusCode, nil, fmt.Errorf("Error initializing provider %s for new job: %v %s", reqObject.Provider, providerObj, err)
+		return newErrorResponse(formattedErr)
 	}
 
 	var jobStatus *provider.JobStatus
-	if len(reqObject.Profiles) > 0 {
+	if len(params.Profiles) > 0 {
 		profileProvider, ok := providerObj.(provider.ProfileTranscodingProvider)
 		if !ok {
-			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support profile-based transcoding", reqObject.Provider)
+			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support profile-based transcoding", params.Provider))
 		}
-		jobStatus, err = profileProvider.TranscodeWithProfiles(reqObject.Source, reqObject.Profiles)
+		jobStatus, err = profileProvider.TranscodeWithProfiles(params.Source, params.Profiles)
 	} else {
 		presetProvider, ok := providerObj.(provider.PresetTranscodingProvider)
 		if !ok {
-			return http.StatusBadRequest, nil, fmt.Errorf("Provider %q does not support preset-based transcoding", reqObject.Provider)
+			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support preset-based transcoding", params.Provider))
 		}
-		presets := make([]string, len(reqObject.Presets))
-		for i, presetID := range reqObject.Presets {
+		presets := make([]string, len(params.Presets))
+		for i, presetID := range params.Presets {
 			preset, err := s.db.GetPreset(presetID)
 			if err != nil {
-				statusCode := http.StatusInternalServerError
 				if err == db.ErrPresetNotFound {
-					statusCode = http.StatusBadRequest
+					return newInvalidJobResponse(err)
 				}
-				return statusCode, nil, err
+				return newErrorResponse(err)
 			}
-			presets[i] = preset.ProviderMapping[reqObject.Provider]
+			presets[i] = preset.ProviderMapping[params.Provider]
 			if presets[i] == "" {
-				return http.StatusBadRequest, nil, errors.New("preset not defined on this provider")
+				return newInvalidJobResponse(errors.New("preset not defined on this provider"))
 			}
 		}
-		jobStatus, err = presetProvider.TranscodeWithPresets(reqObject.Source, presets)
+		jobStatus, err = presetProvider.TranscodeWithPresets(params.Source, presets)
 	}
 
 	if err != nil {
-		providerError := fmt.Errorf("Error with provider '%s': %s", reqObject.Provider, err)
-		return http.StatusInternalServerError, nil, providerError
+		providerError := fmt.Errorf("Error with provider %q: %s", params.Provider, err)
+		return newErrorResponse(providerError)
 	}
-	jobStatus.ProviderName = reqObject.Provider
+	jobStatus.ProviderName = params.Provider
 
 	job := db.Job{ProviderName: jobStatus.ProviderName, ProviderJobID: jobStatus.ProviderJobID}
 	err = s.db.SaveJob(&job)
 	if err != nil {
-		return http.StatusInternalServerError, nil, err
+		return newErrorResponse(err)
 	}
-	return 200, map[string]string{"jobId": job.ID}, nil
+	return newJobResponse(job.ID)
 }
 
-func (s *TranscodingService) getTranscodeJob(r *http.Request) (int, interface{}, error) {
+// swagger:route GET /jobs/{jobId} getJob
+//
+// Finds a trancode job using its ID. It also queries the provider to get the
+// status of the job.
+//
+//     Responses:
+//       200: jobStatus
+//       404: jobNotFound
+//       410: jobNotFoundInTheProvider
+//       500: genericError
+func (s *TranscodingService) getTranscodeJob(r *http.Request) gizmoResponse {
 	jobID := mux.Vars(r)["jobId"]
 	job, err := s.db.GetJob(jobID)
 	if err != nil {
-		statusCode := http.StatusInternalServerError
 		if err == db.ErrJobNotFound {
-			statusCode = http.StatusNotFound
+			return newJobNotFoundResponse(err)
 		}
-		return statusCode, nil, fmt.Errorf("Error retrieving job with id '%s': %s", jobID, err)
+		return newErrorResponse(fmt.Errorf("error retrieving job with id %q: %s", jobID, err))
 	}
 	providerFactory, err := provider.GetProviderFactory(job.ProviderName)
 	if err != nil {
-		return http.StatusInternalServerError, nil, fmt.Errorf("Unknown provider '%s' for job id '%s'", job.ProviderName, jobID)
+		return newErrorResponse(fmt.Errorf("unknown provider %q for job id %q", job.ProviderName, jobID))
 	}
 	providerObj, err := providerFactory(s.config)
 	if err != nil {
-		return http.StatusInternalServerError, nil, fmt.Errorf("Error initializing provider '%s' on job id '%s': %s %s", job.ProviderName, jobID, providerObj, err)
+		return newErrorResponse(fmt.Errorf("error initializing provider %q on job id %q: %s %s", job.ProviderName, jobID, providerObj, err))
 	}
 	jobStatus, err := providerObj.JobStatus(job.ProviderJobID)
 	if err != nil {
-		providerError := fmt.Errorf("Error with provider '%s' when trying to retrieve job id '%s': %s", job.ProviderName, jobID, err)
-		statusCode := http.StatusInternalServerError
+		providerError := fmt.Errorf("Error with provider %q when trying to retrieve job id %q: %s", job.ProviderName, jobID, err)
 		if _, ok := err.(provider.JobNotFoundError); ok {
-			statusCode = http.StatusNotFound
+			return newJobNotFoundProviderResponse(providerError)
 		}
-		return statusCode, nil, providerError
+		return newErrorResponse(providerError)
 	}
 	jobStatus.ProviderName = job.ProviderName
-	return 200, jobStatus, nil
+	return newJobStatusResponse(jobStatus)
 }
