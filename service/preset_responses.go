@@ -28,8 +28,6 @@ func newPresetResponse(preset *db.Preset) *presetResponse {
 type presetNotFoundResponse struct {
 	// in: body
 	Error *errorResponse
-
-	baseResponse
 }
 
 func newPresetNotFoundResponse(err error) *presetNotFoundResponse {
@@ -59,8 +57,6 @@ func (r *invalidPresetResponse) Result() (int, interface{}, error) {
 type presetAlreadyExistsResponse struct {
 	// in: body
 	Error *errorResponse
-
-	baseResponse
 }
 
 func newPresetAlreadyExistsResponse(err error) *presetAlreadyExistsResponse {
