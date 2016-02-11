@@ -24,7 +24,9 @@ func (d *fakeDB) SaveJob(job *db.Job) error {
 	if d.triggerDBError {
 		return errors.New("database error")
 	}
-	job.ID = "12345"
+	if job.ID == "" {
+		job.ID = "12345"
+	}
 	d.jobs[job.ID] = job
 	return nil
 }
@@ -50,6 +52,8 @@ func (d *fakeDB) SavePreset(preset *db.Preset) error {
 	}
 	if preset.ID == "" {
 		preset.ID = "12345"
+	} else if _, ok := d.presets[preset.ID]; ok {
+		return db.ErrPresetAlreadyExists
 	}
 	d.presets[preset.ID] = preset
 	return nil

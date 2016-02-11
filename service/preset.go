@@ -8,45 +8,76 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
-func (s *TranscodingService) newPreset(r *http.Request) (int, interface{}, error) {
-	var input map[string]string
+// swagger:route POST /presets newPreset
+//
+// Creates a new preset in the API.
+//
+//     Responses:
+//       200: preset
+//       409: presetAlreadyExists
+//       500: genericError
+func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
+	var params newPresetParams
 	defer r.Body.Close()
-	err := json.NewDecoder(r.Body).Decode(&input)
+	err := json.NewDecoder(r.Body).Decode(&params)
 	if err != nil {
-		return http.StatusInternalServerError, nil, err
+		return newErrorResponse(err)
 	}
-	preset := db.Preset{ProviderMapping: input}
+	preset := params.Preset()
 	err = s.db.SavePreset(&preset)
-	if err != nil {
-		return http.StatusInternalServerError, nil, err
+
+	switch err {
+	case nil:
+		return newPresetResponse(&preset)
+	case db.ErrPresetAlreadyExists:
+		return newPresetAlreadyExistsResponse(err)
+	default:
+		return newErrorResponse(err)
 	}
-	return http.StatusOK, preset, nil
 }
 
-func (s *TranscodingService) getPreset(r *http.Request) (int, interface{}, error) {
+// swagger:route GET /presets/{presetId} getPreset
+//
+// Finds a preset using its id.
+//
+//     Responses:
+//       200: preset
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 	presetID := mux.Vars(r)["presetId"]
 	preset, err := s.db.GetPreset(presetID)
-	statusCode := http.StatusOK
-	if err != nil {
-		statusCode = http.StatusInternalServerError
-		if err == db.ErrPresetNotFound {
-			statusCode = http.StatusNotFound
-		}
+
+	switch err {
+	case nil:
+		return newPresetResponse(preset)
+	case db.ErrPresetNotFound:
+		return newPresetNotFoundResponse(err)
+	default:
+		return newErrorResponse(err)
 	}
-	return statusCode, preset, err
 }
 
-func (s *TranscodingService) deletePreset(r *http.Request) (int, interface{}, error) {
+// swagger:route DELETE /presets/{presetId} deletePreset
+//
+// Deletes a preset by id.
+//
+//     Responses:
+//       200: emptyResponse
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
 	presetID := mux.Vars(r)["presetId"]
 	err := s.db.DeletePreset(&db.Preset{ID: presetID})
-	statusCode := http.StatusOK
-	if err != nil {
-		statusCode = http.StatusInternalServerError
-		if err == db.ErrPresetNotFound {
-			statusCode = http.StatusNotFound
-		}
+
+	switch err {
+	case nil:
+		return emptyResponse(http.StatusOK)
+	case db.ErrPresetNotFound:
+		return newPresetNotFoundResponse(err)
+	default:
+		return newErrorResponse(err)
 	}
-	return statusCode, nil, err
 }
 
 // swagger:route GET /presets listPresets presets
@@ -55,20 +86,11 @@ func (s *TranscodingService) deletePreset(r *http.Request) (int, interface{}, er
 //
 //     Responses:
 //       200: listPresets
-func (s *TranscodingService) listPresets(r *http.Request) (int, interface{}, error) {
+//       500: genericError
+func (s *TranscodingService) listPresets(r *http.Request) gizmoResponse {
 	presets, err := s.db.ListPresets()
 	if err != nil {
-		return http.StatusInternalServerError, nil, err
+		return newErrorResponse(err)
 	}
-	resp := listPresetsResponse{PresetsMap: make(map[string]db.Preset, len(presets))}
-	for _, preset := range presets {
-		resp.PresetsMap[preset.ID] = preset
-	}
-	return http.StatusOK, resp.PresetsMap, nil
-}
-
-// swagger:response listPresets
-type listPresetsResponse struct {
-	// in: body
-	PresetsMap map[string]db.Preset
+	return newListPresetsResponse(presets)
 }

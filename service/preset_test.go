@@ -16,7 +16,7 @@ import (
 func TestNewPreset(t *testing.T) {
 	tests := []struct {
 		givenTestCase       string
-		givenRequestData    map[string]string
+		givenRequestData    map[string]interface{}
 		givenTriggerDBError bool
 
 		wantCode int
@@ -24,7 +24,12 @@ func TestNewPreset(t *testing.T) {
 	}{
 		{
 			"New preset",
-			map[string]string{"elementalconductor": "18", "elastictranscoder": "18384284-0002"},
+			map[string]interface{}{
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
 			false,
 
 			http.StatusOK,
@@ -38,16 +43,58 @@ func TestNewPreset(t *testing.T) {
 		},
 		{
 			"New preset DB failure",
-			map[string]string{"elementalconductor": "18", "elastictranscoder": "18384284-0002"},
+			map[string]interface{}{
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
 			true,
 
 			http.StatusInternalServerError,
 			map[string]interface{}{"error": "database error"},
 		},
+		{
+			"New preset predefined ID",
+			map[string]interface{}{
+				"presetId": "abc-123",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{
+				"presetId": "abc-123",
+				"providerMapping": map[string]interface{}{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
+		},
+		{
+			"New preset duplicate ID",
+			map[string]interface{}{
+				"presetId": "abc-321",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
+			false,
+
+			http.StatusConflict,
+			map[string]interface{}{
+				"error": db.ErrPresetAlreadyExists.Error(),
+			},
+		},
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(test.givenTriggerDBError)
+		fakeDB.SavePreset(&db.Preset{ID: "abc-321"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
@@ -72,7 +119,7 @@ func TestNewPreset(t *testing.T) {
 			preset, err := fakeDB.GetPreset(got["presetId"].(string))
 			if err != nil {
 				t.Error(err)
-			} else if !reflect.DeepEqual(preset.ProviderMapping, test.givenRequestData) {
+			} else if !reflect.DeepEqual(preset.ProviderMapping, test.givenRequestData["providerMapping"]) {
 				t.Errorf("%s: didn't save the preset in the database. Want %#v. Got %#v", test.givenTestCase, test.givenRequestData, preset.ProviderMapping)
 			}
 		}
