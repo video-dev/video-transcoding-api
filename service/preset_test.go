@@ -16,7 +16,7 @@ import (
 func TestNewPreset(t *testing.T) {
 	tests := []struct {
 		givenTestCase       string
-		givenRequestData    map[string]string
+		givenRequestData    map[string]interface{}
 		givenTriggerDBError bool
 
 		wantCode int
@@ -24,12 +24,18 @@ func TestNewPreset(t *testing.T) {
 	}{
 		{
 			"New preset",
-			map[string]string{"elementalconductor": "18", "elastictranscoder": "18384284-0002"},
+			map[string]interface{}{
+				"name": "abc-123",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
 			false,
 
 			http.StatusOK,
 			map[string]interface{}{
-				"presetId": "12345",
+				"name": "abc-123",
 				"providerMapping": map[string]interface{}{
 					"elementalconductor": "18",
 					"elastictranscoder":  "18384284-0002",
@@ -37,8 +43,58 @@ func TestNewPreset(t *testing.T) {
 			},
 		},
 		{
+			"New preset duplicate name",
+			map[string]interface{}{
+				"name": "abc-321",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
+			false,
+
+			http.StatusConflict,
+			map[string]interface{}{
+				"error": db.ErrPresetAlreadyExists.Error(),
+			},
+		},
+		{
+			"New preset missing name",
+			map[string]interface{}{
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "missing field name from the request",
+			},
+		},
+		{
+			"New preset missing providers",
+			map[string]interface{}{
+				"name":            "mypreset",
+				"providerMapping": nil,
+			},
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "missing field providerMapping from the request",
+			},
+		},
+		{
 			"New preset DB failure",
-			map[string]string{"elementalconductor": "18", "elastictranscoder": "18384284-0002"},
+			map[string]interface{}{
+				"name": "super-preset",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+			},
 			true,
 
 			http.StatusInternalServerError,
@@ -48,10 +104,8 @@ func TestNewPreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(test.givenTriggerDBError)
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDB,
-		})
+		fakeDB.SavePreset(&db.Preset{Name: "abc-321"})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
@@ -69,10 +123,10 @@ func TestNewPreset(t *testing.T) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
 		if test.wantCode == http.StatusOK {
-			preset, err := fakeDB.GetPreset(got["presetId"].(string))
+			preset, err := fakeDB.GetPreset(got["name"].(string))
 			if err != nil {
 				t.Error(err)
-			} else if !reflect.DeepEqual(preset.ProviderMapping, test.givenRequestData) {
+			} else if !reflect.DeepEqual(preset.ProviderMapping, test.givenRequestData["providerMapping"]) {
 				t.Errorf("%s: didn't save the preset in the database. Want %#v. Got %#v", test.givenTestCase, test.givenRequestData, preset.ProviderMapping)
 			}
 		}
@@ -81,9 +135,9 @@ func TestNewPreset(t *testing.T) {
 
 func TestGetPreset(t *testing.T) {
 	tests := []struct {
-		givenTestCase string
-		givenPresetID string
-		wantCode      int
+		givenTestCase   string
+		givenPresetName string
+		wantCode        int
 	}{
 		{
 			"Get preset",
@@ -99,12 +153,12 @@ func TestGetPreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(false)
-		fakeDB.SavePreset(&db.Preset{ID: "preset-1"})
+		fakeDB.SavePreset(&db.Preset{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
 		})
-		r, _ := http.NewRequest("GET", "/presets/"+test.givenPresetID, nil)
+		r, _ := http.NewRequest("GET", "/presets/"+test.givenPresetName, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
@@ -115,9 +169,9 @@ func TestGetPreset(t *testing.T) {
 
 func TestDeletePreset(t *testing.T) {
 	tests := []struct {
-		givenTestCase string
-		givenPresetID string
-		wantCode      int
+		givenTestCase   string
+		givenPresetName string
+		wantCode        int
 	}{
 		{
 			"Delete preset",
@@ -133,19 +187,19 @@ func TestDeletePreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(false)
-		fakeDB.SavePreset(&db.Preset{ID: "preset-1"})
+		fakeDB.SavePreset(&db.Preset{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
 		})
-		r, _ := http.NewRequest("DELETE", "/presets/"+test.givenPresetID, nil)
+		r, _ := http.NewRequest("DELETE", "/presets/"+test.givenPresetName, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		if test.wantCode == http.StatusOK {
-			_, err := fakeDB.GetPreset(test.givenPresetID)
+			_, err := fakeDB.GetPreset(test.givenPresetName)
 			if err != db.ErrPresetNotFound {
 				t.Errorf("%s: didn't delete the job in the database", test.givenTestCase)
 			}
@@ -165,30 +219,30 @@ func TestListPresets(t *testing.T) {
 			"List presets",
 			[]db.Preset{
 				{
-					ID:              "preset-1",
+					Name:            "preset-1",
 					ProviderMapping: map[string]string{"elementalconductor": "abc123"},
 				},
 				{
-					ID:              "preset-2",
+					Name:            "preset-2",
 					ProviderMapping: map[string]string{"elementalconductor": "abc124"},
 				},
 				{
-					ID:              "preset-3",
+					Name:            "preset-3",
 					ProviderMapping: map[string]string{"elementalconductor": "abc125"},
 				},
 			},
 			http.StatusOK,
 			map[string]db.Preset{
 				"preset-1": {
-					ID:              "preset-1",
+					Name:            "preset-1",
 					ProviderMapping: map[string]string{"elementalconductor": "abc123"},
 				},
 				"preset-2": {
-					ID:              "preset-2",
+					Name:            "preset-2",
 					ProviderMapping: map[string]string{"elementalconductor": "abc124"},
 				},
 				"preset-3": {
-					ID:              "preset-3",
+					Name:            "preset-3",
 					ProviderMapping: map[string]string{"elementalconductor": "abc125"},
 				},
 			},

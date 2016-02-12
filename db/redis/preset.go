@@ -5,41 +5,35 @@ import "github.com/nytm/video-transcoding-api/db"
 const presetsSetKey = "presets"
 
 func (r *redisRepository) SavePreset(preset *db.Preset) error {
-	if preset.ID == "" {
-		id, err := r.generateID()
-		if err != nil {
-			return err
-		}
-		preset.ID = id
-	} else if _, err := r.GetPreset(preset.ID); err == nil {
+	if _, err := r.GetPreset(preset.Name); err == nil {
 		return db.ErrPresetAlreadyExists
 	}
 	fields, err := r.fieldList(preset)
 	if err != nil {
 		return err
 	}
-	presetKey := r.presetKey(preset.ID)
+	presetKey := r.presetKey(preset.Name)
 	multi, err := r.redisClient().Watch(presetKey)
 	_, err = multi.Exec(func() error {
 		multi.HMSet(presetKey, fields[0], fields[1], fields[2:]...)
-		multi.SAdd(presetsSetKey, preset.ID)
+		multi.SAdd(presetsSetKey, preset.Name)
 		return nil
 	})
 	return err
 }
 
 func (r *redisRepository) DeletePreset(preset *db.Preset) error {
-	err := r.delete(r.presetKey(preset.ID), db.ErrPresetNotFound)
+	err := r.delete(r.presetKey(preset.Name), db.ErrPresetNotFound)
 	if err != nil {
 		return err
 	}
-	r.redisClient().SRem(presetsSetKey, preset.ID)
+	r.redisClient().SRem(presetsSetKey, preset.Name)
 	return nil
 }
 
-func (r *redisRepository) GetPreset(id string) (*db.Preset, error) {
-	preset := db.Preset{ID: id, ProviderMapping: make(map[string]string)}
-	err := r.load(r.presetKey(id), &preset)
+func (r *redisRepository) GetPreset(name string) (*db.Preset, error) {
+	preset := db.Preset{Name: name, ProviderMapping: make(map[string]string)}
+	err := r.load(r.presetKey(name), &preset)
 	if err == errNotFound {
 		return nil, db.ErrPresetNotFound
 	}
@@ -47,13 +41,13 @@ func (r *redisRepository) GetPreset(id string) (*db.Preset, error) {
 }
 
 func (r *redisRepository) ListPresets() ([]db.Preset, error) {
-	presetIDs, err := r.redisClient().SMembers(presetsSetKey).Result()
+	presetNames, err := r.redisClient().SMembers(presetsSetKey).Result()
 	if err != nil {
 		return nil, err
 	}
-	presets := make([]db.Preset, 0, len(presetIDs))
-	for _, id := range presetIDs {
-		preset, err := r.GetPreset(id)
+	presets := make([]db.Preset, 0, len(presetNames))
+	for _, name := range presetNames {
+		preset, err := r.GetPreset(name)
 		if err != nil && err != db.ErrPresetNotFound {
 			return nil, err
 		}
@@ -64,6 +58,6 @@ func (r *redisRepository) ListPresets() ([]db.Preset, error) {
 	return presets, nil
 }
 
-func (r *redisRepository) presetKey(id string) string {
-	return "preset:" + id
+func (r *redisRepository) presetKey(name string) string {
+	return "preset:" + name
 }

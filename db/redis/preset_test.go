@@ -20,6 +20,7 @@ func TestSavePreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.Preset{
+		Name: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc123",
 			"elastictranscoder":  "1281742-93939",
@@ -29,47 +30,14 @@ func TestSavePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if preset.ID == "" {
-		t.Fatal("Preset ID should have been generated on SavePreset")
-	}
 	client := repo.(*redisRepository).redisClient()
 	defer client.Close()
-	items, err := client.HGetAllMap("preset:" + preset.ID).Result()
+	items, err := client.HGetAllMap("preset:" + preset.Name).Result()
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(items, preset.ProviderMapping) {
 		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", preset.ProviderMapping, items)
-	}
-}
-
-func TestSavePresetPredefinedID(t *testing.T) {
-	err := cleanRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var cfg config.Config
-	cfg.Redis = new(config.Redis)
-	repo, err := NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	preset := db.Preset{
-		ID:              "mypreset",
-		ProviderMapping: map[string]string{"elemental": "123"},
-	}
-	err = repo.SavePreset(&preset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if preset.ID != "mypreset" {
-		t.Errorf("Preset ID should not be regenerated when it's already defined. Got %q instead of %q.", preset.ID, "preset")
-	}
-	client := repo.(*redisRepository).redisClient()
-	defer client.Close()
-	items, err := client.HGetAllMap("preset:mypreset").Result()
-	if !reflect.DeepEqual(items, preset.ProviderMapping) {
-		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v.", preset.ProviderMapping, items)
 	}
 }
 
@@ -83,7 +51,7 @@ func TestSavePresetDuplicate(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.Preset{
-		ID:              "mypreset",
+		Name:            "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
 	err = repo.SavePreset(&preset)
@@ -105,12 +73,12 @@ func TestDeletePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.Preset{ID: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
 	err = repo.SavePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&db.Preset{ID: preset.ID})
+	err = repo.DeletePreset(&db.Preset{Name: preset.Name})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -130,7 +98,7 @@ func TestDeletePresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&db.Preset{ID: "mypreset"})
+	err = repo.DeletePreset(&db.Preset{Name: "mypreset"})
 	if err != db.ErrPresetNotFound {
 		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
 	}
@@ -146,7 +114,7 @@ func TestGetPreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.Preset{
-		ID: "mypreset",
+		Name: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc-123",
 			"elastictranscoder":  "0129291-0001",
@@ -157,7 +125,7 @@ func TestGetPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotPreset, err := repo.GetPreset(preset.ID)
+	gotPreset, err := repo.GetPreset(preset.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,18 +165,21 @@ func TestListPresets(t *testing.T) {
 	}
 	presets := []db.Preset{
 		{
+			Name: "preset-1",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "abc123",
 				"elastictranscoder":  "1281742-93939",
 			},
 		},
 		{
+			Name: "preset-2",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "abc124",
 				"elastictranscoder":  "1281743-93939",
 			},
 		},
 		{
+			Name: "preset-3",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "abc125",
 				"elastictranscoder":  "1281744-93939",
@@ -239,7 +210,7 @@ func TestListPresets(t *testing.T) {
 func presetListToMap(presets []db.Preset) map[string]db.Preset {
 	result := make(map[string]db.Preset, len(presets))
 	for _, preset := range presets {
-		result[preset.ID] = preset
+		result[preset.Name] = preset
 	}
 	return result
 }

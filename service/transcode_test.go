@@ -58,9 +58,7 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusOK,
-			map[string]interface{}{
-				"jobId": "12345",
-			},
+			map[string]interface{}{"jobId": "12345"},
 		},
 		{
 			"New job with preset-based transcoding",
@@ -73,9 +71,7 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusOK,
-			map[string]interface{}{
-				"jobId": "12345",
-			},
+			map[string]interface{}{"jobId": "12345"},
 		},
 		{
 			"New job with preset-based transcoding with preset not found",
@@ -88,9 +84,7 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": db.ErrPresetNotFound.Error(),
-			},
+			map[string]interface{}{"error": db.ErrPresetNotFound.Error()},
 		},
 		{
 			"New job with preset-based transcoding with preset undefined for the provider",
@@ -148,7 +142,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": "Please specify either the list of presets or the list of profiles",
+				"error": "please specify either the list of presets or the list of profiles",
 			},
 		},
 		{
@@ -164,7 +158,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": "Presets and profiles are mutually exclusive, please use only one of them",
+				"error": "presets and profiles are mutually exclusive, please specify only one of them",
 			},
 		},
 		{
@@ -202,8 +196,8 @@ func TestTranscode(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDBObj := newFakeDB(test.givenTriggerDBError)
-		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
-		fakeDBObj.SavePreset(&db.Preset{ID: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
+		fakeDBObj.SavePreset(&db.Preset{Name: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
+		fakeDBObj.SavePreset(&db.Preset{Name: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
@@ -261,9 +255,7 @@ func TestGetTranscodeJob(t *testing.T) {
 			false,
 
 			http.StatusNotFound,
-			map[string]interface{}{
-				"error": "Error retrieving job with id 'non_existent_job': job not found",
-			},
+			map[string]interface{}{"error": "job not found"},
 		},
 	}
 

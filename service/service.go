@@ -6,7 +6,6 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/gziphandler"
-	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/redis"
@@ -47,15 +46,8 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 	return func(r *http.Request) (int, interface{}, error) {
 		status, res, err := j(r)
 		if err != nil {
-			if status == http.StatusServiceUnavailable {
-				server.LogWithFields(r).WithFields(logrus.Fields{
-					"error": err,
-				}).Error("problems with serving request")
-				return http.StatusServiceUnavailable, nil, &jsonErr{"sorry, this service is unavailable"}
-			}
-			return status, nil, &jsonErr{err.Error()}
+			return newErrorResponse(err).withStatus(status).Result()
 		}
-		server.LogWithFields(r).Info("success!")
 		return status, res, nil
 	}
 }
@@ -64,26 +56,18 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
 	return map[string]map[string]server.JSONEndpoint{
 		"/jobs": {
-			"POST": s.newTranscodeJob,
+			"POST": handlerToEndpoint(s.newTranscodeJob),
 		},
 		"/jobs/{jobId:[^/]+}": {
-			"GET": s.getTranscodeJob,
+			"GET": handlerToEndpoint(s.getTranscodeJob),
 		},
 		"/presets": {
-			"POST": s.newPreset,
-			"GET":  s.listPresets,
+			"POST": handlerToEndpoint(s.newPreset),
+			"GET":  handlerToEndpoint(s.listPresets),
 		},
-		"/presets/{presetId:[^/]+}": {
-			"GET":    s.getPreset,
-			"DELETE": s.deletePreset,
+		"/presets/{name:[^/]+}": {
+			"GET":    handlerToEndpoint(s.getPreset),
+			"DELETE": handlerToEndpoint(s.deletePreset),
 		},
 	}
-}
-
-type jsonErr struct {
-	Err string `json:"error"`
-}
-
-func (e *jsonErr) Error() string {
-	return e.Err
 }
