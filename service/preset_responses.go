@@ -1,7 +1,6 @@
 package service
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/nytm/video-transcoding-api/db"
@@ -51,8 +50,7 @@ type invalidPresetResponse struct {
 	Error *errorResponse
 }
 
-func newInvalidPresetResponse(field string) *invalidPresetResponse {
-	err := fmt.Errorf("missing field %s from the request", field)
+func newInvalidPresetResponse(err error) *invalidPresetResponse {
 	return &invalidPresetResponse{Error: newErrorResponse(err).withStatus(http.StatusBadRequest)}
 }
 

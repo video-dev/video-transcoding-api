@@ -1,23 +1,41 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
+
 	"github.com/nytm/video-transcoding-api/db"
 )
 
 // swagger:parameters newPreset
-type newPresetParams struct {
-	// name of the preset.
-	//
+type newPresetInput struct {
 	// in: body
 	// required: true
-	Name string `json:"name"`
+	Payload db.Preset
+}
 
-	// the mapping of the provider name to the id of the preset in the
-	// provider.
-	//
-	// in: body
-	// required: true
-	ProviderMapping map[string]string `json:"providerMapping"`
+// Preset loads the input from the request body, validates them and returns the
+// preset.
+func (p *newPresetInput) Preset(body io.Reader) (db.Preset, error) {
+	err := json.NewDecoder(body).Decode(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	if field, valid := p.validate(); !valid {
+		return p.Payload, fmt.Errorf("missing field %s from the request", field)
+	}
+	return p.Payload, nil
+}
+
+func (p *newPresetInput) validate() (fieldName string, valid bool) {
+	if p.Payload.Name == "" {
+		return "name", false
+	}
+	if len(p.Payload.ProviderMapping) == 0 {
+		return "providerMapping", false
+	}
+	return "", true
 }
 
 // swagger:parameters getPreset deletePreset
@@ -29,18 +47,4 @@ type getPresetParams struct {
 
 func (p *getPresetParams) loadParams(paramsMap map[string]string) {
 	p.Name = paramsMap["name"]
-}
-
-func (p *newPresetParams) Preset() db.Preset {
-	return db.Preset{Name: p.Name, ProviderMapping: p.ProviderMapping}
-}
-
-func (p *newPresetParams) Validate() (fieldName string, valid bool) {
-	if p.Name == "" {
-		return "name", false
-	}
-	if len(p.ProviderMapping) == 0 {
-		return "providerMapping", false
-	}
-	return "", true
 }

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
@@ -21,19 +20,14 @@ import (
 //       500: genericError
 func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
-	decoder := json.NewDecoder(r.Body)
-	var params newTranscodeJobParams
-	err := decoder.Decode(&params)
-	if err != nil {
-		return newErrorResponse(err)
-	}
-	providerFactory, err := params.ProviderFactory()
+	var input newTranscodeJobInput
+	providerFactory, err := input.ProviderFactory(r.Body)
 	if err != nil {
 		return newInvalidJobResponse(err)
 	}
 	providerObj, err := providerFactory(s.config)
 	if err != nil {
-		formattedErr := fmt.Errorf("Error initializing provider %s for new job: %v %s", params.Provider, providerObj, err)
+		formattedErr := fmt.Errorf("Error initializing provider %s for new job: %v %s", input.Payload.Provider, providerObj, err)
 		if _, ok := err.(provider.InvalidConfigError); ok {
 			return newInvalidJobResponse(formattedErr)
 		}
@@ -41,19 +35,19 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	}
 
 	var jobStatus *provider.JobStatus
-	if len(params.Profiles) > 0 {
+	if len(input.Payload.Profiles) > 0 {
 		profileProvider, ok := providerObj.(provider.ProfileTranscodingProvider)
 		if !ok {
-			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support profile-based transcoding", params.Provider))
+			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support profile-based transcoding", input.Payload.Provider))
 		}
-		jobStatus, err = profileProvider.TranscodeWithProfiles(params.Source, params.Profiles)
+		jobStatus, err = profileProvider.TranscodeWithProfiles(input.Payload.Source, input.Payload.Profiles)
 	} else {
 		presetProvider, ok := providerObj.(provider.PresetTranscodingProvider)
 		if !ok {
-			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support preset-based transcoding", params.Provider))
+			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support preset-based transcoding", input.Payload.Provider))
 		}
-		presets := make([]string, len(params.Presets))
-		for i, presetID := range params.Presets {
+		presets := make([]string, len(input.Payload.Presets))
+		for i, presetID := range input.Payload.Presets {
 			preset, err := s.db.GetPreset(presetID)
 			if err != nil {
 				if err == db.ErrPresetNotFound {
@@ -61,19 +55,19 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 				}
 				return newErrorResponse(err)
 			}
-			presets[i] = preset.ProviderMapping[params.Provider]
+			presets[i] = preset.ProviderMapping[input.Payload.Provider]
 			if presets[i] == "" {
 				return newInvalidJobResponse(errors.New("preset not defined on this provider"))
 			}
 		}
-		jobStatus, err = presetProvider.TranscodeWithPresets(params.Source, presets)
+		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets)
 	}
 
 	if err != nil {
-		providerError := fmt.Errorf("Error with provider %q: %s", params.Provider, err)
+		providerError := fmt.Errorf("Error with provider %q: %s", input.Payload.Provider, err)
 		return newErrorResponse(providerError)
 	}
-	jobStatus.ProviderName = params.Provider
+	jobStatus.ProviderName = input.Payload.Provider
 
 	job := db.Job{ProviderName: jobStatus.ProviderName, ProviderJobID: jobStatus.ProviderJobID}
 	err = s.db.SaveJob(&job)

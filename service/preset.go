@@ -1,7 +1,6 @@
 package service
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -18,16 +17,12 @@ import (
 //       409: presetAlreadyExists
 //       500: genericError
 func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
-	var params newPresetParams
+	var input newPresetInput
 	defer r.Body.Close()
-	err := json.NewDecoder(r.Body).Decode(&params)
+	preset, err := input.Preset(r.Body)
 	if err != nil {
-		return newErrorResponse(err)
+		return newInvalidPresetResponse(err)
 	}
-	if fieldName, valid := params.Validate(); !valid {
-		return newInvalidPresetResponse(fieldName)
-	}
-	preset := params.Preset()
 	err = s.db.SavePreset(&preset)
 	switch err {
 	case nil:
