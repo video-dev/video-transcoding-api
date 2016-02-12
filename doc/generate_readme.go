@@ -6,7 +6,6 @@ import (
 	"flag"
 	"log"
 	"os"
-	"strings"
 	"text/template"
 )
 
@@ -24,11 +23,6 @@ var (
 	inputFileName  string
 	outputFileName string
 )
-
-var replaces = map[string]string{
-	"h2:": "##",
-	"b:":  "-",
-}
 
 func init() {
 	flag.StringVar(&inputFileName, "i", "swagger.json", "Swagger file to use as input")
@@ -60,10 +54,6 @@ func main() {
 	err = json.NewDecoder(inputFile).Decode(&data)
 	if err != nil {
 		log.Fatalf("Failed to load input file: %s", err)
-	}
-
-	for k, v := range replaces {
-		data.Info.Description = strings.Replace(data.Info.Description, k, v, -1)
 	}
 
 	err = readmeTemplate.Execute(outputFile, data)
