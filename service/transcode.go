@@ -79,8 +79,8 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 
 // swagger:route GET /jobs/{JobID} jobs getJob
 //
-// Finds a trancode job using its ID. It also queries the provider to get the
-// status of the job.
+// Finds a trancode job using its ID.
+// It also queries the provider to get the status of the job.
 //
 //     Responses:
 //       200: jobStatus
