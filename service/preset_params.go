@@ -20,6 +20,17 @@ type newPresetParams struct {
 	ProviderMapping map[string]string `json:"providerMapping"`
 }
 
+// swagger:parameters getPreset deletePreset
+type getPresetParams struct {
+	// in: path
+	// required: true
+	Name string
+}
+
+func (p *getPresetParams) loadParams(paramsMap map[string]string) {
+	p.Name = paramsMap["name"]
+}
+
 func (p *newPresetParams) Preset() db.Preset {
 	return db.Preset{Name: p.Name, ProviderMapping: p.ProviderMapping}
 }

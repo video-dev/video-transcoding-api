@@ -22,7 +22,7 @@ import (
 func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	decoder := json.NewDecoder(r.Body)
-	var params newTranscodeParams
+	var params newTranscodeJobParams
 	err := decoder.Decode(&params)
 	if err != nil {
 		return newErrorResponse(err)
@@ -83,7 +83,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	return newJobResponse(job.ID)
 }
 
-// swagger:route GET /jobs/{jobId} getJob
+// swagger:route GET /jobs/{JobID} getJob
 //
 // Finds a trancode job using its ID. It also queries the provider to get the
 // status of the job.
@@ -94,7 +94,9 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 //       410: jobNotFoundInTheProvider
 //       500: genericError
 func (s *TranscodingService) getTranscodeJob(r *http.Request) gizmoResponse {
-	jobID := mux.Vars(r)["jobId"]
+	var params getTranscodeJobParams
+	params.loadParams(mux.Vars(r))
+	jobID := params.JobID
 	job, err := s.db.GetJob(jobID)
 	if err != nil {
 		if err == db.ErrJobNotFound {

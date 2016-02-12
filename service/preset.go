@@ -39,7 +39,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route GET /presets/{name} getPreset
+// swagger:route GET /presets/{Name} getPreset
 //
 // Finds a preset using its name.
 //
@@ -48,8 +48,9 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
-	name := mux.Vars(r)["name"]
-	preset, err := s.db.GetPreset(name)
+	var params getPresetParams
+	params.loadParams(mux.Vars(r))
+	preset, err := s.db.GetPreset(params.Name)
 
 	switch err {
 	case nil:
@@ -61,7 +62,7 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route DELETE /presets/{name} deletePreset
+// swagger:route DELETE /presets/{Name} deletePreset
 //
 // Deletes a preset by name.
 //
@@ -70,8 +71,9 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
-	name := mux.Vars(r)["name"]
-	err := s.db.DeletePreset(&db.Preset{Name: name})
+	var params getPresetParams
+	params.loadParams(mux.Vars(r))
+	err := s.db.DeletePreset(&db.Preset{Name: params.Name})
 
 	switch err {
 	case nil:

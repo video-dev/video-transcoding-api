@@ -7,7 +7,7 @@ import (
 )
 
 // swagger:parameters newJob
-type newTranscodeParams struct {
+type newTranscodeJobParams struct {
 	// source media for the transcode job.
 	//
 	// required: true
@@ -33,16 +33,27 @@ type newTranscodeParams struct {
 	Provider string
 }
 
+// swagger:parameters getJob
+type getTranscodeJobParams struct {
+	// in: path
+	// required: true
+	JobID string
+}
+
+func (p *getTranscodeJobParams) loadParams(paramsMap map[string]string) {
+	p.JobID = paramsMap["jobId"]
+}
+
 // ProviderFactory gets the factory of the provider after validating all
 // parameters.
-func (p *newTranscodeParams) ProviderFactory() (provider.Factory, error) {
+func (p *newTranscodeJobParams) ProviderFactory() (provider.Factory, error) {
 	if err := p.validate(); err != nil {
 		return nil, err
 	}
 	return provider.GetProviderFactory(p.Provider)
 }
 
-func (p *newTranscodeParams) validate() error {
+func (p *newTranscodeJobParams) validate() error {
 	if p.Provider == "" {
 		return errors.New("missing provider from request")
 	}
