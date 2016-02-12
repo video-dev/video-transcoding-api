@@ -10,7 +10,7 @@ import (
 	"gopkg.in/redis.v3"
 )
 
-func TestSaveJob(t *testing.T) {
+func TestCreateJob(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -22,12 +22,12 @@ func TestSaveJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	job := db.Job{ProviderName: "encoding.com"}
-	err = repo.SaveJob(&job)
+	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if job.ID == "" {
-		t.Fatal("Job ID should have been generated on SaveJob")
+		t.Fatal("Job ID should have been generated on CreateJob")
 	}
 	client := repo.(*redisRepository).redisClient()
 	defer client.Close()
@@ -44,7 +44,7 @@ func TestSaveJob(t *testing.T) {
 	}
 }
 
-func TestSaveJobPredefinedID(t *testing.T) {
+func TestCreateJobPredefinedID(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -56,7 +56,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 		t.Fatal(err)
 	}
 	job := db.Job{ID: "myjob", ProviderName: "encoding.com"}
-	err = repo.SaveJob(&job)
+	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -75,7 +75,7 @@ func TestSaveJobPredefinedID(t *testing.T) {
 	}
 }
 
-func TestSaveJobIsSafe(t *testing.T) {
+func TestCreateJobIsSafe(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -95,7 +95,7 @@ func TestSaveJobIsSafe(t *testing.T) {
 		wg.Add(1)
 		go func(i int) {
 			defer wg.Done()
-			err := repo.SaveJob(&jobs[i])
+			err := repo.CreateJob(&jobs[i])
 			if err != nil && err != redis.TxFailedErr {
 				t.Error(err)
 			}
@@ -114,7 +114,7 @@ func TestDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	job := db.Job{ID: "myjob"}
-	err = repo.SaveJob(&job)
+	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +154,7 @@ func TestGetJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	job := db.Job{ID: "myjob"}
-	err = repo.SaveJob(&job)
+	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
 	}

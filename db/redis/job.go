@@ -2,7 +2,7 @@ package redis
 
 import "github.com/nytm/video-transcoding-api/db"
 
-func (r *redisRepository) SaveJob(job *db.Job) error {
+func (r *redisRepository) CreateJob(job *db.Job) error {
 	if job.ID == "" {
 		jobID, err := r.generateID()
 		if err != nil {

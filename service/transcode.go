@@ -70,7 +70,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	jobStatus.ProviderName = input.Payload.Provider
 
 	job := db.Job{ProviderName: jobStatus.ProviderName, ProviderJobID: jobStatus.ProviderJobID}
-	err = s.db.SaveJob(&job)
+	err = s.db.CreateJob(&job)
 	if err != nil {
 		return newErrorResponse(err)
 	}

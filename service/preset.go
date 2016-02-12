@@ -23,7 +23,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	if err != nil {
 		return newInvalidPresetResponse(err)
 	}
-	err = s.db.SavePreset(&preset)
+	err = s.db.CreatePreset(&preset)
 	switch err {
 	case nil:
 		return newPresetResponse(&preset)
@@ -50,6 +50,34 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 	switch err {
 	case nil:
 		return newPresetResponse(preset)
+	case db.ErrPresetNotFound:
+		return newPresetNotFoundResponse(err)
+	default:
+		return newErrorResponse(err)
+	}
+}
+
+// swagger:route PUT /presets/{name} presets updatePreset
+//
+// Updates a preset using its name.
+//
+//     Responses:
+//       200: preset
+//       400: invalidPreset
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) updatePreset(r *http.Request) gizmoResponse {
+	defer r.Body.Close()
+	var input updatePresetInput
+	preset, err := input.Preset(mux.Vars(r), r.Body)
+	if err != nil {
+		return newInvalidPresetResponse(err)
+	}
+	err = s.db.UpdatePreset(&preset)
+
+	switch err {
+	case nil:
+		return newPresetResponse(&preset)
 	case db.ErrPresetNotFound:
 		return newPresetNotFoundResponse(err)
 	default:

@@ -8,7 +8,7 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
-func TestSavePreset(t *testing.T) {
+func TestCreatePreset(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -26,7 +26,7 @@ func TestSavePreset(t *testing.T) {
 			"elastictranscoder":  "1281742-93939",
 		},
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestSavePreset(t *testing.T) {
 	}
 }
 
-func TestSavePresetDuplicate(t *testing.T) {
+func TestCreatePresetDuplicate(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -54,13 +54,61 @@ func TestSavePresetDuplicate(t *testing.T) {
 		Name:            "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != db.ErrPresetAlreadyExists {
 		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrPresetAlreadyExists, err)
+	}
+}
+
+func TestUpdatePreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.CreatePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset.ProviderMapping = map[string]string{
+		"elemental":         "abc1234",
+		"elastictranscoder": "def123",
+	}
+	err = repo.UpdatePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := repo.(*redisRepository).redisClient()
+	defer client.Close()
+	items, err := client.HGetAllMap("preset:" + preset.Name).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(items, preset.ProviderMapping) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", preset.ProviderMapping, items)
+	}
+}
+
+func TestUpdatePresetNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.UpdatePreset(&db.Preset{Name: "mypreset"})
+	if err != db.ErrPresetNotFound {
+		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
 	}
 }
 
@@ -74,7 +122,7 @@ func TestDeletePreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +169,7 @@ func TestGetPreset(t *testing.T) {
 			"encoding.com":       "wait what?",
 		},
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +235,7 @@ func TestListPresets(t *testing.T) {
 		},
 	}
 	for i := range presets {
-		err = repo.SavePreset(&presets[i])
+		err = repo.CreatePreset(&presets[i])
 		if err != nil {
 			t.Fatal(err)
 		}
