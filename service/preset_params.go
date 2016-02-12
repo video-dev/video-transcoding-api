@@ -2,7 +2,7 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io"
 
 	"github.com/nytm/video-transcoding-api/db"
@@ -22,20 +22,11 @@ func (p *newPresetInput) Preset(body io.Reader) (db.Preset, error) {
 	if err != nil {
 		return p.Payload, err
 	}
-	if field, valid := p.validate(); !valid {
-		return p.Payload, fmt.Errorf("missing field %s from the request", field)
+	err = validatePreset(&p.Payload)
+	if err != nil {
+		return p.Payload, err
 	}
 	return p.Payload, nil
-}
-
-func (p *newPresetInput) validate() (fieldName string, valid bool) {
-	if p.Payload.Name == "" {
-		return "name", false
-	}
-	if len(p.Payload.ProviderMapping) == 0 {
-		return "providerMapping", false
-	}
-	return "", true
 }
 
 // swagger:parameters getPreset deletePreset
@@ -47,4 +38,41 @@ type getPresetInput struct {
 
 func (p *getPresetInput) loadParams(paramsMap map[string]string) {
 	p.Name = paramsMap["name"]
+}
+
+// swagger:parameters updatePreset
+type updatePresetInput struct {
+	// in: path
+	// required: true
+	Name string `json:"name"`
+
+	// in: body
+	// required: true
+	Payload db.Preset
+
+	newPresetInput
+}
+
+func (p *updatePresetInput) Preset(paramsMap map[string]string, body io.Reader) (db.Preset, error) {
+	p.Name = paramsMap["name"]
+	err := json.NewDecoder(body).Decode(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	p.Payload.Name = p.Name
+	err = validatePreset(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	return p.Payload, nil
+}
+
+func validatePreset(p *db.Preset) error {
+	if p.Name == "" {
+		return errors.New("missing field name from the request")
+	}
+	if len(p.ProviderMapping) == 0 {
+		return errors.New("missing field providerMapping from the request")
+	}
+	return nil
 }
