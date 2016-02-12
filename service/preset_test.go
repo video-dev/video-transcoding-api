@@ -104,7 +104,7 @@ func TestNewPreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(test.givenTriggerDBError)
-		fakeDB.SavePreset(&db.Preset{Name: "abc-321"})
+		fakeDB.CreatePreset(&db.Preset{Name: "abc-321"})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
@@ -153,7 +153,7 @@ func TestGetPreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(false)
-		fakeDB.SavePreset(&db.Preset{Name: "preset-1"})
+		fakeDB.CreatePreset(&db.Preset{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
@@ -187,7 +187,7 @@ func TestDeletePreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(false)
-		fakeDB.SavePreset(&db.Preset{Name: "preset-1"})
+		fakeDB.CreatePreset(&db.Preset{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
@@ -258,7 +258,7 @@ func TestListPresets(t *testing.T) {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := newFakeDB(false)
 		for i := range test.givenPresets {
-			fakeDB.SavePreset(&test.givenPresets[i])
+			fakeDB.CreatePreset(&test.givenPresets[i])
 		}
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},

@@ -23,7 +23,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	if err != nil {
 		return newInvalidPresetResponse(err)
 	}
-	err = s.db.SavePreset(&preset)
+	err = s.db.CreatePreset(&preset)
 	switch err {
 	case nil:
 		return newPresetResponse(&preset)

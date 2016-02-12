@@ -4,7 +4,7 @@ import "github.com/nytm/video-transcoding-api/db"
 
 const presetsSetKey = "presets"
 
-func (r *redisRepository) SavePreset(preset *db.Preset) error {
+func (r *redisRepository) CreatePreset(preset *db.Preset) error {
 	if _, err := r.GetPreset(preset.Name); err == nil {
 		return db.ErrPresetAlreadyExists
 	}

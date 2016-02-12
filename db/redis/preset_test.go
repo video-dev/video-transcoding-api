@@ -8,7 +8,7 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
-func TestSavePreset(t *testing.T) {
+func TestCreatePreset(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -26,7 +26,7 @@ func TestSavePreset(t *testing.T) {
 			"elastictranscoder":  "1281742-93939",
 		},
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestSavePreset(t *testing.T) {
 	}
 }
 
-func TestSavePresetDuplicate(t *testing.T) {
+func TestCreatePresetDuplicate(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -54,11 +54,11 @@ func TestSavePresetDuplicate(t *testing.T) {
 		Name:            "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != db.ErrPresetAlreadyExists {
 		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrPresetAlreadyExists, err)
 	}
@@ -74,7 +74,7 @@ func TestUpdatePreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func TestDeletePreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +169,7 @@ func TestGetPreset(t *testing.T) {
 			"encoding.com":       "wait what?",
 		},
 	}
-	err = repo.SavePreset(&preset)
+	err = repo.CreatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -235,7 +235,7 @@ func TestListPresets(t *testing.T) {
 		},
 	}
 	for i := range presets {
-		err = repo.SavePreset(&presets[i])
+		err = repo.CreatePreset(&presets[i])
 		if err != nil {
 			t.Fatal(err)
 		}

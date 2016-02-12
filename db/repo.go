@@ -25,7 +25,7 @@ type Repository interface {
 // JobRepository is the interface that defines the set of methods for managing Job
 // persistence.
 type JobRepository interface {
-	SaveJob(*Job) error
+	CreateJob(*Job) error
 	DeleteJob(*Job) error
 	GetJob(id string) (*Job, error)
 }
@@ -33,7 +33,7 @@ type JobRepository interface {
 // PresetRepository is the interface that defines the set of methods for
 // managing Preset persistence.
 type PresetRepository interface {
-	SavePreset(*Preset) error
+	CreatePreset(*Preset) error
 	UpdatePreset(*Preset) error
 	DeletePreset(*Preset) error
 	GetPreset(id string) (*Preset, error)

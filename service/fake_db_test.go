@@ -20,7 +20,7 @@ func newFakeDB(triggerDBError bool) db.Repository {
 	}
 }
 
-func (d *fakeDB) SaveJob(job *db.Job) error {
+func (d *fakeDB) CreateJob(job *db.Job) error {
 	if d.triggerDBError {
 		return errors.New("database error")
 	}
@@ -46,12 +46,20 @@ func (d *fakeDB) GetJob(id string) (*db.Job, error) {
 	return nil, db.ErrJobNotFound
 }
 
-func (d *fakeDB) SavePreset(preset *db.Preset) error {
+func (d *fakeDB) CreatePreset(preset *db.Preset) error {
 	if d.triggerDBError {
 		return errors.New("database error")
 	}
 	if _, ok := d.presets[preset.Name]; ok {
 		return db.ErrPresetAlreadyExists
+	}
+	d.presets[preset.Name] = preset
+	return nil
+}
+
+func (d *fakeDB) UpdatePreset(preset *db.Preset) error {
+	if _, ok := d.presets[preset.Name]; !ok {
+		return db.ErrPresetNotFound
 	}
 	d.presets[preset.Name] = preset
 	return nil
