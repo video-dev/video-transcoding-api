@@ -10,7 +10,7 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-// swagger:route POST /jobs newJob
+// swagger:route POST /jobs jobs newJob
 //
 // Creates a new transcoding job.
 //
@@ -77,7 +77,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	return newJobResponse(job.ID)
 }
 
-// swagger:route GET /jobs/{JobID} getJob
+// swagger:route GET /jobs/{JobID} jobs getJob
 //
 // Finds a trancode job using its ID. It also queries the provider to get the
 // status of the job.

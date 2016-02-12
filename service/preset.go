@@ -7,7 +7,7 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
-// swagger:route POST /presets newPreset
+// swagger:route POST /presets presets newPreset
 //
 // Creates a new preset in the API.
 //
@@ -34,7 +34,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route GET /presets/{Name} getPreset
+// swagger:route GET /presets/{Name} presets getPreset
 //
 // Finds a preset using its name.
 //
@@ -57,7 +57,7 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route DELETE /presets/{Name} deletePreset
+// swagger:route DELETE /presets/{Name} presets deletePreset
 //
 // Deletes a preset by name.
 //
@@ -80,7 +80,7 @@ func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route GET /presets listPresets presets
+// swagger:route GET /presets presets listPresets
 //
 // List available presets on the API.
 //
