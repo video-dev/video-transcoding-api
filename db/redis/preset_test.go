@@ -64,6 +64,54 @@ func TestSavePresetDuplicate(t *testing.T) {
 	}
 }
 
+func TestUpdatePreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.SavePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset.ProviderMapping = map[string]string{
+		"elemental":         "abc1234",
+		"elastictranscoder": "def123",
+	}
+	err = repo.UpdatePreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := repo.(*redisRepository).redisClient()
+	defer client.Close()
+	items, err := client.HGetAllMap("preset:" + preset.Name).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(items, preset.ProviderMapping) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", preset.ProviderMapping, items)
+	}
+}
+
+func TestUpdatePresetNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.UpdatePreset(&db.Preset{Name: "mypreset"})
+	if err != db.ErrPresetNotFound {
+		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
+	}
+}
+
 func TestDeletePreset(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {

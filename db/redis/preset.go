@@ -8,6 +8,17 @@ func (r *redisRepository) SavePreset(preset *db.Preset) error {
 	if _, err := r.GetPreset(preset.Name); err == nil {
 		return db.ErrPresetAlreadyExists
 	}
+	return r.savePreset(preset)
+}
+
+func (r *redisRepository) UpdatePreset(preset *db.Preset) error {
+	if _, err := r.GetPreset(preset.Name); err == db.ErrPresetNotFound {
+		return err
+	}
+	return r.savePreset(preset)
+}
+
+func (r *redisRepository) savePreset(preset *db.Preset) error {
 	fields, err := r.fieldList(preset)
 	if err != nil {
 		return err

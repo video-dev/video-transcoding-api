@@ -8,7 +8,7 @@ var (
 	ErrJobNotFound = errors.New("job not found")
 
 	// ErrPresetNotFound is the error returned when the preset is not found
-	// on GetPreset or DeletePreset.
+	// on GetPreset, UpdatePreset or DeletePreset.
 	ErrPresetNotFound = errors.New("preset not found")
 
 	// ErrPresetAlreadyExists is the error returned when the preset already
@@ -34,6 +34,7 @@ type JobRepository interface {
 // managing Preset persistence.
 type PresetRepository interface {
 	SavePreset(*Preset) error
+	UpdatePreset(*Preset) error
 	DeletePreset(*Preset) error
 	GetPreset(id string) (*Preset, error)
 	ListPresets() ([]Preset, error)
