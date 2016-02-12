@@ -64,12 +64,12 @@ func (p *newTranscodeJobInput) validate() error {
 }
 
 // swagger:parameters getJob
-type getTranscodeJobParams struct {
+type getTranscodeJobInput struct {
 	// in: path
 	// required: true
 	JobID string
 }
 
-func (p *getTranscodeJobParams) loadParams(paramsMap map[string]string) {
+func (p *getTranscodeJobInput) loadParams(paramsMap map[string]string) {
 	p.JobID = paramsMap["jobId"]
 }

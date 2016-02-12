@@ -88,7 +88,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 //       410: jobNotFoundInTheProvider
 //       500: genericError
 func (s *TranscodingService) getTranscodeJob(r *http.Request) gizmoResponse {
-	var params getTranscodeJobParams
+	var params getTranscodeJobInput
 	params.loadParams(mux.Vars(r))
 	jobID := params.JobID
 	job, err := s.db.GetJob(jobID)

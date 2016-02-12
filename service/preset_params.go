@@ -39,12 +39,12 @@ func (p *newPresetInput) validate() (fieldName string, valid bool) {
 }
 
 // swagger:parameters getPreset deletePreset
-type getPresetParams struct {
+type getPresetInput struct {
 	// in: path
 	// required: true
 	Name string
 }
 
-func (p *getPresetParams) loadParams(paramsMap map[string]string) {
+func (p *getPresetInput) loadParams(paramsMap map[string]string) {
 	p.Name = paramsMap["name"]
 }

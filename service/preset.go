@@ -43,7 +43,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
-	var params getPresetParams
+	var params getPresetInput
 	params.loadParams(mux.Vars(r))
 	preset, err := s.db.GetPreset(params.Name)
 
@@ -66,7 +66,7 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
-	var params getPresetParams
+	var params getPresetInput
 	params.loadParams(mux.Vars(r))
 	err := s.db.DeletePreset(&db.Preset{Name: params.Name})
 
