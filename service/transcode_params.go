@@ -67,7 +67,7 @@ func (p *newTranscodeJobInput) validate() error {
 type getTranscodeJobInput struct {
 	// in: path
 	// required: true
-	JobID string
+	JobID string `json:"jobId"`
 }
 
 func (p *getTranscodeJobInput) loadParams(paramsMap map[string]string) {

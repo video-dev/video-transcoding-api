@@ -34,7 +34,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route GET /presets/{Name} presets getPreset
+// swagger:route GET /presets/{name} presets getPreset
 //
 // Finds a preset using its name.
 //
@@ -57,7 +57,7 @@ func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route DELETE /presets/{Name} presets deletePreset
+// swagger:route DELETE /presets/{name} presets deletePreset
 //
 // Deletes a preset by name.
 //

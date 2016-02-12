@@ -42,7 +42,7 @@ func (p *newPresetInput) validate() (fieldName string, valid bool) {
 type getPresetInput struct {
 	// in: path
 	// required: true
-	Name string
+	Name string `json:"name"`
 }
 
 func (p *getPresetInput) loadParams(paramsMap map[string]string) {
