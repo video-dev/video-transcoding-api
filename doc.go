@@ -3,11 +3,11 @@
 // HTTP API for transcoding media files into different formats using pluggable
 // providers.
 //
-// Currently supported providers
+// ##Currently supported providers
 //
-// 1. [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
-// 1. [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)
-// 1. [Encoding.com](http://api.encoding.com)
+// + [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
+// + [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)
+// + [Encoding.com](http://api.encoding.com)
 //
 // Schemes: https
 // BasePath: /
