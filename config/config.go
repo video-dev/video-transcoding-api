@@ -6,6 +6,7 @@ import "github.com/NYTimes/gizmo/config"
 // Transcoding API.
 type Config struct {
 	*config.Server
+	SwaggerManifest    string `envconfig:"SWAGGER_MANIFEST_PATH"`
 	Redis              *Redis
 	EncodingCom        *EncodingCom
 	ElasticTranscoder  *ElasticTranscoder
