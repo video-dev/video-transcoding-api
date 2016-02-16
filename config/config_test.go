@@ -13,6 +13,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 	fileName := "testdata/config.json"
 	cfg := LoadConfig(fileName)
 	expectedCfg := Config{
+		SwaggerManifest: "/etc/video-transcoding-api/swagger.json",
 		Server: &config.Server{
 			HTTPPort:      8090,
 			HTTPAccessLog: "/var/log/myapp/access.log",
@@ -36,6 +37,9 @@ func TestLoadConfigFromFile(t *testing.T) {
 			APIKey:      "superkey",
 			AuthExpires: 45,
 		},
+	}
+	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
+		t.Errorf("LoadConfig(%q): wrong swagger manifest. Want %q. Got %q", fileName, expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
 	}
 	if !reflect.DeepEqual(*cfg.Server, *expectedCfg.Server) {
 		t.Errorf("LoadConfig(%q): wrong Server config returned. Want %#v. Got %#v.", fileName, *expectedCfg.Server, *cfg.Server)
@@ -73,9 +77,11 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
 		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY": "secret-key",
 		"ELEMENTALCONDUCTOR_DESTINATION":           "https://safe-stuff",
+		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 	})
 	cfg := LoadConfig("")
 	expectedCfg := Config{
+		SwaggerManifest: "/opt/video-transcoding-api-swagger.json",
 		Redis: &Redis{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
 			SentinelMasterName: "supermaster",
@@ -104,6 +110,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			SecretAccessKey: "secret-key",
 			Destination:     "https://safe-stuff",
 		},
+	}
+	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
+		t.Errorf("LoadConfig(%q): wrong swagger manifest. Want %q. Got %q", "", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
 	}
 	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
 		t.Errorf("LoadConfig(%q): wrong Redis config returned. Want %#v. Got %#v.", "", *expectedCfg.Redis, *cfg.Redis)
@@ -182,6 +191,7 @@ func cleanEnvs() {
 		"ELEMENTALCONDUCTOR_USER_LOGIN", "ELEMENTALCONDUCTOR_API_KEY",
 		"ELEMENTALCONDUCTOR_AUTH_EXPIRES", "ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID",
 		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY", "ELEMENTALCONDUCTOR_DESTINATION",
+		"SWAGGER_MANIFEST_PATH",
 	}
 	for _, env := range envs {
 		os.Unsetenv(env)

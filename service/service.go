@@ -72,3 +72,12 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		},
 	}
 }
+
+// Endpoints is a list of all non-json endpoints.
+func (s *TranscodingService) Endpoints() map[string]map[string]http.HandlerFunc {
+	return map[string]map[string]http.HandlerFunc{
+		"/swagger.json": {
+			"GET": s.swaggerManifest,
+		},
+	}
+}
