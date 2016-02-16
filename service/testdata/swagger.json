@@ -1,0 +1,25 @@
+{
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "schemes": [
+    "https"
+  ],
+  "swagger": "2.0",
+  "info": {
+    "description": "HTTP API for transcoding media files into different formats using pluggable\nproviders.\n\n##Currently supported providers\n\n+ [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)\n+ [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)\n+ [Encoding.com](http://api.encoding.com)",
+    "title": "video-transcoding-api",
+    "license": {
+      "name": "Apache 2.0",
+      "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+    },
+    "version": "1.0.0"
+  },
+  "basePath": "/",
+  "paths": {},
+  "definitions": {},
+  "responses": {}
+}
