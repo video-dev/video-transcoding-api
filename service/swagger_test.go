@@ -15,6 +15,7 @@ func TestSwaggerManifest(t *testing.T) {
 		"Access-Control-Allow-Origin":  "*",
 		"Access-Control-Allow-Methods": "GET",
 		"Access-Control-Allow-Headers": "Content-Type",
+		"Content-Type":                 "application/json",
 	}
 	srvr := server.NewSimpleServer(nil)
 	srvr.Register(&TranscodingService{
