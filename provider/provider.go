@@ -30,7 +30,7 @@ type TranscodingProvider interface {
 // transcoding media using preset names and a boolean flag denoting
 // whether the job encoding will be for adaptive bitrate or not.
 type PresetTranscodingProvider interface {
-	TranscodeWithPresets(sourceMedia string, presets []string, adaptiveBitrate bool) (*JobStatus, error)
+	TranscodeWithPresets(sourceMedia string, presets []string, adaptiveStreaming bool) (*JobStatus, error)
 }
 
 // ProfileTranscodingProvider is a transcsoding provider that suppports

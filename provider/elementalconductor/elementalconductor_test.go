@@ -102,8 +102,8 @@ func TestElementalNewJob(t *testing.T) {
 	}
 	source := "http://some.nice/video.mov"
 	presets := []string{"15", "20"}
-	adaptiveBitrate := false
-	newJob := presetProvider.newJob(source, presets, adaptiveBitrate)
+	adaptiveStreaming := false
+	newJob := presetProvider.newJob(source, presets, adaptiveStreaming)
 
 	expectedJob := elementalconductor.Job{
 		XMLName: xml.Name{
@@ -157,8 +157,8 @@ func TestElementalNewJob(t *testing.T) {
 		t.Errorf("New job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
 	}
 
-	adaptiveBitrate = true
-	newJob = presetProvider.newJob(source, presets, adaptiveBitrate)
+	adaptiveStreaming = true
+	newJob = presetProvider.newJob(source, presets, adaptiveStreaming)
 
 	expectedJob = elementalconductor.Job{
 		XMLName: xml.Name{

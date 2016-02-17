@@ -45,8 +45,8 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
-func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []string, adaptiveBitrate bool) (*provider.JobStatus, error) {
-	newJob := p.newJob(source, presets, adaptiveBitrate)
+func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []string, adaptiveStreaming bool) (*provider.JobStatus, error) {
+	newJob := p.newJob(source, presets, adaptiveStreaming)
 	resp, err := p.client.PostJob(newJob)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (p *elementalConductorProvider) buildFullDestination(source string) string 
 	return destination + "/" + sourceFileName
 }
 
-func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, adaptiveBitrate bool, presets []string) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly) {
+func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, adaptiveStreaming bool, presets []string) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly) {
 	var outputList []elementalconductor.Output
 	var streamAssemblyList []elementalconductor.StreamAssembly
 	for index, preset := range presets {
@@ -128,7 +128,7 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 			NameModifier:       "_" + preset,
 			Order:              index,
 		}
-		if adaptiveBitrate {
+		if adaptiveStreaming {
 			output.Container = elementalconductor.AppleHTTPLiveStreaming
 		} else {
 			output.Container = defaultContainer
@@ -141,7 +141,7 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
 	var outputGroup elementalconductor.OutputGroup
-	if adaptiveBitrate {
+	if adaptiveStreaming {
 		outputGroup = elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
 			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{
@@ -164,7 +164,7 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalConductorProvider) newJob(source string, presets []string, adaptiveBitrate bool) *elementalconductor.Job {
+func (p *elementalConductorProvider) newJob(source string, presets []string, adaptiveStreaming bool) *elementalconductor.Job {
 	inputLocation := elementalconductor.Location{
 		URI:      source,
 		Username: p.client.AccessKeyID,
@@ -175,7 +175,7 @@ func (p *elementalConductorProvider) newJob(source string, presets []string, ada
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
-	outputGroup, streamAssemblyList := buildOutputGroupAndStreamAssemblies(outputLocation, adaptiveBitrate, presets)
+	outputGroup, streamAssemblyList := buildOutputGroupAndStreamAssemblies(outputLocation, adaptiveStreaming, presets)
 	newJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",

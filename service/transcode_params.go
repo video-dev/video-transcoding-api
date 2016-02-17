@@ -28,7 +28,7 @@ type newTranscodeJobInput struct {
 		Provider string
 
 		// flag which denotes whether this is an adaptive bitrate job
-		AdaptiveBitrate bool
+		AdaptiveStreaming bool
 	}
 }
 
