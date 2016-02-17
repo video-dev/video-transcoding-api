@@ -102,7 +102,8 @@ func TestElementalNewJob(t *testing.T) {
 	}
 	source := "http://some.nice/video.mov"
 	presets := []string{"15", "20"}
-	newJob := presetProvider.newJob(source, presets)
+	adaptiveStreaming := false
+	newJob := presetProvider.newJob(source, presets, adaptiveStreaming)
 
 	expectedJob := elementalconductor.Job{
 		XMLName: xml.Name{
@@ -125,19 +126,19 @@ func TestElementalNewJob(t *testing.T) {
 					Password: "aws-secret-key",
 				},
 			},
-			Type: "file_group_settings",
+			Type: elementalconductor.FileOutputGroupType,
 			Output: []elementalconductor.Output{
 				{
 					StreamAssemblyName: "stream_0",
 					NameModifier:       "_15",
 					Order:              0,
-					Extension:          ".mp4",
+					Container:          defaultContainer,
 				},
 				{
 					StreamAssemblyName: "stream_1",
 					NameModifier:       "_20",
 					Order:              1,
-					Extension:          ".mp4",
+					Container:          defaultContainer,
 				},
 			},
 		},
@@ -154,6 +155,61 @@ func TestElementalNewJob(t *testing.T) {
 	}
 	if !reflect.DeepEqual(&expectedJob, newJob) {
 		t.Errorf("New job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
+	}
+
+	adaptiveStreaming = true
+	newJob = presetProvider.newJob(source, presets, adaptiveStreaming)
+
+	expectedJob = elementalconductor.Job{
+		XMLName: xml.Name{
+			Local: "job",
+		},
+		Input: elementalconductor.Input{
+			FileInput: elementalconductor.Location{
+				URI:      "http://some.nice/video.mov",
+				Username: "aws-access-key",
+				Password: "aws-secret-key",
+			},
+		},
+		Priority: 50,
+		OutputGroup: elementalconductor.OutputGroup{
+			Order: 1,
+			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{
+				Destination: elementalconductor.Location{
+					URI:      "s3://destination/video",
+					Username: "aws-access-key",
+					Password: "aws-secret-key",
+				},
+			},
+			Type: elementalconductor.AppleLiveOutputGroupType,
+			Output: []elementalconductor.Output{
+				{
+					StreamAssemblyName: "stream_0",
+					NameModifier:       "_15",
+					Order:              0,
+					Container:          elementalconductor.AppleHTTPLiveStreaming,
+				},
+				{
+					StreamAssemblyName: "stream_1",
+					NameModifier:       "_20",
+					Order:              1,
+					Container:          elementalconductor.AppleHTTPLiveStreaming,
+				},
+			},
+		},
+		StreamAssembly: []elementalconductor.StreamAssembly{
+			{
+				Name:   "stream_0",
+				Preset: "15",
+			},
+			{
+				Name:   "stream_1",
+				Preset: "20",
+			},
+		},
+	}
+	if !reflect.DeepEqual(&expectedJob, newJob) {
+		t.Errorf("New adaptive bitrate job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
 	}
 }
 

@@ -48,7 +48,7 @@ type presetFakeProvider struct {
 	*baseFakeProvider
 }
 
-func (e *presetFakeProvider) TranscodeWithPresets(sourceMedia string, presets []string) (*provider.JobStatus, error) {
+func (e *presetFakeProvider) TranscodeWithPresets(sourceMedia string, presets []string, adaptiveStreaming bool) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderJobID: "provider-preset-job-123",
 		Status:        provider.StatusFinished,

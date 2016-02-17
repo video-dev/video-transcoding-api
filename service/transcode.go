@@ -60,7 +60,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 				return newInvalidJobResponse(errors.New("preset not defined on this provider"))
 			}
 		}
-		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets)
+		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets, input.Payload.AdaptiveStreaming)
 	}
 
 	if err != nil {

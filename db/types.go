@@ -20,6 +20,12 @@ type Job struct {
 	//
 	// required: true
 	ProviderJobID string `redis-hash:"providerJobID" json:"providerJobId"`
+
+	// boolean flag that denotes an adaptive streaming job.
+	// Defaults to false.
+	//
+	// required: false
+	AdaptiveStreaming bool `redis-hash:"adaptiveStreaming" json:"adaptiveStreaming"`
 }
 
 // Preset represents the preset that is persisted in the repository of the

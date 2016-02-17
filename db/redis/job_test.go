@@ -21,7 +21,7 @@ func TestCreateJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := db.Job{ProviderName: "encoding.com"}
+	job := db.Job{ProviderName: "encoding.com", AdaptiveStreaming: true}
 	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -36,8 +36,9 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := map[string]string{
-		"providerName":  "encoding.com",
-		"providerJobID": "",
+		"providerName":      "encoding.com",
+		"providerJobID":     "",
+		"adaptiveStreaming": "true",
 	}
 	if !reflect.DeepEqual(items, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
@@ -67,8 +68,9 @@ func TestCreateJobPredefinedID(t *testing.T) {
 	defer client.Close()
 	items, err := client.HGetAllMap("job:myjob").Result()
 	expected := map[string]string{
-		"providerName":  "encoding.com",
-		"providerJobID": "",
+		"providerName":      "encoding.com",
+		"providerJobID":     "",
+		"adaptiveStreaming": "false",
 	}
 	if !reflect.DeepEqual(items, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
