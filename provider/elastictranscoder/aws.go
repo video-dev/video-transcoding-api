@@ -17,6 +17,7 @@ package elastictranscoder
 
 import (
 	"errors"
+	"regexp"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -36,7 +37,10 @@ const (
 	defaultAWSRegion = "us-east-1"
 )
 
-var errAWSInvalidConfig = errors.New("invalid Elastic Transcoder config. Please define the configuration entries in the config file or environment variables")
+var (
+	errAWSInvalidConfig = errors.New("invalid Elastic Transcoder config. Please define the configuration entries in the config file or environment variables")
+	s3Pattern           = regexp.MustCompile(`^s3://`)
+)
 
 func init() {
 	provider.Register(Name, elasticTranscoderProvider)
@@ -48,6 +52,7 @@ type awsProvider struct {
 }
 
 func (p *awsProvider) TranscodeWithPresets(source string, presets []string, adaptiveStreaming bool) (*provider.JobStatus, error) {
+	source = p.normalizeSource(source)
 	input := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
@@ -68,6 +73,15 @@ func (p *awsProvider) TranscodeWithPresets(source string, presets []string, adap
 		ProviderJobID: aws.StringValue(resp.Job.Id),
 		Status:        provider.StatusQueued,
 	}, nil
+}
+
+func (p *awsProvider) normalizeSource(source string) string {
+	if s3Pattern.MatchString(source) {
+		source = strings.Replace(source, "s3://", "", 1)
+		parts := strings.SplitN(source, "/", 2)
+		return parts[len(parts)-1]
+	}
+	return source
 }
 
 func (p *awsProvider) outputKey(source, preset string) *string {

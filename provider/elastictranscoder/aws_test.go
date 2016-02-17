@@ -167,6 +167,50 @@ func TestAWSTranscode(t *testing.T) {
 	}
 }
 
+func TestAWSTranscodeNormalizedSource(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	source := "s3://bucketname/some/dir/with/subdir/file.mp4"
+	jobStatus, err := prov.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, _ := regexp.MatchString(`^job-[a-f0-9]{8}$`, jobStatus.ProviderJobID); !m {
+		t.Errorf("Elastic Transcoder: invalid id returned - %q", jobStatus.ProviderJobID)
+	}
+	if jobStatus.Status != provider.StatusQueued {
+		t.Errorf("Elastic Transcoder: wrong status returned. Want queued. Got %v", jobStatus.Status)
+	}
+	if jobStatus.ProviderName != Name {
+		t.Errorf("Elastic Transcoder: wrong provider name returned. Want %q. Got %q", Name, jobStatus.ProviderName)
+	}
+
+	if len(fakeTranscoder.jobs) != 1 {
+		t.Fatal("Did not send any job request to the server.")
+	}
+	jobInput := fakeTranscoder.jobs[jobStatus.ProviderJobID]
+
+	expectedJobInput := elastictranscoder.CreateJobInput{
+		PipelineId: aws.String("mypipeline"),
+		Input:      &elastictranscoder.JobInput{Key: aws.String("some/dir/with/subdir/file.mp4")},
+		Outputs: []*elastictranscoder.CreateJobOutput{
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("some/dir/with/subdir/93239832-0001/file.mp4")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("some/dir/with/subdir/93239832-0002/file.mp4")},
+		},
+	}
+	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
+		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
+	}
+}
+
 func TestAWSTranscodeAWSFailure(t *testing.T) {
 	prepErr := errors.New("something went wrong")
 	fakeTranscoder := newFakeElasticTranscoder()
