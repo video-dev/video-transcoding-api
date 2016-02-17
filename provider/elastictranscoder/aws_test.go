@@ -20,6 +20,10 @@ func TestFactoryIsRegistered(t *testing.T) {
 	}
 }
 
+func TestSupportPresetTranscoding(t *testing.T) {
+	var _ provider.PresetTranscodingProvider = &awsProvider{}
+}
+
 func TestElasticTranscoderProvider(t *testing.T) {
 	cfg := config.Config{
 		ElasticTranscoder: &config.ElasticTranscoder{
@@ -131,7 +135,7 @@ func TestAWSTranscode(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := prov.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"})
+	jobStatus, err := prov.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -177,7 +181,7 @@ func TestAWSTranscodeAWSFailure(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"})
+	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"}, false)
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil status: %#v", jobStatus)
 	}
@@ -197,7 +201,7 @@ func TestAWSJobStatus(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	jobStatus, err := prov.TranscodeWithPresets("dir/file.mp4", []string{"93239832-0001", "93239832-0002"})
+	jobStatus, err := prov.TranscodeWithPresets("dir/file.mp4", []string{"93239832-0001", "93239832-0002"}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
