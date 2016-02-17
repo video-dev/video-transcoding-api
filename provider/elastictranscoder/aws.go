@@ -65,7 +65,7 @@ func (p *awsProvider) TranscodeWithPresets(source string, presets []string, adap
 	}
 	return &provider.JobStatus{
 		ProviderName:  Name,
-		ProviderJobID: *resp.Job.Id,
+		ProviderJobID: aws.StringValue(resp.Job.Id),
 		Status:        provider.StatusQueued,
 	}, nil
 }
@@ -84,11 +84,11 @@ func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	}
 	outputs := make(map[string]interface{})
 	for _, output := range resp.Job.Outputs {
-		outputs[*output.Key] = *output.StatusDetail
+		outputs[aws.StringValue(output.Key)] = aws.StringValue(output.StatusDetail)
 	}
 	return &provider.JobStatus{
-		ProviderJobID:  *resp.Job.Id,
-		Status:         p.statusMap(*resp.Job.Status),
+		ProviderJobID:  aws.StringValue(resp.Job.Id),
+		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
 		ProviderStatus: map[string]interface{}{"outputs": outputs},
 	}, nil
 }
