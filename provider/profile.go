@@ -12,7 +12,7 @@ var (
 	// Rotate90Degrees represents 90 degrees rotation (rotate right).
 	Rotate90Degrees = newRotation(90)
 
-	// Rotate180Degrees represents 170 degrees rotation (two sequential
+	// Rotate180Degrees represents 180 degrees rotation (two sequential
 	// right rotations - or two sequential left rotations).
 	Rotate180Degrees = newRotation(180)
 
@@ -38,7 +38,7 @@ func newRotation(n uint) Rotation {
 }
 
 // UnmarshalJSON is the method used for unmarshaling a rotation instance from
-// JSON format. It validates whether this is a valid rotation and  then set the
+// JSON format. It validates whether this is a valid rotation and then set the
 // values.
 func (r *Rotation) UnmarshalJSON(b []byte) error {
 	value, err := strconv.ParseUint(string(b), 10, 64)
