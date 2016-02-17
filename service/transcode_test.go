@@ -225,9 +225,10 @@ func TestTranscode(t *testing.T) {
 
 func TestGetTranscodeJob(t *testing.T) {
 	tests := []struct {
-		givenTestCase       string
-		givenURI            string
-		givenTriggerDBError bool
+		givenTestCase        string
+		givenURI             string
+		givenTriggerDBError  bool
+		givenAdaptiveBitrate bool
 
 		wantCode int
 		wantBody interface{}
@@ -236,6 +237,7 @@ func TestGetTranscodeJob(t *testing.T) {
 			"Get job",
 			"/jobs/12345",
 			false,
+			true,
 
 			http.StatusOK,
 			map[string]interface{}{
@@ -253,6 +255,7 @@ func TestGetTranscodeJob(t *testing.T) {
 			"Get job with inexistent job id",
 			"/jobs/non_existent_job",
 			false,
+			false,
 
 			http.StatusNotFound,
 			map[string]interface{}{"error": "job not found"},
@@ -262,7 +265,7 @@ func TestGetTranscodeJob(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDBObj := newFakeDB(test.givenTriggerDBError)
-		fakeDBObj.CreateJob(&db.Job{ProviderName: "fake", ProviderJobID: "provider-job-123"})
+		fakeDBObj.CreateJob(&db.Job{ProviderName: "fake", ProviderJobID: "provider-job-123", AdaptiveBitrate: test.givenAdaptiveBitrate})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("GET", test.givenURI, nil)
 		r.Header.Set("Content-Type", "application/json")

@@ -32,7 +32,7 @@ const Name = "elementalconductor"
 
 const defaultJobPriority = 50
 const defaultOutputGroupOrder = 1
-const defaultExtension = ".mp4"
+const defaultContainer = elementalconductor.MPEG4
 
 var errElementalConductorInvalidConfig = provider.InvalidConfigError("missing Elemental user login or api key. Please define the environment variables ELEMENTALCONDUCTOR_USER_LOGIN and ELEMENTALCONDUCTOR_API_KEY or set these values in the configuration file")
 
@@ -45,8 +45,8 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
-func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []string) (*provider.JobStatus, error) {
-	newJob := p.newJob(source, presets)
+func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []string, adaptiveBitrate bool) (*provider.JobStatus, error) {
+	newJob := p.newJob(source, presets, adaptiveBitrate)
 	resp, err := p.client.PostJob(newJob)
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (p *elementalConductorProvider) buildFullDestination(source string) string 
 	return destination + "/" + sourceFileName
 }
 
-func buildOutputsAndStreamAssemblies(presets []string) ([]elementalconductor.Output, []elementalconductor.StreamAssembly) {
+func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, adaptiveBitrate bool, presets []string) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly) {
 	var outputList []elementalconductor.Output
 	var streamAssemblyList []elementalconductor.StreamAssembly
 	for index, preset := range presets {
@@ -127,7 +127,11 @@ func buildOutputsAndStreamAssemblies(presets []string) ([]elementalconductor.Out
 			StreamAssemblyName: streamAssemblyName,
 			NameModifier:       "_" + preset,
 			Order:              index,
-			Extension:          defaultExtension,
+		}
+		if adaptiveBitrate {
+			output.Container = elementalconductor.AppleHTTPLiveStreaming
+		} else {
+			output.Container = defaultContainer
 		}
 		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,
@@ -136,11 +140,31 @@ func buildOutputsAndStreamAssemblies(presets []string) ([]elementalconductor.Out
 		outputList = append(outputList, output)
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
-	return outputList, streamAssemblyList
+	var outputGroup elementalconductor.OutputGroup
+	if adaptiveBitrate {
+		outputGroup = elementalconductor.OutputGroup{
+			Order: defaultOutputGroupOrder,
+			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{
+				Destination: outputLocation,
+			},
+			Type:   elementalconductor.AppleLiveOutputGroupType,
+			Output: outputList,
+		}
+	} else {
+		outputGroup = elementalconductor.OutputGroup{
+			Order: defaultOutputGroupOrder,
+			FileGroupSettings: elementalconductor.FileGroupSettings{
+				Destination: outputLocation,
+			},
+			Type:   elementalconductor.FileOutputGroupType,
+			Output: outputList,
+		}
+	}
+	return outputGroup, streamAssemblyList
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalConductorProvider) newJob(source string, presets []string) *elementalconductor.Job {
+func (p *elementalConductorProvider) newJob(source string, presets []string, adaptiveBitrate bool) *elementalconductor.Job {
 	inputLocation := elementalconductor.Location{
 		URI:      source,
 		Username: p.client.AccessKeyID,
@@ -151,7 +175,7 @@ func (p *elementalConductorProvider) newJob(source string, presets []string) *el
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
-	outputList, streamAssemblyList := buildOutputsAndStreamAssemblies(presets)
+	outputGroup, streamAssemblyList := buildOutputGroupAndStreamAssemblies(outputLocation, adaptiveBitrate, presets)
 	newJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",
@@ -159,15 +183,8 @@ func (p *elementalConductorProvider) newJob(source string, presets []string) *el
 		Input: elementalconductor.Input{
 			FileInput: inputLocation,
 		},
-		Priority: defaultJobPriority,
-		OutputGroup: elementalconductor.OutputGroup{
-			Order: defaultOutputGroupOrder,
-			FileGroupSettings: elementalconductor.FileGroupSettings{
-				Destination: outputLocation,
-			},
-			Type:   "file_group_settings",
-			Output: outputList,
-		},
+		Priority:       defaultJobPriority,
+		OutputGroup:    outputGroup,
 		StreamAssembly: streamAssemblyList,
 	}
 	return &newJob

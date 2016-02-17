@@ -20,6 +20,12 @@ type Job struct {
 	//
 	// required: true
 	ProviderJobID string `redis-hash:"providerJobID" json:"providerJobId"`
+
+	// boolean flag that denotes an adaptive bitrate job.
+	// Defaults to false.
+	//
+	// required: false
+	AdaptiveBitrate bool `redis-hash:"adaptiveBitrate" json:"adaptiveBitrate"`
 }
 
 // Preset represents the preset that is persisted in the repository of the

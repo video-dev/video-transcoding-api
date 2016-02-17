@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"reflect"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -183,7 +184,15 @@ func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value) er
 				return errors.New("can only expand values to structs or maps")
 			}
 		} else if value, ok := in[parts[0]]; ok {
-			fieldValue.SetString(value)
+			if fieldValue.Kind() == reflect.Bool {
+				boolValue, err := strconv.ParseBool(value)
+				if err != nil {
+					return err
+				}
+				fieldValue.SetBool(boolValue)
+			} else {
+				fieldValue.SetString(value)
+			}
 		}
 	}
 	return nil
