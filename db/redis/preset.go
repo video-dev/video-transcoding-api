@@ -25,6 +25,9 @@ func (r *redisRepository) savePreset(preset *db.Preset) error {
 	}
 	presetKey := r.presetKey(preset.Name)
 	multi, err := r.redisClient().Watch(presetKey)
+	if err != nil {
+		return err
+	}
 	_, err = multi.Exec(func() error {
 		multi.HMSet(presetKey, fields[0], fields[1], fields[2:]...)
 		multi.SAdd(presetsSetKey, preset.Name)
