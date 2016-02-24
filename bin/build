@@ -17,10 +17,14 @@ export CODE=$GOTMP/src/github.com/nytm/video-transcoding-api
 mkdir -p $CODE
 cp -R . $CODE
 
+if [ -z "$GOPATH" ]; then
+  export GOPATH=$GOTMP
+fi
+
 # Download dependencies and build
 pushd $CODE
-GOPATH=$GOTMP go get -d
-GOPATH=$GOTMP GOARCH=amd64 GOOS=linux go build -o $OUTPUT/video-transcoding-api
+go get -d
+GOARCH=amd64 GOOS=linux go build -o $OUTPUT/video-transcoding-api
 cp config.json $OUTPUT/.
 cp swagger.json $OUTPUT/.
 popd
