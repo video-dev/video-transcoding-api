@@ -155,11 +155,11 @@ func (r *redisRepository) loadMap(in map[string]string, out reflect.Value, prefi
 		joinedPrefixes += "_"
 	}
 	for k, v := range in {
-		cut := strings.Replace(k, joinedPrefixes, "", 1)
-		if joinedPrefixes != "" && cut == k {
+		if !strings.HasPrefix(k, joinedPrefixes) {
 			continue
 		}
-		out.SetMapIndex(reflect.ValueOf(cut), reflect.ValueOf(v))
+		k = strings.Replace(k, joinedPrefixes, "", 1)
+		out.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(v))
 	}
 	return nil
 }
