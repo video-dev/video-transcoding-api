@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -48,7 +49,7 @@ type presetFakeProvider struct {
 	*baseFakeProvider
 }
 
-func (e *presetFakeProvider) TranscodeWithPresets(sourceMedia string, presets []string, adaptiveStreaming bool) (*provider.JobStatus, error) {
+func (e *presetFakeProvider) TranscodeWithPresets(sourceMedia string, presets []db.Preset) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderJobID: "provider-preset-job-123",
 		Status:        provider.StatusFinished,

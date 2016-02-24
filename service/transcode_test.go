@@ -87,21 +87,6 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": db.ErrPresetNotFound.Error()},
 		},
 		{
-			"New job with preset-based transcoding with preset undefined for the provider",
-			`{
-  "source": "http://another.non.existent/video.mp4",
-  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_360p"],
-  "provider": "fake"
-}`,
-			false,
-
-			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": "preset not defined on this provider",
-			},
-		},
-		{
 			"New job with database error",
 			fmt.Sprintf(`{
   "source": "http://another.non.existent/video.mp4",

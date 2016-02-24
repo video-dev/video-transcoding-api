@@ -1,7 +1,6 @@
 package service
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
@@ -46,7 +45,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		if !ok {
 			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support preset-based transcoding", input.Payload.Provider))
 		}
-		presets := make([]string, len(input.Payload.Presets))
+		presets := make([]db.Preset, len(input.Payload.Presets))
 		for i, presetID := range input.Payload.Presets {
 			preset, err := s.db.GetPreset(presetID)
 			if err != nil {
@@ -55,12 +54,9 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 				}
 				return newErrorResponse(err)
 			}
-			presets[i] = preset.ProviderMapping[input.Payload.Provider]
-			if presets[i] == "" {
-				return newInvalidJobResponse(errors.New("preset not defined on this provider"))
-			}
+			presets[i] = *preset
 		}
-		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets, input.Payload.AdaptiveStreaming)
+		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets)
 	}
 
 	if err != nil {
