@@ -12,6 +12,7 @@ import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
 const testProfileString = `{
@@ -72,6 +73,19 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusOK,
 			map[string]interface{}{"jobId": "12345"},
+		},
+		{
+			"New job with preset-based transcoding and preset not found in provider",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_360p"],
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{"error": provider.ErrPresetNotFound.Error()},
 		},
 		{
 			"New job with preset-based transcoding with preset not found",

@@ -50,6 +50,11 @@ type presetFakeProvider struct {
 }
 
 func (e *presetFakeProvider) TranscodeWithPresets(sourceMedia string, presets []db.Preset) (*provider.JobStatus, error) {
+	for _, preset := range presets {
+		if _, ok := preset.ProviderMapping["fake"]; !ok {
+			return nil, provider.ErrPresetNotFound
+		}
+	}
 	return &provider.JobStatus{
 		ProviderJobID: "provider-preset-job-123",
 		Status:        provider.StatusFinished,

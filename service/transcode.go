@@ -57,6 +57,9 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 			presets[i] = *preset
 		}
 		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets)
+		if err == provider.ErrPresetNotFound {
+			return newInvalidJobResponse(err)
+		}
 	}
 
 	if err != nil {
