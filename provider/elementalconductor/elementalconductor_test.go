@@ -127,7 +127,6 @@ func TestElementalNewJob(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-
 	expectedJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",
@@ -189,8 +188,30 @@ func TestElementalNewJob(t *testing.T) {
 	if !reflect.DeepEqual(&expectedJob, newJob) {
 		t.Errorf("New job not according to spec.\nWanted %#v.\nGot    %#v.", &expectedJob, newJob)
 	}
+}
 
-	presets = []db.Preset{
+func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	prov, err := elementalConductorFactory(&elementalConductorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presetProvider, ok := prov.(*elementalConductorProvider)
+	if !ok {
+		t.Fatal("Could not type assert test provider to elementalConductorProvider")
+	}
+	source := "http://some.nice/video.mov"
+	presets := []db.Preset{
 		{
 			Name:            "hls_360p",
 			ProviderMapping: map[string]string{Name: "15", "other": "not relevant"},
@@ -212,11 +233,11 @@ func TestElementalNewJob(t *testing.T) {
 			OutputOpts:      db.OutputOptions{Extension: ".ts"},
 		},
 	}
-	newJob, err = presetProvider.newJob(source, presets)
+	newJob, err := presetProvider.newJob(source, presets)
 	if err != nil {
 		t.Error(err)
 	}
-	expectedJob = elementalconductor.Job{
+	expectedJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",
 		},
