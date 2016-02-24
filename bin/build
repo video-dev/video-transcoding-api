@@ -8,22 +8,21 @@ fi
 
 # Create a temporary GOPATH
 export GOTMP=/tmp/video-transcoding-api-$RANDOM
-mkdir -p $GOTMP
 
 # And a place to dump the output
 export OUTPUT=$GOTMP/output
 
 # Copy the current directory into the GOPATH
 export CODE=$GOTMP/src/github.com/nytm/video-transcoding-api
-mkdir -p `dirname "$CODE"`
+mkdir -p $CODE
 cp -R . $CODE
 
 # Download dependencies and build
 pushd $CODE
-GOPATH=$GOTMP go get -t
-GOPATH=$GOTMP go test
+GOPATH=$GOTMP go get -d
 GOPATH=$GOTMP GOARCH=amd64 GOOS=linux go build -o $OUTPUT/video-transcoding-api
 cp config.json $OUTPUT/.
+cp swagger.json $OUTPUT/.
 popd
 
 # Create the output tarball
