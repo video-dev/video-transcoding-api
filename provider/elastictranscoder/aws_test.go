@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -134,8 +135,41 @@ func TestAWSTranscode(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	source := "dir/file.mp4"
-	jobStatus, err := prov.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"}, false)
+	source := "dir/file.mov"
+	presets := []db.Preset{
+		{
+			Name: "mp4_720p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0001",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			Name: "webm_720p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0002",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name: "mov_1080p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0003",
+				"other": "irrelevant",
+			},
+		},
+		{
+			Name: "hls_1080p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0004",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: ".ts"},
+		},
+	}
+	jobStatus, err := prov.TranscodeWithPresets(source, presets)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -158,8 +192,10 @@ func TestAWSTranscode(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/93239832-0001/file.mp4")},
-			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/93239832-0002/file.mp4")},
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/mp4_720p/file.mp4")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/webm_720p/file.webm")},
+			{PresetId: aws.String("93239832-0003"), Key: aws.String("dir/mov_1080p/file.mov")},
+			{PresetId: aws.String("93239832-0004"), Key: aws.String("dir/hls_1080p/file.ts")},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
@@ -178,8 +214,26 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	source := "s3://bucketname/some/dir/with/subdir/file.mp4"
-	jobStatus, err := prov.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"}, false)
+	source := "s3://bucketname/some/dir/with/subdir/file.mov"
+	presets := []db.Preset{
+		{
+			Name: "mp4_720p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0001",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			Name: "hls_1080p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0002",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "ts"},
+		},
+	}
+	jobStatus, err := prov.TranscodeWithPresets(source, presets)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,10 +254,10 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 
 	expectedJobInput := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String("mypipeline"),
-		Input:      &elastictranscoder.JobInput{Key: aws.String("some/dir/with/subdir/file.mp4")},
+		Input:      &elastictranscoder.JobInput{Key: aws.String("some/dir/with/subdir/file.mov")},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001"), Key: aws.String("some/dir/with/subdir/93239832-0001/file.mp4")},
-			{PresetId: aws.String("93239832-0002"), Key: aws.String("some/dir/with/subdir/93239832-0002/file.mp4")},
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("some/dir/with/subdir/mp4_720p/file.mp4")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("some/dir/with/subdir/hls_1080p/file.ts")},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
@@ -211,7 +265,35 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 	}
 }
 
-func TestAWSTranscodeAWSFailure(t *testing.T) {
+func TestAWSTranscodePresetNotFound(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	source := "s3://bucketname/some/dir/with/subdir/file.mov"
+	presets := []db.Preset{
+		{
+			Name:            "mp4_720p",
+			ProviderMapping: map[string]string{"other": "irrelevant"},
+			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+		},
+	}
+	jobStatus, err := prov.TranscodeWithPresets(source, presets)
+	if err != provider.ErrPresetNotFound {
+		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
+	}
+}
+
+func TestAWSTranscodeAWSFailureInAmazon(t *testing.T) {
 	prepErr := errors.New("something went wrong")
 	fakeTranscoder := newFakeElasticTranscoder()
 	fakeTranscoder.prepareFailure("CreateJob", prepErr)
@@ -225,7 +307,7 @@ func TestAWSTranscodeAWSFailure(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := provider.TranscodeWithPresets(source, []string{"93239832-0001", "93239832-0002"}, false)
+	jobStatus, err := provider.TranscodeWithPresets(source, nil)
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil status: %#v", jobStatus)
 	}
@@ -245,7 +327,25 @@ func TestAWSJobStatus(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	jobStatus, err := prov.TranscodeWithPresets("dir/file.mp4", []string{"93239832-0001", "93239832-0002"}, false)
+	presets := []db.Preset{
+		{
+			Name: "mp4_720p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0001",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			Name: "webm_720p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0002",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+	}
+	jobStatus, err := prov.TranscodeWithPresets("dir/file.mov", presets)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,8 +359,8 @@ func TestAWSJobStatus(t *testing.T) {
 		Status:        provider.StatusFinished,
 		ProviderStatus: map[string]interface{}{
 			"outputs": map[string]interface{}{
-				"dir/93239832-0001/file.mp4": "it's finished!",
-				"dir/93239832-0002/file.mp4": "it's finished!",
+				"dir/mp4_720p/file.mp4":   "it's finished!",
+				"dir/webm_720p/file.webm": "it's finished!",
 			},
 		},
 	}
