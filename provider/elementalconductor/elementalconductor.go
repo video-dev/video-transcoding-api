@@ -23,6 +23,7 @@ import (
 
 	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -45,8 +46,11 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
-func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []string, adaptiveStreaming bool) (*provider.JobStatus, error) {
-	newJob := p.newJob(source, presets, adaptiveStreaming)
+func (p *elementalConductorProvider) TranscodeWithPresets(source string, presets []db.Preset) (*provider.JobStatus, error) {
+	newJob, err := p.newJob(source, presets)
+	if err != nil {
+		return nil, err
+	}
 	resp, err := p.client.PostJob(newJob)
 	if err != nil {
 		return nil, err
@@ -92,11 +96,7 @@ func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) 
 	switch strings.ToLower(elementalConductorStatus) {
 	case "pending":
 		return provider.StatusQueued
-	case "preprocessing":
-		return provider.StatusStarted
-	case "running":
-		return provider.StatusStarted
-	case "postprocessing":
+	case "preprocessing", "running", "postprocessing":
 		return provider.StatusStarted
 	case "complete":
 		return provider.StatusFinished
@@ -117,30 +117,39 @@ func (p *elementalConductorProvider) buildFullDestination(source string) string 
 	return destination + "/" + sourceFileName
 }
 
-func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, adaptiveStreaming bool, presets []string) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly) {
+func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, presets []db.Preset) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
 	var outputList []elementalconductor.Output
 	var streamAssemblyList []elementalconductor.StreamAssembly
+	var adaptiveStreaming bool
+	var outputGroup elementalconductor.OutputGroup
 	for index, preset := range presets {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
 		output := elementalconductor.Output{
 			StreamAssemblyName: streamAssemblyName,
-			NameModifier:       "_" + preset,
+			NameModifier:       "_" + preset.Name,
 			Order:              index,
 		}
-		if adaptiveStreaming {
+		switch ext := strings.TrimLeft(preset.OutputOpts.Extension, "."); ext {
+		case "ts", "hls", "m3u8":
+			adaptiveStreaming = true
 			output.Container = elementalconductor.AppleHTTPLiveStreaming
-		} else {
+		case "":
 			output.Container = defaultContainer
+		default:
+			output.Container = elementalconductor.Container(ext)
+		}
+		presetID, ok := preset.ProviderMapping[Name]
+		if !ok {
+			return outputGroup, nil, provider.ErrPresetNotFound
 		}
 		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,
-			Preset: preset,
+			Preset: presetID,
 		}
 		outputList = append(outputList, output)
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
-	var outputGroup elementalconductor.OutputGroup
 	if adaptiveStreaming {
 		outputGroup = elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
@@ -160,11 +169,11 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 			Output: outputList,
 		}
 	}
-	return outputGroup, streamAssemblyList
+	return outputGroup, streamAssemblyList, nil
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalConductorProvider) newJob(source string, presets []string, adaptiveStreaming bool) *elementalconductor.Job {
+func (p *elementalConductorProvider) newJob(source string, presets []db.Preset) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
 		URI:      source,
 		Username: p.client.AccessKeyID,
@@ -175,7 +184,10 @@ func (p *elementalConductorProvider) newJob(source string, presets []string, ada
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
-	outputGroup, streamAssemblyList := buildOutputGroupAndStreamAssemblies(outputLocation, adaptiveStreaming, presets)
+	outputGroup, streamAssemblyList, err := buildOutputGroupAndStreamAssemblies(outputLocation, presets)
+	if err != nil {
+		return nil, err
+	}
 	newJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",
@@ -187,7 +199,7 @@ func (p *elementalConductorProvider) newJob(source string, presets []string, ada
 		OutputGroup:    outputGroup,
 		StreamAssembly: streamAssemblyList,
 	}
-	return &newJob
+	return &newJob, nil
 }
 
 func elementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
