@@ -122,6 +122,13 @@ func (p *awsProvider) statusMap(awsStatus string) provider.Status {
 	}
 }
 
+func (p *awsProvider) Healthcheck() error {
+	_, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
+		Id: aws.String(p.config.PipelineID),
+	})
+	return err
+}
+
 func elasticTranscoderProvider(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.ElasticTranscoder.AccessKeyID == "" || cfg.ElasticTranscoder.SecretAccessKey == "" || cfg.ElasticTranscoder.PipelineID == "" {
 		return nil, errAWSInvalidConfig

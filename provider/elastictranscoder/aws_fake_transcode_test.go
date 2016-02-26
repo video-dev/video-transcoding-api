@@ -70,6 +70,18 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 	}, nil
 }
 
+func (c *fakeElasticTranscoder) ReadPipeline(input *elastictranscoder.ReadPipelineInput) (*elastictranscoder.ReadPipelineOutput, error) {
+	if err := c.getError("ReadPipeline"); err != nil {
+		return nil, err
+	}
+	return &elastictranscoder.ReadPipelineOutput{
+		Pipeline: &elastictranscoder.Pipeline{
+			Id:   input.Id,
+			Name: aws.String("nice pipeline"),
+		},
+	}, nil
+}
+
 func (c *fakeElasticTranscoder) prepareFailure(op string, err error) {
 	c.failures <- failure{op: op, err: err}
 }
