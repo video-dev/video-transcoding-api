@@ -190,6 +190,10 @@ func (p *elementalConductorProvider) newJob(source string, presets []string, ada
 	return &newJob
 }
 
+func (p *elementalConductorProvider) Healthcheck() error {
+	return nil
+}
+
 func elementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.ElementalConductor.Host == "" || cfg.ElementalConductor.UserLogin == "" ||
 		cfg.ElementalConductor.APIKey == "" || cfg.ElementalConductor.AuthExpires == 0 {

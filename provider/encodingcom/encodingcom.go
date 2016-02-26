@@ -167,6 +167,10 @@ func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Statu
 	}
 }
 
+func (e *encodingComProvider) Healthcheck() error {
+	return nil
+}
+
 func encodingComFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.EncodingCom.UserID == "" || cfg.EncodingCom.UserKey == "" {
 		return nil, errEncodingComInvalidConfig
