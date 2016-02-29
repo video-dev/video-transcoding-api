@@ -23,7 +23,7 @@ type Redis struct {
 	SentinelAddrs      string `envconfig:"SENTINEL_ADDRS"`
 	SentinelMasterName string `envconfig:"SENTINEL_MASTER_NAME"`
 
-	RedisAddr   string `envconfig:"REDIS_ADDR" default:"127.0.0.1:6379"`
+	RedisAddr   string `envconfig:"REDIS_ADDR"`
 	Password    string `envconfig:"REDIS_PASSWORD"`
 	PoolSize    int    `envconfig:"REDIS_POOL_SIZE"`
 	PoolTimeout int    `envconfig:"REDIS_POOL_TIMEOUT_SECONDS"`
