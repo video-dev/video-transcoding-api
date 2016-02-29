@@ -246,3 +246,51 @@ func TestJobStatusMap(t *testing.T) {
 		}
 	}
 }
+
+func TestHealthcheck(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	provider := encodingComProvider{
+		client: client,
+		config: &config.Config{
+			EncodingCom: &config.EncodingCom{StatusEndpoint: server.URL},
+		},
+	}
+	var tests = []struct {
+		apiStatus   encodingcom.APIStatusResponse
+		expectedMsg string
+	}{
+		{
+			encodingcom.APIStatusResponse{Status: "Ok", StatusCode: "ok"},
+			"",
+		},
+		{
+			encodingcom.APIStatusResponse{
+				Status:     "Investigation",
+				StatusCode: "queue_slow",
+				Incident:   "Our encoding queue is processing slower than normal.  Check back for updates.",
+			},
+			"Status code: queue_slow.\nIncident: Our encoding queue is processing slower than normal.  Check back for updates.\nStatus: Investigation",
+		},
+		{
+			encodingcom.APIStatusResponse{
+				Status:     "Maintenance",
+				StatusCode: "deploy",
+				Incident:   "We are currently working within a scheduled maintenance window.  Check back for updates.",
+			},
+			"Status code: deploy.\nIncident: We are currently working within a scheduled maintenance window.  Check back for updates.\nStatus: Maintenance",
+		},
+	}
+	for _, test := range tests {
+		server.SetAPIStatus(&test.apiStatus)
+		err := provider.Healthcheck()
+		if test.expectedMsg != "" {
+			if got := err.Error(); got != test.expectedMsg {
+				t.Errorf("Wrong error returned. Want %q. Got %q", test.expectedMsg, got)
+			}
+		} else if err != nil {
+			t.Errorf("Got unexpected non-nil error: %#v", err)
+		}
+	}
+}

@@ -17,6 +17,7 @@ package encodingcom
 
 import (
 	"errors"
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -168,6 +169,13 @@ func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Statu
 }
 
 func (e *encodingComProvider) Healthcheck() error {
+	status, err := encodingcom.APIStatus(e.config.EncodingCom.StatusEndpoint)
+	if err != nil {
+		return err
+	}
+	if !status.OK() {
+		return fmt.Errorf("Status code: %s.\nIncident: %s\nStatus: %s", status.StatusCode, status.Incident, status.Status)
+	}
 	return nil
 }
 
