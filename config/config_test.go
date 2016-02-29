@@ -128,6 +128,79 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 }
 
+func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
+	cleanEnvs()
+	setEnvs(map[string]string{
+		"SENTINEL_ADDRS":                           "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
+		"SENTINEL_MASTER_NAME":                     "supermaster",
+		"REDIS_PASSWORD":                           "super-secret",
+		"REDIS_POOL_SIZE":                          "100",
+		"REDIS_POOL_TIMEOUT_SECONDS":               "10",
+		"ENCODINGCOM_USER_ID":                      "myuser",
+		"ENCODINGCOM_USER_KEY":                     "secret-key",
+		"ENCODINGCOM_DESTINATION":                  "https://safe-stuff",
+		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
+		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
+		"AWS_REGION":                               config.AWSRegionUSEast1,
+		"ELASTICTRANSCODER_PIPELINE_ID":            "mypipeline",
+		"ELEMENTALCONDUCTOR_HOST":                  "elemental-server",
+		"ELEMENTALCONDUCTOR_USER_LOGIN":            "myuser",
+		"ELEMENTALCONDUCTOR_API_KEY":               "secret-key",
+		"ELEMENTALCONDUCTOR_AUTH_EXPIRES":          "30",
+		"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
+		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY": "secret-key",
+		"ELEMENTALCONDUCTOR_DESTINATION":           "https://safe-stuff",
+		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
+	})
+	cfg := LoadConfig("")
+	expectedCfg := Config{
+		SwaggerManifest: "/opt/video-transcoding-api-swagger.json",
+		Redis: &Redis{
+			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
+			SentinelMasterName: "supermaster",
+			RedisAddr:          "127.0.0.1:6379",
+			Password:           "super-secret",
+			PoolSize:           100,
+			PoolTimeout:        10,
+		},
+		EncodingCom: &EncodingCom{
+			UserID:      "myuser",
+			UserKey:     "secret-key",
+			Destination: "https://safe-stuff",
+		},
+		ElasticTranscoder: &ElasticTranscoder{
+			AccessKeyID:     "AKIANOTREALLY",
+			SecretAccessKey: "secret-key",
+			Region:          config.AWSRegionUSEast1,
+			PipelineID:      "mypipeline",
+		},
+		ElementalConductor: &ElementalConductor{
+			Host:            "elemental-server",
+			UserLogin:       "myuser",
+			APIKey:          "secret-key",
+			AuthExpires:     30,
+			AccessKeyID:     "AKIANOTREALLY",
+			SecretAccessKey: "secret-key",
+			Destination:     "https://safe-stuff",
+		},
+	}
+	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
+		t.Errorf("LoadConfig(%q): wrong swagger manifest. Want %q. Got %q", "", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
+	}
+	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
+		t.Errorf("LoadConfig(%q): wrong Redis config returned. Want %#v. Got %#v.", "", *expectedCfg.Redis, *cfg.Redis)
+	}
+	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
+		t.Errorf("LoadConfig(%q): wrong EncodingCom config returned. Want %#v. Got %#v.", "", *expectedCfg.EncodingCom, *cfg.EncodingCom)
+	}
+	if !reflect.DeepEqual(*cfg.ElasticTranscoder, *expectedCfg.ElasticTranscoder) {
+		t.Errorf("LoadConfig(%q): wrong ElasticTranscoder config returned. Want %#v. Got %#v.", "", *expectedCfg.ElasticTranscoder, *cfg.ElasticTranscoder)
+	}
+	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
+		t.Errorf("LoadConfig(%q): wrong Elemental Conductor config returned. Want %#v. Got %#v.", "", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
+	}
+}
+
 func TestLoadConfigOverride(t *testing.T) {
 	cleanEnvs()
 	setEnvs(map[string]string{

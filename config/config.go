@@ -2,6 +2,10 @@ package config
 
 import "github.com/NYTimes/gizmo/config"
 
+type defaultLoader interface {
+	loadDefaults()
+}
+
 // Config is a struct to contain all the needed configuration for the
 // Transcoding API.
 type Config struct {
@@ -27,6 +31,12 @@ type Redis struct {
 	Password    string `envconfig:"REDIS_PASSWORD"`
 	PoolSize    int    `envconfig:"REDIS_POOL_SIZE"`
 	PoolTimeout int    `envconfig:"REDIS_POOL_TIMEOUT_SECONDS"`
+}
+
+func (c *Redis) loadDefaults() {
+	if c.RedisAddr == "" {
+		c.RedisAddr = "127.0.0.1:6379"
+	}
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com
@@ -82,9 +92,15 @@ func LoadConfig(fileName string) *Config {
 	if cfg.ElementalConductor == nil {
 		cfg.ElementalConductor = new(ElementalConductor)
 	}
-	config.LoadEnvConfig(cfg.Redis)
-	config.LoadEnvConfig(cfg.EncodingCom)
-	config.LoadEnvConfig(cfg.ElasticTranscoder)
-	config.LoadEnvConfig(cfg.ElementalConductor)
+	loadFromEnvAndDefaults(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor)
 	return &cfg
+}
+
+func loadFromEnvAndDefaults(cfgs ...interface{}) {
+	for _, cfg := range cfgs {
+		config.LoadEnvConfig(cfg)
+		if dLoader, ok := cfg.(defaultLoader); ok {
+			dLoader.loadDefaults()
+		}
+	}
 }
