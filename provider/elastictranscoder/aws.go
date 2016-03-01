@@ -17,6 +17,7 @@ package elastictranscoder
 
 import (
 	"errors"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -26,6 +27,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder/elastictranscoderiface"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -51,7 +53,7 @@ type awsProvider struct {
 	config *config.ElasticTranscoder
 }
 
-func (p *awsProvider) TranscodeWithPresets(source string, presets []string, adaptiveStreaming bool) (*provider.JobStatus, error) {
+func (p *awsProvider) TranscodeWithPresets(source string, presets []db.Preset) (*provider.JobStatus, error) {
 	source = p.normalizeSource(source)
 	input := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
@@ -59,9 +61,13 @@ func (p *awsProvider) TranscodeWithPresets(source string, presets []string, adap
 	}
 	input.Outputs = make([]*elastictranscoder.CreateJobOutput, len(presets))
 	for i, preset := range presets {
+		presetID, ok := preset.ProviderMapping[Name]
+		if !ok {
+			return nil, provider.ErrPresetNotFound
+		}
 		input.Outputs[i] = &elastictranscoder.CreateJobOutput{
-			PresetId: aws.String(preset),
-			Key:      p.outputKey(source, preset),
+			PresetId: aws.String(presetID),
+			Key:      p.outputKey(preset.OutputOpts, source, preset.Name),
 		}
 	}
 	resp, err := p.c.CreateJob(&input)
@@ -84,10 +90,14 @@ func (p *awsProvider) normalizeSource(source string) string {
 	return source
 }
 
-func (p *awsProvider) outputKey(source, preset string) *string {
+func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string) *string {
 	parts := strings.Split(source, "/")
 	lastIndex := len(parts) - 1
-	parts = append(parts[0:lastIndex], preset, parts[lastIndex])
+	fileName := parts[lastIndex]
+	if opts.Extension != "" {
+		fileName = strings.TrimRight(fileName, filepath.Ext(fileName)) + "." + strings.TrimLeft(opts.Extension, ".")
+	}
+	parts = append(parts[0:lastIndex], presetName, fileName)
 	return aws.String(strings.Join(parts, "/"))
 }
 

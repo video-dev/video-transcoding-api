@@ -25,6 +25,7 @@ func TestCreatePreset(t *testing.T) {
 			"elementalconductor": "abc123",
 			"elastictranscoder":  "1281742-93939",
 		},
+		OutputOpts: db.OutputOptions{Extension: "ts"},
 	}
 	err = repo.CreatePreset(&preset)
 	if err != nil {
@@ -36,8 +37,13 @@ func TestCreatePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(items, preset.ProviderMapping) {
-		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", preset.ProviderMapping, items)
+	expectedItems := map[string]string{
+		"pmapping_elementalconductor": "abc123",
+		"pmapping_elastictranscoder":  "1281742-93939",
+		"output_extension":            "ts",
+	}
+	if !reflect.DeepEqual(items, expectedItems) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
 	}
 }
 
@@ -82,6 +88,7 @@ func TestUpdatePreset(t *testing.T) {
 		"elemental":         "abc1234",
 		"elastictranscoder": "def123",
 	}
+	preset.OutputOpts = db.OutputOptions{Extension: "mp4"}
 	err = repo.UpdatePreset(&preset)
 	if err != nil {
 		t.Fatal(err)
@@ -92,8 +99,13 @@ func TestUpdatePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(items, preset.ProviderMapping) {
-		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", preset.ProviderMapping, items)
+	expectedItems := map[string]string{
+		"pmapping_elemental":         "abc1234",
+		"pmapping_elastictranscoder": "def123",
+		"output_extension":           "mp4",
+	}
+	if !reflect.DeepEqual(items, expectedItems) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
 	}
 }
 
@@ -168,6 +180,7 @@ func TestGetPreset(t *testing.T) {
 			"elastictranscoder":  "0129291-0001",
 			"encoding.com":       "wait what?",
 		},
+		OutputOpts: db.OutputOptions{Extension: "ts"},
 	}
 	err = repo.CreatePreset(&preset)
 	if err != nil {
@@ -218,6 +231,7 @@ func TestListPresets(t *testing.T) {
 				"elementalconductor": "abc123",
 				"elastictranscoder":  "1281742-93939",
 			},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
 		},
 		{
 			Name: "preset-2",
@@ -225,6 +239,7 @@ func TestListPresets(t *testing.T) {
 				"elementalconductor": "abc124",
 				"elastictranscoder":  "1281743-93939",
 			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 		{
 			Name: "preset-3",
@@ -232,6 +247,7 @@ func TestListPresets(t *testing.T) {
 				"elementalconductor": "abc125",
 				"elastictranscoder":  "1281744-93939",
 			},
+			OutputOpts: db.OutputOptions{Extension: "ts"},
 		},
 	}
 	for i := range presets {

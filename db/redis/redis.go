@@ -63,7 +63,7 @@ func (r *redisRepository) fieldList(hash interface{}) ([]string, error) {
 	}
 }
 
-func (r *redisRepository) mapToFieldList(hash interface{}) ([]string, error) {
+func (r *redisRepository) mapToFieldList(hash interface{}, prefixes ...string) ([]string, error) {
 	m, ok := hash.(map[string]string)
 	if !ok {
 		return nil, errors.New("please provide a map[string]string")
@@ -73,12 +73,13 @@ func (r *redisRepository) mapToFieldList(hash interface{}) ([]string, error) {
 	}
 	fields := make([]string, 0, len(m)*2)
 	for key, value := range m {
+		key = strings.Join(append(prefixes, key), "_")
 		fields = append(fields, key, value)
 	}
 	return fields, nil
 }
 
-func (r *redisRepository) structToFieldList(value reflect.Value) ([]string, error) {
+func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...string) ([]string, error) {
 	fields := make([]string, 0, value.NumField())
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Type().Field(i)
@@ -95,15 +96,16 @@ func (r *redisRepository) structToFieldList(value reflect.Value) ([]string, erro
 			if fieldValue.Kind() == reflect.Ptr {
 				fieldValue = fieldValue.Elem()
 			}
+			myPrefixes := append(prefixes, parts[0])
 			switch fieldValue.Kind() {
 			case reflect.Struct:
-				expandedFields, err := r.structToFieldList(fieldValue)
+				expandedFields, err := r.structToFieldList(fieldValue, myPrefixes...)
 				if err != nil {
 					return nil, err
 				}
 				fields = append(fields, expandedFields...)
 			case reflect.Map:
-				expandedFields, err := r.mapToFieldList(fieldValue.Interface())
+				expandedFields, err := r.mapToFieldList(fieldValue.Interface(), myPrefixes...)
 				if err != nil {
 					return nil, err
 				}
@@ -113,7 +115,8 @@ func (r *redisRepository) structToFieldList(value reflect.Value) ([]string, erro
 			}
 		} else {
 			if parts[0] != "" {
-				fields = append(fields, parts[0], fmt.Sprintf("%v", fieldValue.Interface()))
+				key := strings.Join(append(prefixes, parts[0]), "_")
+				fields = append(fields, key, fmt.Sprintf("%v", fieldValue.Interface()))
 			}
 		}
 	}
@@ -143,17 +146,25 @@ func (r *redisRepository) load(key string, out interface{}) error {
 	}
 }
 
-func (r *redisRepository) loadMap(in map[string]string, out reflect.Value) error {
+func (r *redisRepository) loadMap(in map[string]string, out reflect.Value, prefixes ...string) error {
 	if out.Type().Key().Kind() != reflect.String || out.Type().Elem().Kind() != reflect.String {
 		return errors.New("please provide a map[string]string")
 	}
+	joinedPrefixes := strings.Join(prefixes, "_")
+	if joinedPrefixes != "" {
+		joinedPrefixes += "_"
+	}
 	for k, v := range in {
+		if !strings.HasPrefix(k, joinedPrefixes) {
+			continue
+		}
+		k = strings.Replace(k, joinedPrefixes, "", 1)
 		out.SetMapIndex(reflect.ValueOf(k), reflect.ValueOf(v))
 	}
 	return nil
 }
 
-func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value) error {
+func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value, prefixes ...string) error {
 	for i := 0; i < out.NumField(); i++ {
 		field := out.Type().Field(i)
 		if field.PkgPath != "" {
@@ -166,32 +177,36 @@ func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value) er
 		parts := strings.Split(tagValue, ",")
 		fieldValue := out.Field(i)
 		if len(parts) > 1 && parts[len(parts)-1] == "expand" {
+			myPrefixes := append(prefixes, parts[0])
 			if fieldValue.Kind() == reflect.Ptr {
 				fieldValue = fieldValue.Elem()
 			}
 			switch fieldValue.Kind() {
 			case reflect.Map:
-				err := r.loadMap(in, fieldValue)
+				err := r.loadMap(in, fieldValue, myPrefixes...)
 				if err != nil {
 					return err
 				}
 			case reflect.Struct:
-				err := r.loadStruct(in, fieldValue)
+				err := r.loadStruct(in, fieldValue, myPrefixes...)
 				if err != nil {
 					return err
 				}
 			default:
 				return errors.New("can only expand values to structs or maps")
 			}
-		} else if value, ok := in[parts[0]]; ok {
-			if fieldValue.Kind() == reflect.Bool {
-				boolValue, err := strconv.ParseBool(value)
-				if err != nil {
-					return err
+		} else {
+			key := strings.Join(append(prefixes, parts[0]), "_")
+			if value, ok := in[key]; ok {
+				if fieldValue.Kind() == reflect.Bool {
+					boolValue, err := strconv.ParseBool(value)
+					if err != nil {
+						return err
+					}
+					fieldValue.SetBool(boolValue)
+				} else {
+					fieldValue.SetString(value)
 				}
-				fieldValue.SetBool(boolValue)
-			} else {
-				fieldValue.SetString(value)
 			}
 		}
 	}

@@ -110,9 +110,9 @@ func TestSave(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := map[string]string{
-		"name":       "gopher",
-		"first_line": "secret",
-		"city_name":  "nyc",
+		"name":                    "gopher",
+		"address_city_name":       "nyc",
+		"address_data_first_line": "secret",
 	}
 	if !reflect.DeepEqual(data, expected) {
 		t.Errorf("Did not save properly. Want %#v. Got %#v", expected, data)
@@ -150,9 +150,9 @@ func TestSavePointer(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := map[string]string{
-		"name":       "gopher",
-		"first_line": "secret",
-		"city_name":  "nyc",
+		"name":                    "gopher",
+		"address_city_name":       "nyc",
+		"address_data_first_line": "secret",
 	}
 	if !reflect.DeepEqual(data, expected) {
 		t.Errorf("Did not save properly. Want %#v. Got %#v", expected, data)
@@ -242,7 +242,7 @@ func TestLoadStruct(t *testing.T) {
 	redisRepo := repo.(*redisRepository)
 	client := redisRepo.redisClient()
 	defer client.Close()
-	err = redisRepo.save("test-key", map[string]string{"name": "Gopher", "city_name": "New York"})
+	err = redisRepo.save("test-key", map[string]string{"name": "Gopher", "address_city_name": "New York"})
 	if err != nil {
 		t.Fatal(err)
 	}

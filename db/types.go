@@ -45,5 +45,27 @@ type Preset struct {
 	// mapping of provider name to provider's internal preset id.
 	//
 	// required: true
-	ProviderMapping map[string]string `redis-hash:",expand" json:"providerMapping"`
+	ProviderMapping map[string]string `redis-hash:"pmapping,expand" json:"providerMapping"`
+
+	// set of options in the output file for this preset.
+	//
+	// required: true
+	OutputOpts OutputOptions `redis-hash:"output,expand" json:"output"`
+}
+
+// OutputOptions is the set of options for the output file.
+//
+// This type includes only configuration parameters that are not defined in
+// providers (like the extension of the output file).
+//
+// swagger:model
+type OutputOptions struct {
+	// extension for the output file, it's usually attached to the
+	// container (for example, webm for VP, mp4 for MPEG-4 and ts for HLS).
+	//
+	// The dot should not be part of the extension, i.e. use "webm" instead
+	// of ".webm".
+	//
+	// required: true
+	Extension string `redis-hash:"extension" json:"extension"`
 }

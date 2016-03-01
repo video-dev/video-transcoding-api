@@ -30,6 +30,9 @@ func TestNewPreset(t *testing.T) {
 					"elementalconductor": "18",
 					"elastictranscoder":  "18384284-0002",
 				},
+				"output": map[string]interface{}{
+					"extension": "mp4",
+				},
 			},
 			false,
 
@@ -40,6 +43,9 @@ func TestNewPreset(t *testing.T) {
 					"elementalconductor": "18",
 					"elastictranscoder":  "18384284-0002",
 				},
+				"output": map[string]interface{}{
+					"extension": "mp4",
+				},
 			},
 		},
 		{
@@ -49,6 +55,9 @@ func TestNewPreset(t *testing.T) {
 				"providerMapping": map[string]string{
 					"elementalconductor": "18",
 					"elastictranscoder":  "18384284-0002",
+				},
+				"output": map[string]interface{}{
+					"extension": "mp4",
 				},
 			},
 			false,

@@ -12,6 +12,7 @@ import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
 const testProfileString = `{
@@ -74,6 +75,19 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"jobId": "12345"},
 		},
 		{
+			"New job with preset-based transcoding and preset not found in provider",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "presets": ["mp4_360p"],
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{"error": provider.ErrPresetNotFound.Error()},
+		},
+		{
 			"New job with preset-based transcoding with preset not found",
 			`{
   "source": "http://another.non.existent/video.mp4",
@@ -85,21 +99,6 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{"error": db.ErrPresetNotFound.Error()},
-		},
-		{
-			"New job with preset-based transcoding with preset undefined for the provider",
-			`{
-  "source": "http://another.non.existent/video.mp4",
-  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_360p"],
-  "provider": "fake"
-}`,
-			false,
-
-			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": "preset not defined on this provider",
-			},
 		},
 		{
 			"New job with database error",

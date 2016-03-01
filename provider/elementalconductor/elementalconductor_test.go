@@ -7,6 +7,7 @@ import (
 
 	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -15,6 +16,10 @@ func TestFactoryIsRegistered(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+}
+
+func TestSupportPresetTranscoding(t *testing.T) {
+	var _ provider.PresetTranscodingProvider = &elementalConductorProvider{}
 }
 
 func TestElementalConductorFactory(t *testing.T) {
@@ -101,10 +106,27 @@ func TestElementalNewJob(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []string{"15", "20"}
-	adaptiveStreaming := false
-	newJob := presetProvider.newJob(source, presets, adaptiveStreaming)
-
+	presets := []db.Preset{
+		{
+			Name:            "webm_720p",
+			ProviderMapping: map[string]string{Name: "10", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name:            "mp4_720p",
+			ProviderMapping: map[string]string{Name: "15", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			Name:            "mp4_1080p",
+			ProviderMapping: map[string]string{Name: "20", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: ""},
+		},
+	}
+	newJob, err := presetProvider.newJob(source, presets)
+	if err != nil {
+		t.Error(err)
+	}
 	expectedJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",
@@ -130,14 +152,20 @@ func TestElementalNewJob(t *testing.T) {
 			Output: []elementalconductor.Output{
 				{
 					StreamAssemblyName: "stream_0",
-					NameModifier:       "_15",
+					NameModifier:       "_webm_720p",
 					Order:              0,
-					Container:          defaultContainer,
+					Container:          elementalconductor.Container("webm"),
 				},
 				{
 					StreamAssemblyName: "stream_1",
-					NameModifier:       "_20",
+					NameModifier:       "_mp4_720p",
 					Order:              1,
+					Container:          elementalconductor.MPEG4,
+				},
+				{
+					StreamAssemblyName: "stream_2",
+					NameModifier:       "_mp4_1080p",
+					Order:              2,
 					Container:          defaultContainer,
 				},
 			},
@@ -145,22 +173,71 @@ func TestElementalNewJob(t *testing.T) {
 		StreamAssembly: []elementalconductor.StreamAssembly{
 			{
 				Name:   "stream_0",
-				Preset: "15",
+				Preset: "10",
 			},
 			{
 				Name:   "stream_1",
+				Preset: "15",
+			},
+			{
+				Name:   "stream_2",
 				Preset: "20",
 			},
 		},
 	}
 	if !reflect.DeepEqual(&expectedJob, newJob) {
-		t.Errorf("New job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
+		t.Errorf("New job not according to spec.\nWanted %#v.\nGot    %#v.", &expectedJob, newJob)
 	}
+}
 
-	adaptiveStreaming = true
-	newJob = presetProvider.newJob(source, presets, adaptiveStreaming)
-
-	expectedJob = elementalconductor.Job{
+func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	prov, err := elementalConductorFactory(&elementalConductorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presetProvider, ok := prov.(*elementalConductorProvider)
+	if !ok {
+		t.Fatal("Could not type assert test provider to elementalConductorProvider")
+	}
+	source := "http://some.nice/video.mov"
+	presets := []db.Preset{
+		{
+			Name:            "hls_360p",
+			ProviderMapping: map[string]string{Name: "15", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: "hls"},
+		},
+		{
+			Name:            "hls_480p",
+			ProviderMapping: map[string]string{Name: "20", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: "ts"},
+		},
+		{
+			Name:            "hls_720p",
+			ProviderMapping: map[string]string{Name: "25", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+		},
+		{
+			Name:            "hls_1080p",
+			ProviderMapping: map[string]string{Name: "30", "other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: ".ts"},
+		},
+	}
+	newJob, err := presetProvider.newJob(source, presets)
+	if err != nil {
+		t.Error(err)
+	}
+	expectedJob := elementalconductor.Job{
 		XMLName: xml.Name{
 			Local: "job",
 		},
@@ -185,14 +262,26 @@ func TestElementalNewJob(t *testing.T) {
 			Output: []elementalconductor.Output{
 				{
 					StreamAssemblyName: "stream_0",
-					NameModifier:       "_15",
+					NameModifier:       "_hls_360p",
 					Order:              0,
 					Container:          elementalconductor.AppleHTTPLiveStreaming,
 				},
 				{
 					StreamAssemblyName: "stream_1",
-					NameModifier:       "_20",
+					NameModifier:       "_hls_480p",
 					Order:              1,
+					Container:          elementalconductor.AppleHTTPLiveStreaming,
+				},
+				{
+					StreamAssemblyName: "stream_2",
+					NameModifier:       "_hls_720p",
+					Order:              2,
+					Container:          elementalconductor.AppleHTTPLiveStreaming,
+				},
+				{
+					StreamAssemblyName: "stream_3",
+					NameModifier:       "_hls_1080p",
+					Order:              3,
 					Container:          elementalconductor.AppleHTTPLiveStreaming,
 				},
 			},
@@ -206,10 +295,55 @@ func TestElementalNewJob(t *testing.T) {
 				Name:   "stream_1",
 				Preset: "20",
 			},
+			{
+				Name:   "stream_2",
+				Preset: "25",
+			},
+			{
+				Name:   "stream_3",
+				Preset: "30",
+			},
 		},
 	}
 	if !reflect.DeepEqual(&expectedJob, newJob) {
-		t.Errorf("New adaptive bitrate job not according to spec.\nWanted %v.\nGot    %v.", &expectedJob, newJob)
+		t.Errorf("New adaptive bitrate job not according to spec.\nWanted %#v.\nGot    %#v.", &expectedJob, newJob)
+	}
+}
+
+func TestElementalNewJobPresetNotFound(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	prov, err := elementalConductorFactory(&elementalConductorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presetProvider, ok := prov.(*elementalConductorProvider)
+	if !ok {
+		t.Fatal("Could not type assert test provider to elementalConductorProvider")
+	}
+	source := "http://some.nice/video.mov"
+	presets := []db.Preset{
+		{
+			Name:            "webm_720p",
+			ProviderMapping: map[string]string{"other": "not relevant"},
+			OutputOpts:      db.OutputOptions{Extension: "webm"},
+		},
+	}
+	newJob, err := presetProvider.newJob(source, presets)
+	if err != provider.ErrPresetNotFound {
+		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
+	}
+	if newJob != nil {
+		t.Errorf("Got unexpected non-nil job: %#v.", newJob)
 	}
 }
 

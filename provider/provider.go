@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 )
 
 var (
@@ -15,6 +16,10 @@ var (
 	// ErrProviderNotFound is the error returned when asking for a provider
 	// that is not registered.
 	ErrProviderNotFound = errors.New("provider not found")
+
+	// ErrPresetNotFound is the error returned when the given preset is not
+	// found in the provider.
+	ErrPresetNotFound = errors.New("preset not found in provider")
 )
 
 // TranscodingProvider represents a provider of transcoding.
@@ -30,7 +35,7 @@ type TranscodingProvider interface {
 // transcoding media using preset names and a boolean flag denoting
 // whether the job encoding will be for adaptive bitrate or not.
 type PresetTranscodingProvider interface {
-	TranscodeWithPresets(sourceMedia string, presets []string, adaptiveStreaming bool) (*JobStatus, error)
+	TranscodeWithPresets(sourceMedia string, presets []db.Preset) (*JobStatus, error)
 }
 
 // ProfileTranscodingProvider is a transcsoding provider that suppports
