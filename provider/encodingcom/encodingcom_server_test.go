@@ -45,15 +45,27 @@ type fakeMedia struct {
 type encodingComFakeServer struct {
 	*httptest.Server
 	medias map[string]*fakeMedia
+	status *encodingcom.APIStatusResponse
 }
 
 func newEncodingComFakeServer() *encodingComFakeServer {
-	server := encodingComFakeServer{medias: make(map[string]*fakeMedia)}
+	server := encodingComFakeServer{
+		medias: make(map[string]*fakeMedia),
+		status: &encodingcom.APIStatusResponse{StatusCode: "ok", Status: "Ok"},
+	}
 	server.Server = httptest.NewServer(&server)
 	return &server
 }
 
+func (s *encodingComFakeServer) SetAPIStatus(status *encodingcom.APIStatusResponse) {
+	s.status = status
+}
+
 func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/status.php" {
+		s.apiStatus(w, r)
+		return
+	}
 	requestData := r.FormValue("json")
 	if requestData == "" {
 		s.Error(w, "json is required")
@@ -74,6 +86,11 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	default:
 		s.Error(w, "invalid action")
 	}
+}
+
+func (s *encodingComFakeServer) apiStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(s.status)
 }
 
 func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {

@@ -435,3 +435,39 @@ func TestAWSStatusMap(t *testing.T) {
 		}
 	}
 }
+
+func TestHealthcheck(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	err := provider.Healthcheck()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestHealthcheckFailure(t *testing.T) {
+	prepErr := errors.New("something went wrong")
+	fakeTranscoder := newFakeElasticTranscoder()
+	fakeTranscoder.prepareFailure("ReadPipeline", prepErr)
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	err := provider.Healthcheck()
+	if err != prepErr {
+		t.Errorf("Wrong error returned. Want %#v.Got %#v", prepErr, err)
+	}
+}

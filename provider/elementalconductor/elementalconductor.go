@@ -17,6 +17,7 @@ package elementalconductor
 
 import (
 	"encoding/xml"
+	"fmt"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -200,6 +201,27 @@ func (p *elementalConductorProvider) newJob(source string, presets []db.Preset) 
 		StreamAssembly: streamAssemblyList,
 	}
 	return &newJob, nil
+}
+
+func (p *elementalConductorProvider) Healthcheck() error {
+	nodes, err := p.client.GetNodes()
+	if err != nil {
+		return err
+	}
+	cloudConfig, err := p.client.GetCloudConfig()
+	if err != nil {
+		return err
+	}
+	var serverCount int
+	for _, node := range nodes {
+		if node.Product == elementalconductor.ProductServer && node.Status == "active" {
+			serverCount++
+		}
+	}
+	if serverCount < cloudConfig.MinNodes {
+		return fmt.Errorf("there are not enough active nodes. %d nodes required to be active, but found only %d", cloudConfig.MinNodes, serverCount)
+	}
+	return nil
 }
 
 func elementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {

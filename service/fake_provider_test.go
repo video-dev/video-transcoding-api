@@ -29,6 +29,10 @@ func (e *baseFakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	return nil, provider.JobNotFoundError{ID: id}
 }
 
+func (e *baseFakeProvider) Healthcheck() error {
+	return nil
+}
+
 type profileFakeProvider struct {
 	*baseFakeProvider
 }

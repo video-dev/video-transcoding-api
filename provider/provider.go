@@ -29,6 +29,11 @@ var (
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
 	JobStatus(id string) (*JobStatus, error)
+
+	// Healthcheck should return nil if the provider is currently available
+	// for transcoding videos, otherwise it should return an error
+	// explaining what's going on.
+	Healthcheck() error
 }
 
 // PresetTranscodingProvider is a transcoding provider that supports

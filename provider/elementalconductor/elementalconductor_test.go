@@ -370,3 +370,91 @@ func TestJobStatusMap(t *testing.T) {
 		}
 	}
 }
+
+func TestHealthcheck(t *testing.T) {
+	server := NewElementalServer(nil, nil)
+	defer server.Close()
+	prov := elementalConductorProvider{
+		client: elementalconductor.NewClient(server.URL, "", "", 0, "", "", ""),
+	}
+	var tests = []struct {
+		minNodes    int
+		nodes       []elementalconductor.Node
+		expectedMsg string
+	}{
+		{
+			2,
+			[]elementalconductor.Node{
+				{
+					Product: elementalconductor.ProductConductorFile,
+					Status:  "active",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "starting",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "active",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "active",
+				},
+			},
+			"",
+		},
+		{
+			3,
+			[]elementalconductor.Node{
+				{
+					Product: elementalconductor.ProductConductorFile,
+					Status:  "active",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "starting",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "active",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "error",
+				},
+			},
+			"there are not enough active nodes. 3 nodes required to be active, but found only 1",
+		},
+		{
+			2,
+			[]elementalconductor.Node{
+				{
+					Product: elementalconductor.ProductConductorFile,
+					Status:  "active",
+				},
+				{
+					Product: elementalconductor.ProductConductorFile,
+					Status:  "active",
+				},
+				{
+					Product: elementalconductor.ProductServer,
+					Status:  "active",
+				},
+			},
+			"there are not enough active nodes. 2 nodes required to be active, but found only 1",
+		},
+	}
+	for _, test := range tests {
+		server.SetCloudConfig(&elementalconductor.CloudConfig{MinNodes: test.minNodes})
+		server.SetNodes(test.nodes)
+		err := prov.Healthcheck()
+		if test.expectedMsg != "" {
+			if got := err.Error(); got != test.expectedMsg {
+				t.Errorf("Wrong error returned. Want %q. Got %q", test.expectedMsg, got)
+			}
+		} else if err != nil {
+			t.Errorf("Got unexpected non-nil error: %#v", err)
+		}
+	}
+}
