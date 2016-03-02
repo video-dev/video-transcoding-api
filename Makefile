@@ -1,4 +1,4 @@
-.PHONY: all testdeps checkfmt lint test build run vet checkswagger swagger swaggerui
+.PHONY: all testdeps checkfmt lint test build run vet checkswagger swagger runswagger
 
 all: test
 
@@ -47,5 +47,5 @@ swagger:
 checkswagger:
 	swagger validate swagger.json
 
-swaggerui:
-	go run swagger-ui/main.go
+runswagger:
+	go run swagger-ui-server/main.go
