@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -15,30 +14,6 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-const testProfileString = `{
-   "output":["webm"],
-   "size":{"height":360},
-   "bitrate":"900k",
-   "audio_bitrate":"64k",
-   "audio_sample_rate":"48000",
-   "audio_channels_number":"2",
-   "framerate":"30",
-   "keep_aspect_ratio":"yes",
-   "video_codec":"libvpx",
-   "profile":"main",
-   "audio_codec":"libvorbis",
-   "two_pass":"yes",
-   "turbo":"no",
-   "twin_turbo":"no",
-   "cbr":"no",
-   "deinterlacing":"auto",
-   "keyframe":"90",
-   "audio_volume":"100",
-   "rotate":0,
-   "strip_chapters":"no",
-   "hint":"no"
-}`
-
 func TestTranscode(t *testing.T) {
 	tests := []struct {
 		givenTestCase       string
@@ -49,20 +24,7 @@ func TestTranscode(t *testing.T) {
 		wantBody interface{}
 	}{
 		{
-			"New job with profile-based transcoding",
-			fmt.Sprintf(`{
-  "source": "http://another.non.existent/video.mp4",
-  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profiles": [%s],
-  "provider": "fake"
-}`, testProfileString),
-			false,
-
-			http.StatusOK,
-			map[string]interface{}{"jobId": "12345"},
-		},
-		{
-			"New job with preset-based transcoding",
+			"New job",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -75,7 +37,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"jobId": "12345"},
 		},
 		{
-			"New job with preset-based transcoding and preset not found in provider",
+			"New job with preset not found in provider",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -88,7 +50,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": provider.ErrPresetNotFound.Error()},
 		},
 		{
-			"New job with preset-based transcoding with preset not found",
+			"New job with preset not found in the API",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -102,12 +64,12 @@ func TestTranscode(t *testing.T) {
 		},
 		{
 			"New job with database error",
-			fmt.Sprintf(`{
+			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profiles": [%s],
+  "presets": ["mp4_1080p"],
   "provider": "fake"
-}`, testProfileString),
+}`,
 			true,
 
 			http.StatusInternalServerError,
@@ -117,12 +79,12 @@ func TestTranscode(t *testing.T) {
 		},
 		{
 			"New job with invalid provider",
-			fmt.Sprintf(`{
+			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profiles": [%s],
+  "presets": ["mp4_1080p"],
   "provider": "nonexistent-provider"
-}`, testProfileString),
+}`,
 			false,
 
 			http.StatusBadRequest,
@@ -131,7 +93,7 @@ func TestTranscode(t *testing.T) {
 			},
 		},
 		{
-			"New job missing profiles and presets",
+			"New job missing presets",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -141,53 +103,7 @@ func TestTranscode(t *testing.T) {
 
 			http.StatusBadRequest,
 			map[string]interface{}{
-				"error": "please specify either the list of presets or the list of profiles",
-			},
-		},
-		{
-			"New job with both profiles and presets",
-			fmt.Sprintf(`{
-  "source": "http://another.non.existent/video.mp4",
-  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_1080p"],
-  "profiles": [%s],
-  "provider": "fake"
-}`, testProfileString),
-			false,
-
-			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": "presets and profiles are mutually exclusive, please specify only one of them",
-			},
-		},
-		{
-			"New job with unsupported profile-based",
-			fmt.Sprintf(`{
-  "source": "http://another.non.existent/video.mp4",
-  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "profiles": [%s],
-  "provider": "preset-fake"
-}`, testProfileString),
-			false,
-
-			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": `Provider "preset-fake" does not support profile-based transcoding`,
-			},
-		},
-		{
-			"New job with unsupported preset-based",
-			`{
-  "source": "http://another.non.existent/video.mp4",
-  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_1080p"],
-  "provider": "profile-fake"
-}`,
-			false,
-
-			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": `Provider "profile-fake" does not support preset-based transcoding`,
+				"error": "missing preset list from request",
 			},
 		},
 	}

@@ -13,15 +13,10 @@ type newTranscodeJobInput struct {
 	// in: body
 	// required: true
 	Payload struct {
-		// source media for the transcode job.
+		// source media for the transcoding job.
 		Source string
 
-		// profiles to be used. This parameter is exclusive with the list of
-		// presets. One, and only one, of both should be provided.
-		Profiles []provider.Profile
-
-		// presets to be used. this parameter is exclusive with the list of
-		// profiles. One, and only one, of both should be provided.
+		// presets to use in the transcoding job.
 		Presets []string
 
 		// provider to use in this job
@@ -54,11 +49,8 @@ func (p *newTranscodeJobInput) validate() error {
 	if p.Payload.Source == "" {
 		return errors.New("missing source media from request")
 	}
-	if len(p.Payload.Profiles) == 0 && len(p.Payload.Presets) == 0 {
-		return errors.New("please specify either the list of presets or the list of profiles")
-	}
-	if len(p.Payload.Profiles) > 0 && len(p.Payload.Presets) > 0 {
-		return errors.New("presets and profiles are mutually exclusive, please specify only one of them")
+	if len(p.Payload.Presets) == 0 {
+		return errors.New("missing preset list from request")
 	}
 	return nil
 }

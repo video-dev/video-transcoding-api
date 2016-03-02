@@ -53,7 +53,7 @@ type awsProvider struct {
 	config *config.ElasticTranscoder
 }
 
-func (p *awsProvider) TranscodeWithPresets(source string, presets []db.Preset) (*provider.JobStatus, error) {
+func (p *awsProvider) Transcode(source string, presets []db.Preset) (*provider.JobStatus, error) {
 	source = p.normalizeSource(source)
 	input := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
