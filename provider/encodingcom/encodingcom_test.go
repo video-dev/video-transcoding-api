@@ -7,6 +7,7 @@ import (
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -81,22 +82,41 @@ func TestEncodingComTranscode(t *testing.T) {
 		},
 	}
 	source := "http://some.nice/video.mp4"
-	profile := provider.Profile{
-		Output:              []string{"webm", "hls"},
-		Size:                provider.Size{Height: 360},
-		AudioCodec:          "libvorbis",
-		AudioBitRate:        "64k",
-		AudioChannelsNumber: "2",
-		AudioSampleRate:     48000,
-		BitRate:             "900k",
-		FrameRate:           "30",
-		KeepAspectRatio:     true,
-		VideoCodec:          "libvpx",
-		KeyFrame:            "90",
-		AudioVolume:         100,
-		TwoPassEncoding:     true,
+	presets := []db.Preset{
+		{
+			Name: "webm_720p",
+			ProviderMapping: map[string]string{
+				Name:           "123455",
+				"not-relevant": "something",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name: "webm_480p",
+			ProviderMapping: map[string]string{
+				Name:           "123456",
+				"not-relevant": "otherthing",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name: "mp4_1080p",
+			ProviderMapping: map[string]string{
+				Name:           "321321",
+				"not-relevant": "allthings",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			Name: "hls_1080p",
+			ProviderMapping: map[string]string{
+				Name:           "321322",
+				"not-relevant": "allthings",
+			},
+			OutputOpts: db.OutputOptions{Extension: "ts"},
+		},
 	}
-	jobStatus, err := prov.TranscodeWithProfiles(source, []provider.Profile{profile})
+	jobStatus, err := prov.TranscodeWithPresets(source, presets)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -110,55 +130,69 @@ func TestEncodingComTranscode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedDestination := []string{
-		prov.config.EncodingCom.Destination + "video_360p.webm",
-		prov.config.EncodingCom.Destination + "video_hls/video.m3u8",
+	dest := prov.config.EncodingCom.Destination
+	expectedFormats := []encodingcom.Format{
+		{
+			Output:      []string{"123455"},
+			Destination: []string{dest + "webm_720p/video.webm"},
+		},
+		{
+			Output:      []string{"123456"},
+			Destination: []string{dest + "webm_480p/video.webm"},
+		},
+		{
+			Output:      []string{"321321"},
+			Destination: []string{dest + "mp4_1080p/video.mp4"},
+		},
+		{
+			Output:      []string{"321322"},
+			Destination: []string{dest + "hls_1080p/video.m3u8"},
+		},
 	}
-	expectedFormat := encodingcom.Format{
-		Output:              []string{"webm", "advanced_hls"},
-		Destination:         expectedDestination,
-		Size:                "0x360",
-		AudioCodec:          "libvorbis",
-		AudioBitrate:        "64k",
-		AudioChannelsNumber: "2",
-		AudioSampleRate:     48000,
-		Bitrate:             "900k",
-		Framerate:           "30",
-		KeepAspectRatio:     encodingcom.YesNoBoolean(true),
-		VideoCodec:          "libvpx",
-		Keyframe:            []string{"90"},
-		AudioVolume:         100,
-		TwoPass:             encodingcom.YesNoBoolean(true),
-		Rotate:              "def",
-	}
-	if !reflect.DeepEqual(media.Request.Format[0], expectedFormat) {
-		t.Errorf("Wrong format. Want %#v. Got %#v.", expectedFormat, media.Request.Format[0])
+	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
+		t.Errorf("Wrong format. Want %#v. Got %#v.", expectedFormats, media.Request.Format)
 	}
 	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
 	}
 }
 
-func TestProfileToFormatRotation(t *testing.T) {
-	var tests = []struct {
-		r        provider.Rotation
-		expected string
-	}{
-		{provider.Rotate0Degrees, "0"},
-		{provider.Rotate90Degrees, "90"},
-		{provider.Rotate180Degrees, "180"},
-		{provider.Rotate270Degrees, "270"},
-		{provider.Rotation{}, "def"},
+func TestEncodingComTranscodePresetNotFound(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{
+		client: client,
+		config: &config.Config{
+			EncodingCom: &config.EncodingCom{
+				Destination: "https://mybucket.s3.amazonaws.com/destination-dir/",
+			},
+		},
 	}
-	var p encodingComProvider
-	for _, test := range tests {
-		profile := provider.Profile{Rotate: test.r}
-		formats := p.profilesToFormats("sourceFile", []provider.Profile{profile})
-		for _, format := range formats {
-			if format.Rotate != test.expected {
-				t.Errorf("profileToFormat: expected rotate to be %q. Got %q.", test.expected, format.Rotate)
-			}
-		}
+	source := "http://some.nice/video.mp4"
+	presets := []db.Preset{
+		{
+			Name: "webm_720p",
+			ProviderMapping: map[string]string{
+				Name:           "123455",
+				"not-relevant": "something",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name: "webm_480p",
+			ProviderMapping: map[string]string{
+				"not-relevant": "otherthing",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+	}
+	jobStatus, err := prov.TranscodeWithPresets(source, presets)
+	if err != provider.ErrPresetNotFound {
+		t.Errorf("Wrong error. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
 	}
 }
 

@@ -19,11 +19,11 @@ import (
 	"errors"
 	"fmt"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -42,9 +42,12 @@ type encodingComProvider struct {
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) TranscodeWithProfiles(sourceMedia string, profiles []provider.Profile) (*provider.JobStatus, error) {
-	format := e.profilesToFormats(sourceMedia, profiles)
-	resp, err := e.client.AddMedia([]string{sourceMedia}, format)
+func (e *encodingComProvider) TranscodeWithPresets(sourceMedia string, presets []db.Preset) (*provider.JobStatus, error) {
+	formats, err := e.presetsToFormats(sourceMedia, presets)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := e.client.AddMedia([]string{sourceMedia}, formats)
 	if err != nil {
 		return nil, err
 	}
@@ -55,78 +58,37 @@ func (e *encodingComProvider) TranscodeWithProfiles(sourceMedia string, profiles
 	}, nil
 }
 
-func (e *encodingComProvider) getResolution(output string, format encodingcom.Format) string {
-	if output == "hls" || output == "thumb" {
-		return ""
+func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.Preset) []string {
+	var extension string
+	switch v := preset.OutputOpts.Extension; v {
+	case "hls", "ts", "m3u8":
+		extension = ".m3u8"
+	case "":
+		extension = "." + filepath.Ext(sourceMedia)
+	default:
+		extension = "." + v
 	}
-	sizeSlice := strings.Split(format.Size, "x")
-	if len(sizeSlice) > 1 {
-		return sizeSlice[1] + "p"
-	}
-	return ""
+	sourceParts := strings.Split(sourceMedia, "/")
+	sourceFilenamePart := sourceParts[len(sourceParts)-1]
+	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
+	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + preset.Name + "/"
+	return []string{outputDestination + sourceFileName + extension}
 }
 
-func (e *encodingComProvider) getDestinations(sourceMedia string, format encodingcom.Format) []string {
-	var destinations []string
-	for _, output := range format.Output {
-		extension := "." + output
-		resolution := e.getResolution(output, format)
-
-		sourceParts := strings.Split(sourceMedia, "/")
-		sourceFilenamePart := sourceParts[len(sourceParts)-1]
-		sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
-
-		outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/"
-		finalDestination := outputDestination + sourceFileName + "_" + resolution + extension
-		if output == "hls" {
-			finalDestination = outputDestination + sourceFileName + "_hls/video.m3u8"
+func (e *encodingComProvider) presetsToFormats(sourceMedia string, presets []db.Preset) ([]encodingcom.Format, error) {
+	formats := make([]encodingcom.Format, 0, len(presets))
+	for _, preset := range presets {
+		presetName, ok := preset.ProviderMapping[Name]
+		if !ok {
+			return nil, provider.ErrPresetNotFound
 		}
-		destinations = append(destinations, finalDestination)
-	}
-	return destinations
-}
-
-func (e *encodingComProvider) mapOutputs(outputs []string) []string {
-	outputMap := map[string]string{
-		"hls":   "advanced_hls",
-		"thumb": "thumbnail",
-	}
-	for i, o := range outputs {
-		if output, ok := outputMap[o]; ok {
-			outputs[i] = output
-		}
-	}
-	return outputs
-}
-
-func (e *encodingComProvider) profilesToFormats(sourceMedia string, profiles []provider.Profile) []encodingcom.Format {
-	var formats []encodingcom.Format
-	for _, profile := range profiles {
 		format := encodingcom.Format{
-			Output:              profile.Output,
-			Size:                profile.Size.String(),
-			AudioCodec:          profile.AudioCodec,
-			AudioBitrate:        profile.AudioBitRate,
-			AudioChannelsNumber: profile.AudioChannelsNumber,
-			AudioSampleRate:     profile.AudioSampleRate,
-			Bitrate:             profile.BitRate,
-			Framerate:           profile.FrameRate,
-			KeepAspectRatio:     encodingcom.YesNoBoolean(profile.KeepAspectRatio),
-			VideoCodec:          profile.VideoCodec,
-			Keyframe:            []string{profile.KeyFrame},
-			AudioVolume:         profile.AudioVolume,
-			TwoPass:             encodingcom.YesNoBoolean(profile.TwoPassEncoding),
+			Output:      []string{presetName},
+			Destination: e.getDestinations(sourceMedia, preset),
 		}
-		if val, set := profile.Rotate.Value(); set {
-			format.Rotate = strconv.FormatUint(uint64(val), 10)
-		} else {
-			format.Rotate = "def"
-		}
-		format.Destination = e.getDestinations(sourceMedia, format)
-		format.Output = e.mapOutputs(format.Output)
 		formats = append(formats, format)
 	}
-	return formats
+	return formats, nil
 }
 
 func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) {
