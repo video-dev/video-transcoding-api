@@ -14,7 +14,7 @@ checkfmt: testdeps
 		export status=1; exit $${status:-0}
 
 deadcode:
-	go get github.com/reillywatson/go-misc/deadcode
+	go get github.com/remyoudompheng/go-misc/deadcode
 	go list ./... | sed -e "s;github.com/nytm/video-transcoding-api;.;" | xargs deadcode
 
 lint: testdeps
