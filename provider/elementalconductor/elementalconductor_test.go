@@ -18,10 +18,6 @@ func TestFactoryIsRegistered(t *testing.T) {
 	}
 }
 
-func TestSupportPresetTranscoding(t *testing.T) {
-	var _ provider.PresetTranscodingProvider = &elementalConductorProvider{}
-}
-
 func TestElementalConductorFactory(t *testing.T) {
 	cfg := config.Config{
 		ElementalConductor: &config.ElementalConductor{

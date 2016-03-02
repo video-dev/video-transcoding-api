@@ -33,35 +33,21 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		return newErrorResponse(formattedErr)
 	}
 
-	var jobStatus *provider.JobStatus
-	if len(input.Payload.Profiles) > 0 {
-		profileProvider, ok := providerObj.(provider.ProfileTranscodingProvider)
-		if !ok {
-			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support profile-based transcoding", input.Payload.Provider))
-		}
-		jobStatus, err = profileProvider.TranscodeWithProfiles(input.Payload.Source, input.Payload.Profiles)
-	} else {
-		presetProvider, ok := providerObj.(provider.PresetTranscodingProvider)
-		if !ok {
-			return newInvalidJobResponse(fmt.Errorf("Provider %q does not support preset-based transcoding", input.Payload.Provider))
-		}
-		presets := make([]db.Preset, len(input.Payload.Presets))
-		for i, presetID := range input.Payload.Presets {
-			preset, err := s.db.GetPreset(presetID)
-			if err != nil {
-				if err == db.ErrPresetNotFound {
-					return newInvalidJobResponse(err)
-				}
-				return newErrorResponse(err)
+	presets := make([]db.Preset, len(input.Payload.Presets))
+	for i, presetID := range input.Payload.Presets {
+		preset, err := s.db.GetPreset(presetID)
+		if err != nil {
+			if err == db.ErrPresetNotFound {
+				return newInvalidJobResponse(err)
 			}
-			presets[i] = *preset
+			return newErrorResponse(err)
 		}
-		jobStatus, err = presetProvider.TranscodeWithPresets(input.Payload.Source, presets)
-		if err == provider.ErrPresetNotFound {
-			return newInvalidJobResponse(err)
-		}
+		presets[i] = *preset
 	}
-
+	jobStatus, err := providerObj.Transcode(input.Payload.Source, presets)
+	if err == provider.ErrPresetNotFound {
+		return newInvalidJobResponse(err)
+	}
 	if err != nil {
 		providerError := fmt.Errorf("Error with provider %q: %s", input.Payload.Provider, err)
 		return newErrorResponse(providerError)

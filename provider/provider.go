@@ -28,25 +28,13 @@ var (
 // Job. The underlying provider should handle the profileSpec as deisired (it
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
+	Transcode(sourceMedia string, presets []db.Preset) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
 
 	// Healthcheck should return nil if the provider is currently available
 	// for transcoding videos, otherwise it should return an error
 	// explaining what's going on.
 	Healthcheck() error
-}
-
-// PresetTranscodingProvider is a transcoding provider that supports
-// transcoding media using preset names and a boolean flag denoting
-// whether the job encoding will be for adaptive bitrate or not.
-type PresetTranscodingProvider interface {
-	TranscodeWithPresets(sourceMedia string, presets []db.Preset) (*JobStatus, error)
-}
-
-// ProfileTranscodingProvider is a transcsoding provider that suppports
-// transcoding media using provided profiles.
-type ProfileTranscodingProvider interface {
-	TranscodeWithProfiles(sourceMedia string, profiles []Profile) (*JobStatus, error)
 }
 
 // Factory is the function responsible for creating the instance of a

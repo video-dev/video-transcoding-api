@@ -32,6 +32,9 @@ func (d *fakeDB) CreateJob(job *db.Job) error {
 }
 
 func (d *fakeDB) DeleteJob(job *db.Job) error {
+	if d.triggerDBError {
+		return errors.New("database error")
+	}
 	if _, ok := d.jobs[job.ID]; !ok {
 		return db.ErrJobNotFound
 	}
@@ -40,6 +43,9 @@ func (d *fakeDB) DeleteJob(job *db.Job) error {
 }
 
 func (d *fakeDB) GetJob(id string) (*db.Job, error) {
+	if d.triggerDBError {
+		return nil, errors.New("database error")
+	}
 	if job, ok := d.jobs[id]; ok {
 		return job, nil
 	}
@@ -58,6 +64,9 @@ func (d *fakeDB) CreatePreset(preset *db.Preset) error {
 }
 
 func (d *fakeDB) UpdatePreset(preset *db.Preset) error {
+	if d.triggerDBError {
+		return errors.New("database error")
+	}
 	if _, ok := d.presets[preset.Name]; !ok {
 		return db.ErrPresetNotFound
 	}
@@ -66,6 +75,9 @@ func (d *fakeDB) UpdatePreset(preset *db.Preset) error {
 }
 
 func (d *fakeDB) GetPreset(name string) (*db.Preset, error) {
+	if d.triggerDBError {
+		return nil, errors.New("database error")
+	}
 	if preset, ok := d.presets[name]; ok {
 		return preset, nil
 	}
@@ -73,6 +85,9 @@ func (d *fakeDB) GetPreset(name string) (*db.Preset, error) {
 }
 
 func (d *fakeDB) DeletePreset(preset *db.Preset) error {
+	if d.triggerDBError {
+		return errors.New("database error")
+	}
 	if _, ok := d.presets[preset.Name]; !ok {
 		return db.ErrPresetNotFound
 	}
@@ -81,6 +96,9 @@ func (d *fakeDB) DeletePreset(preset *db.Preset) error {
 }
 
 func (d *fakeDB) ListPresets() ([]db.Preset, error) {
+	if d.triggerDBError {
+		return nil, errors.New("database error")
+	}
 	presets := make([]db.Preset, 0, len(d.presets))
 	for _, preset := range d.presets {
 		presets = append(presets, *preset)
