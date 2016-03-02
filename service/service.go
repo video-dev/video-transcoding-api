@@ -38,7 +38,7 @@ func (s *TranscodingService) Prefix() string {
 // In this implementation, we're using a GzipHandler middleware to
 // compress our responses.
 func (s *TranscodingService) Middleware(h http.Handler) http.Handler {
-	return gziphandler.GzipHandler(h)
+	return gziphandler.GzipHandler(server.CORSHandler(h, ""))
 }
 
 // JSONMiddleware provides a JSONEndpoint hook wrapped around all requests.
