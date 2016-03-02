@@ -53,14 +53,14 @@ type awsProvider struct {
 	config *config.ElasticTranscoder
 }
 
-func (p *awsProvider) Transcode(source string, presets []db.Preset) (*provider.JobStatus, error) {
-	source = p.normalizeSource(source)
+func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	source := p.normalizeSource(transcodeProfile.SourceMedia)
 	input := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 	}
-	input.Outputs = make([]*elastictranscoder.CreateJobOutput, len(presets))
-	for i, preset := range presets {
+	input.Outputs = make([]*elastictranscoder.CreateJobOutput, len(transcodeProfile.Presets))
+	for i, preset := range transcodeProfile.Presets {
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetNotFound

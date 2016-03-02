@@ -32,14 +32,15 @@ func TestRedisClientRedisDefaultConfig(t *testing.T) {
 }
 
 func TestRedisClientRedisAddr(t *testing.T) {
-	proc, err := startRedis("49153", "not-secret")
+	port := "49159"
+	proc, err := startRedis(port, "not-secret")
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer proc.Signal(os.Interrupt)
 	cfg := config.Config{
 		Redis: &config.Redis{
-			RedisAddr: "127.0.0.1:49153",
+			RedisAddr: "127.0.0.1:" + port,
 			Password:  "not-secret",
 		},
 	}

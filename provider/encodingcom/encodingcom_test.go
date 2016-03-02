@@ -116,7 +116,16 @@ func TestEncodingComTranscode(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "ts"},
 		},
 	}
-	jobStatus, err := prov.Transcode(source, presets)
+
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia: source,
+		Presets:     presets,
+		StreamingParams: provider.StreamingParams{
+			SegmentDuration: 3,
+		},
+	}
+
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -187,7 +196,16 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
-	jobStatus, err := prov.Transcode(source, presets)
+
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia: source,
+		Presets:     presets,
+		StreamingParams: provider.StreamingParams{
+			SegmentDuration: 3,
+		},
+	}
+
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if err != provider.ErrPresetNotFound {
 		t.Errorf("Wrong error. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
 	}

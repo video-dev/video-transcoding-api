@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -31,8 +30,8 @@ func (e *fakeProvider) Healthcheck() error {
 	return nil
 }
 
-func (e *fakeProvider) Transcode(sourceMedia string, presets []db.Preset) (*provider.JobStatus, error) {
-	for _, preset := range presets {
+func (e *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	for _, preset := range transcodeProfile.Presets {
 		if _, ok := preset.ProviderMapping["fake"]; !ok {
 			return nil, provider.ErrPresetNotFound
 		}

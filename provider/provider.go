@@ -28,7 +28,7 @@ var (
 // Job. The underlying provider should handle the profileSpec as deisired (it
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
-	Transcode(sourceMedia string, presets []db.Preset) (*JobStatus, error)
+	Transcode(transcodeProfile TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
 
 	// Healthcheck should return nil if the provider is currently available
@@ -67,6 +67,18 @@ type JobStatus struct {
 	ProviderName   string                 `json:"providerName,omitempty"`
 	StatusMessage  string                 `json:"statusMessage,omitempty"`
 	ProviderStatus map[string]interface{} `json:"providerStatus,omitempty"`
+}
+
+// StreamingParams contains all parameters related to the streaming protocol used.
+type StreamingParams struct {
+	SegmentDuration uint
+}
+
+// TranscodeProfile defines the set of inputs necessary for running a transcoding job.
+type TranscodeProfile struct {
+	SourceMedia     string
+	Presets         []db.Preset
+	StreamingParams StreamingParams
 }
 
 // Status is the status of a transcoding job.
