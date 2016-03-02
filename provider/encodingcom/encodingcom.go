@@ -42,12 +42,12 @@ type encodingComProvider struct {
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) Transcode(sourceMedia string, presets []db.Preset) (*provider.JobStatus, error) {
-	formats, err := e.presetsToFormats(sourceMedia, presets)
+func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	formats, err := e.presetsToFormats(transcodeProfile.SourceMedia, transcodeProfile.Presets)
 	if err != nil {
 		return nil, err
 	}
-	resp, err := e.client.AddMedia([]string{sourceMedia}, formats)
+	resp, err := e.client.AddMedia([]string{transcodeProfile.SourceMedia}, formats)
 	if err != nil {
 		return nil, err
 	}

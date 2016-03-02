@@ -47,8 +47,8 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
-func (p *elementalConductorProvider) Transcode(source string, presets []db.Preset) (*provider.JobStatus, error) {
-	newJob, err := p.newJob(source, presets)
+func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	newJob, err := p.newJob(transcodeProfile.SourceMedia, transcodeProfile.Presets)
 	if err != nil {
 		return nil, err
 	}

@@ -44,7 +44,14 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		}
 		presets[i] = *preset
 	}
-	jobStatus, err := providerObj.Transcode(input.Payload.Source, presets)
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia: input.Payload.Source,
+		Presets:     presets,
+		StreamingParams: provider.StreamingParams{
+			SegmentDuration: 3,
+		},
+	}
+	jobStatus, err := providerObj.Transcode(transcodeProfile)
 	if err == provider.ErrPresetNotFound {
 		return newInvalidJobResponse(err)
 	}

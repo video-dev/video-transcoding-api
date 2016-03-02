@@ -165,7 +165,13 @@ func TestAWSTranscode(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: ".ts"},
 		},
 	}
-	jobStatus, err := prov.Transcode(source, presets)
+
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +235,12 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "ts"},
 		},
 	}
-	jobStatus, err := prov.Transcode(source, presets)
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,7 +291,12 @@ func TestAWSTranscodePresetNotFound(t *testing.T) {
 			OutputOpts:      db.OutputOptions{Extension: "mp4"},
 		},
 	}
-	jobStatus, err := prov.Transcode(source, presets)
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if err != provider.ErrPresetNotFound {
 		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
 	}
@@ -293,7 +309,7 @@ func TestAWSTranscodeAWSFailureInAmazon(t *testing.T) {
 	prepErr := errors.New("something went wrong")
 	fakeTranscoder := newFakeElasticTranscoder()
 	fakeTranscoder.prepareFailure("CreateJob", prepErr)
-	provider := &awsProvider{
+	prov := &awsProvider{
 		c: fakeTranscoder,
 		config: &config.ElasticTranscoder{
 			AccessKeyID:     "AKIA",
@@ -303,7 +319,12 @@ func TestAWSTranscodeAWSFailureInAmazon(t *testing.T) {
 		},
 	}
 	source := "dir/file.mp4"
-	jobStatus, err := provider.Transcode(source, nil)
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         nil,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil status: %#v", jobStatus)
 	}
@@ -341,7 +362,13 @@ func TestAWSJobStatus(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
-	jobStatus, err := prov.Transcode("dir/file.mov", presets)
+	source := "dir/file.mov"
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(transcodeProfile)
 	if err != nil {
 		t.Fatal(err)
 	}
