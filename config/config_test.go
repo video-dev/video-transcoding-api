@@ -31,6 +31,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 			UserKey:        "superkey",
 			Destination:    "http://nice-destination",
 			StatusEndpoint: "http://mystatus",
+			Region:         "us-east-1",
 		},
 		ElementalConductor: &ElementalConductor{
 			Host:        "some-server",
@@ -68,6 +69,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"ENCODINGCOM_USER_KEY":                     "secret-key",
 		"ENCODINGCOM_DESTINATION":                  "https://safe-stuff",
 		"ENCODINGCOM_STATUS_ENDPOINT":              "https://safe-status",
+		"ENCODINGCOM_REGION":                       "sa-east-1",
 		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
 		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
 		"AWS_REGION":                               config.AWSRegionUSEast1,
@@ -97,6 +99,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			UserKey:        "secret-key",
 			Destination:    "https://safe-stuff",
 			StatusEndpoint: "https://safe-status",
+			Region:         "sa-east-1",
 		},
 		ElasticTranscoder: &ElasticTranscoder{
 			AccessKeyID:     "AKIANOTREALLY",
@@ -213,6 +216,7 @@ func TestLoadConfigOverride(t *testing.T) {
 		"ENCODINGCOM_USER_KEY":            "secret-key",
 		"ENCODINGCOM_DESTINATION":         "https://safe-stuff",
 		"ENCODINGCOM_STATUS_ENDPOINT":     "https://safe-status",
+		"ENCODINGCOM_REGION":              "eu-west-1",
 		"ELEMENTALCONDUCTOR_HOST":         "elemental-server",
 		"ELEMENTALCONDUCTOR_USER_LOGIN":   "myuser",
 		"ELEMENTALCONDUCTOR_API_KEY":      "secret-key",
@@ -238,6 +242,7 @@ func TestLoadConfigOverride(t *testing.T) {
 			UserKey:        "secret-key",
 			Destination:    "https://safe-stuff",
 			StatusEndpoint: "https://safe-status",
+			Region:         "eu-west-1",
 		},
 		ElementalConductor: &ElementalConductor{
 			Host:        "elemental-server",
@@ -264,13 +269,13 @@ func cleanEnvs() {
 	envs := []string{
 		"SENTINEL_ADDRS", "SENTINEL_MASTER_NAME", "REDIS_ADDR",
 		"REDIS_PASSWORD", "ENCODINGCOM_USER_ID", "ENCODINGCOM_USER_KEY",
-		"ENCODINGCOM_DESTINATION", "ENCODINGCOM_STATUS_ENDPOINT", "REDIS_POOL_SIZE",
-		"REDIS_POOL_TIMEOUT_SECONDS", "AWS_ACCESS_KEY_ID", "AWS_SECRET_ACCESS_KEY",
-		"AWS_REGION", "ELASTICTRANSCODER_PIPELINE_ID", "ELEMENTALCONDUCTOR_HOST",
-		"ELEMENTALCONDUCTOR_USER_LOGIN", "ELEMENTALCONDUCTOR_API_KEY",
-		"ELEMENTALCONDUCTOR_AUTH_EXPIRES", "ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID",
-		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY", "ELEMENTALCONDUCTOR_DESTINATION",
-		"SWAGGER_MANIFEST_PATH",
+		"ENCODINGCOM_DESTINATION", "ENCODINGCOM_STATUS_ENDPOINT", "ENCODINGCOM_REGION",
+		"REDIS_POOL_SIZE", "REDIS_POOL_TIMEOUT_SECONDS", "AWS_ACCESS_KEY_ID",
+		"AWS_SECRET_ACCESS_KEY", "AWS_REGION", "ELASTICTRANSCODER_PIPELINE_ID",
+		"ELEMENTALCONDUCTOR_HOST", "ELEMENTALCONDUCTOR_USER_LOGIN",
+		"ELEMENTALCONDUCTOR_API_KEY", "ELEMENTALCONDUCTOR_AUTH_EXPIRES",
+		"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID", "ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY",
+		"ELEMENTALCONDUCTOR_DESTINATION", "SWAGGER_MANIFEST_PATH",
 	}
 	for _, env := range envs {
 		os.Unsetenv(env)

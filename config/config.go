@@ -45,6 +45,7 @@ type EncodingCom struct {
 	UserID         string `envconfig:"ENCODINGCOM_USER_ID"`
 	UserKey        string `envconfig:"ENCODINGCOM_USER_KEY"`
 	Destination    string `envconfig:"ENCODINGCOM_DESTINATION"`
+	Region         string `envconfig:"ENCODINGCOM_REGION"`
 	StatusEndpoint string `envconfig:"ENCODINGCOM_STATUS_ENDPOINT"`
 }
 
