@@ -1,7 +1,9 @@
 package provider
 
-// Descriptor fully describes a provider. It contains the name of the provider,
-// along with its current heath status and its capabilities.
+// Descriptor fully describes a provider.
+//
+// It contains the name of the provider, along with its current heath status
+// and its capabilities.
 type Descriptor struct {
 	Name         string       `json:"name"`
 	Capabilities Capabilities `json:"capabilities"`
