@@ -141,6 +141,14 @@ func (e *encodingComProvider) Healthcheck() error {
 	return nil
 }
 
+func (e *encodingComProvider) Capabilities() provider.Capabilities {
+	return provider.Capabilities{
+		InputFormats:  []string{"prores", "h264"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
+		Destinations:  []string{"akamai", "s3"},
+	}
+}
+
 func encodingComFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.EncodingCom.UserID == "" || cfg.EncodingCom.UserKey == "" {
 		return nil, errEncodingComInvalidConfig

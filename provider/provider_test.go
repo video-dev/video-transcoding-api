@@ -1,6 +1,8 @@
 package provider
 
 import (
+	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/nytm/video-transcoding-api/config"
@@ -79,5 +81,42 @@ func TestGetProviderFactoryNotRegistered(t *testing.T) {
 	}
 	if err != ErrProviderNotFound {
 		t.Errorf("Got wrong error when getting an unregistered provider. Want %#v. Got %#v", ErrProviderNotFound, err)
+	}
+}
+
+func TestDescribeProviders(t *testing.T) {
+	cap := Capabilities{
+		InputFormats:  []string{"prores", "h264"},
+		OutputFormats: []string{"mp4", "hls"},
+		Destinations:  []string{"s3", "akamai"},
+	}
+	providers = map[string]Factory{
+		"cap-and-unhealthy": getFactory(nil, errors.New("api is down"), cap),
+		"factory-err":       getFactory(errors.New("invalid config"), nil, cap),
+		"cap-and-healthy":   getFactory(nil, nil, cap),
+	}
+	expected := []Descriptor{
+		{
+			Name:         "cap-and-healthy",
+			Capabilities: cap,
+			Health:       Health{OK: true},
+		},
+		{
+			Name:         "cap-and-unhealthy",
+			Capabilities: cap,
+			Health:       Health{OK: false, Message: "api is down"},
+		},
+	}
+	got := DescribeProviders(&config.Config{})
+	if !reflect.DeepEqual(got, expected) {
+		t.Errorf("DescribeProviders: want %#v. Got %#v", expected, got)
+	}
+}
+
+func TestDescribeProvidersEmpty(t *testing.T) {
+	providers = nil
+	descriptors := DescribeProviders(nil)
+	if len(descriptors) != 0 {
+		t.Errorf("Unexpected non-empty descriptor list: %#v", descriptors)
 	}
 }

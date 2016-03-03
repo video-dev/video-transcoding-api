@@ -70,6 +70,9 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 			"PUT":    handlerToEndpoint(s.updatePreset),
 			"DELETE": handlerToEndpoint(s.deletePreset),
 		},
+		"/providers": {
+			"GET": handlerToEndpoint(s.listProviders),
+		},
 	}
 }
 

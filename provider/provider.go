@@ -3,6 +3,7 @@ package provider
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
@@ -35,6 +36,9 @@ type TranscodingProvider interface {
 	// for transcoding videos, otherwise it should return an error
 	// explaining what's going on.
 	Healthcheck() error
+
+	// Capabilities describes the capabilities of the provider.
+	Capabilities() Capabilities
 }
 
 // Factory is the function responsible for creating the instance of a
@@ -127,4 +131,28 @@ func GetProviderFactory(name string) (Factory, error) {
 		return nil, ErrProviderNotFound
 	}
 	return factory, nil
+}
+
+// DescribeProviders returns the list of currently registered providers,
+// including their capabilities and health status.
+func DescribeProviders(c *config.Config) []Descriptor {
+	descriptors := make([]Descriptor, 0, len(providers))
+	providerNames := make([]string, 0, len(providers))
+	for name := range providers {
+		providerNames = append(providerNames, name)
+	}
+	sort.Strings(providerNames)
+	for _, name := range providerNames {
+		factory := providers[name]
+		descriptor := Descriptor{Name: name, Health: Health{OK: true}}
+		if provider, err := factory(c); err == nil {
+			descriptor.Capabilities = provider.Capabilities()
+			err = provider.Healthcheck()
+			if err != nil {
+				descriptor.Health = Health{OK: false, Message: err.Error()}
+			}
+			descriptors = append(descriptors, descriptor)
+		}
+	}
+	return descriptors
 }
