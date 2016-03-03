@@ -13,6 +13,7 @@
     "EncodingCom": {
 	    "UserID": "myuser",
 	    "UserKey": "superkey",
+	    "StatusEndpoint": "http://mystatus",
 	    "Destination": "http://nice-destination"
     },
     "ElementalConductor": {

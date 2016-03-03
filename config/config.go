@@ -48,6 +48,12 @@ type EncodingCom struct {
 	StatusEndpoint string `envconfig:"ENCODINGCOM_STATUS_ENDPOINT"`
 }
 
+func (c *EncodingCom) loadDefaults() {
+	if c.StatusEndpoint == "" {
+		c.StatusEndpoint = "http://status.encoding.com"
+	}
+}
+
 // ElasticTranscoder represents the set of configurations for the Elastic
 // Transcoder provider.
 type ElasticTranscoder struct {
