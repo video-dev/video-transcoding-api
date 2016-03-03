@@ -1,6 +1,6 @@
 # Contributing to video-transcoding-api
 
-video-transcoding-api is an open source project started by handful of
+video-transcoding-api is an open source project started by a handful of
 developers at The New York Times and open to the entire open source community.
 
 We really appreciate your help!
@@ -26,7 +26,7 @@ guidelines:
 2. Open an issue to discuss a new feature.
 3. Write tests.
 4. Make sure code follows the ['Go Code Review Comments'](https://github.com/golang/go/wiki/CodeReviewComments).
-5. Make sure your changes pass ``make test``.
+5. Make sure your changes pass the test suite (invoke ``make test`` to run it).
 6. Make sure the entire test suite passes locally and on Travis CI.
 7. Open a Pull Request.
 
