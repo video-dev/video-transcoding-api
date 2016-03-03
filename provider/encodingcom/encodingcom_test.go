@@ -346,3 +346,16 @@ func TestHealthcheck(t *testing.T) {
 		}
 	}
 }
+
+func TestCapabilities(t *testing.T) {
+	var prov encodingComProvider
+	expected := provider.Capabilities{
+		InputFormats:  []string{"prores", "h264"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
+		Destinations:  []string{"akamai", "s3"},
+	}
+	cap := prov.Capabilities()
+	if !reflect.DeepEqual(cap, expected) {
+		t.Errorf("Capabilities: want %#v. Got %#v", expected, cap)
+	}
+}
