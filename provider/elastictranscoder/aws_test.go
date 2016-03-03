@@ -494,3 +494,16 @@ func TestHealthcheckFailure(t *testing.T) {
 		t.Errorf("Wrong error returned. Want %#v.Got %#v", prepErr, err)
 	}
 }
+
+func TestCapabilities(t *testing.T) {
+	var prov awsProvider
+	expected := provider.Capabilities{
+		InputFormats:  []string{"h264"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
+		Destinations:  []string{"s3"},
+	}
+	cap := prov.Capabilities()
+	if !reflect.DeepEqual(cap, expected) {
+		t.Errorf("Capabilities: want %#v. Got %#v", expected, cap)
+	}
+}

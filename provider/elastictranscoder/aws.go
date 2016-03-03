@@ -139,6 +139,14 @@ func (p *awsProvider) Healthcheck() error {
 	return err
 }
 
+func (p *awsProvider) Capabilities() provider.Capabilities {
+	return provider.Capabilities{
+		InputFormats:  []string{"h264"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
+		Destinations:  []string{"s3"},
+	}
+}
+
 func elasticTranscoderProvider(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.ElasticTranscoder.AccessKeyID == "" || cfg.ElasticTranscoder.SecretAccessKey == "" || cfg.ElasticTranscoder.PipelineID == "" {
 		return nil, errAWSInvalidConfig
