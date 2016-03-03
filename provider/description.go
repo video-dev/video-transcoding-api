@@ -1,13 +1,14 @@
 package provider
 
-// Descriptor fully describes a provider.
+// Description fully describes a provider.
 //
 // It contains the name of the provider, along with its current heath status
 // and its capabilities.
-type Descriptor struct {
+type Description struct {
 	Name         string       `json:"name"`
 	Capabilities Capabilities `json:"capabilities"`
 	Health       Health       `json:"health"`
+	Enabled      bool         `json:"enabled"`
 }
 
 // Capabilities describes the available features in the provider. It specificie
@@ -24,5 +25,5 @@ type Capabilities struct {
 // a message explaining what's wrong.
 type Health struct {
 	OK      bool   `json:"ok"`
-	Message string `json:"message"`
+	Message string `json:"message,omitempty"`
 }

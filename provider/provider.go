@@ -133,26 +133,34 @@ func GetProviderFactory(name string) (Factory, error) {
 	return factory, nil
 }
 
-// DescribeProviders returns the list of currently registered providers,
-// including their capabilities and health status.
-func DescribeProviders(c *config.Config) []Descriptor {
-	descriptors := make([]Descriptor, 0, len(providers))
+// ListProviders returns the list of currently registered providers,
+// alphabetically ordered.
+func ListProviders() []string {
 	providerNames := make([]string, 0, len(providers))
 	for name := range providers {
 		providerNames = append(providerNames, name)
 	}
 	sort.Strings(providerNames)
-	for _, name := range providerNames {
-		factory := providers[name]
-		descriptor := Descriptor{Name: name, Health: Health{OK: true}}
-		if provider, err := factory(c); err == nil {
-			descriptor.Capabilities = provider.Capabilities()
-			err = provider.Healthcheck()
-			if err != nil {
-				descriptor.Health = Health{OK: false, Message: err.Error()}
-			}
-			descriptors = append(descriptors, descriptor)
-		}
+	return providerNames
+}
+
+// DescribeProvider describes the given provider. It includes information about
+// the provider's capabilities and its current health state.
+func DescribeProvider(name string, c *config.Config) (*Description, error) {
+	factory, err := GetProviderFactory(name)
+	if err != nil {
+		return nil, err
 	}
-	return descriptors
+	description := Description{Name: name}
+	provider, err := factory(c)
+	if err != nil {
+		return &description, nil
+	}
+	description.Enabled = true
+	description.Capabilities = provider.Capabilities()
+	description.Health = Health{OK: true}
+	if err = provider.Healthcheck(); err != nil {
+		description.Health = Health{OK: false, Message: err.Error()}
+	}
+	return &description, nil
 }
