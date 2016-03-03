@@ -73,6 +73,9 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		"/providers": {
 			"GET": handlerToEndpoint(s.listProviders),
 		},
+		"/providers/{name:[^/]+}": {
+			"GET": handlerToEndpoint(s.getProvider),
+		},
 	}
 }
 
