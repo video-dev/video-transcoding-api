@@ -224,6 +224,14 @@ func (p *elementalConductorProvider) Healthcheck() error {
 	return nil
 }
 
+func (p *elementalConductorProvider) Capabilities() provider.Capabilities {
+	return provider.Capabilities{
+		InputFormats:  []string{"prores", "h264"},
+		OutputFormats: []string{"mp4", "hls"},
+		Destinations:  []string{"akamai", "s3"},
+	}
+}
+
 func elementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.ElementalConductor.Host == "" || cfg.ElementalConductor.UserLogin == "" ||
 		cfg.ElementalConductor.APIKey == "" || cfg.ElementalConductor.AuthExpires == 0 {
