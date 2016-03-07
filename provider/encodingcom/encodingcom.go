@@ -60,9 +60,10 @@ func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfi
 
 func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.Preset) []string {
 	var extension string
+	var hls bool
 	switch v := preset.OutputOpts.Extension; v {
 	case "hls", "ts", "m3u8":
-		extension = ".m3u8"
+		hls = true
 	case "":
 		extension = "." + filepath.Ext(sourceMedia)
 	default:
@@ -72,6 +73,9 @@ func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.Pres
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
 	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + preset.Name + "/"
+	if hls {
+		return []string{outputDestination + sourceFileName + "/master.m3u8"}
+	}
 	return []string{outputDestination + sourceFileName + extension}
 }
 

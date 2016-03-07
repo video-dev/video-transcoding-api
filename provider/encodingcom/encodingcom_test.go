@@ -155,7 +155,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		},
 		{
 			Output:      []string{"321322"},
-			Destination: []string{dest + "hls_1080p/video.m3u8"},
+			Destination: []string{dest + "hls_1080p/video/master.m3u8"},
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
