@@ -113,7 +113,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 	}
 

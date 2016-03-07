@@ -71,7 +71,7 @@ func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.Pres
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
 	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + preset.Name + "/"
-	if preset.OutputOpts.Extension == "hls" {
+	if preset.OutputOpts.Extension == "m3u8" {
 		return []string{outputDestination + sourceFileName + "/master.m3u8"}
 	}
 	return []string{outputDestination + sourceFileName + extension}
@@ -88,7 +88,7 @@ func (e *encodingComProvider) presetsToFormats(transcodeProfile provider.Transco
 			Output:      []string{presetName},
 			Destination: e.getDestinations(transcodeProfile.SourceMedia, preset),
 		}
-		if preset.OutputOpts.Extension == "hls" {
+		if preset.OutputOpts.Extension == "m3u8" {
 			format.SegmentDuration = transcodeProfile.StreamingParams.SegmentDuration
 		}
 		formats = append(formats, format)
