@@ -119,7 +119,13 @@ func TestElementalNewJob(t *testing.T) {
 			OutputOpts:      db.OutputOptions{Extension: ""},
 		},
 	}
-	newJob, err := presetProvider.newJob(source, presets)
+
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{},
+	}
+	newJob, err := presetProvider.newJob(transcodeProfile)
 	if err != nil {
 		t.Error(err)
 	}
@@ -229,7 +235,14 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 			OutputOpts:      db.OutputOptions{Extension: ".ts"},
 		},
 	}
-	newJob, err := presetProvider.newJob(source, presets)
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia: source,
+		Presets:     presets,
+		StreamingParams: provider.StreamingParams{
+			SegmentDuration: 3,
+		},
+	}
+	newJob, err := presetProvider.newJob(transcodeProfile)
 	if err != nil {
 		t.Error(err)
 	}
@@ -253,6 +266,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 					Username: "aws-access-key",
 					Password: "aws-secret-key",
 				},
+				SegmentDuration: 3,
 			},
 			Type: elementalconductor.AppleLiveOutputGroupType,
 			Output: []elementalconductor.Output{
@@ -334,7 +348,12 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 			OutputOpts:      db.OutputOptions{Extension: "webm"},
 		},
 	}
-	newJob, err := presetProvider.newJob(source, presets)
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{},
+	}
+	newJob, err := presetProvider.newJob(transcodeProfile)
 	if err != provider.ErrPresetNotFound {
 		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
 	}

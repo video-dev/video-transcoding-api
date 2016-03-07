@@ -24,7 +24,6 @@ import (
 
 	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -48,7 +47,7 @@ type elementalConductorProvider struct {
 }
 
 func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	newJob, err := p.newJob(transcodeProfile.SourceMedia, transcodeProfile.Presets)
+	newJob, err := p.newJob(transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -118,12 +117,12 @@ func (p *elementalConductorProvider) buildFullDestination(source string) string 
 	return destination + "/" + sourceFileName
 }
 
-func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, presets []db.Preset) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
+func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
 	var outputList []elementalconductor.Output
 	var streamAssemblyList []elementalconductor.StreamAssembly
 	var adaptiveStreaming bool
 	var outputGroup elementalconductor.OutputGroup
-	for index, preset := range presets {
+	for index, preset := range transcodeProfile.Presets {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
 		output := elementalconductor.Output{
@@ -155,7 +154,8 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 		outputGroup = elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
 			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{
-				Destination: outputLocation,
+				Destination:     outputLocation,
+				SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			},
 			Type:   elementalconductor.AppleLiveOutputGroupType,
 			Output: outputList,
@@ -174,18 +174,18 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalConductorProvider) newJob(source string, presets []db.Preset) (*elementalconductor.Job, error) {
+func (p *elementalConductorProvider) newJob(transcodeProfile provider.TranscodeProfile) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
-		URI:      source,
+		URI:      transcodeProfile.SourceMedia,
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
 	outputLocation := elementalconductor.Location{
-		URI:      p.buildFullDestination(source),
+		URI:      p.buildFullDestination(transcodeProfile.SourceMedia),
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
-	outputGroup, streamAssemblyList, err := buildOutputGroupAndStreamAssemblies(outputLocation, presets)
+	outputGroup, streamAssemblyList, err := buildOutputGroupAndStreamAssemblies(outputLocation, transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
