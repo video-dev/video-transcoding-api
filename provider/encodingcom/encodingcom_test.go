@@ -113,7 +113,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "ts"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 	}
 
@@ -154,8 +154,9 @@ func TestEncodingComTranscode(t *testing.T) {
 			Destination: []string{dest + "mp4_1080p/video.mp4"},
 		},
 		{
-			Output:      []string{"321322"},
-			Destination: []string{dest + "hls_1080p/video/master.m3u8"},
+			Output:          []string{"321322"},
+			Destination:     []string{dest + "hls_1080p/video/master.m3u8"},
+			SegmentDuration: 3,
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {

@@ -43,7 +43,7 @@ type encodingComProvider struct {
 }
 
 func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	formats, err := e.presetsToFormats(transcodeProfile.SourceMedia, transcodeProfile.Presets)
+	formats, err := e.presetsToFormats(transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -60,35 +60,36 @@ func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfi
 
 func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.Preset) []string {
 	var extension string
-	var hls bool
-	switch v := preset.OutputOpts.Extension; v {
-	case "hls", "ts", "m3u8":
-		hls = true
-	case "":
+
+	if preset.OutputOpts.Extension == "" {
 		extension = "." + filepath.Ext(sourceMedia)
-	default:
-		extension = "." + v
+	} else {
+		extension = "." + preset.OutputOpts.Extension
 	}
+
 	sourceParts := strings.Split(sourceMedia, "/")
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
 	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + preset.Name + "/"
-	if hls {
+	if preset.OutputOpts.Extension == "m3u8" {
 		return []string{outputDestination + sourceFileName + "/master.m3u8"}
 	}
 	return []string{outputDestination + sourceFileName + extension}
 }
 
-func (e *encodingComProvider) presetsToFormats(sourceMedia string, presets []db.Preset) ([]encodingcom.Format, error) {
-	formats := make([]encodingcom.Format, 0, len(presets))
-	for _, preset := range presets {
+func (e *encodingComProvider) presetsToFormats(transcodeProfile provider.TranscodeProfile) ([]encodingcom.Format, error) {
+	formats := make([]encodingcom.Format, 0, len(transcodeProfile.Presets))
+	for _, preset := range transcodeProfile.Presets {
 		presetName, ok := preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetNotFound
 		}
 		format := encodingcom.Format{
 			Output:      []string{presetName},
-			Destination: e.getDestinations(sourceMedia, preset),
+			Destination: e.getDestinations(transcodeProfile.SourceMedia, preset),
+		}
+		if preset.OutputOpts.Extension == "m3u8" {
+			format.SegmentDuration = transcodeProfile.StreamingParams.SegmentDuration
 		}
 		formats = append(formats, format)
 	}
