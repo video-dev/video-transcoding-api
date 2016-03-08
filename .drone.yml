@@ -1,5 +1,7 @@
 # See: https://github.com/drone/drone/blob/v0.4.0/docs/build/README.md
 
+debug: true
+
 image: balser/go-buildbox:1.5
 
 env:
