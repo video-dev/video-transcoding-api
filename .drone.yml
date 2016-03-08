@@ -1,0 +1,27 @@
+# See: https://github.com/drone/drone/blob/v0.4.0/docs/build/README.md
+
+image: balser/go-buildbox:1.5
+
+env:
+  - GOROOT=/usr/local/go
+  - GOPATH=/var/cache/drone
+  - PATH=$PATH:$GOROOT/bin:$GOPATH/bin:/tmp/np/bin
+
+script:
+  - go get -t
+  - go build
+  - go test -v -cover ./...
+
+deploy:
+  bash:
+    when:
+      owner:  nytm
+      branch: master
+    script:
+      - 'BUILD="$CI_BUILD_NUMBER-$(git rev-parse --short HEAD)"'
+      - 'curl -H "Authorization: token $GITHUB_TOKEN" -L $DEPLOYER > deploy.tar.gz'
+      - 'mkdir -p /tmp/deploy'
+      - 'tar xzf deploy.tar.gz --strip-components=1 -C /tmp/deploy'
+      - 'cd /tmp/deploy'
+      - 'bin/np build transcoding-api#$BUILD'
+      - 'bin/np deploy transcoding-api:dev#$BUILD'
