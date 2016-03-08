@@ -1,18 +1,17 @@
 # See: https://github.com/drone/drone/blob/v0.4.0/docs/build/README.md
 
-debug: true
-
 build:
+  debug: true
   image: balser/go-buildbox:1.5
   environment:
     - GOROOT=/usr/local/go
     - GOPATH=/var/cache/drone
   commands:
-    - PATH="$GOROOT/bin:$GOPATH/bin:/tmp/np/bin"
+    - export PATH="$GOROOT/bin:$GOPATH/bin:/tmp/np/bin"
     - go get -t
     - go build
     - go test -v -cover ./...
-    - BUILD="$CI_BUILD_NUMBER-$(git rev-parse --short HEAD)"
+    - export BUILD="$CI_BUILD_NUMBER-$(git rev-parse --short HEAD)"
     - curl -H "Authorization: token $GITHUB_TOKEN" -L $DEPLOYER > deploy.tar.gz
     - mkdir -p /tmp/deploy
     - tar xzf deploy.tar.gz --strip-components=1 -C /tmp/deploy
