@@ -12,7 +12,7 @@ build:
     - go build
     - go test -v -cover ./...
     - export BUILD="$CI_BUILD_NUMBER-$(git rev-parse --short HEAD)"
-    - curl -H "Authorization: token $GITHUB_TOKEN" -L $DEPLOYER > deploy.tar.gz
+    - "curl -H \"Authorization: token $GITHUB_TOKEN\" -L $DEPLOYER > deploy.tar.gz"
     - mkdir -p /tmp/deploy
     - tar xzf deploy.tar.gz --strip-components=1 -C /tmp/deploy
     - cd /tmp/deploy
