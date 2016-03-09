@@ -76,6 +76,7 @@ type JobStatus struct {
 // StreamingParams contains all parameters related to the streaming protocol used.
 type StreamingParams struct {
 	SegmentDuration uint
+	Protocol        string
 }
 
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.

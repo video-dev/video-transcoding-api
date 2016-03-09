@@ -19,6 +19,7 @@ import (
 	"errors"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -54,23 +55,31 @@ type awsProvider struct {
 }
 
 func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	var adaptiveStreaming bool
+	if transcodeProfile.StreamingParams.Protocol == "hls" {
+		adaptiveStreaming = true
+	}
 	source := p.normalizeSource(transcodeProfile.SourceMedia)
-	input := elastictranscoder.CreateJobInput{
+	params := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 	}
-	input.Outputs = make([]*elastictranscoder.CreateJobOutput, len(transcodeProfile.Presets))
+	params.Outputs = make([]*elastictranscoder.CreateJobOutput, len(transcodeProfile.Presets))
 	for i, preset := range transcodeProfile.Presets {
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetNotFound
 		}
-		input.Outputs[i] = &elastictranscoder.CreateJobOutput{
+		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),
 			Key:      p.outputKey(preset.OutputOpts, source, preset.Name),
 		}
+		if adaptiveStreaming {
+			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)))
+		}
 	}
-	resp, err := p.c.CreateJob(&input)
+
+	resp, err := p.c.CreateJob(&params)
 	if err != nil {
 		return nil, err
 	}
