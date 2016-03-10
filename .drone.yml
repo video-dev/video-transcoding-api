@@ -23,9 +23,9 @@ build:
       - GOROOT=/usr/local/go
       - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
-      - INFRA_REPO=$$INFRA_REPO
-      - NP_SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
-      - NP_PATH=$$NP_PATH
+      - INFRA_REPO=$$NP_INFRA_REPO
+      - SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
+      - NP_PATH=$$NP_PATH_VALUE
       - PACKER_VPC_ID=$$NP_PACKER_VPC_ID
       - PACKER_SUBNET_ID=$$NP_PACKER_SUBNET_ID
       - S3_VARS_BUCKET=$$NP_S3_VARS_BUCKET
@@ -36,7 +36,7 @@ build:
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
-      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$NP_SCRIPT_LOCATION > /tmp/np
+      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
       - /usr/bin/python /tmp/np build transcoding-api#$(git rev-parse --short HEAD)
       - /usr/bin/python /tmp/np deploy transcoding-api:dev#$(git rev-parse --short HEAD)
     when:
@@ -45,9 +45,9 @@ build:
   make_live:
     image: balser/go-buildbox:1.5
     environment:
-      - INFRA_REPO=$$INFRA_REPO
-      - NP_SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
-      - NP_PATH=$$NP_PATH
+      - INFRA_REPO=$$NP_INFRA_REPO
+      - SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
+      - NP_PATH=$$NP_PATH_VALUE
       - PACKER_VPC_ID=$$NP_PACKER_VPC_ID
       - PACKER_SUBNET_ID=$$NP_PACKER_SUBNET_ID
       - S3_VARS_BUCKET=$$NP_S3_VARS_BUCKET
@@ -58,7 +58,7 @@ build:
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
-      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$NP_SCRIPT_LOCATION > /tmp/np
+      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
       - /usr/bin/python /tmp/np deploy transcoding-api:stg#$(git rev-parse --short HEAD)
       - /usr/bin/python /tmp/np deploy transcoding-api:prd#$(git rev-parse --short HEAD)
     when:
