@@ -72,11 +72,27 @@ func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*pr
 		}
 		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),
-			Key:      p.outputKey(preset.OutputOpts, source, preset.Name),
 		}
 		if adaptiveStreaming {
+			params.Outputs[i].Key = p.outputKeyForAdaptiveStreaming(preset.OutputOpts, source, preset.Name)
 			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)))
+		} else {
+			params.Outputs[i].Key = p.outputKey(preset.OutputOpts, source, preset.Name)
 		}
+	}
+
+	if adaptiveStreaming {
+		jobPlaylist := elastictranscoder.CreateJobPlaylist{
+			Format: aws.String("HLSv3"),
+			Name:   aws.String(strings.TrimRight(source, filepath.Ext(source)) + "/master.m3u8"),
+		}
+
+		jobPlaylist.OutputKeys = make([]*string, len(transcodeProfile.Presets))
+		for i, preset := range transcodeProfile.Presets {
+			jobPlaylist.OutputKeys[i] = p.outputKeyForAdaptiveStreaming(preset.OutputOpts, source, preset.Name)
+		}
+
+		params.Playlists = []*elastictranscoder.CreateJobPlaylist{&jobPlaylist}
 	}
 
 	resp, err := p.c.CreateJob(&params)
@@ -97,6 +113,15 @@ func (p *awsProvider) normalizeSource(source string) string {
 		return parts[len(parts)-1]
 	}
 	return source
+}
+
+func (p *awsProvider) outputKeyForAdaptiveStreaming(opts db.OutputOptions, source, presetName string) *string {
+	parts := strings.Split(source, "/")
+	lastIndex := len(parts) - 1
+	fileName := parts[lastIndex]
+	fileName = strings.TrimRight(fileName, filepath.Ext(fileName))
+	parts = append(parts[0:lastIndex], fileName, presetName, "video.m3u8")
+	return aws.String(strings.Join(parts, "/"))
 }
 
 func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string) *string {

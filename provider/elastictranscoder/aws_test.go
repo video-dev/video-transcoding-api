@@ -156,14 +156,6 @@ func TestAWSTranscode(t *testing.T) {
 				"other": "irrelevant",
 			},
 		},
-		{
-			Name: "hls_1080p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0004",
-				"other": "irrelevant",
-			},
-			OutputOpts: db.OutputOptions{Extension: ".ts"},
-		},
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
@@ -197,7 +189,95 @@ func TestAWSTranscode(t *testing.T) {
 			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/mp4_720p/file.mp4")},
 			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/webm_720p/file.webm")},
 			{PresetId: aws.String("93239832-0003"), Key: aws.String("dir/mov_1080p/file.mov")},
-			{PresetId: aws.String("93239832-0004"), Key: aws.String("dir/hls_1080p/file.ts")},
+		},
+	}
+	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
+		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
+	}
+}
+
+func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	source := "dir/file.mov"
+	presets := []db.Preset{
+		{
+			Name: "hls_360p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0001",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "hls"},
+		},
+
+		{
+			Name: "hls_480p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0002",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "hls"},
+		},
+		{
+			Name: "hls_720p",
+			ProviderMapping: map[string]string{
+				Name:    "93239832-0003",
+				"other": "irrelevant",
+			},
+			OutputOpts: db.OutputOptions{Extension: "hls"},
+		},
+	}
+
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Presets:         presets,
+		StreamingParams: provider.StreamingParams{Protocol: "hls", SegmentDuration: 3},
+	}
+	jobStatus, err := prov.Transcode(transcodeProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m, _ := regexp.MatchString(`^job-[a-f0-9]{8}$`, jobStatus.ProviderJobID); !m {
+		t.Errorf("Elastic Transcoder: invalid id returned - %q", jobStatus.ProviderJobID)
+	}
+	if jobStatus.Status != provider.StatusQueued {
+		t.Errorf("Elastic Transcoder: wrong status returned. Want queued. Got %v", jobStatus.Status)
+	}
+	if jobStatus.ProviderName != Name {
+		t.Errorf("Elastic Transcoder: wrong provider name returned. Want %q. Got %q", Name, jobStatus.ProviderName)
+	}
+
+	if len(fakeTranscoder.jobs) != 1 {
+		t.Fatal("Did not send any job request to the server.")
+	}
+	jobInput := fakeTranscoder.jobs[jobStatus.ProviderJobID]
+
+	expectedJobInput := elastictranscoder.CreateJobInput{
+		PipelineId: aws.String("mypipeline"),
+		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
+		Outputs: []*elastictranscoder.CreateJobOutput{
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/file/hls_360p/video.m3u8"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/file/hls_480p/video.m3u8"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0003"), Key: aws.String("dir/file/hls_720p/video.m3u8"), SegmentDuration: aws.String("3")},
+		},
+		Playlists: []*elastictranscoder.CreateJobPlaylist{
+			{
+				Format: aws.String("HLSv3"),
+				Name:   aws.String("dir/file/master.m3u8"),
+				OutputKeys: []*string{
+					aws.String("dir/file/hls_360p/video.m3u8"),
+					aws.String("dir/file/hls_480p/video.m3u8"),
+					aws.String("dir/file/hls_720p/video.m3u8"),
+				},
+			},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
