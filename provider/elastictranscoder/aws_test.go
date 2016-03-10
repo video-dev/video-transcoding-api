@@ -155,6 +155,7 @@ func TestAWSTranscode(t *testing.T) {
 				Name:    "93239832-0003",
 				"other": "irrelevant",
 			},
+			OutputOpts: db.OutputOptions{Extension: "mov"},
 		},
 	}
 
