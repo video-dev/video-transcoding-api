@@ -1,20 +1,65 @@
 # See: https://github.com/drone/drone/blob/v0.4.0/docs/build/README.md
 
+debug: true
+
+compose:
+  cache:
+    image: redis
 build:
-  debug: true
-  image: balser/go-buildbox:1.5
-  environment:
-    - GOROOT=/usr/local/go
-    - GOPATH=/var/cache/drone
-  commands:
-    - export PATH="$GOROOT/bin:$GOPATH/bin:/tmp/np/bin"
-    - go get -t
-    - go build
-    - go test -v -cover ./...
-    - export BUILD="$CI_BUILD_NUMBER-$(git rev-parse --short HEAD)"
-    - "curl -H \"Authorization: token $GITHUB_TOKEN\" -L $DEPLOYER > deploy.tar.gz"
-    - mkdir -p /tmp/deploy
-    - tar xzf deploy.tar.gz --strip-components=1 -C /tmp/deploy
-    - cd /tmp/deploy
-    - bin/np build transcoding-api#$BUILD
-    - bin/np deploy transcoding-api:dev#$BUILD
+  tests:
+    image: balser/go-buildbox:1.5
+    environment:
+      - GOROOT=/usr/local/go
+      - GOPATH=/drone
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
+    commands:
+      - yum install -y redis
+      - go get -t
+      - go build
+      - go test -cover ./...
+  deploy:
+    image: balser/go-buildbox:1.5
+    environment:
+      - GOROOT=/usr/local/go
+      - GOPATH=/drone
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
+      - INFRA_REPO=$$INFRA_REPO
+      - NP_SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
+      - NP_PATH=$$NP_PATH
+      - PACKER_VPC_ID=$$NP_PACKER_VPC_ID
+      - PACKER_SUBNET_ID=$$NP_PACKER_SUBNET_ID
+      - S3_VARS_BUCKET=$$NP_S3_VARS_BUCKET
+      - S3_STATE_BUCKET=$$NP_S3_STATE_BUCKET
+      - AWS_DEFAULT_REGION=$$NP_AWS_DEFAULT_REGION
+      - AWS_ACCESS_KEY_ID=$$NP_AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$$NP_AWS_SECRET_ACCESS_KEY
+      - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
+    commands:
+      - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
+      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$NP_SCRIPT_LOCATION > /tmp/np
+      - /usr/bin/python /tmp/np build transcoding-api#$(git rev-parse --short HEAD)
+      - /usr/bin/python /tmp/np deploy transcoding-api:dev#$(git rev-parse --short HEAD)
+    when:
+      branch: master
+      event: push
+  make_live:
+    image: balser/go-buildbox:1.5
+    environment:
+      - INFRA_REPO=$$INFRA_REPO
+      - NP_SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
+      - NP_PATH=$$NP_PATH
+      - PACKER_VPC_ID=$$NP_PACKER_VPC_ID
+      - PACKER_SUBNET_ID=$$NP_PACKER_SUBNET_ID
+      - S3_VARS_BUCKET=$$NP_S3_VARS_BUCKET
+      - S3_STATE_BUCKET=$$NP_S3_STATE_BUCKET
+      - AWS_DEFAULT_REGION=$$NP_AWS_DEFAULT_REGION
+      - AWS_ACCESS_KEY_ID=$$NP_AWS_ACCESS_KEY_ID
+      - AWS_SECRET_ACCESS_KEY=$$NP_AWS_SECRET_ACCESS_KEY
+      - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
+    commands:
+      - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
+      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$NP_SCRIPT_LOCATION > /tmp/np
+      - /usr/bin/python /tmp/np deploy transcoding-api:stg#$(git rev-parse --short HEAD)
+      - /usr/bin/python /tmp/np deploy transcoding-api:prd#$(git rev-parse --short HEAD)
+    when:
+      event: tag
