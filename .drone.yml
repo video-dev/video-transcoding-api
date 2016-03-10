@@ -35,6 +35,7 @@ build:
       - AWS_SECRET_ACCESS_KEY=$$NP_AWS_SECRET_ACCESS_KEY
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
+      - printenv
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
       - /usr/bin/python /tmp/np build transcoding-api#$(git rev-parse --short HEAD)
