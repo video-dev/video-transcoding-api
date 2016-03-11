@@ -2,3 +2,4 @@ access.log
 app.log
 video-transcoding-api
 generate-readme
+secrets.yml
