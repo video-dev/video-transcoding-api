@@ -21,6 +21,8 @@ type newTranscodeJobInput struct {
 
 		// provider to use in this job
 		Provider string
+
+		Adaptivestreaming bool
 	}
 }
 

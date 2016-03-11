@@ -51,6 +51,11 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 			SegmentDuration: 3,
 		},
 	}
+
+	if input.Payload.Adaptivestreaming {
+		transcodeProfile.StreamingParams.Protocol = "hls"
+	}
+
 	jobStatus, err := providerObj.Transcode(transcodeProfile)
 	if err == provider.ErrPresetNotFound {
 		return newInvalidJobResponse(err)
