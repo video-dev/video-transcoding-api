@@ -64,3 +64,5 @@ build:
 notify:
   slack:
     webhook_url: $$SLACK_WEBHOOK_URL
+    username: $$SLACK_USERNAME
+    channel: $$SLACK_CHANNEL
