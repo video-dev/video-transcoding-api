@@ -37,7 +37,7 @@ build:
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
-      - /usr/bin/python /tmp/np build transcoding-api:dev#$${COMMIT:0:7}-$CI_BUILD_NUMBER-$HOSTNAME;/usr/bin/python /tmp/np deploy transcoding-api:dev#$${COMMIT:0:7}-$CI_BUILD_NUMBER-$HOSTNAME
+      - /usr/bin/python /tmp/np build transcoding-api:dev#$${COMMIT:0:7};/usr/bin/python /tmp/np deploy transcoding-api:dev#$${COMMIT:0:7}
     when:
       branch: master
       event: push
@@ -58,6 +58,9 @@ build:
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
-      - /usr/bin/python /tmp/np deploy transcoding-api:stg#$${COMMIT:0:7}-$CI_BUILD_NUMBER-$HOSTNAME;/usr/bin/python /tmp/np deploy transcoding-api:prd#$${COMMIT:0:7}-$CI_BUILD_NUMBER-$HOSTNAME
+      - /usr/bin/python /tmp/np deploy transcoding-api:stg#$${COMMIT:0:7};/usr/bin/python /tmp/np deploy transcoding-api:prd#$${COMMIT:0:7}
     when:
       event: tag
+notify:
+  slack:
+    webhook_url: $$SLACK_WEBHOOK_URL
