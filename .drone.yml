@@ -17,6 +17,8 @@ build:
       - go get -t
       - go build
       - go test -cover ./...
+    when:
+      event: "!tag"
   deploy:
     image: balser/go-buildbox:1.5
     environment:
