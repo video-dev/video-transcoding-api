@@ -21,11 +21,26 @@ type Job struct {
 	// required: true
 	ProviderJobID string `redis-hash:"providerJobID" json:"providerJobId"`
 
-	// boolean flag that denotes an adaptive streaming job.
+	// configuration for adaptive streaming jobs
 	// Defaults to false.
 	//
 	// required: false
-	AdaptiveStreaming bool `redis-hash:"adaptiveStreaming" json:"adaptiveStreaming"`
+	StreamingParams StreamingParams `redis-hash:"streamingparams,expand" json:"streamingParams,omitempty"`
+}
+
+// StreamingParams represents the params necessary to create Adaptive Streaming jobs
+//
+// swagger:model
+type StreamingParams struct {
+	// duration of the segment
+	//
+	// required: true
+	SegmentDuration string `redis-hash:"segmentDuration" json:"segmentDuration"`
+
+	// the protocol name (hls or dash)
+	//
+	// required: true
+	Protocol string `redis-hash:"protocol" json:"protocol"`
 }
 
 // Preset represents the preset that is persisted in the repository of the
