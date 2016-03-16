@@ -14,9 +14,7 @@ build:
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
     commands:
       - yum install -y redis
-      - go get -t
-      - go build
-      - go test -cover ./...
+      - make test
     when:
       event: "!tag"
   deploy:
