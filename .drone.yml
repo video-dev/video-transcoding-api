@@ -14,7 +14,7 @@ build:
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
     commands:
       - yum install -y redis
-      - make swagger test
+      - make testdeps swagger test
     when:
       event: [push, pull_request]
   deploy:
