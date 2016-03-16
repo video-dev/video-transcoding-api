@@ -14,15 +14,16 @@ type newTranscodeJobInput struct {
 	// required: true
 	Payload struct {
 		// source media for the transcoding job.
-		Source string
+		Source string `json:"source"`
 
 		// presets to use in the transcoding job.
-		Presets []string
+		Presets []string `json:"presets"`
 
 		// provider to use in this job
-		Provider string
+		Provider string `json:"provider"`
 
-		Adaptivestreaming bool
+		// provider Adaptive Streaming parameters
+		StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
 	}
 }
 

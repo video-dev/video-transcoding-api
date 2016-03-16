@@ -3,6 +3,7 @@ package service
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/nytm/video-transcoding-api/db"
@@ -32,7 +33,6 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		}
 		return newErrorResponse(formattedErr)
 	}
-
 	presets := make([]db.Preset, len(input.Payload.Presets))
 	for i, presetID := range input.Payload.Presets {
 		preset, err := s.db.GetPreset(presetID)
@@ -45,17 +45,10 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		presets[i] = *preset
 	}
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia: input.Payload.Source,
-		Presets:     presets,
-		StreamingParams: provider.StreamingParams{
-			SegmentDuration: 3,
-		},
+		SourceMedia:     input.Payload.Source,
+		Presets:         presets,
+		StreamingParams: input.Payload.StreamingParams,
 	}
-
-	if input.Payload.Adaptivestreaming {
-		transcodeProfile.StreamingParams.Protocol = "hls"
-	}
-
 	jobStatus, err := providerObj.Transcode(transcodeProfile)
 	if err == provider.ErrPresetNotFound {
 		return newInvalidJobResponse(err)
@@ -65,8 +58,14 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		return newErrorResponse(providerError)
 	}
 	jobStatus.ProviderName = input.Payload.Provider
-
 	job := db.Job{ProviderName: jobStatus.ProviderName, ProviderJobID: jobStatus.ProviderJobID}
+
+	if transcodeProfile.StreamingParams.Protocol != "" {
+		job.StreamingParams = db.StreamingParams{
+			SegmentDuration: strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)),
+			Protocol:        transcodeProfile.StreamingParams.Protocol,
+		}
+	}
 	err = s.db.CreateJob(&job)
 	if err != nil {
 		return newErrorResponse(err)
