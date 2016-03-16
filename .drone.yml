@@ -16,7 +16,7 @@ build:
       - yum install -y redis
       - make test
     when:
-      event: "!tag"
+      event: [push, pull_request]
   deploy:
     image: balser/go-buildbox:1.5
     environment:
