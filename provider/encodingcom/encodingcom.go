@@ -85,11 +85,9 @@ func (e *encodingComProvider) presetsToFormats(transcodeProfile provider.Transco
 			return nil, provider.ErrPresetNotFound
 		}
 		format := encodingcom.Format{
-			Output:      []string{presetName},
-			Destination: e.getDestinations(transcodeProfile.SourceMedia, preset),
-		}
-		if transcodeProfile.StreamingParams.SegmentDuration != 0 {
-			format.SegmentDuration = transcodeProfile.StreamingParams.SegmentDuration
+			Output:          []string{presetName},
+			Destination:     e.getDestinations(transcodeProfile.SourceMedia, preset),
+			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 		}
 		formats = append(formats, format)
 	}
