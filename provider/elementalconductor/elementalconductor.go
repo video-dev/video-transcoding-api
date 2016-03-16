@@ -33,7 +33,6 @@ const Name = "elementalconductor"
 
 const defaultJobPriority = 50
 const defaultOutputGroupOrder = 1
-const defaultContainer = elementalconductor.MPEG4
 
 var errElementalConductorInvalidConfig = provider.InvalidConfigError("missing Elemental user login or api key. Please define the environment variables ELEMENTALCONDUCTOR_USER_LOGIN and ELEMENTALCONDUCTOR_API_KEY or set these values in the configuration file")
 
@@ -120,7 +119,6 @@ func (p *elementalConductorProvider) buildFullDestination(source string) string 
 func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
 	var outputList []elementalconductor.Output
 	var streamAssemblyList []elementalconductor.StreamAssembly
-	var adaptiveStreaming bool
 	var outputGroup elementalconductor.OutputGroup
 	for index, preset := range transcodeProfile.Presets {
 		indexString := strconv.Itoa(index)
@@ -130,15 +128,14 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 			NameModifier:       "_" + preset.Name,
 			Order:              index,
 		}
-		switch ext := strings.TrimLeft(preset.OutputOpts.Extension, "."); ext {
-		case "ts", "hls", "m3u8":
-			adaptiveStreaming = true
+
+		if transcodeProfile.StreamingParams.Protocol == "hls" {
 			output.Container = elementalconductor.AppleHTTPLiveStreaming
-		case "":
-			output.Container = defaultContainer
-		default:
+		} else {
+			ext := strings.TrimLeft(preset.OutputOpts.Extension, ".")
 			output.Container = elementalconductor.Container(ext)
 		}
+
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
 			return outputGroup, nil, provider.ErrPresetNotFound
@@ -150,7 +147,7 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 		outputList = append(outputList, output)
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
-	if adaptiveStreaming {
+	if transcodeProfile.StreamingParams.Protocol == "hls" {
 		outputGroup = elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
 			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{

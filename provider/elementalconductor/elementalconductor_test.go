@@ -168,7 +168,7 @@ func TestElementalNewJob(t *testing.T) {
 					StreamAssemblyName: "stream_2",
 					NameModifier:       "_mp4_1080p",
 					Order:              2,
-					Container:          defaultContainer,
+					Container:          "",
 				},
 			},
 		},
@@ -239,6 +239,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 		SourceMedia: source,
 		Presets:     presets,
 		StreamingParams: provider.StreamingParams{
+			Protocol:        "hls",
 			SegmentDuration: 3,
 		},
 	}

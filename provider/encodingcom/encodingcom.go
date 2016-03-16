@@ -88,7 +88,7 @@ func (e *encodingComProvider) presetsToFormats(transcodeProfile provider.Transco
 			Output:      []string{presetName},
 			Destination: e.getDestinations(transcodeProfile.SourceMedia, preset),
 		}
-		if preset.OutputOpts.Extension == "m3u8" {
+		if transcodeProfile.StreamingParams.SegmentDuration != uint(0) {
 			format.SegmentDuration = transcodeProfile.StreamingParams.SegmentDuration
 		}
 		formats = append(formats, format)

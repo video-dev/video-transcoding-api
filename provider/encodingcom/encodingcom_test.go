@@ -121,6 +121,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		SourceMedia: source,
 		Presets:     presets,
 		StreamingParams: provider.StreamingParams{
+			Protocol:        "hls",
 			SegmentDuration: 3,
 		},
 	}
@@ -142,16 +143,19 @@ func TestEncodingComTranscode(t *testing.T) {
 	dest := prov.config.EncodingCom.Destination
 	expectedFormats := []encodingcom.Format{
 		{
-			Output:      []string{"123455"},
-			Destination: []string{dest + "webm_720p/video.webm"},
+			Output:          []string{"123455"},
+			Destination:     []string{dest + "webm_720p/video.webm"},
+			SegmentDuration: 3,
 		},
 		{
-			Output:      []string{"123456"},
-			Destination: []string{dest + "webm_480p/video.webm"},
+			Output:          []string{"123456"},
+			Destination:     []string{dest + "webm_480p/video.webm"},
+			SegmentDuration: 3,
 		},
 		{
-			Output:      []string{"321321"},
-			Destination: []string{dest + "mp4_1080p/video.mp4"},
+			Output:          []string{"321321"},
+			Destination:     []string{dest + "mp4_1080p/video.mp4"},
+			SegmentDuration: 3,
 		},
 		{
 			Output:          []string{"321322"},
