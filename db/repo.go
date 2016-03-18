@@ -38,7 +38,7 @@ type JobRepository interface {
 // JobRepository.
 type JobFilter struct {
 	// Filter jobs since the given time.
-	Since *time.Time
+	Since time.Time
 
 	// Limit the number of jobs in the result. 0 means no limit.
 	Limit uint
