@@ -21,7 +21,12 @@ func TestCreateJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	job := db.Job{ProviderName: "encoding.com", StreamingParams: db.StreamingParams{SegmentDuration: "10", Protocol: "hls"}}
+	job := db.Job{
+		ProviderName:           "encoding.com",
+		StreamingParams:        db.StreamingParams{SegmentDuration: "10", Protocol: "hls"},
+		StatusCallbackURL:      "http://callme",
+		StatusCallbackInterval: "5",
+	}
 	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
@@ -40,6 +45,8 @@ func TestCreateJob(t *testing.T) {
 		"providerJobID":                   "",
 		"streamingparams_segmentDuration": "10",
 		"streamingparams_protocol":        "hls",
+		"statusCallbackURL":               "http://callme",
+		"statusCallbackInterval":          "5",
 	}
 	if !reflect.DeepEqual(items, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
@@ -73,6 +80,8 @@ func TestCreateJobPredefinedID(t *testing.T) {
 		"providerJobID":                   "",
 		"streamingparams_segmentDuration": "",
 		"streamingparams_protocol":        "",
+		"statusCallbackURL":               "",
+		"statusCallbackInterval":          "",
 	}
 
 	if !reflect.DeepEqual(items, expected) {

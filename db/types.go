@@ -26,6 +26,16 @@ type Job struct {
 	//
 	// required: false
 	StreamingParams StreamingParams `redis-hash:"streamingparams,expand" json:"streamingParams,omitempty"`
+
+	// URL to send status payload as job runs
+	//
+	// required: false
+	StatusCallbackURL string `redis-hash:"statusCallbackURL" json:"statusCallbackURL"`
+
+	// Interval at which to send status payload as job runs to StatusCallbackURL
+	//
+	// required: false
+	StatusCallbackInterval string `redis-hash:"statusCallbackInterval" json:"statusCallbackInterval"`
 }
 
 // StreamingParams represents the params necessary to create Adaptive Streaming jobs

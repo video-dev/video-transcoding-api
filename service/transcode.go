@@ -59,12 +59,15 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	}
 	jobStatus.ProviderName = input.Payload.Provider
 	job := db.Job{ProviderName: jobStatus.ProviderName, ProviderJobID: jobStatus.ProviderJobID}
-
 	if transcodeProfile.StreamingParams.Protocol != "" {
 		job.StreamingParams = db.StreamingParams{
 			SegmentDuration: strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)),
 			Protocol:        transcodeProfile.StreamingParams.Protocol,
 		}
+	}
+	if input.Payload.StatusCallbackURL != "" {
+		job.StatusCallbackURL = input.Payload.StatusCallbackURL
+		job.StatusCallbackInterval = strconv.Itoa(int(input.Payload.StatusCallbackInterval))
 	}
 	err = s.db.CreateJob(&job)
 	if err != nil {
