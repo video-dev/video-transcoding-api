@@ -60,6 +60,14 @@ func TestCreateJob(t *testing.T) {
 	if !reflect.DeepEqual(items, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
 	}
+	setEntries, err := client.ZRange(jobsSetKey, 0, -1).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedSetEntries := []string{"job:" + job.ID}
+	if !reflect.DeepEqual(setEntries, expectedSetEntries) {
+		t.Errorf("Wrong job set returned from Redis. Want %#v. Got %#v.", expectedSetEntries, setEntries)
+	}
 }
 
 func TestCreateJobPredefinedID(t *testing.T) {
