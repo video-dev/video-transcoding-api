@@ -1,7 +1,5 @@
 # See: https://github.com/drone/drone/blob/v0.4.0/docs/build/README.md
 
-debug: true
-
 compose:
   cache:
     image: redis
