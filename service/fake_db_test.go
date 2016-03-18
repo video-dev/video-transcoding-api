@@ -52,6 +52,17 @@ func (d *fakeDB) GetJob(id string) (*db.Job, error) {
 	return nil, db.ErrJobNotFound
 }
 
+func (d *fakeDB) ListJobs(db.JobFilter) ([]db.Job, error) {
+	if d.triggerDBError {
+		return nil, errors.New("database error")
+	}
+	jobs := make([]db.Job, 0, len(d.jobs))
+	for _, job := range d.jobs {
+		jobs = append(jobs, *job)
+	}
+	return jobs, nil
+}
+
 func (d *fakeDB) CreatePreset(preset *db.Preset) error {
 	if d.triggerDBError {
 		return errors.New("database error")
