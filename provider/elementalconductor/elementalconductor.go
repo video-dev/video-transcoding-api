@@ -50,7 +50,7 @@ func (p *elementalConductorProvider) Transcode(transcodeProfile provider.Transco
 	if err != nil {
 		return nil, err
 	}
-	resp, err := p.client.PostJob(newJob)
+	resp, err := p.client.CreateJob(newJob)
 	if err != nil {
 		return nil, err
 	}
