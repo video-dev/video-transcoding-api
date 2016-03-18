@@ -4,14 +4,17 @@ type Person struct {
 	ID               string  `redis-hash:"-"`
 	Name             string  `redis-hash:"name"`
 	Address          Address `redis-hash:"address,expand"`
+	Age              uint    `redis-hash:"age"`
 	NonTagged        string
 	unexported       string
 	unexportedTagged string `redis-hash:"unexported"`
 }
 
 type Address struct {
-	Data map[string]string `redis-hash:"data,expand"`
-	City *City             `redis-hash:"city,expand"`
+	Data   map[string]string `redis-hash:"data,expand"`
+	Number int               `redis-hash:"number"`
+	Main   bool              `redis-hash:"main"`
+	City   *City             `redis-hash:"city,expand"`
 }
 
 type City struct {

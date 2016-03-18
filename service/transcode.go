@@ -3,7 +3,6 @@ package service
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 	"github.com/nytm/video-transcoding-api/db"
@@ -62,11 +61,11 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		ProviderName:           jobStatus.ProviderName,
 		ProviderJobID:          jobStatus.ProviderJobID,
 		StatusCallbackURL:      input.Payload.StatusCallbackURL,
-		StatusCallbackInterval: strconv.Itoa(int(input.Payload.StatusCallbackInterval)),
+		StatusCallbackInterval: input.Payload.StatusCallbackInterval,
 	}
 	if transcodeProfile.StreamingParams.Protocol != "" {
 		job.StreamingParams = db.StreamingParams{
-			SegmentDuration: strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)),
+			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			Protocol:        transcodeProfile.StreamingParams.Protocol,
 		}
 	}

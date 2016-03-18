@@ -35,7 +35,7 @@ type Job struct {
 	// Interval at which to send status payload as job runs to StatusCallbackURL
 	//
 	// required: false
-	StatusCallbackInterval string `redis-hash:"statusCallbackInterval" json:"statusCallbackInterval"`
+	StatusCallbackInterval uint `redis-hash:"statusCallbackInterval" json:"statusCallbackInterval"`
 }
 
 // StreamingParams represents the params necessary to create Adaptive Streaming jobs
@@ -45,7 +45,7 @@ type StreamingParams struct {
 	// duration of the segment
 	//
 	// required: true
-	SegmentDuration string `redis-hash:"segmentDuration" json:"segmentDuration"`
+	SegmentDuration uint `redis-hash:"segmentDuration" json:"segmentDuration"`
 
 	// the protocol name (hls or dash)
 	//

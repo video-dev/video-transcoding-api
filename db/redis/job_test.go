@@ -23,9 +23,9 @@ func TestCreateJob(t *testing.T) {
 	}
 	job := db.Job{
 		ProviderName:           "encoding.com",
-		StreamingParams:        db.StreamingParams{SegmentDuration: "10", Protocol: "hls"},
+		StreamingParams:        db.StreamingParams{SegmentDuration: 10, Protocol: "hls"},
 		StatusCallbackURL:      "http://callme",
-		StatusCallbackInterval: "5",
+		StatusCallbackInterval: 5,
 	}
 	err = repo.CreateJob(&job)
 	if err != nil {
@@ -78,10 +78,10 @@ func TestCreateJobPredefinedID(t *testing.T) {
 	expected := map[string]string{
 		"providerName":                    "encoding.com",
 		"providerJobID":                   "",
-		"streamingparams_segmentDuration": "",
+		"streamingparams_segmentDuration": "0",
 		"streamingparams_protocol":        "",
 		"statusCallbackURL":               "",
-		"statusCallbackInterval":          "",
+		"statusCallbackInterval":          "0",
 	}
 
 	if !reflect.DeepEqual(items, expected) {

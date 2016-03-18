@@ -144,7 +144,7 @@ func TestGetTranscodeJob(t *testing.T) {
 		givenURI             string
 		givenTriggerDBError  bool
 		givenProtocol        string
-		givenSegmentDuration string
+		givenSegmentDuration uint
 
 		wantCode int
 		wantBody interface{}
@@ -154,7 +154,7 @@ func TestGetTranscodeJob(t *testing.T) {
 			"/jobs/12345",
 			false,
 			"hls",
-			"5",
+			5,
 			http.StatusOK,
 			map[string]interface{}{
 				"providerJobId": "provider-job-123",
@@ -172,7 +172,7 @@ func TestGetTranscodeJob(t *testing.T) {
 			"/jobs/non_existent_job",
 			false,
 			"",
-			"",
+			0,
 			http.StatusNotFound,
 			map[string]interface{}{"error": "job not found"},
 		},
