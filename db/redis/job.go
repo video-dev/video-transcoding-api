@@ -41,7 +41,11 @@ func (r *redisRepository) saveJob(job *db.Job) error {
 }
 
 func (r *redisRepository) DeleteJob(job *db.Job) error {
-	return r.delete(r.jobKey(job.ID), db.ErrJobNotFound)
+	err := r.delete(r.jobKey(job.ID), db.ErrJobNotFound)
+	if err != nil {
+		return err
+	}
+	return r.redisClient().ZRem(jobsSetKey, job.ID).Err()
 }
 
 func (r *redisRepository) GetJob(id string) (*db.Job, error) {

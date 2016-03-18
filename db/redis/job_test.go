@@ -156,9 +156,13 @@ func TestDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	client := repo.(*redisRepository).redisClient()
-	result := client.HGetAllMap("job:myjob")
-	if len(result.Val()) != 0 {
-		t.Errorf("Unexpected value after delete call: %v", result.Val())
+	hGetResult := client.HGetAllMap("job:myjob")
+	if len(hGetResult.Val()) != 0 {
+		t.Errorf("Unexpected value after delete call: %v", hGetResult.Val())
+	}
+	zRangeResult := client.ZRange(jobsSetKey, 0, -1)
+	if len(zRangeResult.Val()) != 0 {
+		t.Errorf("Unexpected value after delete call: %v", zRangeResult.Val())
 	}
 }
 
