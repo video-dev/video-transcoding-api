@@ -1,10 +1,13 @@
 package redis
 
+import "time"
+
 type Person struct {
-	ID               string  `redis-hash:"-"`
-	Name             string  `redis-hash:"name"`
-	Address          Address `redis-hash:"address,expand"`
-	Age              uint    `redis-hash:"age"`
+	ID               string    `redis-hash:"-"`
+	Name             string    `redis-hash:"name"`
+	Address          Address   `redis-hash:"address,expand"`
+	Age              uint      `redis-hash:"age"`
+	BirthTime        time.Time `redis-hash:"birth"`
 	NonTagged        string
 	unexported       string
 	unexportedTagged string `redis-hash:"unexported"`
