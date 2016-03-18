@@ -1,6 +1,10 @@
 package redis
 
-import "github.com/nytm/video-transcoding-api/db"
+import (
+	"time"
+
+	"github.com/nytm/video-transcoding-api/db"
+)
 
 func (r *redisRepository) CreateJob(job *db.Job) error {
 	if job.ID == "" {
@@ -10,6 +14,7 @@ func (r *redisRepository) CreateJob(job *db.Job) error {
 		}
 		job.ID = jobID
 	}
+	job.CreationTime = time.Now().In(time.UTC)
 	return r.save(r.jobKey(job.ID), job)
 }
 

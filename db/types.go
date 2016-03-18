@@ -1,5 +1,7 @@
 package db
 
+import "time"
+
 // Job represents the job that is persisted in the repository of the Transcoding
 // API.
 //
@@ -36,6 +38,11 @@ type Job struct {
 	//
 	// required: false
 	StatusCallbackInterval uint `redis-hash:"statusCallbackInterval" json:"statusCallbackInterval"`
+
+	// Time of the creation of the job in the API
+	//
+	// required: true
+	CreationTime time.Time `redis-hash:"creationTime" json:"creationTime"`
 }
 
 // StreamingParams represents the params necessary to create Adaptive Streaming jobs

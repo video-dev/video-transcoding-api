@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
@@ -34,6 +35,13 @@ func TestCreateJob(t *testing.T) {
 	if job.ID == "" {
 		t.Fatal("Job ID should have been generated on CreateJob")
 	}
+	creationTime := job.CreationTime
+	if creationTime.IsZero() {
+		t.Error("Should set the creation time of the job, but did not")
+	}
+	if creationTime.Location() != time.UTC {
+		t.Errorf("Wrong location for creationTime. Want UTC. Got %#v", creationTime.Location())
+	}
 	client := repo.(*redisRepository).redisClient()
 	defer client.Close()
 	items, err := client.HGetAllMap("job:" + job.ID).Result()
@@ -47,6 +55,7 @@ func TestCreateJob(t *testing.T) {
 		"streamingparams_protocol":        "hls",
 		"statusCallbackURL":               "http://callme",
 		"statusCallbackInterval":          "5",
+		"creationTime":                    creationTime.Format(time.RFC3339Nano),
 	}
 	if !reflect.DeepEqual(items, expected) {
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
@@ -82,6 +91,7 @@ func TestCreateJobPredefinedID(t *testing.T) {
 		"streamingparams_protocol":        "",
 		"statusCallbackURL":               "",
 		"statusCallbackInterval":          "0",
+		"creationTime":                    job.CreationTime.Format(time.RFC3339Nano),
 	}
 
 	if !reflect.DeepEqual(items, expected) {
