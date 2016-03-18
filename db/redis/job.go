@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/nytm/video-transcoding-api/db"
@@ -18,6 +19,10 @@ func (r *redisRepository) CreateJob(job *db.Job) error {
 		job.ID = jobID
 	}
 	job.CreationTime = time.Now().In(time.UTC)
+	return r.saveJob(job)
+}
+
+func (r *redisRepository) saveJob(job *db.Job) error {
 	fields, err := r.fieldList(job)
 	if err != nil {
 		return err
@@ -29,7 +34,7 @@ func (r *redisRepository) CreateJob(job *db.Job) error {
 	}
 	_, err = multi.Exec(func() error {
 		multi.HMSet(jobKey, fields[0], fields[1], fields[2:]...)
-		multi.ZAddNX(jobsSetKey, redis.Z{Member: jobKey, Score: float64(job.CreationTime.UnixNano())})
+		multi.ZAddNX(jobsSetKey, redis.Z{Member: job.ID, Score: float64(job.CreationTime.UnixNano())})
 		return nil
 	})
 	return err
@@ -49,7 +54,32 @@ func (r *redisRepository) GetJob(id string) (*db.Job, error) {
 }
 
 func (r *redisRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
-	return nil, nil
+	now := time.Now().In(time.UTC)
+	rangeOpts := redis.ZRangeByScore{
+		Max:   strconv.FormatInt(now.UnixNano(), 10),
+		Count: int64(filter.Limit),
+	}
+	if rangeOpts.Count == 0 {
+		rangeOpts.Count = -1
+	}
+	if !filter.Since.IsZero() {
+		rangeOpts.Min = strconv.FormatInt(filter.Since.UnixNano(), 10)
+	}
+	jobIDs, err := r.client.ZRangeByScore(jobsSetKey, rangeOpts).Result()
+	if err != nil {
+		return nil, err
+	}
+	jobs := make([]db.Job, 0, len(jobIDs))
+	for _, id := range jobIDs {
+		job, err := r.GetJob(id)
+		if err != nil && err != db.ErrJobNotFound {
+			return nil, err
+		}
+		if job != nil {
+			jobs = append(jobs, *job)
+		}
+	}
+	return jobs, nil
 }
 
 func (r *redisRepository) jobKey(id string) string {
