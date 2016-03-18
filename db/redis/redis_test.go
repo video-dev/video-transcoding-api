@@ -84,9 +84,11 @@ func TestSave(t *testing.T) {
 	person := Person{
 		ID:   "some-id",
 		Name: "gopher",
+		Age:  29,
 		Address: Address{
-			Data: map[string]string{"first_line": "secret"},
-			City: &City{Name: "nyc"},
+			Data:   map[string]string{"first_line": "secret"},
+			Number: -2,
+			City:   &City{Name: "nyc"},
 		},
 		NonTagged:        "not relevant",
 		unexported:       "not relevant",
@@ -112,8 +114,11 @@ func TestSave(t *testing.T) {
 	}
 	expected := map[string]string{
 		"name":                    "gopher",
+		"age":                     "29",
 		"address_city_name":       "nyc",
 		"address_data_first_line": "secret",
+		"address_number":          "-2",
+		"address_main":            "false",
 	}
 	if !reflect.DeepEqual(data, expected) {
 		t.Errorf("Did not save properly. Want %#v. Got %#v", expected, data)
@@ -124,9 +129,11 @@ func TestSavePointer(t *testing.T) {
 	person := Person{
 		ID:   "some-id",
 		Name: "gopher",
+		Age:  29,
 		Address: Address{
-			Data: map[string]string{"first_line": "secret"},
-			City: &City{Name: "nyc"},
+			Data:   map[string]string{"first_line": "secret"},
+			Number: -2,
+			City:   &City{Name: "nyc"},
 		},
 		NonTagged:        "not relevant",
 		unexported:       "not relevant",
@@ -152,8 +159,11 @@ func TestSavePointer(t *testing.T) {
 	}
 	expected := map[string]string{
 		"name":                    "gopher",
+		"age":                     "29",
 		"address_city_name":       "nyc",
 		"address_data_first_line": "secret",
+		"address_number":          "-2",
+		"address_main":            "false",
 	}
 	if !reflect.DeepEqual(data, expected) {
 		t.Errorf("Did not save properly. Want %#v. Got %#v", expected, data)
@@ -243,7 +253,13 @@ func TestLoadStruct(t *testing.T) {
 	redisRepo := repo.(*redisRepository)
 	client := redisRepo.redisClient()
 	defer client.Close()
-	err = redisRepo.save("test-key", map[string]string{"name": "Gopher", "address_city_name": "New York"})
+	err = redisRepo.save("test-key", map[string]string{
+		"name":              "Gopher",
+		"age":               "29",
+		"address_number":    "-2",
+		"address_main":      "true",
+		"address_city_name": "New York",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -255,7 +271,10 @@ func TestLoadStruct(t *testing.T) {
 	}
 	expectedPerson := person
 	expectedPerson.Address.City = &City{Name: "New York"}
+	expectedPerson.Address.Main = true
+	expectedPerson.Address.Number = -2
 	expectedPerson.Name = "Gopher"
+	expectedPerson.Age = 29
 	err = redisRepo.load("test-key", &person)
 	if err != nil {
 		t.Fatal(err)

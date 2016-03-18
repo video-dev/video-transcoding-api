@@ -198,13 +198,26 @@ func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value, pr
 		} else {
 			key := strings.Join(append(prefixes, parts[0]), "_")
 			if value, ok := in[key]; ok {
-				if fieldValue.Kind() == reflect.Bool {
+				switch fieldValue.Kind() {
+				case reflect.Bool:
 					boolValue, err := strconv.ParseBool(value)
 					if err != nil {
 						return err
 					}
 					fieldValue.SetBool(boolValue)
-				} else {
+				case reflect.Int:
+					intValue, err := strconv.ParseInt(value, 10, 64)
+					if err != nil {
+						return err
+					}
+					fieldValue.SetInt(intValue)
+				case reflect.Uint:
+					uintValue, err := strconv.ParseUint(value, 10, 64)
+					if err != nil {
+						return err
+					}
+					fieldValue.SetUint(uintValue)
+				default:
 					fieldValue.SetString(value)
 				}
 			}
