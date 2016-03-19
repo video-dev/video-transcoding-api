@@ -415,9 +415,8 @@ func waitListening(maxTries int, addrs ...string) {
 				if conn, err := net.Dial("tcp", addr); err == nil {
 					conn.Close()
 					return
-				} else {
-					time.Sleep(10e6)
 				}
+				time.Sleep(10e6)
 			}
 		}(addr)
 	}
