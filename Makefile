@@ -19,7 +19,7 @@ deadcode:
 
 lint: testdeps
 	go get github.com/golang/lint/golint
-	@for file in $$(find . -name '*.go' | grep -v '_test'); do \
+	@for file in $$(git ls-files '*.go'); do \
 		export output="$$(golint $${file})"; \
 		[ -n "$${output}" ] && echo "$${output}" && export status=1; \
 	done; \
