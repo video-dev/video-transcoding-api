@@ -60,14 +60,12 @@ func (r *redisRepository) GetJob(id string) (*db.Job, error) {
 func (r *redisRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
 	now := time.Now().In(time.UTC)
 	rangeOpts := redis.ZRangeByScore{
+		Min:   strconv.FormatInt(filter.Since.UnixNano(), 10),
 		Max:   strconv.FormatInt(now.UnixNano(), 10),
 		Count: int64(filter.Limit),
 	}
 	if rangeOpts.Count == 0 {
 		rangeOpts.Count = -1
-	}
-	if !filter.Since.IsZero() {
-		rangeOpts.Min = strconv.FormatInt(filter.Since.UnixNano(), 10)
 	}
 	jobIDs, err := r.redisClient().ZRangeByScore(jobsSetKey, rangeOpts).Result()
 	if err != nil {
