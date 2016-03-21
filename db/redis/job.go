@@ -69,7 +69,7 @@ func (r *redisRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
 	if !filter.Since.IsZero() {
 		rangeOpts.Min = strconv.FormatInt(filter.Since.UnixNano(), 10)
 	}
-	jobIDs, err := r.client.ZRangeByScore(jobsSetKey, rangeOpts).Result()
+	jobIDs, err := r.redisClient().ZRangeByScore(jobsSetKey, rangeOpts).Result()
 	if err != nil {
 		return nil, err
 	}
