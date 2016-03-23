@@ -5,7 +5,7 @@ compose:
     image: redis
 build:
   tests:
-    image: balser/go-buildbox:1.5
+    image: balser/go-buildbox:1.6
     environment:
       - GOROOT=/usr/local/go
       - GOPATH=/drone
@@ -16,7 +16,7 @@ build:
     when:
       event: [push, pull_request]
   deploy:
-    image: balser/go-buildbox:1.5
+    image: balser/go-buildbox:1.6
     environment:
       - GOROOT=/usr/local/go
       - GOPATH=/drone
@@ -40,7 +40,7 @@ build:
       branch: master
       event: push
   make_live:
-    image: balser/go-buildbox:1.5
+    image: balser/go-buildbox:1.6
     environment:
       - INFRA_REPO=$$NP_INFRA_REPO
       - SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
