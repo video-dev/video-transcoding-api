@@ -21,6 +21,11 @@ type newPresetInput2 struct {
 	Preset    provider.Preset `json:"preset"`
 }
 
+type newPresetOutput struct {
+	Output interface{}
+	Error  string
+}
+
 // Preset loads the input from the request body, validates them and returns the
 // preset.
 func (p *newPresetInput) Preset(body io.Reader) (db.Preset, error) {

@@ -51,6 +51,7 @@ func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	var input newPresetInput2
 	var result interface{}
+	var output = make(map[string]newPresetOutput)
 
 	respData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -64,26 +65,29 @@ func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 
 	for _, p := range input.Providers {
 		providerFactory, err := provider.GetProviderFactory(p)
+		if err != nil {
+			output[p] = newPresetOutput{Output: "", Error: "error getting factory: " + err.Error()}
+			continue
+		}
+		fmt.Println("factory para ", p, providerFactory, s.config)
 		providerObj, err := providerFactory(s.config)
 		if err != nil {
-			return newErrorResponse(fmt.Errorf("error initializing provider %q", p))
+			output[p] = newPresetOutput{Output: "", Error: "error initializing provider: " + err.Error()}
+			continue
 		}
 		result, err = providerObj.CreatePreset(input.Preset)
 		if err != nil {
-			return newErrorResponse(fmt.Errorf("error creating preset on %q: %v", p, err))
+			output[p] = newPresetOutput{Output: "", Error: "error creating preset: " + err.Error()}
+		} else {
+			output[p] = newPresetOutput{Output: result, Error: ""}
 		}
 	}
 
-	switch err {
-	case nil:
-		return &testResponse{
-			baseResponse: baseResponse{
-				payload: result,
-				status:  http.StatusOK,
-			},
-		}
-	default:
-		return newErrorResponse(err)
+	return &testResponse{
+		baseResponse: baseResponse{
+			payload: output,
+			status:  http.StatusOK,
+		},
 	}
 }
 
