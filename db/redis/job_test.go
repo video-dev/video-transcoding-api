@@ -28,6 +28,7 @@ func TestCreateJob(t *testing.T) {
 		StreamingParams:        db.StreamingParams{SegmentDuration: 10, Protocol: "hls"},
 		StatusCallbackURL:      "http://callme",
 		StatusCallbackInterval: 5,
+		CompletionCallbackURL:  "http://callmewhendone",
 	}
 	err = repo.CreateJob(&job)
 	if err != nil {
@@ -56,6 +57,7 @@ func TestCreateJob(t *testing.T) {
 		"streamingparams_protocol":        "hls",
 		"statusCallbackURL":               "http://callme",
 		"statusCallbackInterval":          "5",
+		"completionCallbackURL":           "http://callmewhendone",
 		"creationTime":                    creationTime.Format(time.RFC3339Nano),
 	}
 	if !reflect.DeepEqual(items, expected) {
@@ -100,6 +102,7 @@ func TestCreateJobPredefinedID(t *testing.T) {
 		"streamingparams_protocol":        "",
 		"statusCallbackURL":               "",
 		"statusCallbackInterval":          "0",
+		"completionCallbackURL":           "",
 		"creationTime":                    job.CreationTime.Format(time.RFC3339Nano),
 	}
 

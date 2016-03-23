@@ -39,6 +39,11 @@ type Job struct {
 	// required: false
 	StatusCallbackInterval uint `redis-hash:"statusCallbackInterval" json:"statusCallbackInterval"`
 
+	// URL to send status payload when job is done
+	//
+	// required: false
+	CompletionCallbackURL string `redis-hash:"completionCallbackURL" json:"completionCallbackURL"`
+
 	// Time of the creation of the job in the API
 	//
 	// required: true

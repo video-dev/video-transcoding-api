@@ -8,7 +8,7 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-const defaultStatusCallbackInterval = 2
+const defaultStatusCallbackInterval = 5
 
 // swagger:parameters newJob
 type newTranscodeJobInput struct {
@@ -36,6 +36,12 @@ type newTranscodeJobInput struct {
 		// defines the interval in seconds by which StatusCallbackURL is
 		// called. If not defined, it's set to defaultStatusCallbackInterval.
 		StatusCallbackInterval uint `json:"statusCallbackInterval"`
+
+		// if CompletionCallbackURL is defined, this service will make a POST
+		// request to it when the job is finished. The payload will be the same
+		// as the one returned by a GET call to /jobs/<jobId> after the job is
+		// done.
+		CompletionCallbackURL string `json:"completionCallbackURL"`
 	}
 }
 
