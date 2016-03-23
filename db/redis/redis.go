@@ -116,7 +116,14 @@ func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...str
 		} else {
 			if parts[0] != "" {
 				key := strings.Join(append(prefixes, parts[0]), "_")
-				fields = append(fields, key, fmt.Sprintf("%v", fieldValue.Interface()))
+				var strValue string
+				iface := fieldValue.Interface()
+				if t, ok := iface.(time.Time); ok {
+					strValue = t.Format(time.RFC3339Nano)
+				} else {
+					strValue = fmt.Sprintf("%v", fieldValue.Interface())
+				}
+				fields = append(fields, key, strValue)
 			}
 		}
 	}
@@ -217,6 +224,14 @@ func (r *redisRepository) loadStruct(in map[string]string, out reflect.Value, pr
 						return err
 					}
 					fieldValue.SetUint(uintValue)
+				case reflect.Struct:
+					if reflect.TypeOf(time.Time{}).AssignableTo(fieldValue.Type()) {
+						timeValue, err := time.Parse(time.RFC3339Nano, value)
+						if err != nil {
+							return err
+						}
+						fieldValue.Set(reflect.ValueOf(timeValue))
+					}
 				default:
 					fieldValue.SetString(value)
 				}

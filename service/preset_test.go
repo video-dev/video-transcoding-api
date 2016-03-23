@@ -11,6 +11,7 @@ import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/db/dbtest"
 )
 
 func TestNewPreset(t *testing.T) {
@@ -112,7 +113,7 @@ func TestNewPreset(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDB := newFakeDB(test.givenTriggerDBError)
+		fakeDB := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDB.CreatePreset(&db.Preset{Name: "abc-321"})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
 		body, _ := json.Marshal(test.givenRequestData)
@@ -165,7 +166,7 @@ func TestGetPreset(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDB := newFakeDB(false)
+		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePreset(&db.Preset{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
@@ -232,7 +233,7 @@ func TestUpdatePreset(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDB := newFakeDB(false)
+		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePreset(&db.Preset{
 			Name: "preset-1",
 			ProviderMapping: map[string]string{
@@ -288,7 +289,7 @@ func TestDeletePreset(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDB := newFakeDB(false)
+		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePreset(&db.Preset{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
@@ -358,7 +359,7 @@ func TestListPresets(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDB := newFakeDB(false)
+		fakeDB := dbtest.NewFakeRepository(false)
 		for i := range test.givenPresets {
 			fakeDB.CreatePreset(&test.givenPresets[i])
 		}

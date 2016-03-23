@@ -1,6 +1,9 @@
 package db
 
-import "errors"
+import (
+	"errors"
+	"time"
+)
 
 var (
 	// ErrJobNotFound is the error returned when the job is not found on GetJob or
@@ -28,6 +31,17 @@ type JobRepository interface {
 	CreateJob(*Job) error
 	DeleteJob(*Job) error
 	GetJob(id string) (*Job, error)
+	ListJobs(JobFilter) ([]Job, error)
+}
+
+// JobFilter contains a set of parameters for filtering the list of jobs in
+// JobRepository.
+type JobFilter struct {
+	// Filter jobs since the given time.
+	Since time.Time
+
+	// Limit the number of jobs in the result. 0 means no limit.
+	Limit uint
 }
 
 // PresetRepository is the interface that defines the set of methods for
