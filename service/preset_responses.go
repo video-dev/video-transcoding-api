@@ -16,7 +16,7 @@ type presetMapResponse struct {
 	baseResponse
 }
 
-type newPresetResponse2 struct {
+type newPresetResponse struct {
 	baseResponse
 }
 

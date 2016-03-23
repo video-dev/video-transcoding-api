@@ -167,7 +167,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 		}
 	}
 
-	return &newPresetResponse2{
+	return &newPresetResponse{
 		baseResponse: baseResponse{
 			payload: output,
 			status:  http.StatusOK,
