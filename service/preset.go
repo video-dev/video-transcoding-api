@@ -50,6 +50,7 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	var input newPresetInput2
+	var result interface{}
 
 	respData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -67,14 +68,17 @@ func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 		if err != nil {
 			return newErrorResponse(fmt.Errorf("error initializing provider %q", p))
 		}
-		providerObj.CreatePreset(input.Preset)
+		result, err = providerObj.CreatePreset(input.Preset)
+		if err != nil {
+			return newErrorResponse(fmt.Errorf("error creating preset on %q: %v", p, err))
+		}
 	}
 
 	switch err {
 	case nil:
 		return &testResponse{
 			baseResponse: baseResponse{
-				payload: input,
+				payload: result,
 				status:  http.StatusOK,
 			},
 		}

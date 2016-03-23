@@ -31,7 +31,7 @@ var (
 type TranscodingProvider interface {
 	Transcode(transcodeProfile TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
-	CreatePreset(preset Preset) (*Preset, error)
+	CreatePreset(preset Preset) (interface{}, error)
 
 	// Healthcheck should return nil if the provider is currently available
 	// for transcoding videos, otherwise it should return an error
@@ -92,7 +92,7 @@ type Preset struct {
 	GopSize       string `json:"gopSize,omitempty"`
 	GopMode       string `json:"gopMode,omitempty"`
 	Profile       string `json:"profile,omitempty"`
-	profileLevel  string `json:"profileLevel,omitempty"`
+	ProfileLevel  string `json:"profileLevel,omitempty"`
 	RateControl   string `json:"rateControl,omitempty"`
 	InterlaceMode string `json:"interlaceMode,omitempty"`
 	AudioCodec    string `json:"audioCodec,omitempty"`
