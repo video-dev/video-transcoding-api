@@ -16,9 +16,9 @@ type newPresetMapInput struct {
 	Payload db.PresetMap
 }
 
-type newPresetInput2 struct {
-	Providers []string         `json:"providers"`
-	Preset    provider.Preset2 `json:"preset"`
+type newPresetInput struct {
+	Providers []string        `json:"providers"`
+	Preset    provider.Preset `json:"preset"`
 }
 
 // list of the results of the attempt to create a preset

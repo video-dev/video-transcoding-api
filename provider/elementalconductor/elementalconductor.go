@@ -45,7 +45,7 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
-func (p *elementalConductorProvider) CreatePreset(preset provider.Preset2) (interface{}, error) {
+func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
 	elementalConductorPreset := elementalconductor.Preset{
 		XMLName: xml.Name{Local: "preset"},
 	}

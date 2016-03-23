@@ -58,7 +58,7 @@ func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfi
 	}, nil
 }
 
-func (e *encodingComProvider) CreatePreset(preset provider.Preset2) (interface{}, error) {
+func (e *encodingComProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
 	return nil, errors.New("CreatePreset is not implemented in Encoding.com provider")
 }
 

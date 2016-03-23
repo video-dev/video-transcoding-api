@@ -127,7 +127,7 @@ func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string
 	return aws.String(strings.Join(parts, "/"))
 }
 
-func (p *awsProvider) CreatePreset(preset provider.Preset2) (interface{}, error) {
+func (p *awsProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
 	return nil, errors.New("CreatePreset is not implemented in ElasticTranscoder provider")
 }
 

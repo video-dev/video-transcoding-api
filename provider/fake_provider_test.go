@@ -15,7 +15,7 @@ func (*fakeProvider) JobStatus(string) (*JobStatus, error) {
 	return nil, nil
 }
 
-func (*fakeProvider) CreatePreset(Preset2) (interface{}, error) {
+func (*fakeProvider) CreatePreset(Preset) (interface{}, error) {
 	return nil, nil
 }
 

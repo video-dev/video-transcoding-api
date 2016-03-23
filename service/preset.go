@@ -132,9 +132,9 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 //     Responses:
 //       200: newPresetOutputs
 //       500: genericError
-func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
+func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
-	var input newPresetInput2
+	var input newPresetInput
 	var result interface{}
 	var output = make(newPresetOutputs)
 

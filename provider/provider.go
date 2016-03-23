@@ -31,7 +31,7 @@ var (
 type TranscodingProvider interface {
 	Transcode(transcodeProfile TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
-	CreatePreset(preset Preset2) (interface{}, error)
+	CreatePreset(preset Preset) (interface{}, error)
 
 	// Healthcheck should return nil if the provider is currently available
 	// for transcoding videos, otherwise it should return an error
@@ -80,8 +80,8 @@ type StreamingParams struct {
 	Protocol        string `json:"protocol,omitempty"`
 }
 
-// Preset2 define the set of parameters of a given preset
-type Preset2 struct {
+// Preset define the set of parameters of a given preset
+type Preset struct {
 	Name          string `json:"name,omitempty"`
 	Description   string `json:"description,omitempty"`
 	Container     string `json:"container,omitempty"`

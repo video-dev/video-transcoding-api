@@ -61,8 +61,8 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		"/jobs/{jobId:[^/]+}": {
 			"GET": handlerToEndpoint(s.getTranscodeJob),
 		},
-		"/presets2": {
-			"POST": handlerToEndpoint(s.newPreset2),
+		"/presets": {
+			"POST": handlerToEndpoint(s.newPreset),
 		},
 		"/presetmaps": {
 			"POST": handlerToEndpoint(s.newPresetMap),
