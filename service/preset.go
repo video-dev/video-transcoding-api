@@ -2,7 +2,6 @@ package service
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -38,20 +37,17 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route POST /presets2 presets newPreset
+// swagger:route POST /presets2 presets Output
 //
-// Creates a new preset in the providers and in the API.
-//
+// Creates a new preset on given providers.
 //     Responses:
-//       200: preset
-//       400: invalidPreset
-//       409: presetAlreadyExists
+//       200: newPresetOutputs
 //       500: genericError
 func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	var input newPresetInput2
 	var result interface{}
-	var output = make(map[string]newPresetOutput)
+	var output = make(newPresetOutputs)
 
 	respData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -66,24 +62,23 @@ func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 	for _, p := range input.Providers {
 		providerFactory, err := provider.GetProviderFactory(p)
 		if err != nil {
-			output[p] = newPresetOutput{Output: "", Error: "error getting factory: " + err.Error()}
+			output[p] = newPresetOutput{Output: "", Error: "getting factory: " + err.Error()}
 			continue
 		}
-		fmt.Println("factory para ", p, providerFactory, s.config)
 		providerObj, err := providerFactory(s.config)
 		if err != nil {
-			output[p] = newPresetOutput{Output: "", Error: "error initializing provider: " + err.Error()}
+			output[p] = newPresetOutput{Output: "", Error: "initializing provider: " + err.Error()}
 			continue
 		}
 		result, err = providerObj.CreatePreset(input.Preset)
 		if err != nil {
-			output[p] = newPresetOutput{Output: "", Error: "error creating preset: " + err.Error()}
+			output[p] = newPresetOutput{Output: "", Error: "creating preset: " + err.Error()}
 		} else {
 			output[p] = newPresetOutput{Output: result, Error: ""}
 		}
 	}
 
-	return &testResponse{
+	return &newPresetResponse2{
 		baseResponse: baseResponse{
 			payload: output,
 			status:  http.StatusOK,

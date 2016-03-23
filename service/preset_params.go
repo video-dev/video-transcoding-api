@@ -17,9 +17,15 @@ type newPresetInput struct {
 }
 
 type newPresetInput2 struct {
-	Providers []string        `json:"providers"`
-	Preset    provider.Preset `json:"preset"`
+	Providers []string         `json:"providers"`
+	Preset    provider.Preset2 `json:"preset"`
 }
+
+// list of the results of the attempt to create a preset
+// in each provider.
+//
+// swagger:response newPresetOutputs
+type newPresetOutputs map[string]newPresetOutput
 
 type newPresetOutput struct {
 	Output interface{}

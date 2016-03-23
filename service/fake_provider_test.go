@@ -28,7 +28,7 @@ func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*p
 	}, nil
 }
 
-func (*fakeProvider) CreatePreset(provider.Preset) (interface{}, error) {
+func (*fakeProvider) CreatePreset(provider.Preset2) (interface{}, error) {
 	return nil, nil
 }
 

@@ -16,7 +16,7 @@ type presetResponse struct {
 	baseResponse
 }
 
-type testResponse struct {
+type newPresetResponse2 struct {
 	baseResponse
 }
 
