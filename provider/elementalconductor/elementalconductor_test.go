@@ -102,7 +102,7 @@ func TestElementalNewJob(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name:            "webm_720p",
 			ProviderMapping: map[string]string{Name: "10", "other": "not relevant"},
@@ -213,7 +213,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name:            "hls_360p",
 			ProviderMapping: map[string]string{Name: "15", "other": "not relevant"},
@@ -342,7 +342,7 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name:            "webm_720p",
 			ProviderMapping: map[string]string{"other": "not relevant"},
@@ -355,8 +355,8 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 		StreamingParams: provider.StreamingParams{},
 	}
 	newJob, err := presetProvider.newJob(transcodeProfile)
-	if err != provider.ErrPresetNotFound {
-		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
+	if err != provider.ErrPresetMapNotFound {
+		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
 	}
 	if newJob != nil {
 		t.Errorf("Got unexpected non-nil job: %#v.", newJob)

@@ -14,7 +14,7 @@ type fakeProvider struct{}
 func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	for _, preset := range transcodeProfile.Presets {
 		if _, ok := preset.ProviderMapping["fake"]; !ok {
-			return nil, provider.ErrPresetNotFound
+			return nil, provider.ErrPresetMapNotFound
 		}
 	}
 	return &provider.JobStatus{

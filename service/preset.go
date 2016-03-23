@@ -10,7 +10,7 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-// swagger:route POST /presets presets newPreset
+// swagger:route POST /presetsmap presets newPreset
 //
 // Creates a new preset in the API.
 //
@@ -19,22 +19,111 @@ import (
 //       400: invalidPreset
 //       409: presetAlreadyExists
 //       500: genericError
-func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
-	var input newPresetInput
+func (s *TranscodingService) newPresetMap(r *http.Request) gizmoResponse {
+	var input newPresetMapInput
 	defer r.Body.Close()
-	preset, err := input.Preset(r.Body)
+	preset, err := input.PresetMap(r.Body)
 	if err != nil {
-		return newInvalidPresetResponse(err)
+		return newInvalidPresetMapResponse(err)
 	}
-	err = s.db.CreatePreset(&preset)
+	err = s.db.CreatePresetMap(&preset)
 	switch err {
 	case nil:
-		return newPresetResponse(&preset)
-	case db.ErrPresetAlreadyExists:
-		return newPresetAlreadyExistsResponse(err)
+		return newPresetMapResponse(&preset)
+	case db.ErrPresetMapAlreadyExists:
+		return newPresetMapAlreadyExistsResponse(err)
 	default:
 		return newErrorResponse(err)
 	}
+}
+
+// swagger:route GET /presetsmap/{name} presets getPreset
+//
+// Finds a preset using its name.
+//
+//     Responses:
+//       200: preset
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
+	var params getPresetMapInput
+	params.loadParams(mux.Vars(r))
+	preset, err := s.db.GetPresetMap(params.Name)
+
+	switch err {
+	case nil:
+		return newPresetMapResponse(preset)
+	case db.ErrPresetMapNotFound:
+		return newPresetMapNotFoundResponse(err)
+	default:
+		return newErrorResponse(err)
+	}
+}
+
+// swagger:route PUT /presets/{name} presets updatePreset
+//
+// Updates a preset using its name.
+//
+//     Responses:
+//       200: preset
+//       400: invalidPreset
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
+	defer r.Body.Close()
+	var input updatePresetMapInput
+	presetMap, err := input.PresetMap(mux.Vars(r), r.Body)
+	if err != nil {
+		return newInvalidPresetMapResponse(err)
+	}
+	err = s.db.UpdatePresetMap(&presetMap)
+
+	switch err {
+	case nil:
+		return newPresetMapResponse(&presetMap)
+	case db.ErrPresetMapNotFound:
+		return newPresetMapNotFoundResponse(err)
+	default:
+		return newErrorResponse(err)
+	}
+}
+
+// swagger:route DELETE /presets/{name} presets deletePreset
+//
+// Deletes a preset by name.
+//
+//     Responses:
+//       200: emptyResponse
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) deletePresetMap(r *http.Request) gizmoResponse {
+	var params getPresetMapInput
+	params.loadParams(mux.Vars(r))
+	err := s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
+
+	switch err {
+	case nil:
+		return emptyResponse(http.StatusOK)
+	case db.ErrPresetMapNotFound:
+		return newPresetMapNotFoundResponse(err)
+	default:
+		return newErrorResponse(err)
+	}
+}
+
+// swagger:route GET /presetsmap presets listPresets
+//
+// List available presets on the API.
+//
+//     Responses:
+//       200: listPresetMaps
+//       500: genericError
+func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
+	presetsMap, err := s.db.ListPresetMaps()
+	if err != nil {
+		return newErrorResponse(err)
+	}
+	return newListPresetMapsResponse(presetsMap)
 }
 
 // swagger:route POST /presets2 presets Output
@@ -84,93 +173,4 @@ func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
 			status:  http.StatusOK,
 		},
 	}
-}
-
-// swagger:route GET /presets/{name} presets getPreset
-//
-// Finds a preset using its name.
-//
-//     Responses:
-//       200: preset
-//       404: presetNotFound
-//       500: genericError
-func (s *TranscodingService) getPreset(r *http.Request) gizmoResponse {
-	var params getPresetInput
-	params.loadParams(mux.Vars(r))
-	preset, err := s.db.GetPreset(params.Name)
-
-	switch err {
-	case nil:
-		return newPresetResponse(preset)
-	case db.ErrPresetNotFound:
-		return newPresetNotFoundResponse(err)
-	default:
-		return newErrorResponse(err)
-	}
-}
-
-// swagger:route PUT /presets/{name} presets updatePreset
-//
-// Updates a preset using its name.
-//
-//     Responses:
-//       200: preset
-//       400: invalidPreset
-//       404: presetNotFound
-//       500: genericError
-func (s *TranscodingService) updatePreset(r *http.Request) gizmoResponse {
-	defer r.Body.Close()
-	var input updatePresetInput
-	preset, err := input.Preset(mux.Vars(r), r.Body)
-	if err != nil {
-		return newInvalidPresetResponse(err)
-	}
-	err = s.db.UpdatePreset(&preset)
-
-	switch err {
-	case nil:
-		return newPresetResponse(&preset)
-	case db.ErrPresetNotFound:
-		return newPresetNotFoundResponse(err)
-	default:
-		return newErrorResponse(err)
-	}
-}
-
-// swagger:route DELETE /presets/{name} presets deletePreset
-//
-// Deletes a preset by name.
-//
-//     Responses:
-//       200: emptyResponse
-//       404: presetNotFound
-//       500: genericError
-func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
-	var params getPresetInput
-	params.loadParams(mux.Vars(r))
-	err := s.db.DeletePreset(&db.Preset{Name: params.Name})
-
-	switch err {
-	case nil:
-		return emptyResponse(http.StatusOK)
-	case db.ErrPresetNotFound:
-		return newPresetNotFoundResponse(err)
-	default:
-		return newErrorResponse(err)
-	}
-}
-
-// swagger:route GET /presets presets listPresets
-//
-// List available presets on the API.
-//
-//     Responses:
-//       200: listPresets
-//       500: genericError
-func (s *TranscodingService) listPresets(r *http.Request) gizmoResponse {
-	presets, err := s.db.ListPresets()
-	if err != nil {
-		return newErrorResponse(err)
-	}
-	return newListPresetsResponse(presets)
 }

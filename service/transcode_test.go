@@ -48,7 +48,7 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusBadRequest,
-			map[string]interface{}{"error": provider.ErrPresetNotFound.Error()},
+			map[string]interface{}{"error": provider.ErrPresetMapNotFound.Error()},
 		},
 		{
 			"New job with preset not found in the API",
@@ -61,7 +61,7 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusBadRequest,
-			map[string]interface{}{"error": db.ErrPresetNotFound.Error()},
+			map[string]interface{}{"error": db.ErrPresetMapNotFound.Error()},
 		},
 		{
 			"New job with database error",
@@ -112,8 +112,8 @@ func TestTranscode(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
-		fakeDBObj.CreatePreset(&db.Preset{Name: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
-		fakeDBObj.CreatePreset(&db.Preset{Name: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
+		fakeDBObj.CreatePresetMap(&db.PresetMap{Name: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
+		fakeDBObj.CreatePresetMap(&db.PresetMap{Name: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")

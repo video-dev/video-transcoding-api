@@ -60,14 +60,14 @@ type StreamingParams struct {
 	Protocol string `redis-hash:"protocol" json:"protocol"`
 }
 
-// Preset represents the preset that is persisted in the repository of the
+// PresetMap represents the preset that is persisted in the repository of the
 // Transcoding API
 //
-// Each preset is just an aggregator of provider presets, where each preset in
+// Each presetmap is just an aggregator of provider presets, where each preset in
 // the API maps to a preset on each provider
 //
 // swagger:model
-type Preset struct {
+type PresetMap struct {
 	// name of the preset
 	//
 	// unique: true

@@ -18,9 +18,9 @@ var (
 	// that is not registered.
 	ErrProviderNotFound = errors.New("provider not found")
 
-	// ErrPresetNotFound is the error returned when the given preset is not
+	// ErrPresetMapNotFound is the error returned when the given preset is not
 	// found in the provider.
-	ErrPresetNotFound = errors.New("preset not found in provider")
+	ErrPresetMapNotFound = errors.New("preset not found in provider")
 )
 
 // TranscodingProvider represents a provider of transcoding.
@@ -102,7 +102,7 @@ type Preset2 struct {
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.
 type TranscodeProfile struct {
 	SourceMedia     string
-	Presets         []db.Preset
+	Presets         []db.PresetMap
 	StreamingParams StreamingParams
 }
 

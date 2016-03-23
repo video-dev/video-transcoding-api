@@ -82,7 +82,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		},
 	}
 	source := "http://some.nice/video.mp4"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name: "webm_720p",
 			ProviderMapping: map[string]string{
@@ -184,7 +184,7 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 		},
 	}
 	source := "http://some.nice/video.mp4"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name: "webm_720p",
 			ProviderMapping: map[string]string{
@@ -211,8 +211,8 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 	}
 
 	jobStatus, err := prov.Transcode(transcodeProfile)
-	if err != provider.ErrPresetNotFound {
-		t.Errorf("Wrong error. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
+	if err != provider.ErrPresetMapNotFound {
+		t.Errorf("Wrong error. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
 	}
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)

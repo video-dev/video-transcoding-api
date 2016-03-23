@@ -234,205 +234,205 @@ func TestListJobsDBError(t *testing.T) {
 	}
 }
 
-func TestCreatePreset(t *testing.T) {
+func TestCreatePresetMap(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedPresets := map[string]*db.Preset{"mypreset": &preset}
+	expectedPresetMaps := map[string]*db.PresetMap{"mypreset": &preset}
 	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresets) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresets, presets)
+	if !reflect.DeepEqual(presets, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
 	}
 }
 
-func TestCreatePresetEmptyName(t *testing.T) {
+func TestCreatePresetMapEmptyName(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{}
+	err := repo.CreatePresetMap(&preset)
 	if err == nil {
 		t.Fatal("got unexpected <nil> error")
 	}
 	expectedMsg := "invalid preset name"
 	if err.Error() != expectedMsg {
-		t.Errorf("CreatePreset: wrong error message. Want %q. Got %q", expectedMsg, err.Error())
+		t.Errorf("CreatePresetMap: wrong error message. Want %q. Got %q", expectedMsg, err.Error())
 	}
 }
 
-func TestCreatePresetDuplicate(t *testing.T) {
+func TestCreatePresetMapDuplicate(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.CreatePreset(&preset)
-	if err != db.ErrPresetAlreadyExists {
-		t.Errorf("CreatePreset: wrong error returned. Want %#v. Got %#v", db.ErrPresetAlreadyExists, err)
+	err = repo.CreatePresetMap(&preset)
+	if err != db.ErrPresetMapAlreadyExists {
+		t.Errorf("CreatePresetMap: wrong error returned. Want %#v. Got %#v", db.ErrPresetMapAlreadyExists, err)
 	}
 }
 
-func TestCreatePresetDBError(t *testing.T) {
+func TestCreatePresetMapDBError(t *testing.T) {
 	repo := NewFakeRepository(true)
-	preset := db.Preset{}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{}
+	err := repo.CreatePresetMap(&preset)
 	if err == nil {
 		t.Fatal("got unexpected <nil> error")
 	}
 	if err.Error() != dbErrorMsg {
-		t.Errorf("CreatePreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+		t.Errorf("CreatePresetMap: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }
 
-func TestUpdatePreset(t *testing.T) {
+func TestUpdatePresetMap(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	newPreset := preset
-	newPreset.ProviderMapping = map[string]string{"some": "provider"}
-	err = repo.UpdatePreset(&newPreset)
+	newPresetMap := preset
+	newPresetMap.ProviderMapping = map[string]string{"some": "provider"}
+	err = repo.UpdatePresetMap(&newPresetMap)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedPresets := map[string]*db.Preset{"mypreset": &newPreset}
+	expectedPresetMaps := map[string]*db.PresetMap{"mypreset": &newPresetMap}
 	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresets) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresets, presets)
+	if !reflect.DeepEqual(presets, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
 	}
 }
 
-func TestUpdatePresetNotFound(t *testing.T) {
+func TestUpdatePresetMapNotFound(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.UpdatePreset(&preset)
-	if err != db.ErrPresetNotFound {
-		t.Errorf("UpdatePreset: wrong error. Want %#v. Got %#v", db.ErrPresetNotFound, err)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.UpdatePresetMap(&preset)
+	if err != db.ErrPresetMapNotFound {
+		t.Errorf("UpdatePresetMap: wrong error. Want %#v. Got %#v", db.ErrPresetMapNotFound, err)
 	}
 }
 
-func TestUpdatePresetDBError(t *testing.T) {
+func TestUpdatePresetMapDBError(t *testing.T) {
 	repo := NewFakeRepository(true)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.UpdatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.UpdatePresetMap(&preset)
 	if err == nil {
 		t.Fatal("Unexpected <nil> error")
 	}
 	if err.Error() != dbErrorMsg {
-		t.Errorf("UpdatePreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+		t.Errorf("UpdatePresetMap: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }
 
-func TestGetPreset(t *testing.T) {
+func TestGetPresetMap(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotPreset, err := repo.GetPreset(preset.Name)
+	gotPresetMap, err := repo.GetPresetMap(preset.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(*gotPreset, preset) {
-		t.Errorf("GetPreset: wrong preset returned. Want %#v. Got %#v", preset, *gotPreset)
+	if !reflect.DeepEqual(*gotPresetMap, preset) {
+		t.Errorf("GetPresetMap: wrong preset returned. Want %#v. Got %#v", preset, *gotPresetMap)
 	}
 }
 
-func TestGetPresetNotFound(t *testing.T) {
+func TestGetPresetMapNotFound(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset, err := repo.GetPreset("some-preset")
+	preset, err := repo.GetPresetMap("some-preset")
 	if preset != nil {
-		t.Errorf("GetPreset: unexpected non-nil preset: %#v", *preset)
+		t.Errorf("GetPresetMap: unexpected non-nil preset: %#v", *preset)
 	}
-	if err != db.ErrPresetNotFound {
-		t.Errorf("GetPreset: wrong error. Want ErrPresetNotFound. Got %#v", err)
+	if err != db.ErrPresetMapNotFound {
+		t.Errorf("GetPresetMap: wrong error. Want ErrPresetMapNotFound. Got %#v", err)
 	}
 }
 
-func TestGetPresetDBError(t *testing.T) {
+func TestGetPresetMapDBError(t *testing.T) {
 	repo := NewFakeRepository(true)
-	preset, err := repo.GetPreset("some-preset")
+	preset, err := repo.GetPresetMap("some-preset")
 	if preset != nil {
-		t.Errorf("GetPreset: unexpected non-nil preset: %#v", *preset)
+		t.Errorf("GetPresetMap: unexpected non-nil preset: %#v", *preset)
 	}
 	if err.Error() != dbErrorMsg {
-		t.Errorf("GetPreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+		t.Errorf("GetPresetMap: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }
 
-func TestDeletePreset(t *testing.T) {
+func TestDeletePresetMap(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset1 := db.Preset{Name: "mypreset"}
-	err := repo.CreatePreset(&preset1)
+	preset1 := db.PresetMap{Name: "mypreset"}
+	err := repo.CreatePresetMap(&preset1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset2 := db.Preset{Name: "theirpreset"}
-	err = repo.CreatePreset(&preset2)
+	preset2 := db.PresetMap{Name: "theirpreset"}
+	err = repo.CreatePresetMap(&preset2)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&preset1)
+	err = repo.DeletePresetMap(&preset1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedPresets := map[string]*db.Preset{"theirpreset": &preset2}
+	expectedPresetMaps := map[string]*db.PresetMap{"theirpreset": &preset2}
 	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresets) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresets, presets)
+	if !reflect.DeepEqual(presets, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
 	}
 }
 
-func TestDeletePresetNotFound(t *testing.T) {
+func TestDeletePresetMapNotFound(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.DeletePreset(&preset)
-	if err != db.ErrPresetNotFound {
-		t.Errorf("DeletePreset: wrong error. Want %#v. Got %#v", db.ErrPresetNotFound, err)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.DeletePresetMap(&preset)
+	if err != db.ErrPresetMapNotFound {
+		t.Errorf("DeletePresetMap: wrong error. Want %#v. Got %#v", db.ErrPresetMapNotFound, err)
 	}
 }
 
-func TestDeletePresetDBError(t *testing.T) {
+func TestDeletePresetMapDBError(t *testing.T) {
 	repo := NewFakeRepository(true)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.DeletePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.DeletePresetMap(&preset)
 	if err == nil {
 		t.Fatal("Unexpected <nil> error")
 	}
 	if err.Error() != dbErrorMsg {
-		t.Errorf("DeletePreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+		t.Errorf("DeletePresetMap: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }
 
-func TestListPresets(t *testing.T) {
+func TestListPresetMaps(t *testing.T) {
 	repo := NewFakeRepository(false)
-	preset := db.Preset{Name: "mypreset"}
-	err := repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset"}
+	err := repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	expectedPresets := []db.Preset{preset}
-	presets, err := repo.ListPresets()
+	expectedPresetMaps := []db.PresetMap{preset}
+	presets, err := repo.ListPresetMaps()
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(presets, expectedPresets) {
-		t.Errorf("ListPresets: wrong list returned. Want %#v. Got %#v", expectedPresets, presets)
+	if !reflect.DeepEqual(presets, expectedPresetMaps) {
+		t.Errorf("ListPresetMaps: wrong list returned. Want %#v. Got %#v", expectedPresetMaps, presets)
 	}
 }
 
-func TestListPresetsDBError(t *testing.T) {
+func TestListPresetMapsDBError(t *testing.T) {
 	repo := NewFakeRepository(true)
-	presets, err := repo.ListPresets()
+	presets, err := repo.ListPresetMaps()
 	if len(presets) > 0 {
-		t.Errorf("ListPresets: got unexpected non-empty list: %#v", presets)
+		t.Errorf("ListPresetMaps: got unexpected non-empty list: %#v", presets)
 	}
 	if err.Error() != dbErrorMsg {
-		t.Errorf("ListPresets: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+		t.Errorf("ListPresetMaps: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }

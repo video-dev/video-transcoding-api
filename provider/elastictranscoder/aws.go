@@ -68,7 +68,7 @@ func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*pr
 	for i, preset := range transcodeProfile.Presets {
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
-			return nil, provider.ErrPresetNotFound
+			return nil, provider.ErrPresetMapNotFound
 		}
 		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),

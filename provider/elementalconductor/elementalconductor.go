@@ -161,7 +161,7 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
-			return outputGroup, nil, provider.ErrPresetNotFound
+			return outputGroup, nil, provider.ErrPresetMapNotFound
 		}
 		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,

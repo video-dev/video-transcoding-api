@@ -132,7 +132,7 @@ func TestAWSTranscode(t *testing.T) {
 		},
 	}
 	source := "dir/file.mov"
-	presets := []db.Preset{
+	presetmaps := []db.PresetMap{
 		{
 			Name: "mp4_720p",
 			ProviderMapping: map[string]string{
@@ -161,7 +161,7 @@ func TestAWSTranscode(t *testing.T) {
 
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         presets,
+		Presets:         presetmaps,
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(transcodeProfile)
@@ -209,7 +209,7 @@ func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
 		},
 	}
 	source := "dir/file.mov"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name: "hls_360p",
 			ProviderMapping: map[string]string{
@@ -298,7 +298,7 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 		},
 	}
 	source := "s3://bucketname/some/dir/with/subdir/file.mov"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name: "mp4_720p",
 			ProviderMapping: map[string]string{
@@ -365,7 +365,7 @@ func TestAWSTranscodePresetNotFound(t *testing.T) {
 		},
 	}
 	source := "s3://bucketname/some/dir/with/subdir/file.mov"
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name:            "mp4_720p",
 			ProviderMapping: map[string]string{"other": "irrelevant"},
@@ -378,8 +378,8 @@ func TestAWSTranscodePresetNotFound(t *testing.T) {
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(transcodeProfile)
-	if err != provider.ErrPresetNotFound {
-		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetNotFound, err)
+	if err != provider.ErrPresetMapNotFound {
+		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
 	}
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
@@ -425,7 +425,7 @@ func TestAWSJobStatus(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	presets := []db.Preset{
+	presets := []db.PresetMap{
 		{
 			Name: "mp4_720p",
 			ProviderMapping: map[string]string{

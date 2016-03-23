@@ -9,7 +9,7 @@ import (
 
 type fakeRepository struct {
 	triggerError bool
-	presets      map[string]*db.Preset
+	presets      map[string]*db.PresetMap
 	jobs         []*db.Job
 }
 
@@ -19,7 +19,7 @@ type fakeRepository struct {
 func NewFakeRepository(triggerError bool) db.Repository {
 	return &fakeRepository{
 		triggerError: triggerError,
-		presets:      make(map[string]*db.Preset),
+		presets:      make(map[string]*db.PresetMap),
 	}
 }
 
@@ -96,7 +96,7 @@ func (d *fakeRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
 	return jobs, nil
 }
 
-func (d *fakeRepository) CreatePreset(preset *db.Preset) error {
+func (d *fakeRepository) CreatePresetMap(preset *db.PresetMap) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
@@ -104,49 +104,49 @@ func (d *fakeRepository) CreatePreset(preset *db.Preset) error {
 		return errors.New("invalid preset name")
 	}
 	if _, ok := d.presets[preset.Name]; ok {
-		return db.ErrPresetAlreadyExists
+		return db.ErrPresetMapAlreadyExists
 	}
 	d.presets[preset.Name] = preset
 	return nil
 }
 
-func (d *fakeRepository) UpdatePreset(preset *db.Preset) error {
+func (d *fakeRepository) UpdatePresetMap(preset *db.PresetMap) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
 	if _, ok := d.presets[preset.Name]; !ok {
-		return db.ErrPresetNotFound
+		return db.ErrPresetMapNotFound
 	}
 	d.presets[preset.Name] = preset
 	return nil
 }
 
-func (d *fakeRepository) GetPreset(name string) (*db.Preset, error) {
+func (d *fakeRepository) GetPresetMap(name string) (*db.PresetMap, error) {
 	if d.triggerError {
 		return nil, errors.New("database error")
 	}
 	if preset, ok := d.presets[name]; ok {
 		return preset, nil
 	}
-	return nil, db.ErrPresetNotFound
+	return nil, db.ErrPresetMapNotFound
 }
 
-func (d *fakeRepository) DeletePreset(preset *db.Preset) error {
+func (d *fakeRepository) DeletePresetMap(preset *db.PresetMap) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
 	if _, ok := d.presets[preset.Name]; !ok {
-		return db.ErrPresetNotFound
+		return db.ErrPresetMapNotFound
 	}
 	delete(d.presets, preset.Name)
 	return nil
 }
 
-func (d *fakeRepository) ListPresets() ([]db.Preset, error) {
+func (d *fakeRepository) ListPresetMaps() ([]db.PresetMap, error) {
 	if d.triggerError {
 		return nil, errors.New("database error")
 	}
-	presets := make([]db.Preset, 0, len(d.presets))
+	presets := make([]db.PresetMap, 0, len(d.presets))
 	for _, preset := range d.presets {
 		presets = append(presets, *preset)
 	}
