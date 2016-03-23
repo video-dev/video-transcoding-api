@@ -91,14 +91,14 @@ type listPresetsResponse struct {
 }
 
 func newListPresetsResponse(presets []db.Preset) *listPresetsResponse {
-	presetsMap := make(map[string]db.Preset, len(presets))
+	Map := make(map[string]db.Preset, len(presets))
 	for _, preset := range presets {
-		presetsMap[preset.Name] = preset
+		Map[preset.Name] = preset
 	}
 	return &listPresetsResponse{
 		baseResponse: baseResponse{
 			status:  http.StatusOK,
-			payload: presetsMap,
+			payload: Map,
 		},
 	}
 }
