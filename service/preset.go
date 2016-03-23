@@ -1,10 +1,14 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/gorilla/mux"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
 // swagger:route POST /presets presets newPreset
@@ -29,6 +33,51 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 		return newPresetResponse(&preset)
 	case db.ErrPresetAlreadyExists:
 		return newPresetAlreadyExistsResponse(err)
+	default:
+		return newErrorResponse(err)
+	}
+}
+
+// swagger:route POST /presets2 presets newPreset
+//
+// Creates a new preset in the providers and in the API.
+//
+//     Responses:
+//       200: preset
+//       400: invalidPreset
+//       409: presetAlreadyExists
+//       500: genericError
+func (s *TranscodingService) newPreset2(r *http.Request) gizmoResponse {
+	defer r.Body.Close()
+	var input newPresetInput2
+
+	respData, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return newErrorResponse(err)
+	}
+
+	err = json.Unmarshal(respData, &input)
+	if err != nil {
+		return newErrorResponse(err)
+	}
+
+	for _, p := range input.Providers {
+		providerFactory, err := provider.GetProviderFactory(p)
+		providerObj, err := providerFactory(s.config)
+		if err != nil {
+			return newErrorResponse(fmt.Errorf("error initializing provider %q", p))
+		}
+		providerObj.CreatePreset(input.Preset)
+	}
+
+	switch err {
+	case nil:
+		return &testResponse{
+			baseResponse: baseResponse{
+				payload: input,
+				status:  http.StatusOK,
+			},
+		}
 	default:
 		return newErrorResponse(err)
 	}

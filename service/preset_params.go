@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
 // swagger:parameters newPreset
@@ -13,6 +14,11 @@ type newPresetInput struct {
 	// in: body
 	// required: true
 	Payload db.Preset
+}
+
+type newPresetInput2 struct {
+	Providers []string        `json:"providers"`
+	Preset    provider.Preset `json:"preset"`
 }
 
 // Preset loads the input from the request body, validates them and returns the

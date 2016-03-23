@@ -26,11 +26,12 @@ var (
 // TranscodingProvider represents a provider of transcoding.
 //
 // It defines a basic API for transcoding a media and query the status of a
-// Job. The underlying provider should handle the profileSpec as deisired (it
+// Job. The underlying provider should handle the profileSpec as desired (it
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
 	Transcode(transcodeProfile TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
+	CreatePreset(preset Preset) (*Preset, error)
 
 	// Healthcheck should return nil if the provider is currently available
 	// for transcoding videos, otherwise it should return an error
@@ -77,6 +78,25 @@ type JobStatus struct {
 type StreamingParams struct {
 	SegmentDuration uint   `json:"segmentDuration,omitempty"`
 	Protocol        string `json:"protocol,omitempty"`
+}
+
+// Preset define the set of parameters of a given preset
+type Preset struct {
+	Name          string `json:"name,omitempty"`
+	Description   string `json:"description,omitempty"`
+	Container     string `json:"container,omitempty"`
+	Width         string `json:"width,omitempty"`
+	Height        string `json:"height,omitempty"`
+	VideoCodec    string `json:"videoCodec,omitempty"`
+	VideoBitrate  string `json:"videoBitrate,omitempty"`
+	GopSize       string `json:"gopSize,omitempty"`
+	GopMode       string `json:"gopMode,omitempty"`
+	Profile       string `json:"profile,omitempty"`
+	profileLevel  string `json:"profileLevel,omitempty"`
+	RateControl   string `json:"rateControl,omitempty"`
+	InterlaceMode string `json:"interlaceMode,omitempty"`
+	AudioCodec    string `json:"audioCodec,omitempty"`
+	AudioBitrate  string `json:"audioBitrate,omitempty"`
 }
 
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.

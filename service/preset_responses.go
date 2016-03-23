@@ -16,6 +16,10 @@ type presetResponse struct {
 	baseResponse
 }
 
+type testResponse struct {
+	baseResponse
+}
+
 func newPresetResponse(preset *db.Preset) *presetResponse {
 	return &presetResponse{
 		baseResponse: baseResponse{

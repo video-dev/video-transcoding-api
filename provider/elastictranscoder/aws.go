@@ -127,6 +127,10 @@ func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string
 	return aws.String(strings.Join(parts, "/"))
 }
 
+func (p *awsProvider) CreatePreset(preset provider.Preset) (*provider.Preset, error) {
+	return nil, errors.New("CreatePreset is not implemented in ElasticTranscoder provider")
+}
+
 func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	resp, err := p.c.ReadJob(&elastictranscoder.ReadJobInput{Id: aws.String(id)})
 	if err != nil {

@@ -45,6 +45,10 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
+func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (*provider.Preset, error) {
+	return &preset, nil
+}
+
 func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	newJob, err := p.newJob(transcodeProfile)
 	if err != nil {
