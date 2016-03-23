@@ -28,6 +28,10 @@ func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*p
 	}, nil
 }
 
+func (*fakeProvider) CreatePreset(provider.Preset) (interface{}, error) {
+	return nil, nil
+}
+
 func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	if id == "provider-job-123" {
 		return &provider.JobStatus{
