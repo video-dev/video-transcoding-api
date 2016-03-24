@@ -421,7 +421,8 @@ func TestCreatePreset(t *testing.T) {
 
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
-		fakeDB := newFakeDB(false)
+		fakeDB := dbtest.NewFakeRepository(false)
+
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
