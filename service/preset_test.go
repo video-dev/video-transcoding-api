@@ -383,3 +383,61 @@ func TestListPresetMaps(t *testing.T) {
 		}
 	}
 }
+
+func TestCreatePreset(t *testing.T) {
+	tests := []struct {
+		givenTestCase    string
+		givenRequestData map[string]interface{}
+		wantBody         map[string]interface{}
+		wantCode         int
+	}{
+		{
+			"Create new preset",
+			map[string]interface{}{
+				"providers": []string{"elementalconductor"},
+				"preset": map[string]string{
+					"name":          "nyt_test_here_2wq",
+					"description":   "testing creation from api",
+					"container":     "mp4",
+					"height":        "720",
+					"videoCodec":    "h264",
+					"videoBitrate":  "1000",
+					"gopSize":       "90",
+					"gopMode":       "fixed",
+					"profile":       "Main",
+					"profileLevel":  "3.1",
+					"rateControl":   "VBR",
+					"interlaceMode": "progressive",
+					"audioCodec":    "aac",
+					"audioBitrate":  "64000",
+				},
+			},
+			map[string]interface{}{
+				"elementalconductor": map[string]interface{}{"Output": "", "Error": "getting factory: provider not found"},
+			},
+			http.StatusOK,
+		},
+	}
+
+	for _, test := range tests {
+		srvr := server.NewSimpleServer(nil)
+		fakeDB := newFakeDB(false)
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
+		body, _ := json.Marshal(test.givenRequestData)
+		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+		var got map[string]interface{}
+		err := json.NewDecoder(w.Body).Decode(&got)
+		if err != nil {
+			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
+		}
+		if !reflect.DeepEqual(got, test.wantBody) {
+			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+	}
+}
