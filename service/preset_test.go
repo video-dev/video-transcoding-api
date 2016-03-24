@@ -394,7 +394,7 @@ func TestCreatePreset(t *testing.T) {
 		{
 			"Create new preset",
 			map[string]interface{}{
-				"providers": []string{"elementalconductor"},
+				"providers": []string{"fake", "encodingcom"},
 				"preset": map[string]string{
 					"name":          "nyt_test_here_2wq",
 					"description":   "testing creation from api",
@@ -413,7 +413,29 @@ func TestCreatePreset(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"elementalconductor": map[string]interface{}{"Output": "", "Error": "getting factory: provider not found"},
+				"fake": map[string]interface{}{
+					"Output": map[string]interface{}{
+						"name":          "nyt_test_here_2wq",
+						"description":   "testing creation from api",
+						"container":     "mp4",
+						"height":        "720",
+						"videoCodec":    "h264",
+						"videoBitrate":  "1000",
+						"gopSize":       "90",
+						"gopMode":       "fixed",
+						"profile":       "Main",
+						"profileLevel":  "3.1",
+						"rateControl":   "VBR",
+						"interlaceMode": "progressive",
+						"audioCodec":    "aac",
+						"audioBitrate":  "64000",
+					},
+					"Error": "",
+				},
+				"encodingcom": map[string]interface{}{
+					"Output": "",
+					"Error":  "getting factory: provider not found",
+				},
 			},
 			http.StatusOK,
 		},

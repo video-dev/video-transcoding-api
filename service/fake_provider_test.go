@@ -28,8 +28,8 @@ func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*p
 	}, nil
 }
 
-func (*fakeProvider) CreatePreset(provider.Preset) (interface{}, error) {
-	return nil, nil
+func (*fakeProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
+	return preset, nil
 }
 
 func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
