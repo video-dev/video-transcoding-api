@@ -101,10 +101,10 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 func (s *TranscodingService) getTranscodeJob(r *http.Request) gizmoResponse {
 	var params getTranscodeJobInput
 	params.loadParams(mux.Vars(r))
-	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID))
+	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID)).(gizmoResponse)
 }
 
-func (s *TranscodingService) getJobStatusResponse(job *db.Job, jobStatus *provider.JobStatus, providerObj provider.TranscodingProvider, err error) gizmoResponse {
+func (s *TranscodingService) getJobStatusResponse(job *db.Job, jobStatus *provider.JobStatus, providerObj provider.TranscodingProvider, err error) interface{} {
 	if err != nil {
 		if err == db.ErrJobNotFound {
 			return newJobNotFoundResponse(err)
@@ -149,32 +149,39 @@ func (s *TranscodingService) statusCallback(ctx context.Context, job db.Job) err
 	deadline, _ := ctx.Deadline()
 	for now := time.Now(); now.Before(deadline); now = time.Now() {
 		job, jobStatus, providerObj, err := s.getTranscodeJobByID(job.ID)
-		gizmoResponseObj := s.getJobStatusResponse(job, jobStatus, providerObj, err)
-		if job.StatusCallbackURL != "" {
-			err := s.postStatusToCallback(gizmoResponseObj, job.StatusCallbackURL)
-			if err != nil {
-				continue
-			}
+		jobStatusResponseObj := s.getJobStatusResponse(job, jobStatus, providerObj, err)
+		var callbackPayload interface{}
+		if _, ok := jobStatusResponseObj.(*jobStatusResponse); ok {
+			callbackPayload = jobStatus
+		} else {
+			_, _, errorObj := jobStatusResponseObj.(gizmoResponse).Result()
+			callbackPayload = errorObj
 		}
 		if jobStatus.Status != provider.StatusQueued &&
 			jobStatus.Status != provider.StatusStarted {
 			if job.CompletionCallbackURL != "" {
-				err := s.postStatusToCallback(gizmoResponseObj, job.CompletionCallbackURL)
+				err := s.postStatusToCallback(callbackPayload, job.CompletionCallbackURL)
 				if err != nil {
 					continue
 				}
 			}
 			break
 		}
+		if job.StatusCallbackURL != "" {
+			err := s.postStatusToCallback(callbackPayload, job.StatusCallbackURL)
+			if err != nil {
+				continue
+			}
+		}
 		time.Sleep(time.Duration(job.StatusCallbackInterval) * time.Second)
 	}
 	return nil
 }
 
-func (s *TranscodingService) postStatusToCallback(payloadStruct gizmoResponse, callbackURL string) error {
+func (s *TranscodingService) postStatusToCallback(payloadStruct interface{}, callbackURL string) error {
 	jsonPayload, err := json.Marshal(payloadStruct)
 	if err != nil {
-		fmt.Printf("Error generating response for status callback: %v", err)
+		fmt.Printf("Error generating response for status callback: %v\n", err)
 		return err
 	}
 	req, err := http.NewRequest("POST", callbackURL, bytes.NewBuffer(jsonPayload))
@@ -185,7 +192,7 @@ func (s *TranscodingService) postStatusToCallback(payloadStruct gizmoResponse, c
 	}
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Printf("Error calling status callback URL %s : %v", callbackURL, err)
+		fmt.Printf("Error calling status callback URL %s : %v\n", callbackURL, err)
 		return err
 	}
 	resp.Body.Close()
