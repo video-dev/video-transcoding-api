@@ -126,7 +126,7 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 	return newListPresetMapsResponse(presetsMap)
 }
 
-// swagger:route POST /presets2 presets Output
+// swagger:route POST /presets presets Output
 //
 // Creates a new preset on given providers.
 //     Responses:
