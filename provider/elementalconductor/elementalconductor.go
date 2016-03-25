@@ -45,6 +45,24 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
+func (p *elementalConductorProvider) getOutputDestination(job *elementalconductor.Job) []string {
+	var outputDestination []string
+	for _, output := range job.OutputGroup.Output {
+		destinationPrefix := job.OutputGroup.FileGroupSettings.Destination.URI
+		if destinationPrefix == "" {
+			destinationPrefix = job.OutputGroup.AppleLiveGroupSettings.Destination.URI
+		}
+		outputDestination = append(
+			outputDestination,
+			fmt.Sprintf("%s%s.%s",
+				destinationPrefix,
+				output.NameModifier,
+				output.Container),
+		)
+	}
+	return outputDestination
+}
+
 func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	newJob, err := p.newJob(transcodeProfile)
 	if err != nil {
@@ -55,9 +73,10 @@ func (p *elementalConductorProvider) Transcode(transcodeProfile provider.Transco
 		return nil, err
 	}
 	return &provider.JobStatus{
-		ProviderName:  Name,
-		ProviderJobID: resp.GetID(),
-		Status:        provider.StatusQueued,
+		ProviderName:      Name,
+		ProviderJobID:     resp.GetID(),
+		Status:            provider.StatusQueued,
+		OutputDestination: p.getOutputDestination(newJob),
 	}, nil
 }
 
@@ -84,10 +103,11 @@ func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, 
 		providerStatus["error_messages"] = resp.ErrorMessages
 	}
 	return &provider.JobStatus{
-		ProviderName:   Name,
-		ProviderJobID:  resp.GetID(),
-		Status:         p.statusMap(resp.Status),
-		ProviderStatus: providerStatus,
+		ProviderName:      Name,
+		ProviderJobID:     resp.GetID(),
+		Status:            p.statusMap(resp.Status),
+		ProviderStatus:    providerStatus,
+		OutputDestination: p.getOutputDestination(resp),
 	}, nil
 }
 

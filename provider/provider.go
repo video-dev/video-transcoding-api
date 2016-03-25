@@ -66,11 +66,12 @@ func (err JobNotFoundError) Error() string {
 //
 // swagger:model
 type JobStatus struct {
-	ProviderJobID  string                 `json:"providerJobId,omitempty"`
-	Status         Status                 `json:"status,omitempty"`
-	ProviderName   string                 `json:"providerName,omitempty"`
-	StatusMessage  string                 `json:"statusMessage,omitempty"`
-	ProviderStatus map[string]interface{} `json:"providerStatus,omitempty"`
+	ProviderJobID     string                 `json:"providerJobId,omitempty"`
+	Status            Status                 `json:"status,omitempty"`
+	ProviderName      string                 `json:"providerName,omitempty"`
+	StatusMessage     string                 `json:"statusMessage,omitempty"`
+	ProviderStatus    map[string]interface{} `json:"providerStatus,omitempty"`
+	OutputDestination []string               `json:"outputDestination,omitempty"`
 }
 
 // StreamingParams contains all parameters related to the streaming protocol used.
