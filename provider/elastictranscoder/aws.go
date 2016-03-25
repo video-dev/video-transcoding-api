@@ -128,7 +128,87 @@ func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string
 }
 
 func (p *awsProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
-	return nil, errors.New("CreatePreset is not implemented in ElasticTranscoder provider")
+	auto := "auto"
+	fixedGop := "true"
+	thumbnailsFormat := "png"
+	thumbnailsInterval := "1"
+	sizingPolicy := "Fill"
+	paddingPolicy := "Pad"
+	displayAspectRatio := "auto"
+	maxReferenceFrames := "4"
+	profile := strings.ToLower(preset.Profile)
+
+	presetInput := elastictranscoder.CreatePresetInput{
+		Name:        &preset.Name,
+		Description: &preset.Description,
+		Container:   &preset.Container,
+		Video: &elastictranscoder.VideoParameters{
+			DisplayAspectRatio: &displayAspectRatio,
+			Codec:              &preset.VideoCodec,
+			FrameRate:          &auto,
+			KeyframesMaxDist:   &preset.GopSize,
+			SizingPolicy:       &sizingPolicy,
+			PaddingPolicy:      &paddingPolicy,
+			CodecOptions: map[string]*string{
+				"Profile":            &profile,
+				"Level":              &preset.ProfileLevel,
+				"MaxReferenceFrames": &maxReferenceFrames,
+			},
+		},
+		Audio: &elastictranscoder.AudioParameters{
+			Codec:      &preset.AudioCodec,
+			Channels:   &auto,
+			SampleRate: &auto,
+		},
+		Thumbnails: &elastictranscoder.Thumbnails{
+			PaddingPolicy: &paddingPolicy,
+			Format:        &thumbnailsFormat,
+			Interval:      &thumbnailsInterval,
+			SizingPolicy:  &sizingPolicy,
+		},
+	}
+
+	normalizedAudioBitRate, err := strconv.Atoi(preset.AudioBitrate)
+	audioBitrate := strconv.Itoa(normalizedAudioBitRate / 1000)
+	presetInput.Audio.BitRate = &audioBitrate
+
+	normalizedVideoBitRate, err := strconv.Atoi(preset.VideoBitrate)
+	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
+	presetInput.Video.BitRate = &videoBitrate
+
+	if preset.Width != "" {
+		presetInput.Video.MaxWidth = &preset.Width
+		presetInput.Thumbnails.MaxWidth = &preset.Width
+	} else {
+		presetInput.Video.MaxWidth = &auto
+		presetInput.Thumbnails.MaxWidth = &auto
+	}
+
+	if preset.Height != "" {
+		presetInput.Video.MaxHeight = &preset.Height
+		presetInput.Thumbnails.MaxHeight = &preset.Height
+	} else {
+		presetInput.Video.MaxHeight = &auto
+		presetInput.Thumbnails.MaxHeight = &auto
+	}
+
+	if preset.GopMode == "fixed" {
+		presetInput.Video.FixedGOP = &fixedGop
+	}
+
+	if preset.VideoCodec == "h264" {
+		*presetInput.Video.Codec = "H.264"
+	}
+
+	if preset.AudioCodec == "aac" {
+		*presetInput.Audio.Codec = "AAC"
+	}
+
+	presetOutput, err := p.c.CreatePreset(&presetInput)
+	if err != nil {
+		return nil, err
+	}
+	return presetOutput, nil
 }
 
 func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
