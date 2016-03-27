@@ -76,8 +76,9 @@ func (c *fakeElasticTranscoder) ReadPipeline(input *elastictranscoder.ReadPipeli
 	}
 	return &elastictranscoder.ReadPipelineOutput{
 		Pipeline: &elastictranscoder.Pipeline{
-			Id:   input.Id,
-			Name: aws.String("nice pipeline"),
+			Id:           input.Id,
+			Name:         aws.String("nice pipeline"),
+			OutputBucket: aws.String("some bucket"),
 		},
 	}, nil
 }

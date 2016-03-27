@@ -265,18 +265,18 @@ func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/file/hls_360p/video.m3u8"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/file/hls_480p/video.m3u8"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0003"), Key: aws.String("dir/file/hls_720p/video.m3u8"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("dir/file/hls_360p/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("dir/file/hls_480p/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0003"), Key: aws.String("dir/file/hls_720p/video"), SegmentDuration: aws.String("3")},
 		},
 		Playlists: []*elastictranscoder.CreateJobPlaylist{
 			{
 				Format: aws.String("HLSv3"),
-				Name:   aws.String("dir/file/master.m3u8"),
+				Name:   aws.String("dir/file/master"),
 				OutputKeys: []*string{
-					aws.String("dir/file/hls_360p/video.m3u8"),
-					aws.String("dir/file/hls_480p/video.m3u8"),
-					aws.String("dir/file/hls_720p/video.m3u8"),
+					aws.String("dir/file/hls_360p/video"),
+					aws.String("dir/file/hls_480p/video"),
+					aws.String("dir/file/hls_720p/video"),
 				},
 			},
 		},
@@ -466,6 +466,10 @@ func TestAWSJobStatus(t *testing.T) {
 				"dir/mp4_720p/file.mp4":   "it's finished!",
 				"dir/webm_720p/file.webm": "it's finished!",
 			},
+		},
+		OutputDestination: []string{
+			"s3://some bucket/dir/mp4_720p/file.mp4",
+			"s3://some bucket/dir/webm_720p/file.webm",
 		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
