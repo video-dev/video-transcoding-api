@@ -143,8 +143,8 @@ func TestElementalNewJob(t *testing.T) {
 		Priority: 50,
 		OutputGroup: elementalconductor.OutputGroup{
 			Order: 1,
-			FileGroupSettings: elementalconductor.FileGroupSettings{
-				Destination: elementalconductor.Location{
+			FileGroupSettings: &elementalconductor.FileGroupSettings{
+				Destination: &elementalconductor.Location{
 					URI:      "s3://destination/video",
 					Username: "aws-access-key",
 					Password: "aws-secret-key",
@@ -261,8 +261,8 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 		Priority: 50,
 		OutputGroup: elementalconductor.OutputGroup{
 			Order: 1,
-			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{
-				Destination: elementalconductor.Location{
+			AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
+				Destination: &elementalconductor.Location{
 					URI:      "s3://destination/video",
 					Username: "aws-access-key",
 					Password: "aws-secret-key",
