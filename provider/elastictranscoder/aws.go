@@ -127,84 +127,109 @@ func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string
 	return aws.String(strings.Join(parts, "/"))
 }
 
-func (p *awsProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
+func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscoder.VideoParameters {
 	auto := "auto"
-	fixedGop := "true"
-	thumbnailsFormat := "png"
-	thumbnailsInterval := "1"
 	sizingPolicy := "Fill"
 	paddingPolicy := "Pad"
-	displayAspectRatio := "auto"
-	maxReferenceFrames := "4"
+	maxReferenceFrames := "2"
 	profile := strings.ToLower(preset.Profile)
+	h264 := "H.264"
+	fixedGop := "true"
 
+	videoPreset := elastictranscoder.VideoParameters{
+		DisplayAspectRatio: &auto,
+		Codec:              &preset.VideoCodec,
+		FrameRate:          &auto,
+		KeyframesMaxDist:   &preset.GopSize,
+		SizingPolicy:       &sizingPolicy,
+		PaddingPolicy:      &paddingPolicy,
+		CodecOptions: map[string]*string{
+			"Profile":            &profile,
+			"Level":              &preset.ProfileLevel,
+			"MaxReferenceFrames": &maxReferenceFrames,
+		},
+	}
+
+	if preset.Width != "" {
+		videoPreset.MaxWidth = &preset.Width
+	} else {
+		videoPreset.MaxWidth = &auto
+	}
+
+	if preset.Height != "" {
+		videoPreset.MaxHeight = &preset.Height
+	} else {
+		videoPreset.MaxHeight = &auto
+	}
+
+	normalizedVideoBitRate, _ := strconv.Atoi(preset.VideoBitrate)
+	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
+	videoPreset.BitRate = &videoBitrate
+
+	if preset.VideoCodec == "h264" {
+		videoPreset.Codec = &h264
+	}
+
+	if preset.GopMode == "fixed" {
+		videoPreset.FixedGOP = &fixedGop
+	}
+
+	return &videoPreset
+}
+
+func (p *awsProvider) createThumbsPreset(preset provider.Preset) *elastictranscoder.Thumbnails {
+	auto := "auto"
+	thumbnailsFormat := "png"
+	thumbnailsInterval := "1"
+	paddingPolicy := "Pad"
+	sizingPolicy := "Fill"
+
+	thumbsPreset := &elastictranscoder.Thumbnails{
+		PaddingPolicy: &paddingPolicy,
+		Format:        &thumbnailsFormat,
+		Interval:      &thumbnailsInterval,
+		SizingPolicy:  &sizingPolicy,
+		MaxWidth:      &auto,
+		MaxHeight:     &auto,
+	}
+
+	return thumbsPreset
+}
+
+func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscoder.AudioParameters {
+	auto := "auto"
+	aac := "AAC"
+
+	audioPreset := &elastictranscoder.AudioParameters{
+		Codec:      &preset.AudioCodec,
+		Channels:   &auto,
+		SampleRate: &auto,
+	}
+
+	normalizedAudioBitRate, _ := strconv.Atoi(preset.AudioBitrate)
+	audioBitrate := strconv.Itoa(normalizedAudioBitRate / 1000)
+	audioPreset.BitRate = &audioBitrate
+
+	if preset.AudioCodec == "aac" {
+		audioPreset.Codec = &aac
+	}
+
+	return audioPreset
+}
+
+func (p *awsProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
 	presetInput := elastictranscoder.CreatePresetInput{
 		Name:        &preset.Name,
 		Description: &preset.Description,
 		Container:   &preset.Container,
-		Video: &elastictranscoder.VideoParameters{
-			DisplayAspectRatio: &displayAspectRatio,
-			Codec:              &preset.VideoCodec,
-			FrameRate:          &auto,
-			KeyframesMaxDist:   &preset.GopSize,
-			SizingPolicy:       &sizingPolicy,
-			PaddingPolicy:      &paddingPolicy,
-			CodecOptions: map[string]*string{
-				"Profile":            &profile,
-				"Level":              &preset.ProfileLevel,
-				"MaxReferenceFrames": &maxReferenceFrames,
-			},
-		},
-		Audio: &elastictranscoder.AudioParameters{
-			Codec:      &preset.AudioCodec,
-			Channels:   &auto,
-			SampleRate: &auto,
-		},
-		Thumbnails: &elastictranscoder.Thumbnails{
-			PaddingPolicy: &paddingPolicy,
-			Format:        &thumbnailsFormat,
-			Interval:      &thumbnailsInterval,
-			SizingPolicy:  &sizingPolicy,
-		},
 	}
 
-	normalizedAudioBitRate, err := strconv.Atoi(preset.AudioBitrate)
-	audioBitrate := strconv.Itoa(normalizedAudioBitRate / 1000)
-	presetInput.Audio.BitRate = &audioBitrate
-
-	normalizedVideoBitRate, err := strconv.Atoi(preset.VideoBitrate)
-	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
-	presetInput.Video.BitRate = &videoBitrate
-
-	if preset.Width != "" {
-		presetInput.Video.MaxWidth = &preset.Width
-		presetInput.Thumbnails.MaxWidth = &preset.Width
-	} else {
-		presetInput.Video.MaxWidth = &auto
-		presetInput.Thumbnails.MaxWidth = &auto
-	}
-
-	if preset.Height != "" {
-		presetInput.Video.MaxHeight = &preset.Height
-		presetInput.Thumbnails.MaxHeight = &preset.Height
-	} else {
-		presetInput.Video.MaxHeight = &auto
-		presetInput.Thumbnails.MaxHeight = &auto
-	}
-
-	if preset.GopMode == "fixed" {
-		presetInput.Video.FixedGOP = &fixedGop
-	}
-
-	if preset.VideoCodec == "h264" {
-		*presetInput.Video.Codec = "H.264"
-	}
-
-	if preset.AudioCodec == "aac" {
-		*presetInput.Audio.Codec = "AAC"
-	}
+	presetInput.Video = p.createVideoPreset(preset)
+	presetInput.Audio = p.createAudioPreset(preset)
+	presetInput.Thumbnails = p.createThumbsPreset(preset)
 
 	presetOutput, err := p.c.CreatePreset(&presetInput)
+
 	if err != nil {
 		return nil, err
 	}
