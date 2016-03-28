@@ -173,8 +173,8 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 	if transcodeProfile.StreamingParams.Protocol == "hls" {
 		outputGroup = elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
-			AppleLiveGroupSettings: elementalconductor.AppleLiveGroupSettings{
-				Destination:     outputLocation,
+			AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
+				Destination:     &outputLocation,
 				SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			},
 			Type:   elementalconductor.AppleLiveOutputGroupType,
@@ -183,8 +183,8 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 	} else {
 		outputGroup = elementalconductor.OutputGroup{
 			Order: defaultOutputGroupOrder,
-			FileGroupSettings: elementalconductor.FileGroupSettings{
-				Destination: outputLocation,
+			FileGroupSettings: &elementalconductor.FileGroupSettings{
+				Destination: &outputLocation,
 			},
 			Type:   elementalconductor.FileOutputGroupType,
 			Output: outputList,
