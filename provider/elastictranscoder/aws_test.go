@@ -473,6 +473,94 @@ func TestAWSJobStatus(t *testing.T) {
 	}
 }
 
+func TestAWSCreatePreset(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+
+	inputPreset := provider.Preset{
+		Name:          "preset_name",
+		Description:   "description here",
+		Container:     "mp4",
+		Height:        "720",
+		VideoCodec:    "h264",
+		VideoBitrate:  "2500000",
+		GopSize:       "90",
+		GopMode:       "fixed",
+		Profile:       "Main",
+		ProfileLevel:  "3.1",
+		RateControl:   "VBR",
+		InterlaceMode: "progressive",
+		AudioCodec:    "aac",
+		AudioBitrate:  "64000",
+	}
+
+	auto := "auto"
+	audioCodec := "AAC"
+	videoCodec := "H.264"
+	container := "mp4"
+	thumbsFormat := "png"
+	paddingPolicy := "Pad"
+	sizingPolicy := "Fill"
+	thumbsInterval := "1"
+	videoProfile := "main"
+	videoMaxReferenceFrames := "2"
+	audioBitrate := "64"
+	videoBitrate := "2500"
+	fixedGOP := "true"
+
+	expectedPreset := &elastictranscoder.CreatePresetOutput{
+		Preset: &elastictranscoder.Preset{
+			Audio: &elastictranscoder.AudioParameters{
+				BitRate:    &audioBitrate,
+				Channels:   &auto,
+				Codec:      &audioCodec,
+				SampleRate: &auto,
+			},
+			Container:   &container,
+			Description: &inputPreset.Description,
+			Name:        &inputPreset.Name,
+			Thumbnails: &elastictranscoder.Thumbnails{
+				Format:        &thumbsFormat,
+				Interval:      &thumbsInterval,
+				MaxHeight:     &auto,
+				MaxWidth:      &auto,
+				PaddingPolicy: &paddingPolicy,
+				SizingPolicy:  &sizingPolicy,
+			},
+			Video: &elastictranscoder.VideoParameters{
+				BitRate: &videoBitrate,
+				Codec:   &videoCodec,
+				CodecOptions: map[string]*string{
+					"Profile":            &videoProfile,
+					"Level":              &inputPreset.ProfileLevel,
+					"MaxReferenceFrames": &videoMaxReferenceFrames,
+				},
+				DisplayAspectRatio: &auto,
+				FrameRate:          &auto,
+				FixedGOP:           &fixedGOP,
+				KeyframesMaxDist:   &inputPreset.GopSize,
+				MaxHeight:          &inputPreset.Height,
+				MaxWidth:           &auto,
+				PaddingPolicy:      &paddingPolicy,
+				SizingPolicy:       &sizingPolicy,
+			},
+		},
+	}
+	receivedPreset, _ := prov.CreatePreset(inputPreset)
+
+	if !reflect.DeepEqual(receivedPreset, expectedPreset) {
+		t.Errorf("Preset: want %#v. Got %#v", expectedPreset, receivedPreset)
+	}
+}
+
 func TestAWSJobStatusNotFound(t *testing.T) {
 	fakeTranscoder := newFakeElasticTranscoder()
 	provider := &awsProvider{
