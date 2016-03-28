@@ -28,8 +28,8 @@ type newPresetInput struct {
 type newPresetOutputs map[string]newPresetOutput
 
 type newPresetOutput struct {
-	Output interface{}
-	Error  string
+	PresetID string
+	Error    string
 }
 
 // Preset loads the input from the request body, validates them and returns the

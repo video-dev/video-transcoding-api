@@ -31,7 +31,7 @@ var (
 type TranscodingProvider interface {
 	Transcode(transcodeProfile TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
-	CreatePreset(preset Preset) (interface{}, error)
+	CreatePreset(preset Preset) (string, error)
 
 	// Healthcheck should return nil if the provider is currently available
 	// for transcoding videos, otherwise it should return an error

@@ -58,8 +58,8 @@ func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfi
 	}, nil
 }
 
-func (e *encodingComProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
-	return nil, errors.New("CreatePreset is not implemented in Encoding.com provider")
+func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, error) {
+	return "", errors.New("CreatePreset is not implemented in Encoding.com provider")
 }
 
 func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.PresetMap) []string {

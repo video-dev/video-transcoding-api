@@ -45,7 +45,7 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
-func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
+func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (string, error) {
 	elementalConductorPreset := elementalconductor.Preset{
 		XMLName: xml.Name{Local: "preset"},
 	}
@@ -65,7 +65,12 @@ func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (inter
 	elementalConductorPreset.AudioCodec = preset.AudioCodec
 	elementalConductorPreset.AudioBitrate = preset.AudioBitrate
 
-	return p.client.CreatePreset(&elementalConductorPreset)
+	result, err := p.client.CreatePreset(&elementalConductorPreset)
+	if err != nil {
+		return "", err
+	}
+
+	return result.Name, nil
 }
 
 func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {

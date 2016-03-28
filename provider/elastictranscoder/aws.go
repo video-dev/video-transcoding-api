@@ -217,7 +217,7 @@ func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscod
 	return audioPreset
 }
 
-func (p *awsProvider) CreatePreset(preset provider.Preset) (interface{}, error) {
+func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 	presetInput := elastictranscoder.CreatePresetInput{
 		Name:        &preset.Name,
 		Description: &preset.Description,
@@ -231,9 +231,9 @@ func (p *awsProvider) CreatePreset(preset provider.Preset) (interface{}, error) 
 	presetOutput, err := p.c.CreatePreset(&presetInput)
 
 	if err != nil {
-		return nil, err
+		return "", err
 	}
-	return presetOutput, nil
+	return *presetOutput.Preset.Id, nil
 }
 
 func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {

@@ -45,12 +45,14 @@ func (c *fakeElasticTranscoder) CreateJob(input *elastictranscoder.CreateJobInpu
 }
 
 func (c *fakeElasticTranscoder) CreatePreset(input *elastictranscoder.CreatePresetInput) (*elastictranscoder.CreatePresetOutput, error) {
+	var presetID = *input.Name + "-abc123"
 	return &elastictranscoder.CreatePresetOutput{
 		Preset: &elastictranscoder.Preset{
 			Audio:       input.Audio,
 			Container:   input.Container,
 			Description: input.Description,
 			Name:        input.Name,
+			Id:          &presetID,
 			Thumbnails:  input.Thumbnails,
 			Video:       input.Video,
 		},
