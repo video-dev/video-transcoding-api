@@ -26,6 +26,8 @@ type newPresetInput struct {
 //
 // swagger:response newPresetOutputs
 type newPresetOutputs struct {
+	// in: body
+	// required: true
 	Results   map[string]newPresetOutput
 	PresetMap string
 }
