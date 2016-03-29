@@ -27,7 +27,7 @@ type newPresetInput struct {
 // swagger:response newPresetOutputs
 type newPresetOutputs struct {
 	Results   map[string]newPresetOutput
-	PresetMap interface{}
+	PresetMap string
 }
 
 type newPresetOutput struct {
