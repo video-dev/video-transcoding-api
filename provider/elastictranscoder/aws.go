@@ -197,7 +197,11 @@ func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 	presetInput := elastictranscoder.CreatePresetInput{
 		Name:        &preset.Name,
 		Description: &preset.Description,
-		Container:   &preset.Container,
+	}
+	if preset.Container == "m3u8" {
+		presetInput.Container = aws.String("ts")
+	} else {
+		presetInput.Container = &preset.Container
 	}
 	presetInput.Video = p.createVideoPreset(preset)
 	presetInput.Audio = p.createAudioPreset(preset)
