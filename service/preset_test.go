@@ -413,14 +413,53 @@ func TestCreatePreset(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"fake": map[string]interface{}{
-					"PresetID": "presetID_here",
-					"Error":    "",
+				"Results": map[string]interface{}{
+					"fake": map[string]interface{}{
+						"PresetID": "presetID_here",
+						"Error":    "",
+					},
+					"encodingcom": map[string]interface{}{
+						"PresetID": "",
+						"Error":    "getting factory: provider not found",
+					},
 				},
-				"encodingcom": map[string]interface{}{
-					"PresetID": "",
-					"Error":    "getting factory: provider not found",
+				"PresetMap": "nyt_test_here_2wq",
+			},
+			http.StatusOK,
+		},
+		{
+			"Error creating preset in all providers",
+			map[string]interface{}{
+				"providers": []string{"elastictranscoder", "encodingcom"},
+				"preset": map[string]string{
+					"name":          "nyt_test_here_2wq",
+					"description":   "testing creation from api",
+					"container":     "mp4",
+					"height":        "720",
+					"videoCodec":    "h264",
+					"videoBitrate":  "1000",
+					"gopSize":       "90",
+					"gopMode":       "fixed",
+					"profile":       "Main",
+					"profileLevel":  "3.1",
+					"rateControl":   "VBR",
+					"interlaceMode": "progressive",
+					"audioCodec":    "aac",
+					"audioBitrate":  "64000",
 				},
+			},
+			map[string]interface{}{
+				"Results": map[string]interface{}{
+					"elastictranscoder": map[string]interface{}{
+						"PresetID": "",
+						"Error":    "getting factory: provider not found",
+					},
+					"encodingcom": map[string]interface{}{
+						"PresetID": "",
+						"Error":    "getting factory: provider not found",
+					},
+				},
+				"PresetMap": "",
 			},
 			http.StatusOK,
 		},

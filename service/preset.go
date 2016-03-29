@@ -135,7 +135,8 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	var input newPresetInput
-	var output = make(newPresetOutputs)
+	var output newPresetOutputs
+	var presetMap db.PresetMap
 
 	respData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -147,22 +148,36 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 		return newErrorResponse(err)
 	}
 
+	presetMap.ProviderMapping = make(map[string]string)
+	output.Results = make(map[string]newPresetOutput)
 	for _, p := range input.Providers {
 		providerFactory, err := provider.GetProviderFactory(p)
 		if err != nil {
-			output[p] = newPresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
+			output.Results[p] = newPresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
 			continue
 		}
 		providerObj, err := providerFactory(s.config)
 		if err != nil {
-			output[p] = newPresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
+			output.Results[p] = newPresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
 			continue
 		}
 		presetID, err := providerObj.CreatePreset(input.Preset)
 		if err != nil {
-			output[p] = newPresetOutput{PresetID: "", Error: "creating preset: " + err.Error()}
-		} else {
-			output[p] = newPresetOutput{PresetID: presetID, Error: ""}
+			output.Results[p] = newPresetOutput{PresetID: "", Error: "creating preset: " + err.Error()}
+			continue
+		}
+		presetMap.ProviderMapping[p] = presetID
+		output.Results[p] = newPresetOutput{PresetID: presetID, Error: ""}
+	}
+
+	output.PresetMap = ""
+	if len(presetMap.ProviderMapping) > 0 {
+		presetMap.Name = input.Preset.Name
+		presetMap.OutputOpts.Extension = input.Preset.Container
+
+		err = s.db.CreatePresetMap(&presetMap)
+		if err == nil {
+			output.PresetMap = presetMap.Name
 		}
 	}
 

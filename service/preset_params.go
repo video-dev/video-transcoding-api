@@ -25,7 +25,10 @@ type newPresetInput struct {
 // in each provider.
 //
 // swagger:response newPresetOutputs
-type newPresetOutputs map[string]newPresetOutput
+type newPresetOutputs struct {
+	Results   map[string]newPresetOutput
+	PresetMap interface{}
+}
 
 type newPresetOutput struct {
 	PresetID string
