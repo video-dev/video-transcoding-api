@@ -128,82 +128,58 @@ func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string
 }
 
 func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscoder.VideoParameters {
-	auto := "auto"
-	sizingPolicy := "Fill"
-	paddingPolicy := "Pad"
-	maxReferenceFrames := "2"
-	profile := strings.ToLower(preset.Profile)
-	h264 := "H.264"
-	fixedGop := "true"
-
 	videoPreset := elastictranscoder.VideoParameters{
-		DisplayAspectRatio: &auto,
+		DisplayAspectRatio: aws.String("auto"),
+		FrameRate:          aws.String("auto"),
+		SizingPolicy:       aws.String("Fill"),
+		PaddingPolicy:      aws.String("Pad"),
 		Codec:              &preset.VideoCodec,
-		FrameRate:          &auto,
 		KeyframesMaxDist:   &preset.GopSize,
-		SizingPolicy:       &sizingPolicy,
-		PaddingPolicy:      &paddingPolicy,
 		CodecOptions: map[string]*string{
-			"Profile":            &profile,
+			"Profile":            aws.String(strings.ToLower(preset.Profile)),
 			"Level":              &preset.ProfileLevel,
-			"MaxReferenceFrames": &maxReferenceFrames,
+			"MaxReferenceFrames": aws.String("2"),
 		},
 	}
-
 	if preset.Width != "" {
 		videoPreset.MaxWidth = &preset.Width
 	} else {
-		videoPreset.MaxWidth = &auto
+		videoPreset.MaxWidth = aws.String("auto")
 	}
-
 	if preset.Height != "" {
 		videoPreset.MaxHeight = &preset.Height
 	} else {
-		videoPreset.MaxHeight = &auto
+		videoPreset.MaxHeight = aws.String("auto")
 	}
-
 	normalizedVideoBitRate, _ := strconv.Atoi(preset.VideoBitrate)
 	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
 	videoPreset.BitRate = &videoBitrate
-
 	if preset.VideoCodec == "h264" {
-		videoPreset.Codec = &h264
+		videoPreset.Codec = aws.String("H.264")
 	}
-
 	if preset.GopMode == "fixed" {
-		videoPreset.FixedGOP = &fixedGop
+		videoPreset.FixedGOP = aws.String("true")
 	}
-
 	return &videoPreset
 }
 
 func (p *awsProvider) createThumbsPreset(preset provider.Preset) *elastictranscoder.Thumbnails {
-	auto := "auto"
-	thumbnailsFormat := "png"
-	thumbnailsInterval := "1"
-	paddingPolicy := "Pad"
-	sizingPolicy := "Fill"
-
 	thumbsPreset := &elastictranscoder.Thumbnails{
-		PaddingPolicy: &paddingPolicy,
-		Format:        &thumbnailsFormat,
-		Interval:      &thumbnailsInterval,
-		SizingPolicy:  &sizingPolicy,
-		MaxWidth:      &auto,
-		MaxHeight:     &auto,
+		PaddingPolicy: aws.String("Pad"),
+		Format:        aws.String("png"),
+		Interval:      aws.String("1"),
+		SizingPolicy:  aws.String("Fill"),
+		MaxWidth:      aws.String("auto"),
+		MaxHeight:     aws.String("auto"),
 	}
-
 	return thumbsPreset
 }
 
 func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscoder.AudioParameters {
-	auto := "auto"
-	aac := "AAC"
-
 	audioPreset := &elastictranscoder.AudioParameters{
 		Codec:      &preset.AudioCodec,
-		Channels:   &auto,
-		SampleRate: &auto,
+		Channels:   aws.String("auto"),
+		SampleRate: aws.String("auto"),
 	}
 
 	normalizedAudioBitRate, _ := strconv.Atoi(preset.AudioBitrate)
@@ -211,7 +187,7 @@ func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscod
 	audioPreset.BitRate = &audioBitrate
 
 	if preset.AudioCodec == "aac" {
-		audioPreset.Codec = &aac
+		audioPreset.Codec = aws.String("AAC")
 	}
 
 	return audioPreset
@@ -223,13 +199,10 @@ func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 		Description: &preset.Description,
 		Container:   &preset.Container,
 	}
-
 	presetInput.Video = p.createVideoPreset(preset)
 	presetInput.Audio = p.createAudioPreset(preset)
 	presetInput.Thumbnails = p.createThumbsPreset(preset)
-
 	presetOutput, err := p.c.CreatePreset(&presetInput)
-
 	if err != nil {
 		return "", err
 	}
