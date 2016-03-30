@@ -242,10 +242,7 @@ func (p *awsProvider) getOutputDestination(job *elastictranscoder.Job) (string, 
 	if err != nil {
 		return "", err
 	}
-	outputKeyPrefix := ""
-	if job.OutputKeyPrefix != nil {
-		outputKeyPrefix = *job.OutputKeyPrefix
-	}
+	outputKeyPrefix := aws.StringValue(job.OutputKeyPrefix)
 	for _, output := range job.Outputs {
 		destinationFile := fmt.Sprintf("s3://%s/%s%s",
 			*readPipelineOutput.Pipeline.OutputBucket,
