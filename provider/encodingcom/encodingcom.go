@@ -37,9 +37,14 @@ func init() {
 	provider.Register(Name, encodingComFactory)
 }
 
+type encodingComClient interface {
+	AddMedia(source []string, format []encodingcom.Format) (*encodingcom.AddMediaResponse, error)
+	GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error)
+}
+
 type encodingComProvider struct {
 	config *config.Config
-	client *encodingcom.Client
+	client encodingComClient
 }
 
 func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
@@ -49,7 +54,7 @@ func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfi
 	}
 	resp, err := e.client.AddMedia([]string{transcodeProfile.SourceMedia}, formats)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Error on AddMedia operation: %s", err.Error())
 	}
 	return &provider.JobStatus{
 		ProviderJobID: resp.MediaID,
@@ -115,7 +120,22 @@ func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) 
 			"finished":          resp[0].FinishDate,
 			"destinationStatus": resp[0].Formats[0].Destinations,
 		},
+		OutputDestination: e.getOutputDestination(resp),
 	}, nil
+}
+
+func (e *encodingComProvider) getOutputDestination(status []encodingcom.StatusResponse) string {
+	formats := status[0].Formats
+	for _, formatStatus := range formats {
+		for _, destinationStatus := range formatStatus.Destinations {
+			if destinationStatus.Status == "Saved" {
+				destination := strings.Split(destinationStatus.Name, "/")
+				destination = destination[:len(destination)-1]
+				return strings.Join(destination, "/")
+			}
+		}
+	}
+	return ""
 }
 
 func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Status {

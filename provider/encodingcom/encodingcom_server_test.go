@@ -48,6 +48,48 @@ type encodingComFakeServer struct {
 	status *encodingcom.APIStatusResponse
 }
 
+type encodingComFakeClient struct {
+	media fakeMedia
+}
+
+func newEncodingComFakeClient(mediaParam fakeMedia) *encodingComFakeClient {
+	client := encodingComFakeClient{
+		media: mediaParam,
+	}
+	return &client
+}
+
+func (c *encodingComFakeClient) AddMedia(source []string, format []encodingcom.Format) (*encodingcom.AddMediaResponse, error) {
+	return &encodingcom.AddMediaResponse{}, nil
+}
+
+func (c *encodingComFakeClient) GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error) {
+	if len(mediaIDs) == 0 {
+		return nil, errors.New("please provide at least one media id")
+	}
+	statusResponse := make([]encodingcom.StatusResponse, 1)
+	statusResponse[0] = encodingcom.StatusResponse{
+		MediaStatus: "finished",
+		Progress:    100.0,
+		SourceFile:  "http://some.source.file",
+		TimeLeft:    "1",
+		CreateDate:  c.media.Created,
+		StartDate:   c.media.Started,
+		FinishDate:  c.media.Finished,
+		Formats: []encodingcom.FormatStatus{
+			{
+				Destinations: []encodingcom.DestinationStatus{
+					{
+						Name:   "s3://mybucket/dir/file.mp4",
+						Status: "Saved",
+					},
+				},
+			},
+		},
+	}
+	return statusResponse, nil
+}
+
 func newEncodingComFakeServer() *encodingComFakeServer {
 	server := encodingComFakeServer{
 		medias: make(map[string]*fakeMedia),

@@ -467,10 +467,7 @@ func TestAWSJobStatus(t *testing.T) {
 				"dir/webm_720p/file.webm": "it's finished!",
 			},
 		},
-		OutputDestination: []string{
-			"s3://some bucket/dir/mp4_720p/file.mp4",
-			"s3://some bucket/dir/webm_720p/file.webm",
-		},
+		OutputDestination: "s3://some bucket/dir",
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
 		t.Errorf("Wrong JobStatus. Want %#v. Got %#v.", expectedJobStatus, *jobStatus)

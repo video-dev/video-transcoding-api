@@ -33,16 +33,16 @@ func TestEncodingComFactory(t *testing.T) {
 	if !ok {
 		t.Fatalf("Wrong provider returned. Want encodingComProvider instance. Got %#v.", provider)
 	}
-	expected := encodingcom.Client{
+	expected := &encodingcom.Client{
 		Endpoint: "https://manage.encoding.com",
 		UserID:   "myuser",
 		UserKey:  "secret-key",
 	}
-	if !reflect.DeepEqual(*ecomProvider.client, expected) {
-		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, *ecomProvider.client)
+	if !reflect.DeepEqual(ecomProvider.client.(*encodingcom.Client), expected) {
+		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, ecomProvider.client)
 	}
-	if !reflect.DeepEqual(*ecomProvider.config, cfg) {
-		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", cfg, *ecomProvider.config)
+	if !reflect.DeepEqual(ecomProvider.config, &cfg) {
+		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", &cfg, ecomProvider.config)
 	}
 }
 
@@ -231,8 +231,13 @@ func TestJobStatus(t *testing.T) {
 		Finished: now.Add(-10 * time.Minute),
 	}
 	server.medias["mymedia"] = &media
-	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	client := newEncodingComFakeClient(media)
 	prov := encodingComProvider{client: client}
+	prov.config = &config.Config{
+		EncodingCom: &config.EncodingCom{
+			Destination: "mybucket",
+		},
+	}
 	jobStatus, err := prov.JobStatus("mymedia")
 	if err != nil {
 		t.Fatal(err)
@@ -243,14 +248,20 @@ func TestJobStatus(t *testing.T) {
 		Status:        provider.StatusFinished,
 		StatusMessage: "",
 		ProviderStatus: map[string]interface{}{
-			"progress":          100.0,
-			"sourcefile":        "http://some.source.file",
-			"timeleft":          "1",
-			"created":           media.Created,
-			"started":           media.Started,
-			"finished":          media.Finished,
-			"destinationStatus": []encodingcom.DestinationStatus(nil),
+			"progress":   100.0,
+			"sourcefile": "http://some.source.file",
+			"timeleft":   "1",
+			"created":    media.Created,
+			"started":    media.Started,
+			"finished":   media.Finished,
+			"destinationStatus": []encodingcom.DestinationStatus{
+				{
+					Name:   "s3://mybucket/dir/file.mp4",
+					Status: "Saved",
+				},
+			},
 		},
+		OutputDestination: "s3://mybucket/dir",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v.\nGot  %#v.", expected, *jobStatus)

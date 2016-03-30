@@ -15,7 +15,9 @@
 	    "UserKey": "superkey",
 	    "StatusEndpoint": "http://mystatus",
 	    "Destination": "http://nice-destination",
-	    "Region": "us-east-1"
+	    "Region": "us-east-1",
+      "AccessKeyID": "some-access-id",
+      "SecretAccessKey": "some-secret-key"
     },
     "ElementalConductor": {
       "Host": "some-server",

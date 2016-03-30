@@ -98,17 +98,10 @@ func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*pr
 	if err != nil {
 		return nil, err
 	}
-	outputDestination, err := p.getOutputDestination(resp.Job)
-	if err != nil {
-		outputDestination = []string{
-			err.Error(),
-		}
-	}
 	return &provider.JobStatus{
-		ProviderName:      Name,
-		ProviderJobID:     aws.StringValue(resp.Job.Id),
-		Status:            provider.StatusQueued,
-		OutputDestination: outputDestination,
+		ProviderName:  Name,
+		ProviderJobID: aws.StringValue(resp.Job.Id),
+		Status:        provider.StatusQueued,
 	}, nil
 }
 
@@ -146,9 +139,7 @@ func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	}
 	outputDestination, err := p.getOutputDestination(resp.Job)
 	if err != nil {
-		outputDestination = []string{
-			err.Error(),
-		}
+		outputDestination = err.Error()
 	}
 	return &provider.JobStatus{
 		ProviderJobID:     aws.StringValue(resp.Job.Id),
@@ -158,75 +149,28 @@ func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (p *awsProvider) getOutputDestination(job *elastictranscoder.Job) ([]string, error) {
-	var outputDestination []string
+func (p *awsProvider) getOutputDestination(job *elastictranscoder.Job) (string, error) {
 	readPipelineOutput, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
 		Id: job.PipelineId,
 	})
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 	outputKeyPrefix := ""
 	if job.OutputKeyPrefix != nil {
 		outputKeyPrefix = *job.OutputKeyPrefix
 	}
-	for _, playlist := range job.Playlists {
-		if *playlist.Format == "HLSv3" {
-			// master playlist
-			outputDestination = append(outputDestination,
-				fmt.Sprintf("s3://%s/%s%s",
-					*readPipelineOutput.Pipeline.OutputBucket,
-					*playlist.Name,
-					".m3u8",
-				),
-			)
-			for _, output := range job.Outputs {
-				// Get preset playlist
-				outputDestination = append(outputDestination,
-					fmt.Sprintf("s3://%s/%s%s%s",
-						*readPipelineOutput.Pipeline.OutputBucket,
-						outputKeyPrefix,
-						*output.Key,
-						".m3u8",
-					),
-				)
-				if output.DurationMillis == nil || output.SegmentDuration == nil {
-					continue
-				}
-				// Infer .ts segment file names from total duration
-				// returned by final step in transcoding process
-				// Number of segments = total duration / segment duration
-				outputDurationMillis := float64(*output.DurationMillis)
-				segmentDuration, _ := strconv.ParseFloat(*output.SegmentDuration, 64)
-				numSegments := int(outputDurationMillis/segmentDuration/1000 + 0.5)
-				for segmentIndex := 0; segmentIndex < numSegments; segmentIndex++ {
-					outputDestination = append(outputDestination,
-						fmt.Sprintf("s3://%s/%s%s%s%s",
-							*readPipelineOutput.Pipeline.OutputBucket,
-							outputKeyPrefix,
-							*output.Key,
-							fmt.Sprintf("%05d", segmentIndex),
-							".ts",
-						),
-					)
-				}
-			}
-		}
+	for _, output := range job.Outputs {
+		destinationFile := fmt.Sprintf("s3://%s/%s%s",
+			*readPipelineOutput.Pipeline.OutputBucket,
+			outputKeyPrefix,
+			*output.Key,
+		)
+		destination := strings.Split(destinationFile, "/")
+		destination = destination[:len(destination)-2]
+		return strings.Join(destination, "/"), nil
 	}
-	// If this is not an adaptive streaming job, just parse filenames
-	// from plain outputs
-	if len(job.Playlists) == 0 {
-		for _, output := range job.Outputs {
-			outputDestination = append(outputDestination,
-				fmt.Sprintf("s3://%s/%s%s",
-					*readPipelineOutput.Pipeline.OutputBucket,
-					outputKeyPrefix,
-					*output.Key,
-				),
-			)
-		}
-	}
-	return outputDestination, nil
+	return "", nil
 }
 
 func (p *awsProvider) statusMap(awsStatus string) provider.Status {
