@@ -3,16 +3,8 @@ package provider
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/url"
-	"regexp"
 	"sort"
-	"strings"
 
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 )
