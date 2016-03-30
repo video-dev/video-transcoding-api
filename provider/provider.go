@@ -17,8 +17,6 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
-const defaultAWSRegion = "us-east-1"
-
 var (
 	// ErrProviderAlreadyRegistered is the error returned when trying to register a
 	// provider twice.
