@@ -14,7 +14,7 @@ import (
 	"github.com/nytm/video-transcoding-api/db/dbtest"
 )
 
-func TestNewPreset(t *testing.T) {
+func TestNewPresetMap(t *testing.T) {
 	tests := []struct {
 		givenTestCase       string
 		givenRequestData    map[string]interface{}
@@ -24,7 +24,7 @@ func TestNewPreset(t *testing.T) {
 		wantBody map[string]interface{}
 	}{
 		{
-			"New preset",
+			"New presetmap",
 			map[string]interface{}{
 				"name": "abc-123",
 				"providerMapping": map[string]string{
@@ -50,7 +50,7 @@ func TestNewPreset(t *testing.T) {
 			},
 		},
 		{
-			"New preset duplicate name",
+			"New presetmap duplicate name",
 			map[string]interface{}{
 				"name": "abc-321",
 				"providerMapping": map[string]string{
@@ -65,11 +65,11 @@ func TestNewPreset(t *testing.T) {
 
 			http.StatusConflict,
 			map[string]interface{}{
-				"error": db.ErrPresetAlreadyExists.Error(),
+				"error": db.ErrPresetMapAlreadyExists.Error(),
 			},
 		},
 		{
-			"New preset missing name",
+			"New presetmap missing name",
 			map[string]interface{}{
 				"providerMapping": map[string]string{
 					"elementalconductor": "18",
@@ -114,10 +114,10 @@ func TestNewPreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := dbtest.NewFakeRepository(test.givenTriggerDBError)
-		fakeDB.CreatePreset(&db.Preset{Name: "abc-321"})
+		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321"})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
 		body, _ := json.Marshal(test.givenRequestData)
-		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
+		r, _ := http.NewRequest("POST", "/presetmaps", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
@@ -133,28 +133,28 @@ func TestNewPreset(t *testing.T) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
 		if test.wantCode == http.StatusOK {
-			preset, err := fakeDB.GetPreset(got["name"].(string))
+			presetmap, err := fakeDB.GetPresetMap(got["name"].(string))
 			if err != nil {
 				t.Error(err)
-			} else if !reflect.DeepEqual(preset.ProviderMapping, test.givenRequestData["providerMapping"]) {
-				t.Errorf("%s: didn't save the preset in the database. Want %#v. Got %#v", test.givenTestCase, test.givenRequestData, preset.ProviderMapping)
+			} else if !reflect.DeepEqual(presetmap.ProviderMapping, test.givenRequestData["providerMapping"]) {
+				t.Errorf("%s: didn't save the preset in the database. Want %#v. Got %#v", test.givenTestCase, test.givenRequestData, presetmap.ProviderMapping)
 			}
 		}
 	}
 }
 
-func TestGetPreset(t *testing.T) {
+func TestGetPresetMap(t *testing.T) {
 	tests := []struct {
-		givenTestCase   string
-		givenPresetName string
+		givenTestCase      string
+		givenPresetMapName string
 
-		wantBody *db.Preset
+		wantBody *db.PresetMap
 		wantCode int
 	}{
 		{
 			"Get preset",
 			"preset-1",
-			&db.Preset{Name: "preset-1"},
+			&db.PresetMap{Name: "preset-1"},
 			http.StatusOK,
 		},
 		{
@@ -167,37 +167,37 @@ func TestGetPreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := dbtest.NewFakeRepository(false)
-		fakeDB.CreatePreset(&db.Preset{Name: "preset-1"})
+		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
 		})
-		r, _ := http.NewRequest("GET", "/presets/"+test.givenPresetName, nil)
+		r, _ := http.NewRequest("GET", "/presetmaps/"+test.givenPresetMapName, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		if test.wantBody != nil {
-			var gotPreset db.Preset
-			err := json.NewDecoder(w.Body).Decode(&gotPreset)
+			var gotPresetMap db.PresetMap
+			err := json.NewDecoder(w.Body).Decode(&gotPresetMap)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !reflect.DeepEqual(gotPreset, *test.wantBody) {
-				t.Errorf("%s: wrong body. Want %#v. Got %#v", test.givenTestCase, *test.wantBody, gotPreset)
+			if !reflect.DeepEqual(gotPresetMap, *test.wantBody) {
+				t.Errorf("%s: wrong body. Want %#v. Got %#v", test.givenTestCase, *test.wantBody, gotPresetMap)
 			}
 		}
 	}
 }
 
-func TestUpdatePreset(t *testing.T) {
+func TestUpdatePresetMap(t *testing.T) {
 	tests := []struct {
-		givenTestCase    string
-		givenPresetName  string
-		givenRequestData map[string]interface{}
+		givenTestCase      string
+		givenPresetMapName string
+		givenRequestData   map[string]interface{}
 
-		wantBody *db.Preset
+		wantBody *db.PresetMap
 		wantCode int
 	}{
 		{
@@ -209,7 +209,7 @@ func TestUpdatePreset(t *testing.T) {
 					"elastictranscoder":  "def-345",
 				},
 			},
-			&db.Preset{
+			&db.PresetMap{
 				Name: "preset-1",
 				ProviderMapping: map[string]string{
 					"elementalconductor": "abc-123",
@@ -234,7 +234,7 @@ func TestUpdatePreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := dbtest.NewFakeRepository(false)
-		fakeDB.CreatePreset(&db.Preset{
+		fakeDB.CreatePresetMap(&db.PresetMap{
 			Name: "preset-1",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "some-id",
@@ -245,36 +245,36 @@ func TestUpdatePreset(t *testing.T) {
 			db:     fakeDB,
 		})
 		data, _ := json.Marshal(test.givenRequestData)
-		r, _ := http.NewRequest("PUT", "/presets/"+test.givenPresetName, bytes.NewReader(data))
+		r, _ := http.NewRequest("PUT", "/presetmaps/"+test.givenPresetMapName, bytes.NewReader(data))
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		if test.wantBody != nil {
-			var gotPreset db.Preset
-			err := json.NewDecoder(w.Body).Decode(&gotPreset)
+			var gotPresetMap db.PresetMap
+			err := json.NewDecoder(w.Body).Decode(&gotPresetMap)
 			if err != nil {
 				t.Fatal(err)
 			}
-			if !reflect.DeepEqual(gotPreset, *test.wantBody) {
-				t.Errorf("%s: wrong body. Want %#v. Got %#v", test.givenTestCase, *test.wantBody, gotPreset)
+			if !reflect.DeepEqual(gotPresetMap, *test.wantBody) {
+				t.Errorf("%s: wrong body. Want %#v. Got %#v", test.givenTestCase, *test.wantBody, gotPresetMap)
 			}
-			preset, err := fakeDB.GetPreset(gotPreset.Name)
+			preset, err := fakeDB.GetPresetMap(gotPresetMap.Name)
 			if err != nil {
 				t.Error(err)
-			} else if !reflect.DeepEqual(*preset, gotPreset) {
-				t.Errorf("%s: didn't update the preset in the database. Want %#v. Got %#v", test.givenTestCase, gotPreset, *preset)
+			} else if !reflect.DeepEqual(*preset, gotPresetMap) {
+				t.Errorf("%s: didn't update the preset in the database. Want %#v. Got %#v", test.givenTestCase, gotPresetMap, *preset)
 			}
 		}
 	}
 }
 
-func TestDeletePreset(t *testing.T) {
+func TestDeletePresetMap(t *testing.T) {
 	tests := []struct {
-		givenTestCase   string
-		givenPresetName string
-		wantCode        int
+		givenTestCase      string
+		givenPresetMapName string
+		wantCode           int
 	}{
 		{
 			"Delete preset",
@@ -290,37 +290,37 @@ func TestDeletePreset(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := dbtest.NewFakeRepository(false)
-		fakeDB.CreatePreset(&db.Preset{Name: "preset-1"})
+		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
 		})
-		r, _ := http.NewRequest("DELETE", "/presets/"+test.givenPresetName, nil)
+		r, _ := http.NewRequest("DELETE", "/presetmaps/"+test.givenPresetMapName, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		if test.wantCode == http.StatusOK {
-			_, err := fakeDB.GetPreset(test.givenPresetName)
-			if err != db.ErrPresetNotFound {
+			_, err := fakeDB.GetPresetMap(test.givenPresetMapName)
+			if err != db.ErrPresetMapNotFound {
 				t.Errorf("%s: didn't delete the job in the database", test.givenTestCase)
 			}
 		}
 	}
 }
 
-func TestListPresets(t *testing.T) {
+func TestListPresetMaps(t *testing.T) {
 	tests := []struct {
-		givenTestCase string
-		givenPresets  []db.Preset
+		givenTestCase   string
+		givenPresetMaps []db.PresetMap
 
 		wantCode int
-		wantBody map[string]db.Preset
+		wantBody map[string]db.PresetMap
 	}{
 		{
 			"List presets",
-			[]db.Preset{
+			[]db.PresetMap{
 				{
 					Name:            "preset-1",
 					ProviderMapping: map[string]string{"elementalconductor": "abc123"},
@@ -335,7 +335,7 @@ func TestListPresets(t *testing.T) {
 				},
 			},
 			http.StatusOK,
-			map[string]db.Preset{
+			map[string]db.PresetMap{
 				"preset-1": {
 					Name:            "preset-1",
 					ProviderMapping: map[string]string{"elementalconductor": "abc123"},
@@ -354,26 +354,131 @@ func TestListPresets(t *testing.T) {
 			"Empty list of presets",
 			nil,
 			http.StatusOK,
-			map[string]db.Preset{},
+			map[string]db.PresetMap{},
 		},
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(nil)
 		fakeDB := dbtest.NewFakeRepository(false)
-		for i := range test.givenPresets {
-			fakeDB.CreatePreset(&test.givenPresets[i])
+		for i := range test.givenPresetMaps {
+			fakeDB.CreatePresetMap(&test.givenPresetMaps[i])
 		}
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
 		})
-		r, _ := http.NewRequest("GET", "/presets", nil)
+		r, _ := http.NewRequest("GET", "/presetmaps", nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
-		var got map[string]db.Preset
+		var got map[string]db.PresetMap
+		err := json.NewDecoder(w.Body).Decode(&got)
+		if err != nil {
+			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
+		}
+		if !reflect.DeepEqual(got, test.wantBody) {
+			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+	}
+}
+
+func TestCreatePreset(t *testing.T) {
+	tests := []struct {
+		givenTestCase    string
+		givenRequestData map[string]interface{}
+		wantBody         map[string]interface{}
+		wantCode         int
+	}{
+		{
+			"Create new preset",
+			map[string]interface{}{
+				"providers": []string{"fake", "encodingcom"},
+				"preset": map[string]string{
+					"name":          "nyt_test_here_2wq",
+					"description":   "testing creation from api",
+					"container":     "mp4",
+					"height":        "720",
+					"videoCodec":    "h264",
+					"videoBitrate":  "1000",
+					"gopSize":       "90",
+					"gopMode":       "fixed",
+					"profile":       "Main",
+					"profileLevel":  "3.1",
+					"rateControl":   "VBR",
+					"interlaceMode": "progressive",
+					"audioCodec":    "aac",
+					"audioBitrate":  "64000",
+				},
+			},
+			map[string]interface{}{
+				"Results": map[string]interface{}{
+					"fake": map[string]interface{}{
+						"PresetID": "presetID_here",
+						"Error":    "",
+					},
+					"encodingcom": map[string]interface{}{
+						"PresetID": "",
+						"Error":    "getting factory: provider not found",
+					},
+				},
+				"PresetMap": "nyt_test_here_2wq",
+			},
+			http.StatusOK,
+		},
+		{
+			"Error creating preset in all providers",
+			map[string]interface{}{
+				"providers": []string{"elastictranscoder", "encodingcom"},
+				"preset": map[string]string{
+					"name":          "nyt_test_here_2wq",
+					"description":   "testing creation from api",
+					"container":     "mp4",
+					"height":        "720",
+					"videoCodec":    "h264",
+					"videoBitrate":  "1000",
+					"gopSize":       "90",
+					"gopMode":       "fixed",
+					"profile":       "Main",
+					"profileLevel":  "3.1",
+					"rateControl":   "VBR",
+					"interlaceMode": "progressive",
+					"audioCodec":    "aac",
+					"audioBitrate":  "64000",
+				},
+			},
+			map[string]interface{}{
+				"Results": map[string]interface{}{
+					"elastictranscoder": map[string]interface{}{
+						"PresetID": "",
+						"Error":    "getting factory: provider not found",
+					},
+					"encodingcom": map[string]interface{}{
+						"PresetID": "",
+						"Error":    "getting factory: provider not found",
+					},
+				},
+				"PresetMap": "",
+			},
+			http.StatusOK,
+		},
+	}
+
+	for _, test := range tests {
+		srvr := server.NewSimpleServer(nil)
+		fakeDB := dbtest.NewFakeRepository(false)
+
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
+		body, _ := json.Marshal(test.givenRequestData)
+		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+		var got map[string]interface{}
 		err := json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)

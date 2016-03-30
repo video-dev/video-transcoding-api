@@ -38,24 +38,24 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		}
 		return newErrorResponse(formattedErr)
 	}
-	presets := make([]db.Preset, len(input.Payload.Presets))
+	presetsMap := make([]db.PresetMap, len(input.Payload.Presets))
 	for i, presetID := range input.Payload.Presets {
-		preset, err := s.db.GetPreset(presetID)
+		presetMap, err := s.db.GetPresetMap(presetID)
 		if err != nil {
-			if err == db.ErrPresetNotFound {
+			if err == db.ErrPresetMapNotFound {
 				return newInvalidJobResponse(err)
 			}
 			return newErrorResponse(err)
 		}
-		presets[i] = *preset
+		presetsMap[i] = *presetMap
 	}
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     input.Payload.Source,
-		Presets:         presets,
+		Presets:         presetsMap,
 		StreamingParams: input.Payload.StreamingParams,
 	}
 	jobStatus, err := providerObj.Transcode(transcodeProfile)
-	if err == provider.ErrPresetNotFound {
+	if err == provider.ErrPresetMapNotFound {
 		return newInvalidJobResponse(err)
 	}
 	if err != nil {

@@ -6,23 +6,45 @@ import (
 	"io"
 
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/provider"
 )
 
 // swagger:parameters newPreset
-type newPresetInput struct {
+type newPresetMapInput struct {
 	// in: body
 	// required: true
-	Payload db.Preset
+	Payload db.PresetMap
+}
+
+type newPresetInput struct {
+	Providers []string        `json:"providers"`
+	Preset    provider.Preset `json:"preset"`
+}
+
+// list of the results of the attempt to create a preset
+// in each provider.
+//
+// swagger:response newPresetOutputs
+type newPresetOutputs struct {
+	// in: body
+	// required: true
+	Results   map[string]newPresetOutput
+	PresetMap string
+}
+
+type newPresetOutput struct {
+	PresetID string
+	Error    string
 }
 
 // Preset loads the input from the request body, validates them and returns the
 // preset.
-func (p *newPresetInput) Preset(body io.Reader) (db.Preset, error) {
+func (p *newPresetMapInput) PresetMap(body io.Reader) (db.PresetMap, error) {
 	err := json.NewDecoder(body).Decode(&p.Payload)
 	if err != nil {
 		return p.Payload, err
 	}
-	err = validatePreset(&p.Payload)
+	err = validatePresetMap(&p.Payload)
 	if err != nil {
 		return p.Payload, err
 	}
@@ -30,44 +52,44 @@ func (p *newPresetInput) Preset(body io.Reader) (db.Preset, error) {
 }
 
 // swagger:parameters getPreset deletePreset
-type getPresetInput struct {
+type getPresetMapInput struct {
 	// in: path
 	// required: true
 	Name string `json:"name"`
 }
 
-func (p *getPresetInput) loadParams(paramsMap map[string]string) {
+func (p *getPresetMapInput) loadParams(paramsMap map[string]string) {
 	p.Name = paramsMap["name"]
 }
 
 // swagger:parameters updatePreset
-type updatePresetInput struct {
+type updatePresetMapInput struct {
 	// in: path
 	// required: true
 	Name string `json:"name"`
 
 	// in: body
 	// required: true
-	Payload db.Preset
+	Payload db.PresetMap
 
-	newPresetInput
+	newPresetMapInput
 }
 
-func (p *updatePresetInput) Preset(paramsMap map[string]string, body io.Reader) (db.Preset, error) {
+func (p *updatePresetMapInput) PresetMap(paramsMap map[string]string, body io.Reader) (db.PresetMap, error) {
 	p.Name = paramsMap["name"]
 	err := json.NewDecoder(body).Decode(&p.Payload)
 	if err != nil {
 		return p.Payload, err
 	}
 	p.Payload.Name = p.Name
-	err = validatePreset(&p.Payload)
+	err = validatePresetMap(&p.Payload)
 	if err != nil {
 		return p.Payload, err
 	}
 	return p.Payload, nil
 }
 
-func validatePreset(p *db.Preset) error {
+func validatePresetMap(p *db.PresetMap) error {
 	if p.Name == "" {
 		return errors.New("missing field name from the request")
 	}

@@ -69,7 +69,7 @@ func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*pr
 	for i, preset := range transcodeProfile.Presets {
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
-			return nil, provider.ErrPresetNotFound
+			return nil, provider.ErrPresetMapNotFound
 		}
 		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),
@@ -126,6 +126,92 @@ func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string
 		parts = append(parts[0:lastIndex], presetName, fileName)
 	}
 	return aws.String(strings.Join(parts, "/"))
+}
+
+func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscoder.VideoParameters {
+	videoPreset := elastictranscoder.VideoParameters{
+		DisplayAspectRatio: aws.String("auto"),
+		FrameRate:          aws.String("auto"),
+		SizingPolicy:       aws.String("Fill"),
+		PaddingPolicy:      aws.String("Pad"),
+		Codec:              &preset.VideoCodec,
+		KeyframesMaxDist:   &preset.GopSize,
+		CodecOptions: map[string]*string{
+			"Profile":            aws.String(strings.ToLower(preset.Profile)),
+			"Level":              &preset.ProfileLevel,
+			"MaxReferenceFrames": aws.String("2"),
+		},
+	}
+	if preset.Width != "" {
+		videoPreset.MaxWidth = &preset.Width
+	} else {
+		videoPreset.MaxWidth = aws.String("auto")
+	}
+	if preset.Height != "" {
+		videoPreset.MaxHeight = &preset.Height
+	} else {
+		videoPreset.MaxHeight = aws.String("auto")
+	}
+	normalizedVideoBitRate, _ := strconv.Atoi(preset.VideoBitrate)
+	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
+	videoPreset.BitRate = &videoBitrate
+	if preset.VideoCodec == "h264" {
+		videoPreset.Codec = aws.String("H.264")
+	}
+	if preset.GopMode == "fixed" {
+		videoPreset.FixedGOP = aws.String("true")
+	}
+	return &videoPreset
+}
+
+func (p *awsProvider) createThumbsPreset(preset provider.Preset) *elastictranscoder.Thumbnails {
+	thumbsPreset := &elastictranscoder.Thumbnails{
+		PaddingPolicy: aws.String("Pad"),
+		Format:        aws.String("png"),
+		Interval:      aws.String("1"),
+		SizingPolicy:  aws.String("Fill"),
+		MaxWidth:      aws.String("auto"),
+		MaxHeight:     aws.String("auto"),
+	}
+	return thumbsPreset
+}
+
+func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscoder.AudioParameters {
+	audioPreset := &elastictranscoder.AudioParameters{
+		Codec:      &preset.AudioCodec,
+		Channels:   aws.String("auto"),
+		SampleRate: aws.String("auto"),
+	}
+
+	normalizedAudioBitRate, _ := strconv.Atoi(preset.AudioBitrate)
+	audioBitrate := strconv.Itoa(normalizedAudioBitRate / 1000)
+	audioPreset.BitRate = &audioBitrate
+
+	if preset.AudioCodec == "aac" {
+		audioPreset.Codec = aws.String("AAC")
+	}
+
+	return audioPreset
+}
+
+func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
+	presetInput := elastictranscoder.CreatePresetInput{
+		Name:        &preset.Name,
+		Description: &preset.Description,
+	}
+	if preset.Container == "m3u8" {
+		presetInput.Container = aws.String("ts")
+	} else {
+		presetInput.Container = &preset.Container
+	}
+	presetInput.Video = p.createVideoPreset(preset)
+	presetInput.Audio = p.createAudioPreset(preset)
+	presetInput.Thumbnails = p.createThumbsPreset(preset)
+	presetOutput, err := p.c.CreatePreset(&presetInput)
+	if err != nil {
+		return "", err
+	}
+	return *presetOutput.Preset.Id, nil
 }
 
 func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {

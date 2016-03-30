@@ -45,6 +45,34 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
+func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (string, error) {
+	elementalConductorPreset := elementalconductor.Preset{
+		XMLName: xml.Name{Local: "preset"},
+	}
+	elementalConductorPreset.Name = preset.Name
+	elementalConductorPreset.Description = preset.Description
+	elementalConductorPreset.Container = preset.Container
+	elementalConductorPreset.Width = preset.Width
+	elementalConductorPreset.Height = preset.Height
+	elementalConductorPreset.VideoCodec = preset.VideoCodec
+	elementalConductorPreset.VideoBitrate = preset.VideoBitrate
+	elementalConductorPreset.GopSize = preset.GopSize
+	elementalConductorPreset.GopMode = preset.GopMode
+	elementalConductorPreset.Profile = preset.Profile
+	elementalConductorPreset.ProfileLevel = preset.ProfileLevel
+	elementalConductorPreset.RateControl = preset.RateControl
+	elementalConductorPreset.InterlaceMode = preset.InterlaceMode
+	elementalConductorPreset.AudioCodec = preset.AudioCodec
+	elementalConductorPreset.AudioBitrate = preset.AudioBitrate
+
+	result, err := p.client.CreatePreset(&elementalConductorPreset)
+	if err != nil {
+		return "", err
+	}
+
+	return result.Name, nil
+}
+
 func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	newJob, err := p.newJob(transcodeProfile)
 	if err != nil {
@@ -151,7 +179,7 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 
 		presetID, ok := preset.ProviderMapping[Name]
 		if !ok {
-			return outputGroup, nil, provider.ErrPresetNotFound
+			return outputGroup, nil, provider.ErrPresetMapNotFound
 		}
 		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,

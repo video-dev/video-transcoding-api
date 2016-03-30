@@ -9,15 +9,19 @@ import (
 // JSON-encoded preset returned on the newPreset and getPreset operations.
 //
 // swagger:response preset
-type presetResponse struct {
+type presetMapResponse struct {
 	// in: body
-	Payload *db.Preset
+	Payload *db.PresetMap
 
 	baseResponse
 }
 
-func newPresetResponse(preset *db.Preset) *presetResponse {
-	return &presetResponse{
+type newPresetResponse struct {
+	baseResponse
+}
+
+func newPresetMapResponse(preset *db.PresetMap) *presetMapResponse {
+	return &presetMapResponse{
 		baseResponse: baseResponse{
 			payload: preset,
 			status:  http.StatusOK,
@@ -29,32 +33,32 @@ func newPresetResponse(preset *db.Preset) *presetResponse {
 // getPreset or deletePreset operations).
 //
 // swagger:response presetNotFound
-type presetNotFoundResponse struct {
+type presetMapNotFoundResponse struct {
 	// in: body
 	Error *errorResponse
 }
 
-func newPresetNotFoundResponse(err error) *presetNotFoundResponse {
-	return &presetNotFoundResponse{Error: newErrorResponse(err).withStatus(http.StatusNotFound)}
+func newPresetMapNotFoundResponse(err error) *presetMapNotFoundResponse {
+	return &presetMapNotFoundResponse{Error: newErrorResponse(err).withStatus(http.StatusNotFound)}
 }
 
-func (r *presetNotFoundResponse) Result() (int, interface{}, error) {
+func (r *presetMapNotFoundResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
 // error returned when the given preset data is not valid.
 //
 // swagger:response invalidPreset
-type invalidPresetResponse struct {
+type invalidPresetMapResponse struct {
 	// in: body
 	Error *errorResponse
 }
 
-func newInvalidPresetResponse(err error) *invalidPresetResponse {
-	return &invalidPresetResponse{Error: newErrorResponse(err).withStatus(http.StatusBadRequest)}
+func newInvalidPresetMapResponse(err error) *invalidPresetMapResponse {
+	return &invalidPresetMapResponse{Error: newErrorResponse(err).withStatus(http.StatusBadRequest)}
 }
 
-func (r *invalidPresetResponse) Result() (int, interface{}, error) {
+func (r *invalidPresetMapResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
@@ -62,39 +66,39 @@ func (r *invalidPresetResponse) Result() (int, interface{}, error) {
 // already in-use.
 //
 // swagger:response presetAlreadyExists
-type presetAlreadyExistsResponse struct {
+type presetMapAlreadyExistsResponse struct {
 	// in: body
 	Error *errorResponse
 }
 
-func newPresetAlreadyExistsResponse(err error) *presetAlreadyExistsResponse {
-	return &presetAlreadyExistsResponse{Error: newErrorResponse(err).withStatus(http.StatusConflict)}
+func newPresetMapAlreadyExistsResponse(err error) *presetMapAlreadyExistsResponse {
+	return &presetMapAlreadyExistsResponse{Error: newErrorResponse(err).withStatus(http.StatusConflict)}
 }
 
-func (r *presetAlreadyExistsResponse) Result() (int, interface{}, error) {
+func (r *presetMapAlreadyExistsResponse) Result() (int, interface{}, error) {
 	return r.Error.Result()
 }
 
-// response for the listPresets operation. It's actually a JSON-encoded object
+// response for the listPresetMaps operation. It's actually a JSON-encoded object
 // instead of an array, in the format `presetName: presetObject`
 //
-// swagger:response listPresets
-type listPresetsResponse struct {
+// swagger:response listPresetMaps
+type listPresetMapsResponse struct {
 	// in: body
-	PresetsMap map[string]db.Preset
+	PresetMaps map[string]db.PresetMap
 
 	baseResponse
 }
 
-func newListPresetsResponse(presets []db.Preset) *listPresetsResponse {
-	presetsMap := make(map[string]db.Preset, len(presets))
-	for _, preset := range presets {
-		presetsMap[preset.Name] = preset
+func newListPresetMapsResponse(presetsMap []db.PresetMap) *listPresetMapsResponse {
+	Map := make(map[string]db.PresetMap, len(presetsMap))
+	for _, presetMap := range presetsMap {
+		Map[presetMap.Name] = presetMap
 	}
-	return &listPresetsResponse{
+	return &listPresetMapsResponse{
 		baseResponse: baseResponse{
 			status:  http.StatusOK,
-			payload: presetsMap,
+			payload: Map,
 		},
 	}
 }

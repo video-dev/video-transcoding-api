@@ -8,7 +8,7 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 )
 
-func TestCreatePreset(t *testing.T) {
+func TestCreatePresetMap(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -19,7 +19,7 @@ func TestCreatePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.Preset{
+	preset := db.PresetMap{
 		Name: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc123",
@@ -27,7 +27,7 @@ func TestCreatePreset(t *testing.T) {
 		},
 		OutputOpts: db.OutputOptions{Extension: "ts"},
 	}
-	err = repo.CreatePreset(&preset)
+	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -47,7 +47,7 @@ func TestCreatePreset(t *testing.T) {
 	}
 }
 
-func TestCreatePresetDuplicate(t *testing.T) {
+func TestCreatePresetMapDuplicate(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -56,21 +56,21 @@ func TestCreatePresetDuplicate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.Preset{
+	preset := db.PresetMap{
 		Name:            "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
-	err = repo.CreatePreset(&preset)
+	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.CreatePreset(&preset)
-	if err != db.ErrPresetAlreadyExists {
-		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrPresetAlreadyExists, err)
+	err = repo.CreatePresetMap(&preset)
+	if err != db.ErrPresetMapAlreadyExists {
+		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrPresetMapAlreadyExists, err)
 	}
 }
 
-func TestUpdatePreset(t *testing.T) {
+func TestUpdatePresetMap(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -79,8 +79,8 @@ func TestUpdatePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -89,7 +89,7 @@ func TestUpdatePreset(t *testing.T) {
 		"elastictranscoder": "def123",
 	}
 	preset.OutputOpts = db.OutputOptions{Extension: "mp4"}
-	err = repo.UpdatePreset(&preset)
+	err = repo.UpdatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestUpdatePreset(t *testing.T) {
 	}
 }
 
-func TestUpdatePresetNotFound(t *testing.T) {
+func TestUpdatePresetMapNotFound(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -118,13 +118,13 @@ func TestUpdatePresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.UpdatePreset(&db.Preset{Name: "mypreset"})
-	if err != db.ErrPresetNotFound {
-		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
+	err = repo.UpdatePresetMap(&db.PresetMap{Name: "mypreset"})
+	if err != db.ErrPresetMapNotFound {
+		t.Errorf("Wrong error returned by DeletePresetMap. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
 }
 
-func TestDeletePreset(t *testing.T) {
+func TestDeletePresetMap(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -133,12 +133,12 @@ func TestDeletePreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.Preset{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.CreatePreset(&preset)
+	preset := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&db.Preset{Name: preset.Name})
+	err = repo.DeletePresetMap(&db.PresetMap{Name: preset.Name})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -149,7 +149,7 @@ func TestDeletePreset(t *testing.T) {
 	}
 }
 
-func TestDeletePresetNotFound(t *testing.T) {
+func TestDeletePresetMapNotFound(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -158,13 +158,13 @@ func TestDeletePresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePreset(&db.Preset{Name: "mypreset"})
-	if err != db.ErrPresetNotFound {
-		t.Errorf("Wrong error returned by DeletePreset. Want ErrPresetNotFound. Got %#v.", err)
+	err = repo.DeletePresetMap(&db.PresetMap{Name: "mypreset"})
+	if err != db.ErrPresetMapNotFound {
+		t.Errorf("Wrong error returned by DeletePresetMap. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
 }
 
-func TestGetPreset(t *testing.T) {
+func TestGetPresetMap(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -173,7 +173,7 @@ func TestGetPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.Preset{
+	preset := db.PresetMap{
 		Name: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc-123",
@@ -182,20 +182,20 @@ func TestGetPreset(t *testing.T) {
 		},
 		OutputOpts: db.OutputOptions{Extension: "ts"},
 	}
-	err = repo.CreatePreset(&preset)
+	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotPreset, err := repo.GetPreset(preset.Name)
+	gotPresetMap, err := repo.GetPresetMap(preset.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(*gotPreset, preset) {
-		t.Errorf("Wrong preset. Want %#v. Got %#v.", preset, *gotPreset)
+	if !reflect.DeepEqual(*gotPresetMap, preset) {
+		t.Errorf("Wrong preset. Want %#v. Got %#v.", preset, *gotPresetMap)
 	}
 }
 
-func TestGetPresetNotFound(t *testing.T) {
+func TestGetPresetMapNotFound(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -204,16 +204,16 @@ func TestGetPresetNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotPreset, err := repo.GetPreset("mypreset")
-	if err != db.ErrPresetNotFound {
-		t.Errorf("Wrong error returned. Want ErrPresetNotFound. Got %#v.", err)
+	gotPresetMap, err := repo.GetPresetMap("mypreset")
+	if err != db.ErrPresetMapNotFound {
+		t.Errorf("Wrong error returned. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
-	if gotPreset != nil {
-		t.Errorf("Unexpected non-nil preset: %#v.", gotPreset)
+	if gotPresetMap != nil {
+		t.Errorf("Unexpected non-nil preset: %#v.", gotPresetMap)
 	}
 }
 
-func TestListPresets(t *testing.T) {
+func TestListPresetMaps(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
 		t.Fatal(err)
@@ -224,7 +224,7 @@ func TestListPresets(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	presets := []db.Preset{
+	presetmaps := []db.PresetMap{
 		{
 			Name: "preset-1",
 			ProviderMapping: map[string]string{
@@ -250,30 +250,30 @@ func TestListPresets(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "ts"},
 		},
 	}
-	for i := range presets {
-		err = repo.CreatePreset(&presets[i])
+	for i := range presetmaps {
+		err = repo.CreatePresetMap(&presetmaps[i])
 		if err != nil {
 			t.Fatal(err)
 		}
 	}
-	gotPresets, err := repo.ListPresets()
+	gotPresetMaps, err := repo.ListPresetMaps()
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Why? The "list" of IDs is a set on Redis, so we need to make sure
 	// that order is not important before invoking reflect.DeepEqual.
-	expected := presetListToMap(presets)
-	got := presetListToMap(gotPresets)
+	expected := presetListToMap(presetmaps)
+	got := presetListToMap(gotPresetMaps)
 
 	if !reflect.DeepEqual(got, expected) {
-		t.Errorf("ListPresets(): wrong list. Want %#v. Got %#v.", presets, gotPresets)
+		t.Errorf("ListPresetMaps(): wrong list. Want %#v. Got %#v.", presetmaps, gotPresetMaps)
 	}
 }
 
-func presetListToMap(presets []db.Preset) map[string]db.Preset {
-	result := make(map[string]db.Preset, len(presets))
-	for _, preset := range presets {
+func presetListToMap(presetmaps []db.PresetMap) map[string]db.PresetMap {
+	result := make(map[string]db.PresetMap, len(presetmaps))
+	for _, preset := range presetmaps {
 		result[preset.Name] = preset
 	}
 	return result

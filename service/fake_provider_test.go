@@ -14,7 +14,7 @@ type fakeProvider struct{}
 func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	for _, preset := range transcodeProfile.Presets {
 		if _, ok := preset.ProviderMapping["fake"]; !ok {
-			return nil, provider.ErrPresetNotFound
+			return nil, provider.ErrPresetMapNotFound
 		}
 	}
 	return &provider.JobStatus{
@@ -26,6 +26,10 @@ func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*p
 			"sourcefile": "http://some.source.file",
 		},
 	}, nil
+}
+
+func (*fakeProvider) CreatePreset(preset provider.Preset) (string, error) {
+	return "presetID_here", nil
 }
 
 func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {

@@ -44,6 +44,21 @@ func (c *fakeElasticTranscoder) CreateJob(input *elastictranscoder.CreateJobInpu
 	}, nil
 }
 
+func (c *fakeElasticTranscoder) CreatePreset(input *elastictranscoder.CreatePresetInput) (*elastictranscoder.CreatePresetOutput, error) {
+	var presetID = *input.Name + "-abc123"
+	return &elastictranscoder.CreatePresetOutput{
+		Preset: &elastictranscoder.Preset{
+			Audio:       input.Audio,
+			Container:   input.Container,
+			Description: input.Description,
+			Name:        input.Name,
+			Id:          &presetID,
+			Thumbnails:  input.Thumbnails,
+			Video:       input.Video,
+		},
+	}, nil
+}
+
 func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (*elastictranscoder.ReadJobOutput, error) {
 	if err := c.getError("ReadJob"); err != nil {
 		return nil, err
