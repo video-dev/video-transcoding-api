@@ -38,7 +38,7 @@ func init() {
 }
 
 type encodingComClient interface {
-	AddMedia(source []string, format []encodingcom.Format) (*encodingcom.AddMediaResponse, error)
+	AddMedia(source []string, format []encodingcom.Format, Region string) (*encodingcom.AddMediaResponse, error)
 	GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error)
 }
 
@@ -52,7 +52,7 @@ func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfi
 	if err != nil {
 		return nil, err
 	}
-	resp, err := e.client.AddMedia([]string{transcodeProfile.SourceMedia}, formats)
+	resp, err := e.client.AddMedia([]string{transcodeProfile.SourceMedia}, formats, e.config.EncodingCom.Region)
 	if err != nil {
 		return nil, fmt.Errorf("Error on AddMedia operation: %s", err.Error())
 	}
