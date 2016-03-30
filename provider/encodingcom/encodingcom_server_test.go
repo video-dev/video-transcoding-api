@@ -59,7 +59,7 @@ func newEncodingComFakeClient(mediaParam fakeMedia) *encodingComFakeClient {
 	return &client
 }
 
-func (c *encodingComFakeClient) AddMedia(source []string, format []encodingcom.Format) (*encodingcom.AddMediaResponse, error) {
+func (c *encodingComFakeClient) AddMedia(source []string, format []encodingcom.Format, region string) (*encodingcom.AddMediaResponse, error) {
 	return &encodingcom.AddMediaResponse{}, nil
 }
 
