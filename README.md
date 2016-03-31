@@ -50,7 +50,7 @@ export REDIS_PASSWORD=p4ssw0rd.here
 ```
 If you are running Redis in the same host of the API and on the default port (6379) the API will automatically find the instance and connect to it. 
 
-With all environment variables set and redis up and running, clone the repository and run:
+With all environment variables set and redis up and running, clone this repository and run:
 
 ```
 $ git clone https://github.com/nytm/video-transcoding-api.git
@@ -65,124 +65,17 @@ $ make test
 
 ## Using the API
 
-### Creating a Preset
+Check out on our Wiki [how to](https://github.com/nytm/video-transcoding-api/wiki/Using-Video-Transcoding-API) use this API.
 
-Given a JSON file called `preset.json`:
+## Contributing
 
-```json
-{
-  "providers": ["elastictranscoder", "elementalconductor", "encodingcom"],
-  "preset": {
-    "name": "Preset_Test",
-    "description": "This is an example preset",
-    "container": "m3u8",
-    "height": "720",
-    "videoCodec": "h264",
-    "videoBitrate": "1000000",
-    "gopSize": "90",
-    "gopMode": "fixed",
-    "profile": "Main",
-    "profileLevel": "3.1",
-    "rateControl": "VBR",
-    "interlaceMode": "progressive",
-    "audioCodec": "aac",
-    "audioBitrate": "64000"
-  }
-}
-```
+1. Fork it
+2. Create your feature branch: `git checkout -b my-awesome-new-feature`
+3. Commit your changes: `git commit -m 'Add some awesome feature'`
+4. Push to the branch: `git push origin my-awesome-new-feature`
+5. Submit a pull request
 
-The Encoding API will try to create the preset in all providers described on `providers` field. It will also create a PresetMap registry on Redis which is a map for all the PresetID on providers.
+## License
 
-```
-$ curl -X POST -d @preset.json http://api.host.com/presets
-```
-```json
-{
-  "PresetMap": "Preset_Test",
-  "Results": {
-    "elastictranscoder": {
-      "Error": "",
-      "PresetID": "1459293696042-8p8hak"
-    },
-    "elementalconductor": {
-      "Error": "",
-      "PresetID": "Preset_Test"
-    },
-    "encodingcom": {
-      "Error": "creating preset: CreatePreset is not implemented in Encoding.com provider",
-      "PresetID": ""
-    }
-  }
-}
-```
+This code is under [???? License](). 
 
-### Creating a PresetMap
-
-Some providers like [Encoding.com](encoding.com) don't support preset creation throughout the API. The alternative is to create the preset manually on the control panel and associate it with the Encoding API by creating a PresetMap.
-
-```
-$ curl -XPOST -d '{"name":"preset_name", "providerMapping": {"encodingcom": "preset_id",
-"output": {"extension": "ts"}}' http://api.host.com/presetmaps
-```
-
-### Listing PresetMaps
-
-```
-$ curl -X GET http://api.host.com/presetmaps
-```
-```json
-{
-  "nyt_preset": {
-    "name": "nyt_preset",
-    "output": {
-      "extension": "ts"
-    },
-    "providerMapping": {
-      "encodingcom": "preset_manual_id"
-    }
-  },
-  "preset-1": {
-    "name": "preset-1",
-    "output": {
-      "extension": "mp4"
-    },
-    "providerMapping": {
-      "elastictranscoder": "1281742-93939",
-      "elementalconductor": "abc123"
-    }
-  }
-}
-```
-
-### Deleting PresetMap
-
-```
-$  curl -X DELETE http://api.host.com/presetmaps/preset-1
-```
-
-### Creating a Job
-
-The API notifies transcoding progress and completion throughout callback URLs passed when creating the job. It also receives one more presetmaps, the provider and streaming parameters in case you want to create HTTP Streaming outputs.
-
-`job.json` example:
-
-```json
-{
-  "presets": ["preset_1", "preset_2"],
-  "provider": "encodingcom",
-  "source": "http://nytimes.com/BickBuckBunny.mov?nocopy",
-  "statusCallbackInterval": 5,
-  "statusCallbackURL": "http://callback.server.com/status",
-  "completionCallbackURL": "http://callback.server.com/done",
-  "streamingParams": {
-    "SegmentDuration": "10",
-    "Protocol": "hls"
-  }
-}
-```
-
-```
-$ curl -XPOST -H "Content-Type: application/json" -d @job.json  http://api.host.com/jobs
-```
-
-It's important to note that your callback server should be able to receive POST requests from the API.
