@@ -162,7 +162,10 @@ $  curl -X DELETE http://api.host.com/presetmaps/preset-1
 
 ### Creating a Job
 
-Given a `job.json`:
+The API notifies transcoding progress and completion throughout callback URLs passed when creating the job. It also receives one more presetmaps, the provider and streaming parameters in case you want to create HTTP Streaming outputs.
+
+`job.json` example:
+
 ```json
 {
   "presets": ["preset_1", "preset_2"],
@@ -171,10 +174,15 @@ Given a `job.json`:
   "statusCallbackInterval": 5,
   "statusCallbackURL": "http://callback.server.com/status",
   "completionCallbackURL": "http://callback.server.com/done",
-  "streamingParams": {}
+  "streamingParams": {
+    "SegmentDuration": "10",
+    "Protocol": "hls"
+  }
 }
 ```
+
 ```
 $ curl -XPOST -H "Content-Type: application/json" -d @job.json  http://api.host.com/jobs
 ```
 
+It's important to note that your callback server should be able to receive POST requests from the API.
