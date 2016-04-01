@@ -77,5 +77,5 @@ Check out on our Wiki [how to](https://github.com/nytm/video-transcoding-api/wik
 
 ## License
 
-This code is under [???? License](). 
+This code is under [Apache 2.0 License](https://github.com/nytm/video-transcoding-api/blob/master/LICENSE). 
 
