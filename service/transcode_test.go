@@ -8,6 +8,7 @@ import (
 	"strings"
 	"testing"
 
+	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
@@ -110,7 +111,7 @@ func TestTranscode(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(nil)
+		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDBObj.CreatePresetMap(&db.PresetMap{Name: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
 		fakeDBObj.CreatePresetMap(&db.PresetMap{Name: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
@@ -180,7 +181,7 @@ func TestGetTranscodeJob(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(nil)
+		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDBObj.CreateJob(&db.Job{ProviderName: "fake",
 			ProviderJobID: "provider-job-123",
