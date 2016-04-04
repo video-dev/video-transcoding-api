@@ -31,7 +31,7 @@ func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
 // Prefix returns the string prefix used for all endpoints within
 // this service.
 func (s *TranscodingService) Prefix() string {
-	return "/"
+	return ""
 }
 
 // Middleware provides an http.Handler hook wrapped around all requests.
