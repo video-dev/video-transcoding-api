@@ -15,6 +15,9 @@ import (
 func main() {
 	flag.Parse()
 	cfg := config.LoadConfig(*gizmoConfig.ConfigLocationCLI)
+	if cfg.Server.RouterType == "" {
+		cfg.Server.RouterType = "fast"
+	}
 
 	server.Init("video-transcoding-api", cfg.Server)
 	service, err := service.NewTranscodingService(cfg)
