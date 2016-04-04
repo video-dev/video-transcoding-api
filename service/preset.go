@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
@@ -47,7 +47,7 @@ func (s *TranscodingService) newPresetMap(r *http.Request) gizmoResponse {
 //       500: genericError
 func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
 	var params getPresetMapInput
-	params.loadParams(mux.Vars(r))
+	params.loadParams(web.Vars(r))
 	preset, err := s.db.GetPresetMap(params.Name)
 
 	switch err {
@@ -72,7 +72,7 @@ func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
 func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 	defer r.Body.Close()
 	var input updatePresetMapInput
-	presetMap, err := input.PresetMap(mux.Vars(r), r.Body)
+	presetMap, err := input.PresetMap(web.Vars(r), r.Body)
 	if err != nil {
 		return newInvalidPresetMapResponse(err)
 	}
@@ -98,7 +98,7 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 //       500: genericError
 func (s *TranscodingService) deletePresetMap(r *http.Request) gizmoResponse {
 	var params getPresetMapInput
-	params.loadParams(mux.Vars(r))
+	params.loadParams(web.Vars(r))
 	err := s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
 
 	switch err {

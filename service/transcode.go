@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/mux"
+	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 	"golang.org/x/net/context"
@@ -100,7 +100,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 //       500: genericError
 func (s *TranscodingService) getTranscodeJob(r *http.Request) gizmoResponse {
 	var params getTranscodeJobInput
-	params.loadParams(mux.Vars(r))
+	params.loadParams(web.Vars(r))
 	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID)).(gizmoResponse)
 }
 

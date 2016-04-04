@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -30,7 +30,7 @@ func (s *TranscodingService) listProviders(r *http.Request) gizmoResponse {
 //       500: genericError
 func (s *TranscodingService) getProvider(r *http.Request) gizmoResponse {
 	var params getProviderInput
-	params.loadParams(mux.Vars(r))
+	params.loadParams(web.Vars(r))
 	description, err := provider.DescribeProvider(params.Name, s.config)
 	switch err {
 	case nil:
