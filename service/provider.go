@@ -16,7 +16,7 @@ import (
 //       200: listProviders
 //       500: genericError
 func (s *TranscodingService) listProviders(r *http.Request) gizmoResponse {
-	return newListProvidersResponse(provider.ListProviders())
+	return newListProvidersResponse(provider.ListProviders(s.config))
 }
 
 // swagger:route GET /providers/{name} providers getProvider

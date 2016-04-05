@@ -157,10 +157,12 @@ func GetProviderFactory(name string) (Factory, error) {
 
 // ListProviders returns the list of currently registered providers,
 // alphabetically ordered.
-func ListProviders() []string {
+func ListProviders(c *config.Config) []string {
 	providerNames := make([]string, 0, len(providers))
-	for name := range providers {
-		providerNames = append(providerNames, name)
+	for name, factory := range providers {
+		if _, err := factory(c); err == nil {
+			providerNames = append(providerNames, name)
+		}
 	}
 	sort.Strings(providerNames)
 	return providerNames

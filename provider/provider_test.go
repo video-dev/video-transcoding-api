@@ -95,8 +95,8 @@ func TestListProviders(t *testing.T) {
 		"factory-err":       getFactory(errors.New("invalid config"), nil, cap),
 		"cap-and-healthy":   getFactory(nil, nil, cap),
 	}
-	expected := []string{"cap-and-healthy", "cap-and-unhealthy", "factory-err"}
-	got := ListProviders()
+	expected := []string{"cap-and-healthy", "cap-and-unhealthy"}
+	got := ListProviders(&config.Config{})
 	if !reflect.DeepEqual(got, expected) {
 		t.Errorf("DescribeProviders: want %#v. Got %#v", expected, got)
 	}
@@ -104,7 +104,7 @@ func TestListProviders(t *testing.T) {
 
 func TestListProvidersEmpty(t *testing.T) {
 	providers = nil
-	providerNames := ListProviders()
+	providerNames := ListProviders(&config.Config{})
 	if len(providerNames) != 0 {
 		t.Errorf("Unexpected non-empty provider list: %#v", providerNames)
 	}
