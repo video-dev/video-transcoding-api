@@ -80,7 +80,8 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 
 	switch err {
 	case nil:
-		return newPresetMapResponse(&presetMap)
+		updatedPresetMap, _ := s.db.GetPresetMap(presetMap.Name)
+		return newPresetMapResponse(updatedPresetMap)
 	case db.ErrPresetMapNotFound:
 		return newPresetMapNotFoundResponse(err)
 	default:
