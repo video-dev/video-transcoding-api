@@ -272,11 +272,13 @@ func (r *redisRepository) redisClient() *redis.Client {
 		}
 		if len(sentinelAddrs) > 0 {
 			r.client = redis.NewFailoverClient(&redis.FailoverOptions{
-				SentinelAddrs: sentinelAddrs,
-				MasterName:    r.config.Redis.SentinelMasterName,
-				Password:      r.config.Redis.Password,
-				PoolSize:      r.config.Redis.PoolSize,
-				PoolTimeout:   time.Duration(r.config.Redis.PoolTimeout) * time.Second,
+				SentinelAddrs:      sentinelAddrs,
+				MasterName:         r.config.Redis.SentinelMasterName,
+				Password:           r.config.Redis.Password,
+				PoolSize:           r.config.Redis.PoolSize,
+				PoolTimeout:        time.Duration(r.config.Redis.PoolTimeout) * time.Second,
+				IdleTimeout:        time.Duration(r.config.Redis.IdleTimeout) * time.Second,
+				IdleCheckFrequency: time.Duration(r.config.Redis.IdleCheckFrequency) * time.Second,
 			})
 		} else {
 			redisAddr := r.config.Redis.RedisAddr
@@ -284,10 +286,12 @@ func (r *redisRepository) redisClient() *redis.Client {
 				redisAddr = "127.0.0.1:6379"
 			}
 			r.client = redis.NewClient(&redis.Options{
-				Addr:        redisAddr,
-				Password:    r.config.Redis.Password,
-				PoolSize:    r.config.Redis.PoolSize,
-				PoolTimeout: time.Duration(r.config.Redis.PoolTimeout) * time.Second,
+				Addr:               redisAddr,
+				Password:           r.config.Redis.Password,
+				PoolSize:           r.config.Redis.PoolSize,
+				PoolTimeout:        time.Duration(r.config.Redis.PoolTimeout) * time.Second,
+				IdleTimeout:        time.Duration(r.config.Redis.IdleTimeout) * time.Second,
+				IdleCheckFrequency: time.Duration(r.config.Redis.IdleCheckFrequency) * time.Second,
 			})
 		}
 	})
