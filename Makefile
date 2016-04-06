@@ -35,7 +35,6 @@ run: build
 	./video-transcoding-api -config config.json
 
 vet: testdeps
-	go get golang.org/x/tools/cmd/vet
 	go vet ./...
 
 swagger:
