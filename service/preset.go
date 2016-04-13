@@ -15,7 +15,7 @@ import (
 // Creates a new preset in the API.
 //
 //     Responses:
-//       200: presetmap
+//       200: preset
 //       400: invalidPreset
 //       409: presetAlreadyExists
 //       500: genericError
@@ -42,7 +42,7 @@ func (s *TranscodingService) newPresetMap(r *http.Request) gizmoResponse {
 // Finds a preset using its name.
 //
 //     Responses:
-//       200: presetmap
+//       200: preset
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
