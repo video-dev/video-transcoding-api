@@ -67,6 +67,10 @@ func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, erro
 	return "", errors.New("CreatePreset is not implemented in Encoding.com provider")
 }
 
+func (e *encodingComProvider) DeletePreset(presetID string) error {
+	return errors.New("DeletePreset is not implemented in Encoding.com provider")
+}
+
 func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.PresetMap) []string {
 	var extension string
 

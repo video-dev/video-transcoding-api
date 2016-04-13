@@ -20,6 +20,10 @@ type newPresetResponse struct {
 	baseResponse
 }
 
+type deletePresetResponse struct {
+	baseResponse
+}
+
 func newPresetMapResponse(preset *db.PresetMap) *presetMapResponse {
 	return &presetMapResponse{
 		baseResponse: baseResponse{

@@ -385,7 +385,7 @@ func TestListPresetMaps(t *testing.T) {
 	}
 }
 
-func TestCreatePreset(t *testing.T) {
+func TestNewPreset(t *testing.T) {
 	tests := []struct {
 		givenTestCase    string
 		givenRequestData map[string]interface{}
