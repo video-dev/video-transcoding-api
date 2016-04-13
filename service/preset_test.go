@@ -489,3 +489,49 @@ func TestNewPreset(t *testing.T) {
 		}
 	}
 }
+
+func TestDeletePreset(t *testing.T) {
+	tests := []struct {
+		givenTestCase string
+		wantBody      map[string]interface{}
+		wantCode      int
+	}{
+		{
+			"Delete a preset",
+			map[string]interface{}{
+				"Results": map[string]interface{}{
+					"fake": map[string]interface{}{
+						"PresetID": "presetID_here",
+						"Error":    "",
+					},
+				},
+				"PresetMap": "removed successfully",
+			},
+			http.StatusOK,
+		},
+	}
+
+	for _, test := range tests {
+		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		fakeDB := dbtest.NewFakeRepository(false)
+		fakeProviderMapping := make(map[string]string)
+		fakeProviderMapping["fake"] = "presetID_here"
+		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321", ProviderMapping: fakeProviderMapping})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
+		r, _ := http.NewRequest("DELETE", "/presets/abc-321", nil)
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+		var got map[string]interface{}
+		err := json.NewDecoder(w.Body).Decode(&got)
+		if err != nil {
+			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
+		}
+		if !reflect.DeepEqual(got, test.wantBody) {
+			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+	}
+}

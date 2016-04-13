@@ -144,7 +144,7 @@ func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
 
 	presetmap, err := s.db.GetPresetMap(params.Name)
 	if err != nil {
-		output.Status = "couldn't retrieve preset map: " + err.Error()
+		output.PresetMap = "couldn't retrieve: " + err.Error()
 	} else {
 		for p, presetID := range presetmap.ProviderMapping {
 			providerFactory, err := provider.GetProviderFactory(p)
@@ -166,9 +166,9 @@ func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
 		}
 		err = s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
 		if err != nil {
-			output.Status = "error deleting presetmap: " + err.Error()
+			output.PresetMap = "error: " + err.Error()
 		} else {
-			output.Status = "presetmap removed successfully"
+			output.PresetMap = "removed successfully"
 		}
 	}
 	return &deletePresetResponse{

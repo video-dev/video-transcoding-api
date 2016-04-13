@@ -17,7 +17,7 @@ func TestLoadConfigFromFile(t *testing.T) {
 		SwaggerManifest: "/etc/video-transcoding-api/swagger.json",
 		Server: &config.Server{
 			HTTPPort:      8090,
-			HTTPAccessLog: &accessLog,
+			HTTPAccessLog: accessLog,
 		},
 		Redis: &Redis{
 			SentinelAddrs:      "127.0.0.1:26379,127.0.0.2:26379,127.0.0.3:26379",
@@ -233,7 +233,7 @@ func TestLoadConfigOverride(t *testing.T) {
 	expectedCfg := Config{
 		Server: &config.Server{
 			HTTPPort:      8090,
-			HTTPAccessLog: &accessLog,
+			HTTPAccessLog: accessLog,
 		},
 		Redis: &Redis{
 			SentinelAddrs:      "127.0.0.1:26379,127.0.0.2:26379,127.0.0.3:26379",

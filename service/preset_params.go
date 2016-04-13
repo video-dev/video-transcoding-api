@@ -44,8 +44,8 @@ type newPresetOutput struct {
 type deletePresetOutputs struct {
 	// in: body
 	// required: true
-	Results map[string]deletePresetOutput
-	Status  string
+	Results   map[string]deletePresetOutput
+	PresetMap string
 }
 
 type deletePresetOutput struct {
