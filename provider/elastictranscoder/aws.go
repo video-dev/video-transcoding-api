@@ -194,10 +194,6 @@ func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscod
 	return audioPreset
 }
 
-func (p *awsProvider) DeletePreset(preset string) error {
-	return errors.New("DeletePreset is not implemented in AWS provider")
-}
-
 func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 	presetInput := elastictranscoder.CreatePresetInput{
 		Name:        &preset.Name,
@@ -216,6 +212,14 @@ func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 		return "", err
 	}
 	return *presetOutput.Preset.Id, nil
+}
+
+func (p *awsProvider) DeletePreset(presetID string) error {
+	presetInput := elastictranscoder.DeletePresetInput{
+		Id: &presetID,
+	}
+	_, err := p.c.DeletePreset(&presetInput)
+	return err
 }
 
 func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
