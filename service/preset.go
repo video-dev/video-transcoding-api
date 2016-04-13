@@ -136,34 +136,40 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
-	var params getPresetMapInput
 	var output deletePresetOutputs
+	var params getPresetMapInput
 	params.loadParams(web.Vars(r))
-	presetID := params.Name
+
 	output.Results = make(map[string]deletePresetOutput)
-	for _, p := range provider.ListProviders(s.config) {
-		providerFactory, err := provider.GetProviderFactory(p)
-		if err != nil {
-			output.Results[p] = deletePresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
-			continue
-		}
-		providerObj, err := providerFactory(s.config)
-		if err != nil {
-			output.Results[p] = deletePresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
-			continue
-		}
-		err = providerObj.DeletePreset(presetID)
-		if err != nil {
-			output.Results[p] = deletePresetOutput{PresetID: "", Error: "deleting preset: " + err.Error()}
-			continue
-		}
-		output.Results[p] = deletePresetOutput{PresetID: presetID, Error: ""}
-	}
-	err := s.deletePresetMap(r)
+
+	presetmap, err := s.db.GetPresetMap(params.Name)
 	if err != nil {
-		output.Status = "error deleting presetmap"
+		output.Status = "couldn't retrieve preset map: " + err.Error()
 	} else {
-		output.Status = "presetmap removed successfully"
+		for p, presetID := range presetmap.ProviderMapping {
+			providerFactory, err := provider.GetProviderFactory(p)
+			if err != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
+				continue
+			}
+			providerObj, err := providerFactory(s.config)
+			if err != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
+				continue
+			}
+			err = providerObj.DeletePreset(presetID)
+			if err != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "deleting preset: " + err.Error()}
+				continue
+			}
+			output.Results[p] = deletePresetOutput{PresetID: presetID, Error: ""}
+		}
+		err = s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
+		if err != nil {
+			output.Status = "error deleting presetmap: " + err.Error()
+		} else {
+			output.Status = "presetmap removed successfully"
+		}
 	}
 	return &deletePresetResponse{
 		baseResponse: baseResponse{
