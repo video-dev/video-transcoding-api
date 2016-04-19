@@ -22,8 +22,8 @@ build:
       - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
       - INFRA_REPO=$$NP_INFRA_REPO
-      - SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
       - NP_PATH=$$NP_PATH_VALUE
+      - NP_REPO=$$NP_REPO
       - PACKER_VPC_ID=$$NP_PACKER_VPC_ID
       - PACKER_SUBNET_ID=$$NP_PACKER_SUBNET_ID
       - S3_VARS_BUCKET=$$NP_S3_VARS_BUCKET
@@ -34,8 +34,9 @@ build:
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
-      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
-      - /usr/bin/python /tmp/np build transcoding-api:dev#$${COMMIT:0:7};/usr/bin/python /tmp/np deploy transcoding-api:dev#$${COMMIT:0:7}
+      - pip install https://$GITHUB_TOKEN@github.com/${NP_REPO}/archive/master.zip
+      - np build transcoding-api:dev#$${COMMIT:0:7}
+      - np deploy transcoding-api:dev#$${COMMIT:0:7}
     when:
       branch: master
       event: push
@@ -43,8 +44,8 @@ build:
     image: balser/go-buildbox:1.6
     environment:
       - INFRA_REPO=$$NP_INFRA_REPO
-      - SCRIPT_LOCATION=$$NP_SCRIPT_LOCATION
       - NP_PATH=$$NP_PATH_VALUE
+      - NP_REPO=$$NP_REPO
       - PACKER_VPC_ID=$$NP_PACKER_VPC_ID
       - PACKER_SUBNET_ID=$$NP_PACKER_SUBNET_ID
       - S3_VARS_BUCKET=$$NP_S3_VARS_BUCKET
@@ -55,8 +56,9 @@ build:
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
-      - curl https://$GITHUB_TOKEN@raw.githubusercontent.com/$SCRIPT_LOCATION > /tmp/np
-      - /usr/bin/python /tmp/np deploy transcoding-api:stg#$${COMMIT:0:7};/usr/bin/python /tmp/np deploy transcoding-api:prd#$${COMMIT:0:7}
+      - pip install https://$GITHUB_TOKEN@github.com/${NP_REPO}/archive/master.zip
+      - np deploy transcoding-api:stg#$${COMMIT:0:7}
+      - np deploy transcoding-api:prd#$${COMMIT:0:7}
     when:
       event: tag
 notify:
