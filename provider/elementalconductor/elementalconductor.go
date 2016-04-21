@@ -46,8 +46,7 @@ type elementalConductorProvider struct {
 }
 
 func (p *elementalConductorProvider) DeletePreset(presetID string) error {
-	_, err := p.client.DeletePreset(presetID)
-	return err
+	return p.client.DeletePreset(presetID)
 }
 
 func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (string, error) {
