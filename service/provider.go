@@ -5,6 +5,7 @@ import (
 
 	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/provider"
+	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // swagger:route GET /providers providers listProviders
@@ -15,7 +16,7 @@ import (
 //     Responses:
 //       200: listProviders
 //       500: genericError
-func (s *TranscodingService) listProviders(r *http.Request) gizmoResponse {
+func (s *TranscodingService) listProviders(r *http.Request) swagger.GizmoJSONResponse {
 	return newListProvidersResponse(provider.ListProviders(s.config))
 }
 
@@ -28,7 +29,7 @@ func (s *TranscodingService) listProviders(r *http.Request) gizmoResponse {
 //       200: provider
 //       404: providerNotFound
 //       500: genericError
-func (s *TranscodingService) getProvider(r *http.Request) gizmoResponse {
+func (s *TranscodingService) getProvider(r *http.Request) swagger.GizmoJSONResponse {
 	var params getProviderInput
 	params.loadParams(web.Vars(r))
 	description, err := provider.DescribeProvider(params.Name, s.config)
@@ -38,6 +39,6 @@ func (s *TranscodingService) getProvider(r *http.Request) gizmoResponse {
 	case provider.ErrProviderNotFound:
 		return newProviderNotFoundResponse(err)
 	default:
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 }

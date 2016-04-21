@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/nytm/video-transcoding-api/provider"
+	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // response for the listProviders operation. Contains the list of providers
@@ -44,11 +45,11 @@ func newGetProviderResponse(p *provider.Description) *getProviderResponse {
 // swagger:response providerNotFound
 type providerNotFoundResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newProviderNotFoundResponse(err error) *providerNotFoundResponse {
-	return &providerNotFoundResponse{Error: newErrorResponse(err).withStatus(http.StatusNotFound)}
+	return &providerNotFoundResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusNotFound)}
 }
 
 func (r *providerNotFoundResponse) Result() (int, interface{}, error) {

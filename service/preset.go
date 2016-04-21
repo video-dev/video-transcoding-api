@@ -8,6 +8,7 @@ import (
 	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
+	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // swagger:route POST /presetmaps presets newPreset
@@ -19,7 +20,7 @@ import (
 //       400: invalidPreset
 //       409: presetAlreadyExists
 //       500: genericError
-func (s *TranscodingService) newPresetMap(r *http.Request) gizmoResponse {
+func (s *TranscodingService) newPresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	var input newPresetMapInput
 	defer r.Body.Close()
 	preset, err := input.PresetMap(r.Body)
@@ -33,7 +34,7 @@ func (s *TranscodingService) newPresetMap(r *http.Request) gizmoResponse {
 	case db.ErrPresetMapAlreadyExists:
 		return newPresetMapAlreadyExistsResponse(err)
 	default:
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 }
 
@@ -45,7 +46,7 @@ func (s *TranscodingService) newPresetMap(r *http.Request) gizmoResponse {
 //       200: preset
 //       404: presetNotFound
 //       500: genericError
-func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
+func (s *TranscodingService) getPresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	var params getPresetMapInput
 	params.loadParams(web.Vars(r))
 	preset, err := s.db.GetPresetMap(params.Name)
@@ -56,7 +57,7 @@ func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
 	case db.ErrPresetMapNotFound:
 		return newPresetMapNotFoundResponse(err)
 	default:
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 }
 
@@ -69,7 +70,7 @@ func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
 //       400: invalidPreset
 //       404: presetNotFound
 //       500: genericError
-func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
+func (s *TranscodingService) updatePresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	defer r.Body.Close()
 	var input updatePresetMapInput
 	presetMap, err := input.PresetMap(web.Vars(r), r.Body)
@@ -85,7 +86,7 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 	case db.ErrPresetMapNotFound:
 		return newPresetMapNotFoundResponse(err)
 	default:
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 }
 
@@ -97,7 +98,7 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 //       200: emptyResponse
 //       404: presetNotFound
 //       500: genericError
-func (s *TranscodingService) deletePresetMap(r *http.Request) gizmoResponse {
+func (s *TranscodingService) deletePresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	var params getPresetMapInput
 	params.loadParams(web.Vars(r))
 	err := s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
@@ -108,7 +109,7 @@ func (s *TranscodingService) deletePresetMap(r *http.Request) gizmoResponse {
 	case db.ErrPresetMapNotFound:
 		return newPresetMapNotFoundResponse(err)
 	default:
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 }
 
@@ -119,10 +120,10 @@ func (s *TranscodingService) deletePresetMap(r *http.Request) gizmoResponse {
 //     Responses:
 //       200: listPresetMaps
 //       500: genericError
-func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
+func (s *TranscodingService) listPresetMaps(r *http.Request) swagger.GizmoJSONResponse {
 	presetsMap, err := s.db.ListPresetMaps()
 	if err != nil {
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 	return newListPresetMapsResponse(presetsMap)
 }
@@ -135,7 +136,7 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 //       200: deletePresetOutputs
 //       404: presetNotFound
 //       500: genericError
-func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
+func (s *TranscodingService) deletePreset(r *http.Request) swagger.GizmoJSONResponse {
 	var output deletePresetOutputs
 	var params getPresetMapInput
 	params.loadParams(web.Vars(r))
@@ -185,7 +186,7 @@ func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
 //     Responses:
 //       200: newPresetOutputs
 //       500: genericError
-func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
+func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONResponse {
 	defer r.Body.Close()
 	var input newPresetInput
 	var output newPresetOutputs
@@ -193,12 +194,12 @@ func (s *TranscodingService) newPreset(r *http.Request) gizmoResponse {
 
 	respData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 
 	err = json.Unmarshal(respData, &input)
 	if err != nil {
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 
 	presetMap.ProviderMapping = make(map[string]string)

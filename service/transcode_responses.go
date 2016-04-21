@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/nytm/video-transcoding-api/provider"
+	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // swagger:model
@@ -59,11 +60,11 @@ func newJobStatusResponse(jobStatus *provider.JobStatus) *jobStatusResponse {
 // swagger:response invalidJob
 type invalidJobResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newInvalidJobResponse(err error) *invalidJobResponse {
-	return &invalidJobResponse{Error: newErrorResponse(err).withStatus(http.StatusBadRequest)}
+	return &invalidJobResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusBadRequest)}
 }
 
 func (r *invalidJobResponse) Result() (int, interface{}, error) {
@@ -75,11 +76,11 @@ func (r *invalidJobResponse) Result() (int, interface{}, error) {
 // swagger:response jobNotFound
 type jobNotFoundResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newJobNotFoundResponse(err error) *jobNotFoundResponse {
-	return &jobNotFoundResponse{Error: newErrorResponse(err).withStatus(http.StatusNotFound)}
+	return &jobNotFoundResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusNotFound)}
 }
 
 func (r *jobNotFoundResponse) Result() (int, interface{}, error) {
@@ -92,11 +93,11 @@ func (r *jobNotFoundResponse) Result() (int, interface{}, error) {
 // swagger:response jobNotFoundInTheProvider
 type jobNotFoundProviderResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newJobNotFoundProviderResponse(err error) *jobNotFoundProviderResponse {
-	return &jobNotFoundProviderResponse{Error: newErrorResponse(err).withStatus(http.StatusGone)}
+	return &jobNotFoundProviderResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusGone)}
 }
 
 func (r *jobNotFoundProviderResponse) Result() (int, interface{}, error) {

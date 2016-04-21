@@ -9,6 +9,7 @@ import (
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/redis"
+	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // TranscodingService will implement server.JSONService and handle all requests
@@ -46,7 +47,7 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 	return func(r *http.Request) (int, interface{}, error) {
 		status, res, err := j(r)
 		if err != nil {
-			return newErrorResponse(err).withStatus(status).Result()
+			return swagger.NewErrorResponse(err).WithStatus(status).Result()
 		}
 		return status, res, nil
 	}
@@ -56,31 +57,31 @@ func (s *TranscodingService) JSONMiddleware(j server.JSONEndpoint) server.JSONEn
 func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEndpoint {
 	return map[string]map[string]server.JSONEndpoint{
 		"/jobs": {
-			"POST": handlerToEndpoint(s.newTranscodeJob),
+			"POST": swagger.HandlerToJSONEndpoint(s.newTranscodeJob),
 		},
 		"/jobs/:jobId": {
-			"GET": handlerToEndpoint(s.getTranscodeJob),
+			"GET": swagger.HandlerToJSONEndpoint(s.getTranscodeJob),
 		},
 		"/presets": {
-			"POST": handlerToEndpoint(s.newPreset),
+			"POST": swagger.HandlerToJSONEndpoint(s.newPreset),
 		},
 		"/presets/:name": {
-			"DELETE": handlerToEndpoint(s.deletePreset),
+			"DELETE": swagger.HandlerToJSONEndpoint(s.deletePreset),
 		},
 		"/presetmaps": {
-			"POST": handlerToEndpoint(s.newPresetMap),
-			"GET":  handlerToEndpoint(s.listPresetMaps),
+			"POST": swagger.HandlerToJSONEndpoint(s.newPresetMap),
+			"GET":  swagger.HandlerToJSONEndpoint(s.listPresetMaps),
 		},
 		"/presetmaps/:name": {
-			"GET":    handlerToEndpoint(s.getPresetMap),
-			"PUT":    handlerToEndpoint(s.updatePresetMap),
-			"DELETE": handlerToEndpoint(s.deletePresetMap),
+			"GET":    swagger.HandlerToJSONEndpoint(s.getPresetMap),
+			"PUT":    swagger.HandlerToJSONEndpoint(s.updatePresetMap),
+			"DELETE": swagger.HandlerToJSONEndpoint(s.deletePresetMap),
 		},
 		"/providers": {
-			"GET": handlerToEndpoint(s.listProviders),
+			"GET": swagger.HandlerToJSONEndpoint(s.listProviders),
 		},
 		"/providers/:name": {
-			"GET": handlerToEndpoint(s.getProvider),
+			"GET": swagger.HandlerToJSONEndpoint(s.getProvider),
 		},
 	}
 }

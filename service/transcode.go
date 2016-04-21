@@ -10,6 +10,7 @@ import (
 	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
+	"github.com/nytm/video-transcoding-api/swagger"
 	"golang.org/x/net/context"
 )
 
@@ -23,7 +24,7 @@ const maxJobTimeout = 8 * time.Hour
 //       200: job
 //       400: invalidJob
 //       500: genericError
-func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
+func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONResponse {
 	defer r.Body.Close()
 	var input newTranscodeJobInput
 	providerFactory, err := input.ProviderFactory(r.Body)
@@ -36,7 +37,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 		if _, ok := err.(provider.InvalidConfigError); ok {
 			return newInvalidJobResponse(formattedErr)
 		}
-		return newErrorResponse(formattedErr)
+		return swagger.NewErrorResponse(formattedErr)
 	}
 	presetsMap := make([]db.PresetMap, len(input.Payload.Presets))
 	for i, presetID := range input.Payload.Presets {
@@ -45,7 +46,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 			if err == db.ErrPresetMapNotFound {
 				return newInvalidJobResponse(err)
 			}
-			return newErrorResponse(err)
+			return swagger.NewErrorResponse(err)
 		}
 		presetsMap[i] = *presetMap
 	}
@@ -60,7 +61,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	}
 	if err != nil {
 		providerError := fmt.Errorf("Error with provider %q: %s", input.Payload.Provider, err)
-		return newErrorResponse(providerError)
+		return swagger.NewErrorResponse(providerError)
 	}
 	jobStatus.ProviderName = input.Payload.Provider
 	job := db.Job{
@@ -78,7 +79,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 	}
 	err = s.db.CreateJob(&job)
 	if err != nil {
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 	if job.StatusCallbackURL != "" || job.CompletionCallbackURL != "" {
 		ctx, cancel := context.WithTimeout(context.Background(), maxJobTimeout)
@@ -98,10 +99,10 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) gizmoResponse {
 //       404: jobNotFound
 //       410: jobNotFoundInTheProvider
 //       500: genericError
-func (s *TranscodingService) getTranscodeJob(r *http.Request) gizmoResponse {
+func (s *TranscodingService) getTranscodeJob(r *http.Request) swagger.GizmoJSONResponse {
 	var params getTranscodeJobInput
 	params.loadParams(web.Vars(r))
-	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID)).(gizmoResponse)
+	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID)).(swagger.GizmoJSONResponse)
 }
 
 func (s *TranscodingService) getJobStatusResponse(job *db.Job, jobStatus *provider.JobStatus, providerObj provider.TranscodingProvider, err error) interface{} {
@@ -114,9 +115,9 @@ func (s *TranscodingService) getJobStatusResponse(job *db.Job, jobStatus *provid
 			if _, ok := err.(provider.JobNotFoundError); ok {
 				return newJobNotFoundProviderResponse(providerError)
 			}
-			return newErrorResponse(providerError)
+			return swagger.NewErrorResponse(providerError)
 		}
-		return newErrorResponse(err)
+		return swagger.NewErrorResponse(err)
 	}
 	return newJobStatusResponse(jobStatus)
 }
@@ -154,7 +155,7 @@ func (s *TranscodingService) statusCallback(ctx context.Context, job db.Job) err
 		if _, ok := jobStatusResponseObj.(*jobStatusResponse); ok {
 			callbackPayload = jobStatus
 		} else {
-			_, _, errorObj := jobStatusResponseObj.(gizmoResponse).Result()
+			_, _, errorObj := jobStatusResponseObj.(swagger.GizmoJSONResponse).Result()
 			callbackPayload = errorObj
 		}
 		if jobStatus.Status != provider.StatusQueued &&

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // JSON-encoded preset returned on the newPreset and getPreset operations.
@@ -39,11 +40,11 @@ func newPresetMapResponse(preset *db.PresetMap) *presetMapResponse {
 // swagger:response presetNotFound
 type presetMapNotFoundResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newPresetMapNotFoundResponse(err error) *presetMapNotFoundResponse {
-	return &presetMapNotFoundResponse{Error: newErrorResponse(err).withStatus(http.StatusNotFound)}
+	return &presetMapNotFoundResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusNotFound)}
 }
 
 func (r *presetMapNotFoundResponse) Result() (int, interface{}, error) {
@@ -55,11 +56,11 @@ func (r *presetMapNotFoundResponse) Result() (int, interface{}, error) {
 // swagger:response invalidPreset
 type invalidPresetMapResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newInvalidPresetMapResponse(err error) *invalidPresetMapResponse {
-	return &invalidPresetMapResponse{Error: newErrorResponse(err).withStatus(http.StatusBadRequest)}
+	return &invalidPresetMapResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusBadRequest)}
 }
 
 func (r *invalidPresetMapResponse) Result() (int, interface{}, error) {
@@ -72,11 +73,11 @@ func (r *invalidPresetMapResponse) Result() (int, interface{}, error) {
 // swagger:response presetAlreadyExists
 type presetMapAlreadyExistsResponse struct {
 	// in: body
-	Error *errorResponse
+	Error *swagger.ErrorResponse
 }
 
 func newPresetMapAlreadyExistsResponse(err error) *presetMapAlreadyExistsResponse {
-	return &presetMapAlreadyExistsResponse{Error: newErrorResponse(err).withStatus(http.StatusConflict)}
+	return &presetMapAlreadyExistsResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusConflict)}
 }
 
 func (r *presetMapAlreadyExistsResponse) Result() (int, interface{}, error) {
