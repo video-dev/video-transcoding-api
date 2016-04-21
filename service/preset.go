@@ -62,7 +62,7 @@ func (s *TranscodingService) getPresetMap(r *http.Request) gizmoResponse {
 
 // swagger:route PUT /presetmaps/{name} presets updatePreset
 //
-// Updates a preset using its name.
+// Updates a presetmap using its name.
 //
 //     Responses:
 //       200: preset
@@ -91,7 +91,7 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 
 // swagger:route DELETE /presetmaps/{name} presets deletePreset
 //
-// Deletes a preset by name.
+// Deletes a presetmap by name.
 //
 //     Responses:
 //       200: emptyResponse
@@ -125,6 +125,58 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 		return newErrorResponse(err)
 	}
 	return newListPresetMapsResponse(presetsMap)
+}
+
+// swagger:route DELETE /presets/{name} presets deletePreset
+//
+// Deletes a preset by name.
+//
+//     Responses:
+//       200: emptyResponse
+//       404: presetNotFound
+//       500: genericError
+func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {
+	var output deletePresetOutputs
+	var params getPresetMapInput
+	params.loadParams(web.Vars(r))
+
+	output.Results = make(map[string]deletePresetOutput)
+
+	presetmap, err := s.db.GetPresetMap(params.Name)
+	if err != nil {
+		output.PresetMap = "couldn't retrieve: " + err.Error()
+	} else {
+		for p, presetID := range presetmap.ProviderMapping {
+			providerFactory, err := provider.GetProviderFactory(p)
+			if err != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
+				continue
+			}
+			providerObj, err := providerFactory(s.config)
+			if err != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
+				continue
+			}
+			err = providerObj.DeletePreset(presetID)
+			if err != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "deleting preset: " + err.Error()}
+				continue
+			}
+			output.Results[p] = deletePresetOutput{PresetID: presetID, Error: ""}
+		}
+		err = s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
+		if err != nil {
+			output.PresetMap = "error: " + err.Error()
+		} else {
+			output.PresetMap = "removed successfully"
+		}
+	}
+	return &deletePresetResponse{
+		baseResponse: baseResponse{
+			payload: output,
+			status:  http.StatusOK,
+		},
+	}
 }
 
 // swagger:route POST /presets presets Output

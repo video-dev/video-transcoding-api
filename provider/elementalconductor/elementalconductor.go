@@ -45,6 +45,11 @@ type elementalConductorProvider struct {
 	client *elementalconductor.Client
 }
 
+func (p *elementalConductorProvider) DeletePreset(presetID string) error {
+	_, err := p.client.DeletePreset(presetID)
+	return err
+}
+
 func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (string, error) {
 	elementalConductorPreset := elementalconductor.Preset{
 		XMLName: xml.Name{Local: "preset"},

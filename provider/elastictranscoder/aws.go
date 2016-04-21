@@ -214,6 +214,14 @@ func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 	return *presetOutput.Preset.Id, nil
 }
 
+func (p *awsProvider) DeletePreset(presetID string) error {
+	presetInput := elastictranscoder.DeletePresetInput{
+		Id: &presetID,
+	}
+	_, err := p.c.DeletePreset(&presetInput)
+	return err
+}
+
 func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	resp, err := p.c.ReadJob(&elastictranscoder.ReadJobInput{Id: aws.String(id)})
 	if err != nil {

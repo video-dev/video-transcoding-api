@@ -19,6 +19,10 @@ func (*fakeProvider) CreatePreset(Preset) (string, error) {
 	return "", nil
 }
 
+func (*fakeProvider) DeletePreset(string) error {
+	return nil
+}
+
 func (f *fakeProvider) Healthcheck() error {
 	return f.healthErr
 }

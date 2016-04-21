@@ -32,6 +32,10 @@ func (*fakeProvider) CreatePreset(preset provider.Preset) (string, error) {
 	return "presetID_here", nil
 }
 
+func (*fakeProvider) DeletePreset(presetID string) error {
+	return nil
+}
+
 func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	if id == "provider-job-123" {
 		return &provider.JobStatus{

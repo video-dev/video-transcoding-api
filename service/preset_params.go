@@ -37,6 +37,22 @@ type newPresetOutput struct {
 	Error    string
 }
 
+// list of the results of the attempt to delete a preset
+// in each provider.
+//
+// swagger:response newPresetOutputs
+type deletePresetOutputs struct {
+	// in: body
+	// required: true
+	Results   map[string]deletePresetOutput
+	PresetMap string
+}
+
+type deletePresetOutput struct {
+	PresetID string
+	Error    string
+}
+
 // Preset loads the input from the request body, validates them and returns the
 // preset.
 func (p *newPresetMapInput) PresetMap(body io.Reader) (db.PresetMap, error) {
