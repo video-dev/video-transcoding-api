@@ -89,7 +89,7 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) gizmoResponse {
 	}
 }
 
-// swagger:route DELETE /presetmaps/{name} presets deletePreset
+// swagger:route DELETE /presetmaps/{name} presets deletePresetMap
 //
 // Deletes a presetmap by name.
 //
