@@ -132,7 +132,7 @@ func (s *TranscodingService) listPresetMaps(r *http.Request) gizmoResponse {
 // Deletes a preset by name.
 //
 //     Responses:
-//       200: emptyResponse
+//       200: deletePresetOutputs
 //       404: presetNotFound
 //       500: genericError
 func (s *TranscodingService) deletePreset(r *http.Request) gizmoResponse {

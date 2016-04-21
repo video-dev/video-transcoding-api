@@ -499,13 +499,12 @@ func TestDeletePreset(t *testing.T) {
 		{
 			"Delete a preset",
 			map[string]interface{}{
-				"Results": map[string]interface{}{
+				"results": map[string]interface{}{
 					"fake": map[string]interface{}{
-						"PresetID": "presetID_here",
-						"Error":    "",
+						"presetId": "presetID_here",
 					},
 				},
-				"PresetMap": "removed successfully",
+				"presetMap": "removed successfully",
 			},
 			http.StatusOK,
 		},
