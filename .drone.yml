@@ -34,7 +34,7 @@ build:
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
-      - pip install https://$GITHUB_TOKEN@github.com/${NP_REPO}/archive/master.zip
+      - pip install -q https://$GITHUB_TOKEN@github.com/${NP_REPO}/archive/master.zip
       - np build transcoding-api:dev#$${COMMIT:0:7}
       - np deploy transcoding-api:dev#$${COMMIT:0:7}
     when:
@@ -56,7 +56,7 @@ build:
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
-      - pip install https://$GITHUB_TOKEN@github.com/${NP_REPO}/archive/master.zip
+      - pip install -q https://$GITHUB_TOKEN@github.com/${NP_REPO}/archive/master.zip
       - np deploy transcoding-api:stg#$${COMMIT:0:7}
       - np deploy transcoding-api:prd#$${COMMIT:0:7}
     when:
