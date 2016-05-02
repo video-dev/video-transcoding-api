@@ -10,6 +10,8 @@ import (
 
 const defaultStatusCallbackInterval = 5
 
+// NewTranscodeJobInputPayload makes up the parameters available for
+// specifying a new transcoding job
 type NewTranscodeJobInputPayload struct {
 	// source media for the transcoding job.
 	Source string `json:"source"`

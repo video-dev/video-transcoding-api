@@ -7,6 +7,8 @@ import (
 	"github.com/nytm/video-transcoding-api/swagger"
 )
 
+// PartialJob is the simple response given to an API
+// call that creates a new transcoding job
 // swagger:model
 type PartialJob struct {
 	// unique identifier of the job
