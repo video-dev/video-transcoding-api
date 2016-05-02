@@ -8,7 +8,7 @@ import (
 )
 
 // swagger:model
-type partialJob struct {
+type PartialJob struct {
 	// unique identifier of the job
 	//
 	// unique: true
@@ -21,7 +21,7 @@ type partialJob struct {
 // swagger:response job
 type jobResponse struct {
 	// in: body
-	Payload *partialJob
+	Payload *PartialJob
 
 	baseResponse
 }
@@ -29,7 +29,7 @@ type jobResponse struct {
 func newJobResponse(jobID string) *jobResponse {
 	return &jobResponse{
 		baseResponse: baseResponse{
-			payload: &partialJob{JobID: jobID},
+			payload: &PartialJob{JobID: jobID},
 			status:  http.StatusOK,
 		},
 	}
