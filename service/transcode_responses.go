@@ -7,8 +7,10 @@ import (
 	"github.com/nytm/video-transcoding-api/swagger"
 )
 
+// PartialJob is the simple response given to an API
+// call that creates a new transcoding job
 // swagger:model
-type partialJob struct {
+type PartialJob struct {
 	// unique identifier of the job
 	//
 	// unique: true
@@ -21,7 +23,7 @@ type partialJob struct {
 // swagger:response job
 type jobResponse struct {
 	// in: body
-	Payload *partialJob
+	Payload *PartialJob
 
 	baseResponse
 }
@@ -29,7 +31,7 @@ type jobResponse struct {
 func newJobResponse(jobID string) *jobResponse {
 	return &jobResponse{
 		baseResponse: baseResponse{
-			payload: &partialJob{JobID: jobID},
+			payload: &PartialJob{JobID: jobID},
 			status:  http.StatusOK,
 		},
 	}

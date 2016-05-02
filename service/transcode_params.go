@@ -10,39 +10,43 @@ import (
 
 const defaultStatusCallbackInterval = 5
 
+// NewTranscodeJobInputPayload makes up the parameters available for
+// specifying a new transcoding job
+type NewTranscodeJobInputPayload struct {
+	// source media for the transcoding job.
+	Source string `json:"source"`
+
+	// presets to use in the transcoding job.
+	Presets []string `json:"presets"`
+
+	// provider to use in this job
+	Provider string `json:"provider"`
+
+	// provider Adaptive Streaming parameters
+	StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
+
+	// if StatusCallbackURL is defined, this service will make a POST
+	// request to it in the interval defined by StatusCallbackInterval
+	// until the job is finished. The payload will be the same as the one
+	// returned by a GET call to /jobs/<jobId>
+	StatusCallbackURL string `json:"statusCallbackURL"`
+
+	// defines the interval in seconds by which StatusCallbackURL is
+	// called. If not defined, it's set to defaultStatusCallbackInterval.
+	StatusCallbackInterval uint `json:"statusCallbackInterval"`
+
+	// if CompletionCallbackURL is defined, this service will make a POST
+	// request to it when the job is finished. The payload will be the same
+	// as the one returned by a GET call to /jobs/<jobId> after the job is
+	// done.
+	CompletionCallbackURL string `json:"completionCallbackURL"`
+}
+
 // swagger:parameters newJob
 type newTranscodeJobInput struct {
 	// in: body
 	// required: true
-	Payload struct {
-		// source media for the transcoding job.
-		Source string `json:"source"`
-
-		// presets to use in the transcoding job.
-		Presets []string `json:"presets"`
-
-		// provider to use in this job
-		Provider string `json:"provider"`
-
-		// provider Adaptive Streaming parameters
-		StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
-
-		// if StatusCallbackURL is defined, this service will make a POST
-		// request to it in the interval defined by StatusCallbackInterval
-		// until the job is finished. The payload will be the same as the one
-		// returned by a GET call to /jobs/<jobId>
-		StatusCallbackURL string `json:"statusCallbackURL"`
-
-		// defines the interval in seconds by which StatusCallbackURL is
-		// called. If not defined, it's set to defaultStatusCallbackInterval.
-		StatusCallbackInterval uint `json:"statusCallbackInterval"`
-
-		// if CompletionCallbackURL is defined, this service will make a POST
-		// request to it when the job is finished. The payload will be the same
-		// as the one returned by a GET call to /jobs/<jobId> after the job is
-		// done.
-		CompletionCallbackURL string `json:"completionCallbackURL"`
-	}
+	Payload NewTranscodeJobInputPayload
 }
 
 // ProviderFactory loads and validates the parameters, and then returns the
