@@ -87,18 +87,18 @@ type Preset struct {
 	Name          string `json:"name,omitempty"`
 	Description   string `json:"description,omitempty"`
 	Container     string `json:"container,omitempty"`
-	Width         string `json:"width,omitempty"`
-	Height        string `json:"height,omitempty"`
-	VideoCodec    string `json:"videoCodec,omitempty"`
-	VideoBitrate  string `json:"videoBitrate,omitempty"`
-	GopSize       string `json:"gopSize,omitempty"`
-	GopMode       string `json:"gopMode,omitempty"`
+	Width         string `json:"video>width,omitempty"`
+	Height        string `json:"video>height,omitempty"`
+	VideoCodec    string `json:"video>codec,omitempty"`
+	VideoBitrate  string `json:"video>bitrate,omitempty"`
+	GopSize       string `json:"video>gopSize,omitempty"`
+	GopMode       string `json:"video>gopMode,omitempty"`
+	InterlaceMode string `json:"video>interlaceMode,omitempty"`
 	Profile       string `json:"profile,omitempty"`
 	ProfileLevel  string `json:"profileLevel,omitempty"`
 	RateControl   string `json:"rateControl,omitempty"`
-	InterlaceMode string `json:"interlaceMode,omitempty"`
-	AudioCodec    string `json:"audioCodec,omitempty"`
-	AudioBitrate  string `json:"audioBitrate,omitempty"`
+	AudioCodec    string `json:"audio>codec,omitempty"`
+	AudioBitrate  string `json:"audio>bitrate,omitempty"`
 }
 
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.
