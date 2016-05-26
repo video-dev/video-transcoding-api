@@ -257,7 +257,7 @@ func TestLoadStruct(t *testing.T) {
 	redisRepo := repo.(*redisRepository)
 	client := redisRepo.redisClient()
 	defer client.Close()
-	date := time.Now().In(time.UTC).Add(-29 * 365 * 24 * time.Hour)
+	date := time.Now().UTC().Add(-29 * 365 * 24 * time.Hour)
 	err = redisRepo.save("test-key", map[string]string{
 		"name":              "Gopher",
 		"age":               "29",

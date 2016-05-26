@@ -137,7 +137,7 @@ func (s *encodingComFakeServer) apiStatus(w http.ResponseWriter, r *http.Request
 
 func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {
 	id := generateID()
-	created := time.Now().In(time.UTC)
+	created := time.Now().UTC()
 	s.medias[id] = &fakeMedia{
 		ID:      id,
 		Request: req,
@@ -156,7 +156,7 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 		s.Error(w, err.Error())
 		return
 	}
-	now := time.Now().In(time.UTC)
+	now := time.Now().UTC()
 	status := "Saving"
 	if media.Status != "Finished" && now.Sub(media.Started) > time.Second {
 		media.Finished = now

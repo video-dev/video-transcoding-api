@@ -222,7 +222,7 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 func TestJobStatus(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()
-	now := time.Now().In(time.UTC).Truncate(time.Second)
+	now := time.Now().UTC().Truncate(time.Second)
 	media := fakeMedia{
 		ID:       "mymedia",
 		Status:   "Finished",

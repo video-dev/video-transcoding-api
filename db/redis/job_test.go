@@ -380,7 +380,7 @@ func TestListJobsFiltering(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	now := time.Now().In(time.UTC)
+	now := time.Now().UTC()
 	jobs := []db.Job{
 		{
 			ID:            "job-1",
@@ -439,7 +439,7 @@ func TestListJobsFilteringAndLimit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	now := time.Now().In(time.UTC)
+	now := time.Now().UTC()
 	jobs := []db.Job{
 		{
 			ID:            "job-1",

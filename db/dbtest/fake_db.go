@@ -31,7 +31,7 @@ func (d *fakeRepository) CreateJob(job *db.Job) error {
 		job.ID = "12345"
 	}
 	if job.CreationTime.IsZero() {
-		job.CreationTime = time.Now().In(time.UTC)
+		job.CreationTime = time.Now().UTC()
 	}
 	d.jobs = append(d.jobs, job)
 	return nil

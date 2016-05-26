@@ -18,7 +18,7 @@ func (r *redisRepository) CreateJob(job *db.Job) error {
 		}
 		job.ID = jobID
 	}
-	job.CreationTime = time.Now().In(time.UTC)
+	job.CreationTime = time.Now().UTC()
 	return r.saveJob(job)
 }
 
@@ -58,7 +58,7 @@ func (r *redisRepository) GetJob(id string) (*db.Job, error) {
 }
 
 func (r *redisRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
-	now := time.Now().In(time.UTC)
+	now := time.Now().UTC()
 	rangeOpts := redis.ZRangeByScore{
 		Min:   strconv.FormatInt(filter.Since.UnixNano(), 10),
 		Max:   strconv.FormatInt(now.UnixNano(), 10),

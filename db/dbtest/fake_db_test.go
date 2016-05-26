@@ -175,7 +175,7 @@ func TestListJobs(t *testing.T) {
 }
 
 func TestListJobsFilter(t *testing.T) {
-	now := time.Now().In(time.UTC)
+	now := time.Now().UTC()
 	jobs := []db.Job{
 		{ID: "job-1", ProviderName: "encodingcom", CreationTime: now.Add(-2 * time.Hour)},
 		{ID: "job-2", ProviderName: "encodingcom", CreationTime: now.Add(-1 * time.Hour)},
