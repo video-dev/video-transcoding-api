@@ -3,6 +3,7 @@
 all: test
 
 testdeps:
+	go get github.com/go-swagger/go-swagger/cmd/swagger
 	go get -d -t ./...
 
 checkfmt: testdeps
