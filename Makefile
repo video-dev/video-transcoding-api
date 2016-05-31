@@ -39,7 +39,7 @@ vet: testdeps
 
 swagger:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
-	swagger generate spec -o swagger.json
+	# swagger generate spec -o swagger.json
 
 checkswagger:
 	swagger validate swagger.json
