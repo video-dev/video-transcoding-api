@@ -2,8 +2,10 @@ package service
 
 import (
 	"bytes"
+	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"time"
 
@@ -50,12 +52,22 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		}
 		presetsMap[i] = *presetMap
 	}
+	jobID, err := s.genID()
+	if err != nil {
+		return swagger.NewErrorResponse(err)
+	}
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     input.Payload.Source,
 		Presets:         presetsMap,
 		StreamingParams: input.Payload.StreamingParams,
 	}
-	jobStatus, err := providerObj.Transcode(transcodeProfile)
+	job := db.Job{
+		ID:                     jobID,
+		StatusCallbackURL:      input.Payload.StatusCallbackURL,
+		StatusCallbackInterval: input.Payload.StatusCallbackInterval,
+		CompletionCallbackURL:  input.Payload.CompletionCallbackURL,
+	}
+	jobStatus, err := providerObj.Transcode(&job, transcodeProfile)
 	if err == provider.ErrPresetMapNotFound {
 		return newInvalidJobResponse(err)
 	}
@@ -64,13 +76,8 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		return swagger.NewErrorResponse(providerError)
 	}
 	jobStatus.ProviderName = input.Payload.Provider
-	job := db.Job{
-		ProviderName:           jobStatus.ProviderName,
-		ProviderJobID:          jobStatus.ProviderJobID,
-		StatusCallbackURL:      input.Payload.StatusCallbackURL,
-		StatusCallbackInterval: input.Payload.StatusCallbackInterval,
-		CompletionCallbackURL:  input.Payload.CompletionCallbackURL,
-	}
+	job.ProviderName = jobStatus.ProviderName
+	job.ProviderJobID = jobStatus.ProviderJobID
 	if transcodeProfile.StreamingParams.Protocol != "" {
 		job.StreamingParams = db.StreamingParams{
 			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
@@ -87,6 +94,18 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		go s.statusCallback(ctx, job)
 	}
 	return newJobResponse(job.ID)
+}
+
+func (s *TranscodingService) genID() (string, error) {
+	var data [8]byte
+	n, err := rand.Read(data[:])
+	if err != nil {
+		return "", err
+	}
+	if n != len(data) {
+		return "", io.ErrShortWrite
+	}
+	return fmt.Sprintf("%x", data), nil
 }
 
 // swagger:route GET /jobs/{jobId} jobs getJob

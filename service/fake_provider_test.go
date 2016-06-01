@@ -2,6 +2,7 @@ package service
 
 import (
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -11,7 +12,7 @@ func init() {
 
 type fakeProvider struct{}
 
-func (p *fakeProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+func (p *fakeProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	for _, preset := range transcodeProfile.Presets {
 		if _, ok := preset.ProviderMapping["fake"]; !ok {
 			return nil, provider.ErrPresetMapNotFound

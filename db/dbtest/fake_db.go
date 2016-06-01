@@ -27,9 +27,6 @@ func (d *fakeRepository) CreateJob(job *db.Job) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
-	if job.ID == "" {
-		job.ID = "12345"
-	}
 	if job.CreationTime.IsZero() {
 		job.CreationTime = time.Now().UTC()
 	}

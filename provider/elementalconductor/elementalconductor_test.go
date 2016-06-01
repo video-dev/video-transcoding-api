@@ -125,7 +125,7 @@ func TestElementalNewJob(t *testing.T) {
 		Presets:         presets,
 		StreamingParams: provider.StreamingParams{},
 	}
-	newJob, err := presetProvider.newJob(transcodeProfile)
+	newJob, err := presetProvider.newJob(&db.Job{ID: "job-1"}, transcodeProfile)
 	if err != nil {
 		t.Error(err)
 	}
@@ -145,7 +145,7 @@ func TestElementalNewJob(t *testing.T) {
 			Order: 1,
 			FileGroupSettings: &elementalconductor.FileGroupSettings{
 				Destination: &elementalconductor.Location{
-					URI:      "s3://destination/video",
+					URI:      "s3://destination/job-1/video",
 					Username: "aws-access-key",
 					Password: "aws-secret-key",
 				},
@@ -243,7 +243,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 			SegmentDuration: 3,
 		},
 	}
-	newJob, err := presetProvider.newJob(transcodeProfile)
+	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2"}, transcodeProfile)
 	if err != nil {
 		t.Error(err)
 	}
@@ -263,7 +263,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 			Order: 1,
 			AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
 				Destination: &elementalconductor.Location{
-					URI:      "s3://destination/video",
+					URI:      "s3://destination/job-2/video",
 					Username: "aws-access-key",
 					Password: "aws-secret-key",
 				},
@@ -354,7 +354,7 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 		Presets:         presets,
 		StreamingParams: provider.StreamingParams{},
 	}
-	newJob, err := presetProvider.newJob(transcodeProfile)
+	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2"}, transcodeProfile)
 	if err != provider.ErrPresetMapNotFound {
 		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
 	}

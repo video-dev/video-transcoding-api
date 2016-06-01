@@ -18,12 +18,14 @@ package elementalconductor
 import (
 	"encoding/xml"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
@@ -77,8 +79,8 @@ func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (strin
 	return result.Name, nil
 }
 
-func (p *elementalConductorProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	newJob, err := p.newJob(transcodeProfile)
+func (p *elementalConductorProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	newJob, err := p.newJob(job, transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -132,8 +134,7 @@ func (p *elementalConductorProvider) getOutputDestination(job *elementalconducto
 		destinationPrefix = job.OutputGroup.AppleLiveGroupSettings.Destination.URI
 	}
 	destination := strings.Split(destinationPrefix, "/")
-	destination = destination[:len(destination)-1]
-	return strings.Join(destination, "/")
+	return strings.Join(destination[:len(destination)-1], "/")
 }
 
 func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) provider.Status {
@@ -153,12 +154,12 @@ func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) 
 	}
 }
 
-func (p *elementalConductorProvider) buildFullDestination(source string) string {
+func (p *elementalConductorProvider) buildFullDestination(jobID, source string) string {
 	sourceParts := strings.Split(source, "/")
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
 	destination := strings.TrimRight(p.client.Destination, "/")
-	return destination + "/" + sourceFileName
+	return destination + "/" + path.Join(jobID, sourceFileName)
 }
 
 func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
@@ -216,14 +217,14 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalConductorProvider) newJob(transcodeProfile provider.TranscodeProfile) (*elementalconductor.Job, error) {
+func (p *elementalConductorProvider) newJob(job *db.Job, transcodeProfile provider.TranscodeProfile) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
 		URI:      transcodeProfile.SourceMedia,
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}
 	outputLocation := elementalconductor.Location{
-		URI:      p.buildFullDestination(transcodeProfile.SourceMedia),
+		URI:      p.buildFullDestination(job.ID, transcodeProfile.SourceMedia),
 		Username: p.client.AccessKeyID,
 		Password: p.client.SecretAccessKey,
 	}

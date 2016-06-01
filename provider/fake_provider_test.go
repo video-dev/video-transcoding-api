@@ -1,13 +1,16 @@
 package provider
 
-import "github.com/nytm/video-transcoding-api/config"
+import (
+	"github.com/nytm/video-transcoding-api/config"
+	"github.com/nytm/video-transcoding-api/db"
+)
 
 type fakeProvider struct {
 	cap       Capabilities
 	healthErr error
 }
 
-func (*fakeProvider) Transcode(TranscodeProfile) (*JobStatus, error) {
+func (*fakeProvider) Transcode(*db.Job, TranscodeProfile) (*JobStatus, error) {
 	return nil, nil
 }
 

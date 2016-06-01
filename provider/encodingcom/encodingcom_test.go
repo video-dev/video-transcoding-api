@@ -126,7 +126,7 @@ func TestEncodingComTranscode(t *testing.T) {
 		},
 	}
 
-	jobStatus, err := prov.Transcode(transcodeProfile)
+	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,27 +144,27 @@ func TestEncodingComTranscode(t *testing.T) {
 	expectedFormats := []encodingcom.Format{
 		{
 			Output:          []string{"123455"},
-			Destination:     []string{dest + "webm_720p/video.webm"},
+			Destination:     []string{dest + "job-123/webm_720p/video.webm"},
 			SegmentDuration: 3,
 		},
 		{
 			Output:          []string{"123456"},
-			Destination:     []string{dest + "webm_480p/video.webm"},
+			Destination:     []string{dest + "job-123/webm_480p/video.webm"},
 			SegmentDuration: 3,
 		},
 		{
 			Output:          []string{"321321"},
-			Destination:     []string{dest + "mp4_1080p/video.mp4"},
+			Destination:     []string{dest + "job-123/mp4_1080p/video.mp4"},
 			SegmentDuration: 3,
 		},
 		{
 			Output:          []string{"321322"},
-			Destination:     []string{dest + "hls_1080p/video/master.m3u8"},
+			Destination:     []string{dest + "job-123/hls_1080p/video/master.m3u8"},
 			SegmentDuration: 3,
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
-		t.Errorf("Wrong format. Want %#v. Got %#v.", expectedFormats, media.Request.Format)
+		t.Errorf("Wrong format.\nWant %#v\nGot  %#v.", expectedFormats, media.Request.Format)
 	}
 	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
@@ -210,7 +210,7 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 		},
 	}
 
-	jobStatus, err := prov.Transcode(transcodeProfile)
+	jobStatus, err := prov.Transcode(&db.Job{ID: "job-2"}, transcodeProfile)
 	if err != provider.ErrPresetMapNotFound {
 		t.Errorf("Wrong error. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
 	}

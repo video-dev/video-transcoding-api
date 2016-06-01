@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"errors"
 	"strconv"
 	"time"
 
@@ -12,11 +13,7 @@ const jobsSetKey = "jobs"
 
 func (r *redisRepository) CreateJob(job *db.Job) error {
 	if job.ID == "" {
-		jobID, err := r.generateID()
-		if err != nil {
-			return err
-		}
-		job.ID = jobID
+		return errors.New("job id is required")
 	}
 	job.CreationTime = time.Now().UTC()
 	return r.saveJob(job)
