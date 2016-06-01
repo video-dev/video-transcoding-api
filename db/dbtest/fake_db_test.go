@@ -41,24 +41,6 @@ func TestCreateJobPredefinedDate(t *testing.T) {
 	}
 }
 
-func TestCreateJobNoID(t *testing.T) {
-	repo := NewFakeRepository(false)
-	job := db.Job{ProviderName: "myprovider"}
-	err := repo.CreateJob(&job)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if job.CreationTime.IsZero() {
-		t.Error("Did not set the CreationTime")
-	}
-	if job.CreationTime.Location() != time.UTC {
-		t.Errorf("Did not set CreationTime to UTC: %#v", job.CreationTime.Location())
-	}
-	if job.ID != "12345" {
-		t.Errorf("Did not generate an ID. Want 12345. Got %q", job.ID)
-	}
-}
-
 func TestCreateJobDBError(t *testing.T) {
 	repo := NewFakeRepository(true)
 	job := db.Job{ProviderName: "myprovider"}

@@ -55,7 +55,7 @@ type awsProvider struct {
 	config *config.ElasticTranscoder
 }
 
-func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	var adaptiveStreaming bool
 	if transcodeProfile.StreamingParams.Protocol == "hls" {
 		adaptiveStreaming = true
@@ -73,7 +73,7 @@ func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*pr
 		}
 		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),
-			Key:      p.outputKey(preset.OutputOpts, source, preset.Name, adaptiveStreaming),
+			Key:      p.outputKey(job, preset.OutputOpts, source, preset.Name, adaptiveStreaming),
 		}
 		if adaptiveStreaming {
 			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)))
@@ -88,7 +88,7 @@ func (p *awsProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*pr
 
 		jobPlaylist.OutputKeys = make([]*string, len(transcodeProfile.Presets))
 		for i, preset := range transcodeProfile.Presets {
-			jobPlaylist.OutputKeys[i] = p.outputKey(preset.OutputOpts, source, preset.Name, adaptiveStreaming)
+			jobPlaylist.OutputKeys[i] = p.outputKey(job, preset.OutputOpts, source, preset.Name, adaptiveStreaming)
 		}
 
 		params.Playlists = []*elastictranscoder.CreateJobPlaylist{&jobPlaylist}
@@ -114,8 +114,8 @@ func (p *awsProvider) normalizeSource(source string) string {
 	return source
 }
 
-func (p *awsProvider) outputKey(opts db.OutputOptions, source, presetName string, adaptiveStreaming bool) *string {
-	parts := strings.Split(source, "/")
+func (p *awsProvider) outputKey(job *db.Job, opts db.OutputOptions, source, presetName string, adaptiveStreaming bool) *string {
+	parts := append([]string{job.ID}, strings.Split(source, "/")...)
 	lastIndex := len(parts) - 1
 	fileName := parts[lastIndex]
 	if adaptiveStreaming {

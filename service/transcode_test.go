@@ -23,7 +23,7 @@ func TestTranscode(t *testing.T) {
 		givenTriggerDBError bool
 
 		wantCode int
-		wantBody interface{}
+		wantBody map[string]interface{}
 	}{
 		{
 			"New job",
@@ -36,7 +36,7 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusOK,
-			map[string]interface{}{"jobId": "12345"},
+			map[string]interface{}{"jobId": ""},
 		},
 		{
 			"New job with preset not found in provider",
@@ -128,6 +128,12 @@ func TestTranscode(t *testing.T) {
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
+		if got["jobId"] == "" {
+			t.Errorf("%s: missing jobId from the response: %#v", test.givenTestCase, got)
+		}
+		if _, ok := test.wantBody["jobId"]; ok {
+			test.wantBody["jobId"] = got["jobId"]
+		}
 		if !reflect.DeepEqual(got, test.wantBody) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
@@ -153,7 +159,7 @@ func TestGetTranscodeJob(t *testing.T) {
 	}{
 		{
 			"Get job",
-			"/jobs/12345",
+			"/jobs/job-123",
 			false,
 			"hls",
 			5,
@@ -183,7 +189,9 @@ func TestGetTranscodeJob(t *testing.T) {
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
-		fakeDBObj.CreateJob(&db.Job{ProviderName: "fake",
+		fakeDBObj.CreateJob(&db.Job{
+			ID:            "job-123",
+			ProviderName:  "fake",
 			ProviderJobID: "provider-job-123",
 			StreamingParams: db.StreamingParams{
 				SegmentDuration: test.givenSegmentDuration,

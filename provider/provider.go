@@ -29,9 +29,9 @@ var (
 // Job. The underlying provider should handle the profileSpec as desired (it
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
-	Transcode(transcodeProfile TranscodeProfile) (*JobStatus, error)
+	Transcode(*db.Job, TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
-	CreatePreset(preset Preset) (string, error)
+	CreatePreset(Preset) (string, error)
 	DeletePreset(presetID string) error
 
 	// Healthcheck should return nil if the provider is currently available

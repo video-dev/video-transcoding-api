@@ -1,10 +1,8 @@
 package redis
 
 import (
-	"crypto/rand"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"reflect"
@@ -250,18 +248,6 @@ func (r *redisRepository) delete(key string, notFoundErr error) error {
 		return notFoundErr
 	}
 	return nil
-}
-
-func (r *redisRepository) generateID() (string, error) {
-	var raw [8]byte
-	n, err := rand.Read(raw[:])
-	if err != nil {
-		return "", err
-	}
-	if n != 8 {
-		return "", io.ErrShortWrite
-	}
-	return fmt.Sprintf("%x", raw), nil
 }
 
 func (r *redisRepository) redisClient() *redis.Client {

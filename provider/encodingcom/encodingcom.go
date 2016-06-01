@@ -18,6 +18,7 @@ package encodingcom
 import (
 	"errors"
 	"fmt"
+	"path"
 	"path/filepath"
 	"strings"
 
@@ -47,8 +48,8 @@ type encodingComProvider struct {
 	client encodingComClient
 }
 
-func (e *encodingComProvider) Transcode(transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	formats, err := e.presetsToFormats(transcodeProfile)
+func (e *encodingComProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
+	formats, err := e.presetsToFormats(job, transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (e *encodingComProvider) DeletePreset(presetID string) error {
 	return errors.New("DeletePreset is not implemented in Encoding.com provider")
 }
 
-func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.PresetMap) []string {
+func (e *encodingComProvider) getDestinations(jobID, sourceMedia string, preset db.PresetMap) []string {
 	var extension string
 
 	if preset.OutputOpts.Extension == "" {
@@ -83,14 +84,14 @@ func (e *encodingComProvider) getDestinations(sourceMedia string, preset db.Pres
 	sourceParts := strings.Split(sourceMedia, "/")
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
-	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + preset.Name + "/"
+	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + path.Join(jobID, preset.Name) + "/"
 	if preset.OutputOpts.Extension == "m3u8" {
 		return []string{outputDestination + sourceFileName + "/master.m3u8"}
 	}
 	return []string{outputDestination + sourceFileName + extension}
 }
 
-func (e *encodingComProvider) presetsToFormats(transcodeProfile provider.TranscodeProfile) ([]encodingcom.Format, error) {
+func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]encodingcom.Format, error) {
 	formats := make([]encodingcom.Format, 0, len(transcodeProfile.Presets))
 	for _, preset := range transcodeProfile.Presets {
 		presetName, ok := preset.ProviderMapping[Name]
@@ -99,7 +100,7 @@ func (e *encodingComProvider) presetsToFormats(transcodeProfile provider.Transco
 		}
 		format := encodingcom.Format{
 			Output:          []string{presetName},
-			Destination:     e.getDestinations(transcodeProfile.SourceMedia, preset),
+			Destination:     e.getDestinations(job.ID, transcodeProfile.SourceMedia, preset),
 			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 		}
 		formats = append(formats, format)

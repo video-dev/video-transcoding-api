@@ -24,6 +24,7 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	job := db.Job{
+		ID:                     "job1",
 		ProviderName:           "encoding.com",
 		StreamingParams:        db.StreamingParams{SegmentDuration: 10, Protocol: "hls"},
 		StatusCallbackURL:      "http://callme",
@@ -33,9 +34,6 @@ func TestCreateJob(t *testing.T) {
 	err = repo.CreateJob(&job)
 	if err != nil {
 		t.Fatal(err)
-	}
-	if job.ID == "" {
-		t.Fatal("Job ID should have been generated on CreateJob")
 	}
 	creationTime := job.CreationTime
 	if creationTime.IsZero() {
@@ -73,44 +71,6 @@ func TestCreateJob(t *testing.T) {
 	}
 }
 
-func TestCreateJobPredefinedID(t *testing.T) {
-	err := cleanRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var cfg config.Config
-	cfg.Redis = new(config.Redis)
-	repo, err := NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	job := db.Job{ID: "myjob", ProviderName: "encoding.com"}
-	err = repo.CreateJob(&job)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if job.ID != "myjob" {
-		t.Errorf("Job ID should not be regenerated when it's already defined. Got %q instead of %q.", job.ID, "myjob")
-	}
-	client := repo.(*redisRepository).redisClient()
-	defer client.Close()
-	items, err := client.HGetAllMap("job:myjob").Result()
-	expected := map[string]string{
-		"providerName":                    "encoding.com",
-		"providerJobID":                   "",
-		"streamingparams_segmentDuration": "0",
-		"streamingparams_protocol":        "",
-		"statusCallbackURL":               "",
-		"statusCallbackInterval":          "0",
-		"completionCallbackURL":           "",
-		"creationTime":                    job.CreationTime.Format(time.RFC3339Nano),
-	}
-
-	if !reflect.DeepEqual(items, expected) {
-		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
-	}
-}
-
 func TestCreateJobIsSafe(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
@@ -138,6 +98,25 @@ func TestCreateJobIsSafe(t *testing.T) {
 		}(i % len(jobs))
 	}
 	wg.Wait()
+}
+
+func TestCreateJobNoID(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := db.Job{ProviderName: "elastictranscoder", ProviderJobID: "abc-123"}
+	err = repo.CreateJob(&job)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error")
+	}
+	if msg := "job id is required"; err.Error() != msg {
+		t.Errorf("wrong error message\nWant %q\nGot  %q", msg, err.Error())
+	}
 }
 
 func TestDeleteJob(t *testing.T) {
@@ -238,18 +217,22 @@ func TestListJobs(t *testing.T) {
 	}
 	jobs := []db.Job{
 		{
+			ID:            "job-1",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "1",
 		},
 		{
+			ID:            "job-2",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "2",
 		},
 		{
+			ID:            "job-3",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "3",
 		},
 		{
+			ID:            "job-4",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "4",
 		},
@@ -284,18 +267,22 @@ func TestListJobsLimit(t *testing.T) {
 	}
 	jobs := []db.Job{
 		{
+			ID:            "job-1",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "1",
 		},
 		{
+			ID:            "job-2",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "2",
 		},
 		{
+			ID:            "job-3",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "3",
 		},
 		{
+			ID:            "job-4",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "4",
 		},
@@ -333,18 +320,22 @@ func TestListJobsInconsistency(t *testing.T) {
 	}
 	jobs := []db.Job{
 		{
+			ID:            "job-1",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "1",
 		},
 		{
+			ID:            "job-2",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "2",
 		},
 		{
+			ID:            "job-3",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "3",
 		},
 		{
+			ID:            "job-4",
 			ProviderName:  "encodingcom",
 			ProviderJobID: "4",
 		},
