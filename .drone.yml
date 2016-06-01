@@ -65,3 +65,7 @@ notify:
     webhook_url: $$SLACK_WEBHOOK_URL
     username: $$SLACK_USERNAME
     channel: $$SLACK_CHANNEL
+    when:
+      success: false
+      failure: false
+      change: true
