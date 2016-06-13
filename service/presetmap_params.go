@@ -1,6 +1,9 @@
 package service
 
 import (
+	"encoding/json"
+	"errors"
+	"io"
 	"net/http"
 
 	"github.com/nytm/video-transcoding-api/db"
@@ -17,13 +20,31 @@ type presetMapResponse struct {
 	baseResponse
 }
 
-func newPresetMapResponse(preset *db.PresetMap) *presetMapResponse {
-	return &presetMapResponse{
-		baseResponse: baseResponse{
-			payload: preset,
-			status:  http.StatusOK,
-		},
-	}
+// swagger:parameters getPreset deletePreset deletePresetMap
+type getPresetMapInput struct {
+	// in: path
+	// required: true
+	Name string `json:"name"`
+}
+
+// swagger:parameters updatePreset
+type updatePresetMapInput struct {
+	// in: path
+	// required: true
+	Name string `json:"name"`
+
+	// in: body
+	// required: true
+	Payload db.PresetMap
+
+	newPresetMapInput
+}
+
+// swagger:parameters newPreset
+type newPresetMapInput struct {
+	// in: body
+	// required: true
+	Payload db.PresetMap
 }
 
 // error returned when the given preset name is not found on the API (either on
@@ -35,28 +56,12 @@ type presetMapNotFoundResponse struct {
 	Error *swagger.ErrorResponse
 }
 
-func newPresetMapNotFoundResponse(err error) *presetMapNotFoundResponse {
-	return &presetMapNotFoundResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusNotFound)}
-}
-
-func (r *presetMapNotFoundResponse) Result() (int, interface{}, error) {
-	return r.Error.Result()
-}
-
 // error returned when the given preset data is not valid.
 //
 // swagger:response invalidPreset
 type invalidPresetMapResponse struct {
 	// in: body
 	Error *swagger.ErrorResponse
-}
-
-func newInvalidPresetMapResponse(err error) *invalidPresetMapResponse {
-	return &invalidPresetMapResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusBadRequest)}
-}
-
-func (r *invalidPresetMapResponse) Result() (int, interface{}, error) {
-	return r.Error.Result()
 }
 
 // error returned when trying to create a new preset using a name that is
@@ -66,14 +71,6 @@ func (r *invalidPresetMapResponse) Result() (int, interface{}, error) {
 type presetMapAlreadyExistsResponse struct {
 	// in: body
 	Error *swagger.ErrorResponse
-}
-
-func newPresetMapAlreadyExistsResponse(err error) *presetMapAlreadyExistsResponse {
-	return &presetMapAlreadyExistsResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusConflict)}
-}
-
-func (r *presetMapAlreadyExistsResponse) Result() (int, interface{}, error) {
-	return r.Error.Result()
 }
 
 // response for the listPresetMaps operation. It's actually a JSON-encoded object
@@ -87,6 +84,39 @@ type listPresetMapsResponse struct {
 	baseResponse
 }
 
+func newPresetMapResponse(preset *db.PresetMap) *presetMapResponse {
+	return &presetMapResponse{
+		baseResponse: baseResponse{
+			payload: preset,
+			status:  http.StatusOK,
+		},
+	}
+}
+
+func newPresetMapNotFoundResponse(err error) *presetMapNotFoundResponse {
+	return &presetMapNotFoundResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusNotFound)}
+}
+
+func (r *presetMapNotFoundResponse) Result() (int, interface{}, error) {
+	return r.Error.Result()
+}
+
+func newInvalidPresetMapResponse(err error) *invalidPresetMapResponse {
+	return &invalidPresetMapResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusBadRequest)}
+}
+
+func (r *invalidPresetMapResponse) Result() (int, interface{}, error) {
+	return r.Error.Result()
+}
+
+func newPresetMapAlreadyExistsResponse(err error) *presetMapAlreadyExistsResponse {
+	return &presetMapAlreadyExistsResponse{Error: swagger.NewErrorResponse(err).WithStatus(http.StatusConflict)}
+}
+
+func (r *presetMapAlreadyExistsResponse) Result() (int, interface{}, error) {
+	return r.Error.Result()
+}
+
 func newListPresetMapsResponse(presetsMap []db.PresetMap) *listPresetMapsResponse {
 	Map := make(map[string]db.PresetMap, len(presetsMap))
 	for _, presetMap := range presetsMap {
@@ -98,4 +128,46 @@ func newListPresetMapsResponse(presetsMap []db.PresetMap) *listPresetMapsRespons
 			payload: Map,
 		},
 	}
+}
+
+// Preset loads the input from the request body, validates them and returns the
+// preset.
+func (p *newPresetMapInput) PresetMap(body io.Reader) (db.PresetMap, error) {
+	err := json.NewDecoder(body).Decode(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	err = validatePresetMap(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	return p.Payload, nil
+}
+
+func (p *getPresetMapInput) loadParams(paramsMap map[string]string) {
+	p.Name = paramsMap["name"]
+}
+
+func (p *updatePresetMapInput) PresetMap(paramsMap map[string]string, body io.Reader) (db.PresetMap, error) {
+	p.Name = paramsMap["name"]
+	err := json.NewDecoder(body).Decode(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	p.Payload.Name = p.Name
+	err = validatePresetMap(&p.Payload)
+	if err != nil {
+		return p.Payload, err
+	}
+	return p.Payload, nil
+}
+
+func validatePresetMap(p *db.PresetMap) error {
+	if p.Name == "" {
+		return errors.New("missing field name from the request")
+	}
+	if len(p.ProviderMapping) == 0 {
+		return errors.New("missing field providerMapping from the request")
+	}
+	return nil
 }
