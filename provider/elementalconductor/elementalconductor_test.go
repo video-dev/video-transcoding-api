@@ -556,6 +556,61 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 	}
 }
 
+func TestJobStatusOutputDestination(t *testing.T) {
+	var tests = []struct {
+		job      elementalconductor.Job
+		expected string
+	}{
+		{
+			elementalconductor.Job{
+				OutputGroup: []elementalconductor.OutputGroup{
+					{
+						Type: elementalconductor.FileOutputGroupType,
+						FileGroupSettings: &elementalconductor.FileGroupSettings{
+							Destination: &elementalconductor.Location{
+								URI: "some/dir/file.mp4",
+							},
+						},
+					}, {
+						Type: elementalconductor.AppleLiveOutputGroupType,
+						AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
+							Destination: &elementalconductor.Location{
+								URI: "some/dir/master.m3u8",
+							},
+						},
+					},
+				},
+			},
+			"some/dir",
+		},
+	}
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	prov, err := fakeElementalConductorFactory(&elementalConductorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presetProvider, ok := prov.(*elementalConductorProvider)
+	if !ok {
+		t.Fatal("Could not type assert test provider to elementalConductorProvider")
+	}
+	for _, test := range tests {
+		got := presetProvider.getOutputDestination(&test.job)
+		if got != test.expected {
+			t.Errorf("Wrong output destination. Want %q. Got %q", test.expected, got)
+		}
+	}
+}
+
 func TestJobStatusMap(t *testing.T) {
 	var tests = []struct {
 		elementalConductorStatus string
