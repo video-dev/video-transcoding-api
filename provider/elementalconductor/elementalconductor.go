@@ -135,18 +135,17 @@ func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, 
 
 func (p *elementalConductorProvider) getOutputDestination(job *elementalconductor.Job) string {
 	destinationPrefix := ""
-	var destinationList []string
+	destination := ""
 	for _, outputGroup := range job.OutputGroup {
 		if outputGroup.Type == elementalconductor.FileOutputGroupType {
 			destinationPrefix = outputGroup.FileGroupSettings.Destination.URI
 		} else {
 			destinationPrefix = outputGroup.AppleLiveGroupSettings.Destination.URI
 		}
-		destination := strings.Split(destinationPrefix, "/")
-		destinationList = append(destinationList, strings.Join(destination[:len(destination)-1], "/"))
+		destinationParts := strings.Split(destinationPrefix, "/")
+		destination = strings.Join(destinationParts[:len(destinationParts)-1], "/")
 	}
-	destinationString, _ := xml.Marshal(destinationList)
-	return string(destinationString)
+	return destination
 }
 
 func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) provider.Status {
