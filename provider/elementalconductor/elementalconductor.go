@@ -57,18 +57,18 @@ func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (strin
 	elementalConductorPreset.Name = preset.Name
 	elementalConductorPreset.Description = preset.Description
 	elementalConductorPreset.Container = preset.Container
-	elementalConductorPreset.Width = preset.Width
-	elementalConductorPreset.Height = preset.Height
-	elementalConductorPreset.VideoCodec = preset.VideoCodec
-	elementalConductorPreset.VideoBitrate = preset.VideoBitrate
-	elementalConductorPreset.GopSize = preset.GopSize
-	elementalConductorPreset.GopMode = preset.GopMode
 	elementalConductorPreset.Profile = preset.Profile
 	elementalConductorPreset.ProfileLevel = preset.ProfileLevel
 	elementalConductorPreset.RateControl = preset.RateControl
-	elementalConductorPreset.InterlaceMode = preset.InterlaceMode
-	elementalConductorPreset.AudioCodec = preset.AudioCodec
-	elementalConductorPreset.AudioBitrate = preset.AudioBitrate
+	elementalConductorPreset.Width = preset.Video.Width
+	elementalConductorPreset.Height = preset.Video.Height
+	elementalConductorPreset.VideoCodec = preset.Video.Codec
+	elementalConductorPreset.VideoBitrate = preset.Video.Bitrate
+	elementalConductorPreset.GopSize = preset.Video.GopSize
+	elementalConductorPreset.GopMode = preset.Video.GopMode
+	elementalConductorPreset.InterlaceMode = preset.Video.InterlaceMode
+	elementalConductorPreset.AudioCodec = preset.Audio.Codec
+	elementalConductorPreset.AudioBitrate = preset.Audio.Bitrate
 
 	result, err := p.client.CreatePreset(&elementalConductorPreset)
 	if err != nil {

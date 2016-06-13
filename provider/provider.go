@@ -85,21 +85,31 @@ type StreamingParams struct {
 
 // Preset define the set of parameters of a given preset
 type Preset struct {
-	Name          string `json:"name,omitempty"`
-	Description   string `json:"description,omitempty"`
-	Container     string `json:"container,omitempty"`
-	Width         string `json:"video>width,omitempty"`
-	Height        string `json:"video>height,omitempty"`
-	VideoCodec    string `json:"video>codec,omitempty"`
-	VideoBitrate  string `json:"video>bitrate,omitempty"`
-	GopSize       string `json:"video>gopSize,omitempty"`
-	GopMode       string `json:"video>gopMode,omitempty"`
-	InterlaceMode string `json:"video>interlaceMode,omitempty"`
-	Profile       string `json:"profile,omitempty"`
-	ProfileLevel  string `json:"profileLevel,omitempty"`
-	RateControl   string `json:"rateControl,omitempty"`
-	AudioCodec    string `json:"audio>codec,omitempty"`
-	AudioBitrate  string `json:"audio>bitrate,omitempty"`
+	Name         string      `json:"name,omitempty"`
+	Description  string      `json:"description,omitempty"`
+	Container    string      `json:"container,omitempty"`
+	Profile      string      `json:"profile,omitempty"`
+	ProfileLevel string      `json:"profileLevel,omitempty"`
+	RateControl  string      `json:"rateControl,omitempty"`
+	Video        VideoPreset `json:"video"`
+	Audio        AudioPreset `json:"audio"`
+}
+
+// VideoPreset define the set of parameters for video on a given preset
+type VideoPreset struct {
+	Width         string `json:"width,omitempty"`
+	Height        string `json:"height,omitempty"`
+	Codec         string `json:"codec,omitempty"`
+	Bitrate       string `json:"bitrate,omitempty"`
+	GopSize       string `json:"gopSize,omitempty"`
+	GopMode       string `json:"gopMode,omitempty"`
+	InterlaceMode string `json:"interlaceMode,omitempty"`
+}
+
+// AudioPreset define the set of parameters for audio on a given preset
+type AudioPreset struct {
+	Codec   string `json:"codec,omitempty"`
+	Bitrate string `json:"bitrate,omitempty"`
 }
 
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.
