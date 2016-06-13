@@ -145,31 +145,31 @@ func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscod
 		FrameRate:          aws.String("auto"),
 		SizingPolicy:       aws.String("Fill"),
 		PaddingPolicy:      aws.String("Pad"),
-		Codec:              &preset.VideoCodec,
-		KeyframesMaxDist:   &preset.GopSize,
+		Codec:              &preset.Video.Codec,
+		KeyframesMaxDist:   &preset.Video.GopSize,
 		CodecOptions: map[string]*string{
 			"Profile":            aws.String(strings.ToLower(preset.Profile)),
 			"Level":              &preset.ProfileLevel,
 			"MaxReferenceFrames": aws.String("2"),
 		},
 	}
-	if preset.Width != "" {
-		videoPreset.MaxWidth = &preset.Width
+	if preset.Video.Width != "" {
+		videoPreset.MaxWidth = &preset.Video.Width
 	} else {
 		videoPreset.MaxWidth = aws.String("auto")
 	}
-	if preset.Height != "" {
-		videoPreset.MaxHeight = &preset.Height
+	if preset.Video.Height != "" {
+		videoPreset.MaxHeight = &preset.Video.Height
 	} else {
 		videoPreset.MaxHeight = aws.String("auto")
 	}
-	normalizedVideoBitRate, _ := strconv.Atoi(preset.VideoBitrate)
+	normalizedVideoBitRate, _ := strconv.Atoi(preset.Video.Bitrate)
 	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
 	videoPreset.BitRate = &videoBitrate
-	if preset.VideoCodec == "h264" {
+	if preset.Video.Codec == "h264" {
 		videoPreset.Codec = aws.String("H.264")
 	}
-	if preset.GopMode == "fixed" {
+	if preset.Video.GopMode == "fixed" {
 		videoPreset.FixedGOP = aws.String("true")
 	}
 	return &videoPreset
@@ -189,16 +189,16 @@ func (p *awsProvider) createThumbsPreset(preset provider.Preset) *elastictransco
 
 func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscoder.AudioParameters {
 	audioPreset := &elastictranscoder.AudioParameters{
-		Codec:      &preset.AudioCodec,
+		Codec:      &preset.Audio.Codec,
 		Channels:   aws.String("auto"),
 		SampleRate: aws.String("auto"),
 	}
 
-	normalizedAudioBitRate, _ := strconv.Atoi(preset.AudioBitrate)
+	normalizedAudioBitRate, _ := strconv.Atoi(preset.Audio.Bitrate)
 	audioBitrate := strconv.Itoa(normalizedAudioBitRate / 1000)
 	audioPreset.BitRate = &audioBitrate
 
-	if preset.AudioCodec == "aac" {
+	if preset.Audio.Codec == "aac" {
 		audioPreset.Codec = aws.String("AAC")
 	}
 

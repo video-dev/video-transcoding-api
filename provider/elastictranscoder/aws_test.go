@@ -585,20 +585,24 @@ func TestAWSCreatePreset(t *testing.T) {
 	}
 
 	inputPreset := provider.Preset{
-		Name:          "preset_name",
-		Description:   "description here",
-		Container:     "mp4",
-		Height:        "720",
-		VideoCodec:    "h264",
-		VideoBitrate:  "2500000",
-		GopSize:       "90",
-		GopMode:       "fixed",
-		Profile:       "Main",
-		ProfileLevel:  "3.1",
-		RateControl:   "VBR",
-		InterlaceMode: "progressive",
-		AudioCodec:    "aac",
-		AudioBitrate:  "64000",
+		Name:         "preset_name",
+		Description:  "description here",
+		Container:    "mp4",
+		Profile:      "Main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: provider.VideoPreset{
+			Height:        "720",
+			Codec:         "h264",
+			Bitrate:       "2500000",
+			GopSize:       "90",
+			GopMode:       "fixed",
+			InterlaceMode: "progressive",
+		},
+		Audio: provider.AudioPreset{
+			Codec:   "aac",
+			Bitrate: "64000",
+		},
 	}
 
 	presetID, _ := prov.CreatePreset(inputPreset)
