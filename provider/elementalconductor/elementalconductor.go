@@ -34,7 +34,6 @@ import (
 const Name = "elementalconductor"
 
 const defaultJobPriority = 50
-const defaultOutputGroupOrder = 1
 
 var errElementalConductorInvalidConfig = provider.InvalidConfigError("missing Elemental user login or api key. Please define the environment variables ELEMENTALCONDUCTOR_USER_LOGIN and ELEMENTALCONDUCTOR_API_KEY or set these values in the configuration file")
 
@@ -44,7 +43,7 @@ func init() {
 
 type elementalConductorProvider struct {
 	config *config.Config
-	client *elementalconductor.Client
+	client elementalconductor.ClientInterface
 }
 
 func (p *elementalConductorProvider) DeletePreset(presetID string) error {
@@ -77,6 +76,14 @@ func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (strin
 	}
 
 	return result.Name, nil
+}
+
+func (p *elementalConductorProvider) GetPreset(presetID string) (interface{}, error) {
+	preset, err := p.client.GetPreset(presetID)
+	if err != nil {
+		return nil, err
+	}
+	return preset, err
 }
 
 func (p *elementalConductorProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
@@ -128,13 +135,18 @@ func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, 
 
 func (p *elementalConductorProvider) getOutputDestination(job *elementalconductor.Job) string {
 	destinationPrefix := ""
-	if job.OutputGroup.Type == elementalconductor.FileOutputGroupType {
-		destinationPrefix = job.OutputGroup.FileGroupSettings.Destination.URI
-	} else {
-		destinationPrefix = job.OutputGroup.AppleLiveGroupSettings.Destination.URI
+	var destinationList []string
+	for _, outputGroup := range job.OutputGroup {
+		if outputGroup.Type == elementalconductor.FileOutputGroupType {
+			destinationPrefix = outputGroup.FileGroupSettings.Destination.URI
+		} else {
+			destinationPrefix = outputGroup.AppleLiveGroupSettings.Destination.URI
+		}
+		destination := strings.Split(destinationPrefix, "/")
+		destinationList = append(destinationList, strings.Join(destination[:len(destination)-1], "/"))
 	}
-	destination := strings.Split(destinationPrefix, "/")
-	return strings.Join(destination[:len(destination)-1], "/")
+	destinationString, _ := xml.Marshal(destinationList)
+	return string(destinationString)
 }
 
 func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) provider.Status {
@@ -158,14 +170,17 @@ func (p *elementalConductorProvider) buildFullDestination(jobID, source string) 
 	sourceParts := strings.Split(source, "/")
 	sourceFilenamePart := sourceParts[len(sourceParts)-1]
 	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
-	destination := strings.TrimRight(p.client.Destination, "/")
+	destination := strings.TrimRight(p.client.GetDestination(), "/")
 	return destination + "/" + path.Join(jobID, sourceFileName)
 }
 
-func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) (elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
-	var outputList []elementalconductor.Output
+func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) ([]elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
+	var streamingOutputList []elementalconductor.Output
+	var nonStreamingOutputList []elementalconductor.Output
+	var streamingOutputGroup elementalconductor.OutputGroup
+	var nonStreamingOutputGroup elementalconductor.OutputGroup
 	var streamAssemblyList []elementalconductor.StreamAssembly
-	var outputGroup elementalconductor.OutputGroup
+	var outputGroupList []elementalconductor.OutputGroup
 	for index, preset := range transcodeProfile.Presets {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
@@ -174,61 +189,71 @@ func buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Locat
 			NameModifier:       "_" + preset.Name,
 			Order:              index,
 		}
-
-		if transcodeProfile.StreamingParams.Protocol == "hls" {
+		presetID, ok := preset.ProviderMapping[Name]
+		if !ok {
+			return outputGroupList, nil, provider.ErrPresetMapNotFound
+		}
+		presetOutput, err := p.GetPreset(presetID)
+		if err != nil {
+			return outputGroupList, nil, err
+		}
+		presetStruct := presetOutput.(*elementalconductor.Preset)
+		if presetStruct.Container == string(elementalconductor.AppleHTTPLiveStreaming) {
 			output.Container = elementalconductor.AppleHTTPLiveStreaming
+			streamingOutputList = append(streamingOutputList, output)
 		} else {
 			ext := strings.TrimLeft(preset.OutputOpts.Extension, ".")
 			output.Container = elementalconductor.Container(ext)
-		}
-
-		presetID, ok := preset.ProviderMapping[Name]
-		if !ok {
-			return outputGroup, nil, provider.ErrPresetMapNotFound
+			nonStreamingOutputList = append(nonStreamingOutputList, output)
 		}
 		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,
 			Preset: presetID,
 		}
-		outputList = append(outputList, output)
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
-	if transcodeProfile.StreamingParams.Protocol == "hls" {
-		outputGroup = elementalconductor.OutputGroup{
-			Order: defaultOutputGroupOrder,
+	outputGroupOrder := 0
+	if len(streamingOutputList) > 0 {
+		outputGroupOrder = outputGroupOrder + 1
+		streamingOutputGroup = elementalconductor.OutputGroup{
+			Order: outputGroupOrder,
 			AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
 				Destination:     &outputLocation,
 				SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			},
 			Type:   elementalconductor.AppleLiveOutputGroupType,
-			Output: outputList,
+			Output: streamingOutputList,
 		}
-	} else {
-		outputGroup = elementalconductor.OutputGroup{
-			Order: defaultOutputGroupOrder,
+		outputGroupList = append(outputGroupList, streamingOutputGroup)
+	}
+	if len(nonStreamingOutputList) > 0 {
+		outputGroupOrder = outputGroupOrder + 1
+		nonStreamingOutputGroup = elementalconductor.OutputGroup{
+			Order: outputGroupOrder,
 			FileGroupSettings: &elementalconductor.FileGroupSettings{
 				Destination: &outputLocation,
 			},
 			Type:   elementalconductor.FileOutputGroupType,
-			Output: outputList,
+			Output: nonStreamingOutputList,
 		}
+		outputGroupList = append(outputGroupList, nonStreamingOutputGroup)
 	}
-	return outputGroup, streamAssemblyList, nil
+	return outputGroupList, streamAssemblyList, nil
 }
 
 // newJob constructs a job spec from the given source and presets
 func (p *elementalConductorProvider) newJob(job *db.Job, transcodeProfile provider.TranscodeProfile) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
 		URI:      transcodeProfile.SourceMedia,
-		Username: p.client.AccessKeyID,
-		Password: p.client.SecretAccessKey,
+		Username: p.client.GetAccessKeyID(),
+		Password: p.client.GetSecretAccessKey(),
 	}
 	outputLocation := elementalconductor.Location{
 		URI:      p.buildFullDestination(job.ID, transcodeProfile.SourceMedia),
-		Username: p.client.AccessKeyID,
-		Password: p.client.SecretAccessKey,
+		Username: p.client.GetAccessKeyID(),
+		Password: p.client.GetSecretAccessKey(),
 	}
-	outputGroup, streamAssemblyList, err := buildOutputGroupAndStreamAssemblies(outputLocation, transcodeProfile)
+	outputGroup, streamAssemblyList, err := p.buildOutputGroupAndStreamAssemblies(outputLocation, transcodeProfile)
 	if err != nil {
 		return nil, err
 	}

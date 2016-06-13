@@ -33,6 +33,7 @@ type TranscodingProvider interface {
 	JobStatus(id string) (*JobStatus, error)
 	CreatePreset(Preset) (string, error)
 	DeletePreset(presetID string) error
+	GetPreset(presetID string) (interface{}, error)
 
 	// Healthcheck should return nil if the provider is currently available
 	// for transcoding videos, otherwise it should return an error

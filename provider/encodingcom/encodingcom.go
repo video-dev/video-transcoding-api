@@ -68,6 +68,10 @@ func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, erro
 	return "", errors.New("CreatePreset is not implemented in Encoding.com provider")
 }
 
+func (e *encodingComProvider) GetPreset(presetID string) (interface{}, error) {
+	return nil, errors.New("GetPreset is not implemented in Encoding.com provider")
+}
+
 func (e *encodingComProvider) DeletePreset(presetID string) error {
 	return errors.New("DeletePreset is not implemented in Encoding.com provider")
 }

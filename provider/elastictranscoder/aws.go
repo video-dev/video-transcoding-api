@@ -56,10 +56,7 @@ type awsProvider struct {
 }
 
 func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	var adaptiveStreaming bool
-	if transcodeProfile.StreamingParams.Protocol == "hls" {
-		adaptiveStreaming = true
-	}
+	var adaptiveStreamingPresets []db.PresetMap
 	source := p.normalizeSource(transcodeProfile.SourceMedia)
 	params := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
@@ -71,29 +68,43 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 		if !ok {
 			return nil, provider.ErrPresetMapNotFound
 		}
+		presetQuery := &elastictranscoder.ReadPresetInput{
+			Id: aws.String(presetID),
+		}
+		presetOutput, err := p.c.ReadPreset(presetQuery)
+		if err != nil {
+			return nil, err
+		}
+		if presetOutput.Preset == nil || presetOutput.Preset.Container == nil {
+			return nil, fmt.Errorf("misconfigured preset: %s", presetID)
+		}
+		isAdaptiveStreamingPreset := false
+		if *presetOutput.Preset.Container == "ts" {
+			isAdaptiveStreamingPreset = true
+			adaptiveStreamingPresets = append(adaptiveStreamingPresets, preset)
+		}
 		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),
-			Key:      p.outputKey(job, preset.OutputOpts, source, preset.Name, adaptiveStreaming),
+			Key:      p.outputKey(job, preset.OutputOpts, source, preset.Name, isAdaptiveStreamingPreset),
 		}
-		if adaptiveStreaming {
+		if isAdaptiveStreamingPreset {
 			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)))
 		}
 	}
 
-	if adaptiveStreaming {
+	if len(adaptiveStreamingPresets) > 0 {
 		jobPlaylist := elastictranscoder.CreateJobPlaylist{
 			Format: aws.String("HLSv3"),
-			Name:   aws.String(strings.TrimRight(source, filepath.Ext(source)) + "/master"),
+			Name:   aws.String(job.ID + "/" + strings.TrimRight(source, filepath.Ext(source)) + "/master"),
 		}
 
-		jobPlaylist.OutputKeys = make([]*string, len(transcodeProfile.Presets))
-		for i, preset := range transcodeProfile.Presets {
-			jobPlaylist.OutputKeys[i] = p.outputKey(job, preset.OutputOpts, source, preset.Name, adaptiveStreaming)
+		jobPlaylist.OutputKeys = make([]*string, len(adaptiveStreamingPresets))
+		for i, preset := range adaptiveStreamingPresets {
+			jobPlaylist.OutputKeys[i] = p.outputKey(job, preset.OutputOpts, source, preset.Name, true)
 		}
 
 		params.Playlists = []*elastictranscoder.CreateJobPlaylist{&jobPlaylist}
 	}
-
 	resp, err := p.c.CreateJob(&params)
 	if err != nil {
 		return nil, err
@@ -212,6 +223,17 @@ func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
 		return "", err
 	}
 	return *presetOutput.Preset.Id, nil
+}
+
+func (p *awsProvider) GetPreset(presetID string) (interface{}, error) {
+	readPresetInput := &elastictranscoder.ReadPresetInput{
+		Id: aws.String(presetID),
+	}
+	readPresetOutput, err := p.c.ReadPreset(readPresetInput)
+	if err != nil {
+		return nil, err
+	}
+	return readPresetOutput, err
 }
 
 func (p *awsProvider) DeletePreset(presetID string) error {
