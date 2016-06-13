@@ -22,6 +22,10 @@ func (*fakeProvider) CreatePreset(Preset) (string, error) {
 	return "", nil
 }
 
+func (*fakeProvider) GetPreset(string) (interface{}, error) {
+	return "", nil
+}
+
 func (*fakeProvider) DeletePreset(string) error {
 	return nil
 }

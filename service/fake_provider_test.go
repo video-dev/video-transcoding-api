@@ -33,6 +33,10 @@ func (*fakeProvider) CreatePreset(preset provider.Preset) (string, error) {
 	return "presetID_here", nil
 }
 
+func (*fakeProvider) GetPreset(presetID string) (interface{}, error) {
+	return struct{ presetID string }{"presetID_here"}, nil
+}
+
 func (*fakeProvider) DeletePreset(presetID string) error {
 	return nil
 }

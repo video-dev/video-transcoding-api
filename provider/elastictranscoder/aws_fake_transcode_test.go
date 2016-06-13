@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
@@ -55,6 +56,20 @@ func (c *fakeElasticTranscoder) CreatePreset(input *elastictranscoder.CreatePres
 			Id:          &presetID,
 			Thumbnails:  input.Thumbnails,
 			Video:       input.Video,
+		},
+	}, nil
+}
+
+func (c *fakeElasticTranscoder) ReadPreset(input *elastictranscoder.ReadPresetInput) (*elastictranscoder.ReadPresetOutput, error) {
+	container := "mp4"
+	if strings.Contains(*input.Id, "hls") {
+		container = "ts"
+	}
+	return &elastictranscoder.ReadPresetOutput{
+		Preset: &elastictranscoder.Preset{
+			Id:        input.Id,
+			Name:      input.Id,
+			Container: aws.String(container),
 		},
 	}, nil
 }
