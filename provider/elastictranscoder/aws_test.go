@@ -451,6 +451,50 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 	}
 }
 
+func TestJobStatusOutputDestination(t *testing.T) {
+	var tests = []struct {
+		job      elastictranscoder.Job
+		expected string
+	}{
+		{
+			elastictranscoder.Job{
+				PipelineId:      aws.String("mypipeline"),
+				OutputKeyPrefix: aws.String("output-prefix"),
+				Outputs: []*elastictranscoder.JobOutput{
+					{
+						// Output for HLS preset
+						Key: aws.String("/job-id/some-dir/file-name/preset-name/video"),
+					},
+					{
+						// Output for MP4 preset
+						Key: aws.String("/job-id/some-dir/preset-name/file-name.mp4"),
+					},
+				},
+			},
+			"s3://some bucket/output-prefix/job-id/some-dir",
+		},
+	}
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	for _, test := range tests {
+		got, err := prov.getOutputDestination(&test.job)
+		if err != nil {
+			t.Error(err.Error())
+		}
+		if got != test.expected {
+			t.Errorf("Wrong output destination. Want %q. Got %q", test.expected, got)
+		}
+	}
+}
+
 func TestAWSTranscodePresetNotFound(t *testing.T) {
 	fakeTranscoder := newFakeElasticTranscoder()
 	prov := &awsProvider{
@@ -565,7 +609,7 @@ func TestAWSJobStatus(t *testing.T) {
 				"job-123/dir/webm_720p/file.webm": "it's finished!",
 			},
 		},
-		OutputDestination: "s3://some bucket/job-123/dir",
+		OutputDestination: "s3://some bucket/job-123",
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
 		t.Errorf("Wrong JobStatus. Want %#v. Got %#v.", expectedJobStatus, *jobStatus)
