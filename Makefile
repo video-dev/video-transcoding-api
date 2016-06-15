@@ -1,5 +1,8 @@
 .PHONY: all testdeps checkfmt lint test build run vet checkswagger swagger runswagger
 
+HTTP_ACCESS_LOG ?= access.log
+HTTP_PORT ?= 8080
+
 all: test
 
 testdeps:
@@ -33,7 +36,7 @@ build:
 	go build
 
 run: build
-	./video-transcoding-api -config config.json
+	HTTP_PORT=$(HTTP_PORT) HTTP_ACCESS_LOG=$(HTTP_ACCESS_LOG) ./video-transcoding-api
 
 vet: testdeps
 	go vet ./...

@@ -1,5 +1,0 @@
-{
-    "HTTPPort": 8080,
-    "HTTPAccessLog": "access.log",
-    "SwaggerManifest": "./swagger.json"
-}

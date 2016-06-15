@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"testing"
 
-	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
@@ -105,7 +104,7 @@ func TestNewPreset(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
@@ -149,7 +148,7 @@ func TestDeletePreset(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeProviderMapping := make(map[string]string)
 		fakeProviderMapping["fake"] = "presetID_here"

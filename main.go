@@ -3,7 +3,6 @@ package main
 import (
 	"flag"
 
-	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	_ "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
@@ -14,7 +13,7 @@ import (
 
 func main() {
 	flag.Parse()
-	cfg := config.LoadConfig(*gizmoConfig.ConfigLocationCLI)
+	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
 		cfg.Server.RouterType = "fast"
 	}

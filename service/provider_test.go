@@ -7,13 +7,12 @@ import (
 	"reflect"
 	"testing"
 
-	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 )
 
 func TestListProviders(t *testing.T) {
-	srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+	srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 	srvr.Register(&TranscodingService{config: &config.Config{}})
 	r, _ := http.NewRequest("GET", "/providers", nil)
 	w := httptest.NewRecorder()
@@ -63,7 +62,7 @@ func TestGetProvider(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		srvr.Register(&TranscodingService{config: &config.Config{}})
 		r, _ := http.NewRequest("GET", "/providers/"+test.name, nil)
 		w := httptest.NewRecorder()

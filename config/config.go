@@ -1,6 +1,9 @@
 package config
 
-import "github.com/NYTimes/gizmo/config"
+import (
+	"github.com/NYTimes/gizmo/config"
+	"github.com/NYTimes/gizmo/server"
+)
 
 type defaultLoader interface {
 	loadDefaults()
@@ -9,7 +12,7 @@ type defaultLoader interface {
 // Config is a struct to contain all the needed configuration for the
 // Transcoding API.
 type Config struct {
-	*config.Server
+	Server             *server.Config
 	SwaggerManifest    string `envconfig:"SWAGGER_MANIFEST_PATH"`
 	Redis              *Redis
 	EncodingCom        *EncodingCom
@@ -78,31 +81,17 @@ type ElementalConductor struct {
 	Destination     string `envconfig:"ELEMENTALCONDUCTOR_DESTINATION"`
 }
 
-// LoadConfig loads the configuration of the API using the provided file and
-// environment variables. It will override settings defined in the file with
-// the value of environment variables.
-//
-// Provide an empty file name for loading configuration exclusively from the
-// environemtn.
-func LoadConfig(fileName string) *Config {
-	var cfg Config
-	if fileName != "" {
-		config.LoadJSONFile(fileName, &cfg)
+// LoadConfig loads the configuration of the API using environment variables.
+func LoadConfig() *Config {
+	cfg := Config{
+		Redis:              new(Redis),
+		EncodingCom:        new(EncodingCom),
+		ElasticTranscoder:  new(ElasticTranscoder),
+		ElementalConductor: new(ElementalConductor),
+		Server:             new(server.Config),
 	}
 	config.LoadEnvConfig(&cfg)
-	if cfg.Redis == nil {
-		cfg.Redis = new(Redis)
-	}
-	if cfg.EncodingCom == nil {
-		cfg.EncodingCom = new(EncodingCom)
-	}
-	if cfg.ElasticTranscoder == nil {
-		cfg.ElasticTranscoder = new(ElasticTranscoder)
-	}
-	if cfg.ElementalConductor == nil {
-		cfg.ElementalConductor = new(ElementalConductor)
-	}
-	loadFromEnvAndDefaults(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor)
+	loadFromEnvAndDefaults(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor, cfg.Server)
 	return &cfg
 }
 

@@ -8,7 +8,6 @@ import (
 	"reflect"
 	"testing"
 
-	gizmoConfig "github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
@@ -113,7 +112,7 @@ func TestNewPresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321"})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
@@ -166,7 +165,7 @@ func TestGetPresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
@@ -233,7 +232,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{
 			Name: "preset-1",
@@ -289,7 +288,7 @@ func TestDeletePresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
 		srvr.Register(&TranscodingService{
@@ -359,7 +358,7 @@ func TestListPresetMaps(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&gizmoConfig.Server{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		for i := range test.givenPresetMaps {
 			fakeDB.CreatePresetMap(&test.givenPresetMaps[i])
