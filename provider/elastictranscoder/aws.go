@@ -280,7 +280,7 @@ func (p *awsProvider) getOutputDestination(job *elastictranscoder.Job) (string, 
 			*output.Key,
 		)
 		destination := strings.Split(destinationFile, "/")
-		destination = destination[:len(destination)-2]
+		destination = destination[:len(destination)-3]
 		return strings.Join(destination, "/"), nil
 	}
 	return "", nil
