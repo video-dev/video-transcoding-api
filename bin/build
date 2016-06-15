@@ -25,7 +25,6 @@ fi
 pushd $CODE
 go get -d
 GOARCH=amd64 GOOS=linux go build -o $OUTPUT/video-transcoding-api
-cp config.json $OUTPUT/.
 cp swagger.json $OUTPUT/.
 popd
 
