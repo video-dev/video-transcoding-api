@@ -57,8 +57,6 @@ $ git clone https://github.com/nytm/video-transcoding-api.git
 $ make run
 ```
 
-Change your [config.json](https://github.com/nytm/video-transcoding-api/blob/master/config.json) file in case you want to change server details (HTTP port, AccessLog, etc).
-
 ## Running tests
 
 ```
