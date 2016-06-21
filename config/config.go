@@ -5,10 +5,6 @@ import (
 	"github.com/NYTimes/gizmo/server"
 )
 
-type defaultLoader interface {
-	loadDefaults()
-}
-
 // Config is a struct to contain all the needed configuration for the
 // Transcoding API.
 type Config struct {
@@ -30,18 +26,12 @@ type Redis struct {
 	SentinelAddrs      string `envconfig:"SENTINEL_ADDRS"`
 	SentinelMasterName string `envconfig:"SENTINEL_MASTER_NAME"`
 
-	RedisAddr          string `envconfig:"REDIS_ADDR"`
+	RedisAddr          string `envconfig:"REDIS_ADDR" default:"127.0.0.1:6379"`
 	Password           string `envconfig:"REDIS_PASSWORD"`
 	PoolSize           int    `envconfig:"REDIS_POOL_SIZE"`
 	PoolTimeout        int    `envconfig:"REDIS_POOL_TIMEOUT_SECONDS"`
 	IdleTimeout        int    `envconfig:"REDIS_IDLE_TIMEOUT_SECONDS"`
 	IdleCheckFrequency int    `envconfig:"REDIS_IDLE_CHECK_FREQUENCY_SECONDS"`
-}
-
-func (c *Redis) loadDefaults() {
-	if c.RedisAddr == "" {
-		c.RedisAddr = "127.0.0.1:6379"
-	}
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com
@@ -51,13 +41,7 @@ type EncodingCom struct {
 	UserKey        string `envconfig:"ENCODINGCOM_USER_KEY"`
 	Destination    string `envconfig:"ENCODINGCOM_DESTINATION"`
 	Region         string `envconfig:"ENCODINGCOM_REGION"`
-	StatusEndpoint string `envconfig:"ENCODINGCOM_STATUS_ENDPOINT"`
-}
-
-func (c *EncodingCom) loadDefaults() {
-	if c.StatusEndpoint == "" {
-		c.StatusEndpoint = "http://status.encoding.com"
-	}
+	StatusEndpoint string `envconfig:"ENCODINGCOM_STATUS_ENDPOINT" default:"http://status.encoding.com"`
 }
 
 // ElasticTranscoder represents the set of configurations for the Elastic
@@ -91,15 +75,12 @@ func LoadConfig() *Config {
 		Server:             new(server.Config),
 	}
 	config.LoadEnvConfig(&cfg)
-	loadFromEnvAndDefaults(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor, cfg.Server)
+	loadFromEnv(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor, cfg.Server)
 	return &cfg
 }
 
-func loadFromEnvAndDefaults(cfgs ...interface{}) {
+func loadFromEnv(cfgs ...interface{}) {
 	for _, cfg := range cfgs {
 		config.LoadEnvConfig(cfg)
-		if dLoader, ok := cfg.(defaultLoader); ok {
-			dLoader.loadDefaults()
-		}
 	}
 }
