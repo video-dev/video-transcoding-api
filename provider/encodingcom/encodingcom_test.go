@@ -364,6 +364,55 @@ func TestCreatePreset(t *testing.T) {
 	}
 }
 
+func TestCreatePresetHLS(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{client: client}
+	presetName, err := prov.CreatePreset(provider.Preset{
+		Audio: provider.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:    "m3u8",
+		Description:  "my nice preset",
+		Name:         "mp4_1080p",
+		Profile:      "main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: provider.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Height:  "1080",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakePreset := server.presets[presetName]
+	if fakePreset.GivenName != "" {
+		t.Errorf(`did not called the Encoding.com API with an empty preset name. Wanted "". Got %q`, fakePreset.GivenName)
+	}
+	expectedFormat := encodingcom.Format{
+		AudioCodec:   "dolby_aac",
+		AudioBitrate: "128k",
+		AudioVolume:  100,
+		Output:       []string{"advanced_hls"},
+		Profile:      "main",
+		TwoPass:      true,
+		VideoCodec:   "libx264",
+		Bitrate:      "3500k",
+		Gop:          "cgop",
+		Keyframe:     []string{"90"},
+		Size:         "0x1080",
+	}
+	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
+		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
+	}
+}
+
 func TestGetPreset(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()

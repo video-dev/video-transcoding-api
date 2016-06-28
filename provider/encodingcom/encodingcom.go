@@ -90,6 +90,9 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 		Gop:          "cgop",
 		Keyframe:     []string{preset.Video.GopSize},
 	}
+	if preset.Container == "m3u8" {
+		format.Output = []string{"advanced_hls"}
+	}
 	if format.AudioCodec == "aac" {
 		format.AudioCodec = "dolby_aac"
 	}
