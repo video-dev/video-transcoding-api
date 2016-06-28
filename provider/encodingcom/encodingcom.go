@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"path"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
@@ -32,6 +33,8 @@ import (
 // registry of providers.
 const Name = "encodingcom"
 
+var kregexp = regexp.MustCompile(`000$`)
+
 var errEncodingComInvalidConfig = provider.InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
 
 func init() {
@@ -41,6 +44,9 @@ func init() {
 type encodingComClient interface {
 	AddMedia(source []string, format []encodingcom.Format, Region string) (*encodingcom.AddMediaResponse, error)
 	GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error)
+	SavePreset(name string, format encodingcom.Format) (*encodingcom.SavePresetResponse, error)
+	GetPreset(name string) (*encodingcom.Preset, error)
+	DeletePreset(name string) (*encodingcom.Response, error)
 }
 
 type encodingComProvider struct {
@@ -65,15 +71,57 @@ func (e *encodingComProvider) Transcode(job *db.Job, transcodeProfile provider.T
 }
 
 func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, error) {
-	return "", errors.New("CreatePreset is not implemented in Encoding.com provider")
+	resp, err := e.client.SavePreset("", e.presetToFormat(preset))
+	if err != nil {
+		return "", err
+	}
+	return resp.SavedPreset, nil
+}
+
+func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom.Format {
+	format := encodingcom.Format{
+		Output:       []string{preset.Container},
+		Profile:      preset.Profile,
+		Bitrate:      kregexp.ReplaceAllString(preset.Video.Bitrate, "k"),
+		VideoCodec:   preset.Video.Codec,
+		AudioBitrate: kregexp.ReplaceAllString(preset.Audio.Bitrate, "k"),
+		AudioCodec:   preset.Audio.Codec,
+		AudioVolume:  100,
+		Gop:          "cgop",
+		Keyframe:     []string{preset.Video.GopSize},
+	}
+	if format.AudioCodec == "aac" {
+		format.AudioCodec = "dolby_aac"
+	}
+	if format.VideoCodec == "h264" {
+		format.VideoCodec = "libx264"
+	}
+	width := preset.Video.Width
+	height := preset.Video.Height
+	if width == "" {
+		width = "0"
+	}
+	if height == "" {
+		height = "0"
+	}
+	if preset.RateControl == "VBR" {
+		format.TwoPass = true
+	}
+	format.Size = width + "x" + height
+	return format
 }
 
 func (e *encodingComProvider) GetPreset(presetID string) (interface{}, error) {
-	return nil, errors.New("GetPreset is not implemented in Encoding.com provider")
+	preset, err := e.client.GetPreset(presetID)
+	if err != nil {
+		return nil, err
+	}
+	return preset, nil
 }
 
 func (e *encodingComProvider) DeletePreset(presetID string) error {
-	return errors.New("DeletePreset is not implemented in Encoding.com provider")
+	_, err := e.client.DeletePreset(presetID)
+	return err
 }
 
 func (e *encodingComProvider) getDestinations(jobID, sourceMedia string, preset db.PresetMap) []string {

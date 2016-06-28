@@ -315,6 +315,171 @@ func TestJobStatusMap(t *testing.T) {
 	}
 }
 
+func TestCreatePreset(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{client: client}
+	presetName, err := prov.CreatePreset(provider.Preset{
+		Audio: provider.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:    "mp4",
+		Description:  "my nice preset",
+		Name:         "mp4_1080p",
+		Profile:      "main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: provider.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Height:  "1080",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakePreset := server.presets[presetName]
+	if fakePreset.GivenName != "" {
+		t.Errorf(`did not called the Encoding.com API with an empty preset name. Wanted "". Got %q`, fakePreset.GivenName)
+	}
+	expectedFormat := encodingcom.Format{
+		AudioCodec:   "dolby_aac",
+		AudioBitrate: "128k",
+		AudioVolume:  100,
+		Output:       []string{"mp4"},
+		Profile:      "main",
+		TwoPass:      true,
+		VideoCodec:   "libx264",
+		Bitrate:      "3500k",
+		Gop:          "cgop",
+		Keyframe:     []string{"90"},
+		Size:         "0x1080",
+	}
+	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
+		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
+	}
+}
+
+func TestGetPreset(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{client: client}
+	presetName, err := prov.CreatePreset(provider.Preset{
+		Audio: provider.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:    "mp4",
+		Description:  "my nice preset",
+		Name:         "mp4_1080p",
+		Profile:      "main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: provider.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Width:   "1920",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset, err := prov.GetPreset(presetName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedPreset := &encodingcom.Preset{
+		Name: presetName,
+		Format: convertFormat(encodingcom.Format{
+			AudioCodec:   "dolby_aac",
+			AudioBitrate: "128k",
+			AudioVolume:  100,
+			Output:       []string{"mp4"},
+			Profile:      "main",
+			TwoPass:      true,
+			VideoCodec:   "libx264",
+			Bitrate:      "3500k",
+			Gop:          "cgop",
+			Keyframe:     []string{"90"},
+			Size:         "1920x0",
+		}),
+		Output: "mp4",
+		Type:   encodingcom.UserPresets,
+	}
+	if !reflect.DeepEqual(preset, expectedPreset) {
+		t.Errorf("GetPreset(%q): wrong preset returned.\nWant %#v\nGot  %#v", presetName, expectedPreset, preset)
+	}
+}
+
+func TestGetPresetNotFound(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{client: client}
+	preset, err := prov.GetPreset("some-id")
+	if preset != nil {
+		t.Errorf("unexpected non-nil preset: %#v", preset)
+	}
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
+func TestDeletePreset(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{client: client}
+	presetName, err := prov.CreatePreset(provider.Preset{
+		Audio: provider.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:    "mp4",
+		Description:  "my nice preset",
+		Name:         "mp4_1080p",
+		Profile:      "main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: provider.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Width:   "1920",
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = prov.DeletePreset(presetName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = prov.GetPreset(presetName)
+	if err == nil {
+		t.Error("did not delete the preset")
+	}
+}
+
+func TestDeletePresetNotFound(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{client: client}
+	err := prov.DeletePreset("some-preset")
+	if err == nil {
+		t.Error("unexpected <nil> error")
+	}
+}
+
 func TestHealthcheck(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()

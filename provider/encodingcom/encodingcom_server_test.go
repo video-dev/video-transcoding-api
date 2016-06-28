@@ -18,6 +18,7 @@ var errMediaNotFound = errors.New("media not found")
 
 type request struct {
 	Action  string               `json:"action"`
+	Name    string               `json:"name"`
 	MediaID string               `json:"mediaid"`
 	Source  []string             `json:"source"`
 	Format  []encodingcom.Format `json:"format"`
@@ -32,6 +33,12 @@ type errorList struct {
 	Error []string `json:"error"`
 }
 
+type fakePreset struct {
+	Name      string
+	GivenName string
+	Request   request
+}
+
 type fakeMedia struct {
 	ID       string
 	Request  request
@@ -44,12 +51,14 @@ type fakeMedia struct {
 // encodingComFakeServer is a fake version of the Encoding.com API.
 type encodingComFakeServer struct {
 	*httptest.Server
-	medias map[string]*fakeMedia
-	status *encodingcom.APIStatusResponse
+	medias  map[string]*fakeMedia
+	presets map[string]*fakePreset
+	status  *encodingcom.APIStatusResponse
 }
 
 type encodingComFakeClient struct {
 	media fakeMedia
+	encodingcom.Client
 }
 
 func newEncodingComFakeClient(mediaParam fakeMedia) *encodingComFakeClient {
@@ -57,10 +66,6 @@ func newEncodingComFakeClient(mediaParam fakeMedia) *encodingComFakeClient {
 		media: mediaParam,
 	}
 	return &client
-}
-
-func (c *encodingComFakeClient) AddMedia(source []string, format []encodingcom.Format, region string) (*encodingcom.AddMediaResponse, error) {
-	return &encodingcom.AddMediaResponse{}, nil
 }
 
 func (c *encodingComFakeClient) GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error) {
@@ -92,8 +97,9 @@ func (c *encodingComFakeClient) GetStatus(mediaIDs []string) ([]encodingcom.Stat
 
 func newEncodingComFakeServer() *encodingComFakeServer {
 	server := encodingComFakeServer{
-		medias: make(map[string]*fakeMedia),
-		status: &encodingcom.APIStatusResponse{StatusCode: "ok", Status: "Ok"},
+		medias:  make(map[string]*fakeMedia),
+		presets: make(map[string]*fakePreset),
+		status:  &encodingcom.APIStatusResponse{StatusCode: "ok", Status: "Ok"},
 	}
 	server.Server = httptest.NewServer(&server)
 	return &server
@@ -117,7 +123,6 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	err := json.Unmarshal([]byte(requestData), &m)
 	if err != nil {
 		s.Error(w, err.Error())
-		return
 	}
 	req := m["query"]
 	switch req.Action {
@@ -125,6 +130,12 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 		s.addMedia(w, req)
 	case "GetStatus":
 		s.getStatus(w, req)
+	case "GetPreset":
+		s.getPreset(w, req)
+	case "SavePreset":
+		s.savePreset(w, req)
+	case "DeletePreset":
+		s.deletePreset(w, req)
 	default:
 		s.Error(w, "invalid action")
 	}
@@ -185,6 +196,47 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+func (s *encodingComFakeServer) savePreset(w http.ResponseWriter, req request) {
+	presetName := req.Name
+	if presetName == "" {
+		presetName = generateID()
+	}
+	s.presets[presetName] = &fakePreset{GivenName: req.Name, Request: req}
+	resp := map[string]map[string][]string{
+		"response": {
+			"SavedPreset": []string{presetName},
+		},
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (s *encodingComFakeServer) getPreset(w http.ResponseWriter, req request) {
+	preset, ok := s.presets[req.Name]
+	if !ok {
+		s.Error(w, "preset not found")
+		return
+	}
+	resp := map[string]*encodingcom.Preset{
+		"response": {
+			Name:   req.Name,
+			Format: convertFormat(preset.Request.Format[0]),
+			Output: preset.Request.Format[0].Output[0],
+			Type:   encodingcom.UserPresets,
+		},
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
+func (s *encodingComFakeServer) deletePreset(w http.ResponseWriter, req request) {
+	if _, ok := s.presets[req.Name]; !ok {
+		s.Error(w, "preset not found")
+		return
+	}
+	delete(s.presets, req.Name)
+	resp := map[string]*encodingcom.Response{"response": {Message: "Deleted"}}
+	json.NewEncoder(w).Encode(resp)
+}
+
 func (s *encodingComFakeServer) Error(w http.ResponseWriter, message string) {
 	m := map[string]errorResponse{"response": {
 		Errors: errorList{Error: []string{message}},
@@ -204,4 +256,55 @@ func generateID() string {
 	var id [8]byte
 	rand.Read(id[:])
 	return fmt.Sprintf("%x", id[:])
+}
+
+func convertFormat(format encodingcom.Format) encodingcom.PresetFormat {
+	return encodingcom.PresetFormat{
+		NoiseReduction:          format.NoiseReduction,
+		Output:                  format.Output[0],
+		VideoCodec:              format.VideoCodec,
+		AudioCodec:              format.AudioCodec,
+		Bitrate:                 format.Bitrate,
+		AudioBitrate:            format.AudioBitrate,
+		AudioSampleRate:         format.AudioSampleRate,
+		AudioChannelsNumber:     format.AudioChannelsNumber,
+		AudioVolume:             format.AudioVolume,
+		Size:                    format.Size,
+		FadeIn:                  format.FadeIn,
+		FadeOut:                 format.FadeOut,
+		CropLeft:                format.CropLeft,
+		CropTop:                 format.CropTop,
+		CropRight:               format.CropRight,
+		CropBottom:              format.CropBottom,
+		KeepAspectRatio:         format.KeepAspectRatio,
+		SetAspectRatio:          format.SetAspectRatio,
+		AddMeta:                 format.AddMeta,
+		Hint:                    format.Hint,
+		RcInitOccupancy:         format.RcInitOccupancy,
+		MinRate:                 format.MinRate,
+		MaxRate:                 format.MaxRate,
+		BufSize:                 format.BufSize,
+		Keyframe:                format.Keyframe[0],
+		Start:                   format.Start,
+		Duration:                format.Duration,
+		ForceKeyframes:          format.ForceKeyframes,
+		Bframes:                 format.Bframes,
+		Gop:                     format.Gop,
+		Metadata:                format.Metadata,
+		SegmentDuration:         format.SegmentDuration,
+		Logo:                    format.Logo,
+		VideoCodecParameters:    format.VideoCodecParameters,
+		Profile:                 format.Profile,
+		TwoPass:                 format.TwoPass,
+		Turbo:                   format.Turbo,
+		TwinTurbo:               format.TwinTurbo,
+		Rotate:                  format.Rotate,
+		SetRotate:               format.SetRotate,
+		AudioSync:               format.AudioSync,
+		VideoSync:               format.VideoSync,
+		ForceInterlaced:         format.ForceInterlaced,
+		StripChapters:           format.StripChapters,
+		Framerate:               format.Framerate,
+		FramerateUpperThreshold: format.FramerateUpperThreshold,
+	}
 }
