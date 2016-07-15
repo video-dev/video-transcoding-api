@@ -110,7 +110,7 @@ func (s *TranscodingService) deletePresetMap(r *http.Request) swagger.GizmoJSONR
 	}
 }
 
-// swagger:route GET /presetmaps presets listPresets
+// swagger:route GET /presetmaps presets listPresetMaps
 //
 // List available presets on the API.
 //

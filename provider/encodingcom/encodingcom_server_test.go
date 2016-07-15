@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"time"
@@ -30,7 +31,7 @@ type errorResponse struct {
 }
 
 type errorList struct {
-	Error []string `json:"error"`
+	Error string `json:"error"`
 }
 
 type fakePreset struct {
@@ -202,9 +203,9 @@ func (s *encodingComFakeServer) savePreset(w http.ResponseWriter, req request) {
 		presetName = generateID()
 	}
 	s.presets[presetName] = &fakePreset{GivenName: req.Name, Request: req}
-	resp := map[string]map[string][]string{
+	resp := map[string]map[string]string{
 		"response": {
-			"SavedPreset": []string{presetName},
+			"SavedPreset": presetName,
 		},
 	}
 	json.NewEncoder(w).Encode(resp)
@@ -213,7 +214,7 @@ func (s *encodingComFakeServer) savePreset(w http.ResponseWriter, req request) {
 func (s *encodingComFakeServer) getPreset(w http.ResponseWriter, req request) {
 	preset, ok := s.presets[req.Name]
 	if !ok {
-		s.Error(w, "preset not found")
+		s.Error(w, req.Name+" preset not found")
 		return
 	}
 	resp := map[string]*encodingcom.Preset{
@@ -239,7 +240,7 @@ func (s *encodingComFakeServer) deletePreset(w http.ResponseWriter, req request)
 
 func (s *encodingComFakeServer) Error(w http.ResponseWriter, message string) {
 	m := map[string]errorResponse{"response": {
-		Errors: errorList{Error: []string{message}},
+		Errors: errorList{Error: message},
 	}}
 	json.NewEncoder(w).Encode(m)
 }
@@ -259,6 +260,15 @@ func generateID() string {
 }
 
 func convertFormat(format encodingcom.Format) encodingcom.PresetFormat {
+	videoCodecParams, err := json.Marshal(format.VideoCodecParameters)
+	if err != nil {
+		log.Println(err.Error())
+		return encodingcom.PresetFormat{}
+	}
+	keyframe := ""
+	if len(format.Keyframe) > 0 {
+		keyframe = format.Keyframe[0]
+	}
 	return encodingcom.PresetFormat{
 		NoiseReduction:          format.NoiseReduction,
 		Output:                  format.Output[0],
@@ -284,16 +294,16 @@ func convertFormat(format encodingcom.Format) encodingcom.PresetFormat {
 		MinRate:                 format.MinRate,
 		MaxRate:                 format.MaxRate,
 		BufSize:                 format.BufSize,
-		Keyframe:                format.Keyframe[0],
+		Keyframe:                keyframe,
 		Start:                   format.Start,
 		Duration:                format.Duration,
 		ForceKeyframes:          format.ForceKeyframes,
 		Bframes:                 format.Bframes,
 		Gop:                     format.Gop,
 		Metadata:                format.Metadata,
-		SegmentDuration:         format.SegmentDuration,
+		SegmentDuration:         string(format.SegmentDuration),
 		Logo:                    format.Logo,
-		VideoCodecParameters:    format.VideoCodecParameters,
+		VideoCodecParameters:    string(videoCodecParams),
 		Profile:                 format.Profile,
 		TwoPass:                 format.TwoPass,
 		Turbo:                   format.Turbo,

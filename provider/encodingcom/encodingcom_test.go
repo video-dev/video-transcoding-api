@@ -116,6 +116,15 @@ func TestEncodingComTranscode(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 	}
+	for _, preset := range presets {
+		_, err := prov.CreatePreset(provider.Preset{
+			Name:      preset.ProviderMapping[Name],
+			Container: preset.OutputOpts.Extension,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
 
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
@@ -141,26 +150,30 @@ func TestEncodingComTranscode(t *testing.T) {
 		t.Fatal(err)
 	}
 	dest := prov.config.EncodingCom.Destination
+	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	expectedFormats := []encodingcom.Format{
 		{
-			Output:          []string{"123455"},
-			Destination:     []string{dest + "job-123/webm_720p/video.webm"},
-			SegmentDuration: 3,
+			Output:      []string{"123455"},
+			Destination: []string{dest + "job-123/webm_720p/video.webm"},
 		},
 		{
-			Output:          []string{"123456"},
-			Destination:     []string{dest + "job-123/webm_480p/video.webm"},
-			SegmentDuration: 3,
+			Output:      []string{"123456"},
+			Destination: []string{dest + "job-123/webm_480p/video.webm"},
 		},
 		{
-			Output:          []string{"321321"},
-			Destination:     []string{dest + "job-123/mp4_1080p/video.mp4"},
-			SegmentDuration: 3,
+			Output:      []string{"321321"},
+			Destination: []string{dest + "job-123/mp4_1080p/video.mp4"},
 		},
 		{
-			Output:          []string{"321322"},
-			Destination:     []string{dest + "job-123/hls_1080p/video/master.m3u8"},
+			Output:          []string{"advanced_hls"},
+			Destination:     []string{dest + "job-123/hls/master.m3u8"},
 			SegmentDuration: 3,
+			PackFiles:       &falseYesNoBoolean,
+			Stream: []encodingcom.Stream{
+				{
+					SubPath: "hls_1080p",
+				},
+			},
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
@@ -211,8 +224,9 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 	}
 
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-2"}, transcodeProfile)
-	if err != provider.ErrPresetMapNotFound {
-		t.Errorf("Wrong error. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
+	expectedErrorString := "Error converting presets to formats on Transcode operation: Error getting preset info: Error returned by the Encoding.com API: {\"Errors\":[\"123455 preset not found\"]}"
+	if err.Error() != expectedErrorString {
+		t.Errorf("Wrong error. Want %#v. Got %#v", expectedErrorString, err.Error())
 	}
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
@@ -248,12 +262,13 @@ func TestJobStatus(t *testing.T) {
 		Status:        provider.StatusFinished,
 		StatusMessage: "",
 		ProviderStatus: map[string]interface{}{
-			"progress":   100.0,
-			"sourcefile": "http://some.source.file",
-			"timeleft":   "1",
-			"created":    media.Created,
-			"started":    media.Started,
-			"finished":   media.Finished,
+			"progress":     100.0,
+			"sourcefile":   "http://some.source.file",
+			"timeleft":     "1",
+			"created":      media.Created,
+			"started":      media.Started,
+			"finished":     media.Finished,
+			"formatStatus": []string{""},
 			"destinationStatus": []encodingcom.DestinationStatus{
 				{
 					Name:   "s3://mybucket/dir/file.mp4",
@@ -343,9 +358,6 @@ func TestCreatePreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	fakePreset := server.presets[presetName]
-	if fakePreset.GivenName != "" {
-		t.Errorf(`did not called the Encoding.com API with an empty preset name. Wanted "". Got %q`, fakePreset.GivenName)
-	}
 	expectedFormat := encodingcom.Format{
 		AudioCodec:   "dolby_aac",
 		AudioBitrate: "128k",
@@ -358,6 +370,7 @@ func TestCreatePreset(t *testing.T) {
 		Gop:          "cgop",
 		Keyframe:     []string{"90"},
 		Size:         "0x1080",
+		Destination:  []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 	}
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
@@ -392,21 +405,24 @@ func TestCreatePresetHLS(t *testing.T) {
 		t.Fatal(err)
 	}
 	fakePreset := server.presets[presetName]
-	if fakePreset.GivenName != "" {
-		t.Errorf(`did not called the Encoding.com API with an empty preset name. Wanted "". Got %q`, fakePreset.GivenName)
-	}
+	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	expectedFormat := encodingcom.Format{
-		AudioCodec:   "dolby_aac",
-		AudioBitrate: "128k",
-		AudioVolume:  100,
-		Output:       []string{"advanced_hls"},
-		Profile:      "main",
-		TwoPass:      true,
-		VideoCodec:   "libx264",
-		Bitrate:      "3500k",
-		Gop:          "cgop",
-		Keyframe:     []string{"90"},
-		Size:         "0x1080",
+		Output:      []string{"advanced_hls"},
+		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+		PackFiles:   &falseYesNoBoolean,
+		Stream: []encodingcom.Stream{
+			{
+				AudioBitrate: "128k",
+				AudioCodec:   "dolby_aac",
+				AudioVolume:  100,
+				Bitrate:      "3500k",
+				Keyframe:     "90",
+				Profile:      "main",
+				Size:         "0x1080",
+				TwoPass:      true,
+				VideoCodec:   "libx264",
+			},
+		},
 	}
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
