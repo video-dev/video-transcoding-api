@@ -33,7 +33,10 @@ import (
 // registry of providers.
 const Name = "encodingcom"
 
-var kregexp = regexp.MustCompile(`000$`)
+var (
+	kregexp  = regexp.MustCompile(`000$`)
+	s3regexp = regexp.MustCompile(`^s3://([^/_\.]+)/(.+)$`)
+)
 
 var errEncodingComInvalidConfig = provider.InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
 
@@ -59,7 +62,7 @@ func (e *encodingComProvider) Transcode(job *db.Job, transcodeProfile provider.T
 	if err != nil {
 		return nil, fmt.Errorf("Error converting presets to formats on Transcode operation: %s", err.Error())
 	}
-	resp, err := e.client.AddMedia([]string{transcodeProfile.SourceMedia}, formats, e.config.EncodingCom.Region)
+	resp, err := e.client.AddMedia([]string{e.sourceMedia(transcodeProfile.SourceMedia)}, formats, e.config.EncodingCom.Region)
 	if err != nil {
 		return nil, fmt.Errorf("Error making AddMedia request for Transcode operation: %s", err.Error())
 	}
@@ -76,6 +79,14 @@ func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, erro
 		return "", err
 	}
 	return resp.SavedPreset, nil
+}
+
+func (e *encodingComProvider) sourceMedia(original string) string {
+	parts := s3regexp.FindStringSubmatch(original)
+	if len(parts) > 0 {
+		return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", parts[1], parts[2])
+	}
+	return original
 }
 
 func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom.Format {
