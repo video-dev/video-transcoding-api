@@ -86,7 +86,7 @@ func (c *encodingComFakeClient) GetStatus(mediaIDs []string) ([]encodingcom.Stat
 			{
 				Destinations: []encodingcom.DestinationStatus{
 					{
-						Name:   "s3://mybucket/dir/file.mp4",
+						Name:   "https://mybucket.s3.amazonaws.com/dir/file.mp4",
 						Status: "Saved",
 					},
 				},
