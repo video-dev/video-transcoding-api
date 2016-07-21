@@ -34,8 +34,9 @@ import (
 const Name = "encodingcom"
 
 var (
-	kregexp  = regexp.MustCompile(`000$`)
-	s3regexp = regexp.MustCompile(`^s3://([^/_\.]+)/(.+)$`)
+	kregexp      = regexp.MustCompile(`000$`)
+	s3regexp     = regexp.MustCompile(`^s3://([^/_.]+)/(.+)$`)
+	httpS3Regexp = regexp.MustCompile(`https?://([^/_.]+)\.s3\.amazonaws\.com/(.+)$`)
 )
 
 var errEncodingComInvalidConfig = provider.InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
@@ -271,6 +272,7 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 	formats := status[0].Formats
 	for _, formatStatus := range formats {
 		for _, destinationStatus := range formatStatus.Destinations {
+			destinationStatus.Name = e.destinationMedia(destinationStatus.Name)
 			destinationStatusList = append(destinationStatusList, destinationStatus)
 		}
 	}
@@ -283,12 +285,19 @@ func (e *encodingComProvider) getOutputDestination(status []encodingcom.StatusRe
 		for _, destinationStatus := range formatStatus.Destinations {
 			if destinationStatus.Status == "Saved" {
 				destination := strings.Split(destinationStatus.Name, "/")
-				destination = destination[:len(destination)-1]
-				return strings.Join(destination, "/")
+				return e.destinationMedia(strings.Join(destination[:len(destination)-1], "/"))
 			}
 		}
 	}
 	return ""
+}
+
+func (e *encodingComProvider) destinationMedia(input string) string {
+	parts := httpS3Regexp.FindStringSubmatch(input)
+	if len(parts) > 0 {
+		return fmt.Sprintf("s3://%s/%s", parts[1], parts[2])
+	}
+	return input
 }
 
 func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Status {
