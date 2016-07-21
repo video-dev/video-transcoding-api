@@ -184,6 +184,73 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 }
 
+func TestEncodingComS3Input(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
+	prov := encodingComProvider{
+		client: client,
+		config: &config.Config{
+			EncodingCom: &config.EncodingCom{
+				Destination: "https://mybucket.s3.amazonaws.com/destination-dir/",
+			},
+		},
+	}
+	source := "s3://mybucket/directory/video.mp4"
+	expectedSource := "https://mybucket.s3.amazonaws.com/directory/video.mp4"
+	presets := []db.PresetMap{
+		{
+			Name: "webm_720p",
+			ProviderMapping: map[string]string{
+				Name:           "123455",
+				"not-relevant": "something",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+	}
+	for _, preset := range presets {
+		_, err := prov.CreatePreset(provider.Preset{
+			Name:      preset.ProviderMapping[Name],
+			Container: preset.OutputOpts.Extension,
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia: source,
+		Presets:     presets,
+	}
+	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if expected := "it worked"; jobStatus.StatusMessage != expected {
+		t.Errorf("wrong StatusMessage. Want %q. Got %q", expected, jobStatus.StatusMessage)
+	}
+	if jobStatus.ProviderName != Name {
+		t.Errorf("wrong ProviderName. Want %q. Got %q", Name, jobStatus.ProviderName)
+	}
+	media, err := server.getMedia(jobStatus.ProviderJobID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	dest := prov.config.EncodingCom.Destination
+	expectedFormats := []encodingcom.Format{
+		{
+			Output:      []string{"123455"},
+			Destination: []string{dest + "job-123/webm_720p/video.webm"},
+		},
+	}
+	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
+		t.Errorf("Wrong format.\nWant %#v\nGot  %#v.", expectedFormats, media.Request.Format)
+	}
+	if !reflect.DeepEqual([]string{expectedSource}, media.Request.Source) {
+		t.Errorf("Wrong source. Want %v. Got %v.", []string{expectedSource}, media.Request.Source)
+	}
+}
+
 func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()
