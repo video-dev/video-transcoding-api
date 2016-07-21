@@ -35,7 +35,8 @@ build:
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - go get github.com/${NP_REPO}
-      - np build transcoding-api:dev#$${COMMIT:0:7} && np deploy transcoding-api:dev#$${COMMIT:0:7}
+      - np build transcoding-api:dev#$${COMMIT:0:7}
+      - np deploy transcoding-api:dev#$${COMMIT:0:7}
     when:
       branch: master
       event: push
