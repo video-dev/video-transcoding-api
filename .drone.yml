@@ -43,6 +43,9 @@ build:
   make_live:
     image: balser/go-buildbox:1.6
     environment:
+      - GOROOT=/usr/local/go
+      - GOPATH=/drone
+      - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
       - INFRA_REPO=$$NP_INFRA_REPO
       - NP_PATH=$$NP_PATH_VALUE
       - NP_REPO=$$NP_REPO
