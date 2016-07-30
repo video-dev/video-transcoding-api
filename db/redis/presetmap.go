@@ -1,6 +1,9 @@
 package redis
 
-import "github.com/nytm/video-transcoding-api/db"
+import (
+	"github.com/nytm/video-transcoding-api/db"
+	"gopkg.in/redis.v4"
+)
 
 const presetsSetKey = "presets"
 
@@ -24,16 +27,13 @@ func (r *redisRepository) savePresetMap(preset *db.PresetMap) error {
 		return err
 	}
 	presetKey := r.presetKey(preset.Name)
-	multi, err := r.redisClient().Watch(presetKey)
-	if err != nil {
-		return err
-	}
-	_, err = multi.Exec(func() error {
-		multi.HMSet(presetKey, fields[0], fields[1], fields[2:]...)
-		multi.SAdd(presetsSetKey, preset.Name)
-		return nil
-	})
-	return err
+	return r.redisClient().Watch(func(tx *redis.Tx) error {
+		err := tx.HMSet(presetKey, fields).Err()
+		if err != nil {
+			return err
+		}
+		return tx.SAdd(presetsSetKey, preset.Name).Err()
+	}, presetKey)
 }
 
 func (r *redisRepository) DeletePresetMap(preset *db.PresetMap) error {

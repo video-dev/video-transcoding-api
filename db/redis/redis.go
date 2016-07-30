@@ -3,8 +3,6 @@ package redis
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
-	"log"
 	"reflect"
 	"strconv"
 	"strings"
@@ -13,14 +11,10 @@ import (
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
-	"gopkg.in/redis.v3"
+	"gopkg.in/redis.v4"
 )
 
 var errNotFound = errors.New("not found")
-
-func init() {
-	redis.Logger = log.New(ioutil.Discard, "", log.LstdFlags)
-}
 
 // NewRepository creates a new Repository that uses Redis for persistence.
 func NewRepository(cfg *config.Config) (db.Repository, error) {
@@ -40,10 +34,10 @@ func (r *redisRepository) save(key string, hash interface{}) error {
 	if err != nil {
 		return err
 	}
-	return r.redisClient().HMSet(key, fields[0], fields[1], fields[2:]...).Err()
+	return r.redisClient().HMSet(key, fields).Err()
 }
 
-func (r *redisRepository) fieldList(hash interface{}) ([]string, error) {
+func (r *redisRepository) fieldList(hash interface{}) (map[string]string, error) {
 	if hash == nil {
 		return nil, errors.New("no fields provided")
 	}
@@ -61,7 +55,7 @@ func (r *redisRepository) fieldList(hash interface{}) ([]string, error) {
 	}
 }
 
-func (r *redisRepository) mapToFieldList(hash interface{}, prefixes ...string) ([]string, error) {
+func (r *redisRepository) mapToFieldList(hash interface{}, prefixes ...string) (map[string]string, error) {
 	m, ok := hash.(map[string]string)
 	if !ok {
 		return nil, errors.New("please provide a map[string]string")
@@ -69,16 +63,16 @@ func (r *redisRepository) mapToFieldList(hash interface{}, prefixes ...string) (
 	if len(m) < 1 {
 		return nil, errors.New("please provide a map[string]string with at least one item")
 	}
-	fields := make([]string, 0, len(m)*2)
+	fields := make(map[string]string, len(m))
 	for key, value := range m {
 		key = strings.Join(append(prefixes, key), "_")
-		fields = append(fields, key, value)
+		fields[key] = value
 	}
 	return fields, nil
 }
 
-func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...string) ([]string, error) {
-	fields := make([]string, 0, value.NumField())
+func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...string) (map[string]string, error) {
+	fields := make(map[string]string)
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Type().Field(i)
 		if field.PkgPath != "" {
@@ -101,13 +95,17 @@ func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...str
 				if err != nil {
 					return nil, err
 				}
-				fields = append(fields, expandedFields...)
+				for k, v := range expandedFields {
+					fields[k] = v
+				}
 			case reflect.Map:
 				expandedFields, err := r.mapToFieldList(fieldValue.Interface(), myPrefixes...)
 				if err != nil {
 					return nil, err
 				}
-				fields = append(fields, expandedFields...)
+				for k, v := range expandedFields {
+					fields[k] = v
+				}
 			default:
 				return nil, errors.New("can only expand structs and maps")
 			}
@@ -121,7 +119,7 @@ func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...str
 				} else {
 					strValue = fmt.Sprintf("%v", fieldValue.Interface())
 				}
-				fields = append(fields, key, strValue)
+				fields[key] = strValue
 			}
 		}
 	}
@@ -129,7 +127,7 @@ func (r *redisRepository) structToFieldList(value reflect.Value, prefixes ...str
 }
 
 func (r *redisRepository) load(key string, out interface{}) error {
-	result, err := r.redisClient().HGetAllMap(key).Result()
+	result, err := r.redisClient().HGetAll(key).Result()
 	if err != nil {
 		return err
 	}

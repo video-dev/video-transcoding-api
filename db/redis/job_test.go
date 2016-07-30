@@ -9,7 +9,7 @@ import (
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
-	"gopkg.in/redis.v3"
+	"gopkg.in/redis.v4"
 )
 
 func TestCreateJob(t *testing.T) {
@@ -44,7 +44,7 @@ func TestCreateJob(t *testing.T) {
 	}
 	client := repo.(*redisRepository).redisClient()
 	defer client.Close()
-	items, err := client.HGetAllMap("job:" + job.ID).Result()
+	items, err := client.HGetAll("job:" + job.ID).Result()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +138,7 @@ func TestDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	client := repo.(*redisRepository).redisClient()
-	hGetResult := client.HGetAllMap("job:myjob")
+	hGetResult := client.HGetAll("job:myjob")
 	if len(hGetResult.Val()) != 0 {
 		t.Errorf("Unexpected value after delete call: %v", hGetResult.Val())
 	}

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/nytm/video-transcoding-api/db"
-	"gopkg.in/redis.v3"
+	"gopkg.in/redis.v4"
 )
 
 const jobsSetKey = "jobs"
@@ -25,16 +25,13 @@ func (r *redisRepository) saveJob(job *db.Job) error {
 		return err
 	}
 	jobKey := r.jobKey(job.ID)
-	multi, err := r.redisClient().Watch(jobKey)
-	if err != nil {
-		return err
-	}
-	_, err = multi.Exec(func() error {
-		multi.HMSet(jobKey, fields[0], fields[1], fields[2:]...)
-		multi.ZAddNX(jobsSetKey, redis.Z{Member: job.ID, Score: float64(job.CreationTime.UnixNano())})
-		return nil
-	})
-	return err
+	return r.redisClient().Watch(func(tx *redis.Tx) error {
+		err := tx.HMSet(jobKey, fields).Err()
+		if err != nil {
+			return err
+		}
+		return tx.ZAddNX(jobsSetKey, redis.Z{Member: job.ID, Score: float64(job.CreationTime.UnixNano())}).Err()
+	}, jobKey)
 }
 
 func (r *redisRepository) DeleteJob(job *db.Job) error {
@@ -56,7 +53,7 @@ func (r *redisRepository) GetJob(id string) (*db.Job, error) {
 
 func (r *redisRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
 	now := time.Now().UTC()
-	rangeOpts := redis.ZRangeByScore{
+	rangeOpts := redis.ZRangeBy{
 		Min:   strconv.FormatInt(filter.Since.UnixNano(), 10),
 		Max:   strconv.FormatInt(now.UnixNano(), 10),
 		Count: int64(filter.Limit),

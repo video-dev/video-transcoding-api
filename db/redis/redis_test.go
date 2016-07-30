@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
-	"gopkg.in/redis.v3"
+	"gopkg.in/redis.v4"
 )
 
 func TestRedisClientRedisDefaultConfig(t *testing.T) {
@@ -109,7 +109,7 @@ func TestSave(t *testing.T) {
 	client := redisRepo.redisClient()
 	defer client.Close()
 	defer client.Del("person:test")
-	data, err := client.HGetAllMap("person:test").Result()
+	data, err := client.HGetAll("person:test").Result()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -123,7 +123,7 @@ func TestSave(t *testing.T) {
 		"address_main":            "false",
 	}
 	if !reflect.DeepEqual(data, expected) {
-		t.Errorf("Did not save properly. Want %#v. Got %#v", expected, data)
+		t.Errorf("Did not save properly.\nWant %#v\nGot  %#v", expected, data)
 	}
 }
 
@@ -156,7 +156,7 @@ func TestSavePointer(t *testing.T) {
 	client := redisRepo.redisClient()
 	defer client.Close()
 	defer client.Del("person:test")
-	data, err := client.HGetAllMap("person:test").Result()
+	data, err := client.HGetAll("person:test").Result()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -193,7 +193,7 @@ func TestSaveMap(t *testing.T) {
 	client := redisRepo.redisClient()
 	defer client.Close()
 	defer client.Del("map:test")
-	data, err := client.HGetAllMap("map:test").Result()
+	data, err := client.HGetAll("map:test").Result()
 	if err != nil {
 		t.Fatal(err)
 	}
