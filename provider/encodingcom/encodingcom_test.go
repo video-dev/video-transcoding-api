@@ -612,6 +612,30 @@ func TestDeletePresetNotFound(t *testing.T) {
 	}
 }
 
+func TestCancelJob(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	now := time.Now().UTC().Truncate(time.Second)
+	media := fakeMedia{
+		ID:       "mymedia",
+		Status:   "Finished",
+		Created:  now.Add(-time.Hour),
+		Started:  now.Add(-50 * time.Minute),
+		Finished: now.Add(-10 * time.Minute),
+	}
+	server.medias["mymedia"] = &media
+	client := newEncodingComFakeClient(media)
+	client.Client.Endpoint = server.URL
+	prov := encodingComProvider{client: client}
+	err := prov.CancelJob("mymedia")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if media.Status != "Canceled" {
+		t.Errorf("wrong status. Want %q. Got %q", "Canceled", media.Status)
+	}
+}
+
 func TestHealthcheck(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()

@@ -301,6 +301,11 @@ func (p *awsProvider) statusMap(awsStatus string) provider.Status {
 	}
 }
 
+func (p *awsProvider) CancelJob(id string) error {
+	_, err := p.c.CancelJob(&elastictranscoder.CancelJobInput{Id: aws.String(id)})
+	return err
+}
+
 func (p *awsProvider) Healthcheck() error {
 	_, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
 		Id: aws.String(p.config.PipelineID),

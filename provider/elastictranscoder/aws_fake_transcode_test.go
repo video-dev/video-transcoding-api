@@ -17,8 +17,9 @@ type failure struct {
 
 type fakeElasticTranscoder struct {
 	*elastictranscoder.ElasticTranscoder
-	jobs     map[string]*elastictranscoder.CreateJobInput
-	failures chan failure
+	jobs         map[string]*elastictranscoder.CreateJobInput
+	canceledJobs []elastictranscoder.CancelJobInput
+	failures     chan failure
 }
 
 func newFakeElasticTranscoder() *fakeElasticTranscoder {
@@ -111,6 +112,14 @@ func (c *fakeElasticTranscoder) ReadPipeline(input *elastictranscoder.ReadPipeli
 			OutputBucket: aws.String("some bucket"),
 		},
 	}, nil
+}
+
+func (c *fakeElasticTranscoder) CancelJob(input *elastictranscoder.CancelJobInput) (*elastictranscoder.CancelJobOutput, error) {
+	if err := c.getError("CancelJob"); err != nil {
+		return nil, err
+	}
+	c.canceledJobs = append(c.canceledJobs, *input)
+	return &elastictranscoder.CancelJobOutput{}, nil
 }
 
 func (c *fakeElasticTranscoder) prepareFailure(op string, err error) {

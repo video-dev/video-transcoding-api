@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -211,6 +212,98 @@ func TestGetTranscodeJob(t *testing.T) {
 		}
 		if !reflect.DeepEqual(got, test.wantBody) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+	}
+}
+
+func TestCancelTranscodeJob(t *testing.T) {
+	var tests = []struct {
+		givenTestCase       string
+		givenJobID          string
+		givenTriggerDBError bool
+
+		wantCode int
+		wantBody map[string]interface{}
+	}{
+		{
+			"valid job",
+			"job-123",
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{
+				"providerJobId": "provider-job-123",
+				"status":        "canceled",
+				"providerName":  "fake",
+				"statusMessage": "The job is finished",
+				"providerStatus": map[string]interface{}{
+					"progress":   100.0,
+					"sourcefile": "http://some.source.file",
+				},
+			},
+		},
+		{
+			"job that doesn't exist in the provider",
+			"job-1234",
+			false,
+
+			http.StatusGone,
+			map[string]interface{}{"error": "could not found job with id: some-job"},
+		},
+		{
+			"non-existing job",
+			"some-id",
+			false,
+
+			http.StatusNotFound,
+			map[string]interface{}{"error": db.ErrJobNotFound.Error()},
+		},
+		{
+			"db error",
+			"job-123",
+			true,
+
+			http.StatusInternalServerError,
+			map[string]interface{}{"error": `error retrieving job with id "job-123": database error`},
+		},
+	}
+	defer func() { fprovider.canceledJobs = nil }()
+	for _, test := range tests {
+		fprovider.canceledJobs = nil
+		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
+		fakeDBObj.CreateJob(&db.Job{
+			ID:            "job-123",
+			ProviderName:  "fake",
+			ProviderJobID: "provider-job-123",
+		})
+		fakeDBObj.CreateJob(&db.Job{
+			ID:            "job-1234",
+			ProviderName:  "fake",
+			ProviderJobID: "some-job",
+		})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
+		r, _ := http.NewRequest("POST", "/jobs/"+test.givenJobID+"/cancel", bytes.NewReader(nil))
+		r.Header.Set("Content-Type", "application/json")
+		w := httptest.NewRecorder()
+		srvr.ServeHTTP(w, r)
+		if w.Code != test.wantCode {
+			t.Errorf("%s: wrong code returned. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
+		}
+		var body map[string]interface{}
+		err := json.Unmarshal(w.Body.Bytes(), &body)
+		if err != nil {
+			t.Fatalf("%s: %s", test.givenTestCase, err)
+		}
+		if !reflect.DeepEqual(body, test.wantBody) {
+			t.Errorf("%s: wrong body returned.\nWant %#v\nGot  %#v", test.givenTestCase, test.wantBody, body)
+		}
+		if test.wantCode == http.StatusOK {
+			if len(fprovider.canceledJobs) < 1 {
+				t.Errorf("%s: did not cancel the job in the provider", test.givenTestCase)
+			} else if fprovider.canceledJobs[0] != "provider-job-123" {
+				t.Errorf("%s: did not send the correct job id to the provider. Want %q. Got %q", test.givenTestCase, "provider-job-123", fprovider.canceledJobs[0])
+			}
 		}
 	}
 }

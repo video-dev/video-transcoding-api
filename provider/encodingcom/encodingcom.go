@@ -47,6 +47,7 @@ func init() {
 
 type encodingComClient interface {
 	AddMedia(source []string, format []encodingcom.Format, Region string) (*encodingcom.AddMediaResponse, error)
+	CancelMedia(string) (*encodingcom.Response, error)
 	GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error)
 	SavePreset(name string, format encodingcom.Format) (*encodingcom.SavePresetResponse, error)
 	GetPreset(name string) (*encodingcom.Preset, error)
@@ -313,6 +314,11 @@ func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Statu
 	default:
 		return provider.StatusUnknown
 	}
+}
+
+func (e *encodingComProvider) CancelJob(id string) error {
+	_, err := e.client.CancelMedia(id)
+	return err
 }
 
 func (e *encodingComProvider) Healthcheck() error {

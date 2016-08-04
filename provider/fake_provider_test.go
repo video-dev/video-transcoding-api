@@ -30,6 +30,10 @@ func (*fakeProvider) DeletePreset(string) error {
 	return nil
 }
 
+func (*fakeProvider) CancelJob(string) error {
+	return nil
+}
+
 func (f *fakeProvider) Healthcheck() error {
 	return f.healthErr
 }

@@ -93,3 +93,8 @@ type getTranscodeJobInput struct {
 func (p *getTranscodeJobInput) loadParams(paramsMap map[string]string) {
 	p.JobID = paramsMap["jobId"]
 }
+
+// swagger:parameters cancelJob
+type cancelTranscodeJobInput struct {
+	getTranscodeJobInput
+}
