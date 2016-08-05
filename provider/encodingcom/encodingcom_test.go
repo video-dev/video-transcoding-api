@@ -89,7 +89,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "123455",
 				"not-relevant": "something",
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
+			OutputOpts: db.OutputOptions{Extension: "webm", Label: "720p"},
 		},
 		{
 			Name: "webm_480p",
@@ -97,7 +97,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "123456",
 				"not-relevant": "otherthing",
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
+			OutputOpts: db.OutputOptions{Extension: "webm", Label: "480p"},
 		},
 		{
 			Name: "mp4_1080p",
@@ -105,7 +105,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321321",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "mp4"},
+			OutputOpts: db.OutputOptions{Extension: "mp4", Label: "1080p"},
 		},
 		{
 			Name: "hls_1080p",
@@ -113,7 +113,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "hls"},
 		},
 	}
 	for _, preset := range presets {
@@ -127,8 +127,10 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia: source,
-		Presets:     presets,
+		SourceMedia:      source,
+		Presets:          presets,
+		OutputPath:       "/output/path",
+		OutputFilePrefix: "file-prefix",
 		StreamingParams: provider.StreamingParams{
 			Protocol:        "hls",
 			SegmentDuration: 3,
@@ -154,19 +156,19 @@ func TestEncodingComTranscode(t *testing.T) {
 	expectedFormats := []encodingcom.Format{
 		{
 			Output:      []string{"123455"},
-			Destination: []string{dest + "job-123/webm_720p/video.webm"},
+			Destination: []string{dest + "job-123/output/path/file-prefix_720p.webm"},
 		},
 		{
 			Output:      []string{"123456"},
-			Destination: []string{dest + "job-123/webm_480p/video.webm"},
+			Destination: []string{dest + "job-123/output/path/file-prefix_480p.webm"},
 		},
 		{
 			Output:      []string{"321321"},
-			Destination: []string{dest + "job-123/mp4_1080p/video.mp4"},
+			Destination: []string{dest + "job-123/output/path/file-prefix_1080p.mp4"},
 		},
 		{
 			Output:          []string{"advanced_hls"},
-			Destination:     []string{dest + "job-123/hls/master.m3u8"},
+			Destination:     []string{dest + "job-123/output/path/file-prefix_hls/video.m3u8"},
 			SegmentDuration: 3,
 			PackFiles:       &falseYesNoBoolean,
 			Stream: []encodingcom.Stream{
@@ -205,7 +207,7 @@ func TestEncodingComS3Input(t *testing.T) {
 				Name:           "123455",
 				"not-relevant": "something",
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
+			OutputOpts: db.OutputOptions{Extension: "webm", Label: "720p"},
 		},
 	}
 	for _, preset := range presets {
@@ -240,7 +242,7 @@ func TestEncodingComS3Input(t *testing.T) {
 	expectedFormats := []encodingcom.Format{
 		{
 			Output:      []string{"123455"},
-			Destination: []string{dest + "job-123/webm_720p/video.webm"},
+			Destination: []string{dest + "job-123_720p.webm"},
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {

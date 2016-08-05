@@ -115,9 +115,11 @@ type AudioPreset struct {
 
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.
 type TranscodeProfile struct {
-	SourceMedia     string
-	Presets         []db.PresetMap
-	StreamingParams StreamingParams
+	SourceMedia      string
+	Presets          []db.PresetMap
+	StreamingParams  StreamingParams
+	OutputPath       string
+	OutputFilePrefix string
 }
 
 // Status is the status of a transcoding job.

@@ -57,9 +57,11 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		return swagger.NewErrorResponse(err)
 	}
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     input.Payload.Source,
-		Presets:         presetsMap,
-		StreamingParams: input.Payload.StreamingParams,
+		SourceMedia:      input.Payload.Source,
+		Presets:          presetsMap,
+		OutputPath:       input.Payload.OutputPath,
+		OutputFilePrefix: input.Payload.OutputFilePrefix,
+		StreamingParams:  input.Payload.StreamingParams,
 	}
 	job := db.Job{
 		ID:                     jobID,

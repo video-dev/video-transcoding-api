@@ -33,6 +33,7 @@ func TestNewPresetMap(t *testing.T) {
 				},
 				"output": map[string]interface{}{
 					"extension": "mp4",
+					"label":     "123",
 				},
 			},
 			false,
@@ -46,6 +47,7 @@ func TestNewPresetMap(t *testing.T) {
 				},
 				"output": map[string]interface{}{
 					"extension": "mp4",
+					"label":     "123",
 				},
 			},
 		},
@@ -59,6 +61,7 @@ func TestNewPresetMap(t *testing.T) {
 				},
 				"output": map[string]interface{}{
 					"extension": "mp4",
+					"label":     "123",
 				},
 			},
 			false,

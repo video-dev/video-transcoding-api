@@ -25,7 +25,7 @@ func TestCreatePresetMap(t *testing.T) {
 			"elementalconductor": "abc123",
 			"elastictranscoder":  "1281742-93939",
 		},
-		OutputOpts: db.OutputOptions{Extension: "ts"},
+		OutputOpts: db.OutputOptions{Extension: "ts", Label: "123"},
 	}
 	err = repo.CreatePresetMap(&preset)
 	if err != nil {
@@ -41,6 +41,7 @@ func TestCreatePresetMap(t *testing.T) {
 		"pmapping_elementalconductor": "abc123",
 		"pmapping_elastictranscoder":  "1281742-93939",
 		"output_extension":            "ts",
+		"output_label":                "123",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
@@ -88,7 +89,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		"elemental":         "abc1234",
 		"elastictranscoder": "def123",
 	}
-	preset.OutputOpts = db.OutputOptions{Extension: "mp4"}
+	preset.OutputOpts = db.OutputOptions{Extension: "mp4", Label: "123"}
 	err = repo.UpdatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
@@ -103,6 +104,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		"pmapping_elemental":         "abc1234",
 		"pmapping_elastictranscoder": "def123",
 		"output_extension":           "mp4",
+		"output_label":               "123",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)

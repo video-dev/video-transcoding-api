@@ -173,15 +173,26 @@ func (e *encodingComProvider) DeletePreset(presetID string) error {
 	return err
 }
 
-func (e *encodingComProvider) getDestinations(jobID, sourceMedia string, extension string, presetName string) []string {
-	sourceParts := strings.Split(sourceMedia, "/")
-	sourceFilenamePart := sourceParts[len(sourceParts)-1]
-	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
-	outputDestination := strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/"
+func (e *encodingComProvider) getDestinations(jobID string, transcodeProfile provider.TranscodeProfile, preset db.PresetMap) []string {
+	destination := e.buildDestination(
+		e.config.EncodingCom.Destination,
+		jobID,
+		transcodeProfile.OutputPath,
+		transcodeProfile.OutputFilePrefix,
+		preset.OutputOpts.Label,
+		preset.OutputOpts.Extension,
+	)
+	return []string{destination}
+}
+
+func (e *encodingComProvider) buildDestination(outputDestination string, jobID string, outputDestinationPath string, outputFilePrefix string, presetLabel string, extension string) string {
+	outputPath := strings.TrimRight(outputDestinationPath, "/")
+	destinationPathWithPrefix := path.Join(jobID, outputPath, outputFilePrefix)
+	outputFile := destinationPathWithPrefix + "_" + presetLabel + "." + extension
 	if extension == "m3u8" {
-		return []string{outputDestination + path.Join(jobID, "hls") + "/master.m3u8"}
+		outputFile = destinationPathWithPrefix + "_" + presetLabel + "/video.m3u8"
 	}
-	return []string{outputDestination + path.Join(jobID, presetName) + "/" + sourceFileName + "." + extension}
+	return strings.TrimRight(outputDestination, "/") + "/" + outputFile
 }
 
 func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]encodingcom.Format, error) {
@@ -204,8 +215,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 				stream.SubPath = presetName
 				streams = append(streams, stream)
 			}
-			//streamingPresetNames = append(streamingPresetNames, presetName)
-			destination := e.getDestinations(job.ID, transcodeProfile.SourceMedia, preset.OutputOpts.Extension, presetName)
+			destination := e.getDestinations(job.ID, transcodeProfile, preset)
 			streamingPresetDestinations = append(streamingPresetDestinations, destination[0])
 		} else {
 			extension := preset.OutputOpts.Extension
@@ -214,7 +224,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 			}
 			format := encodingcom.Format{
 				Output:      []string{presetID},
-				Destination: e.getDestinations(job.ID, transcodeProfile.SourceMedia, extension, presetName),
+				Destination: e.getDestinations(job.ID, transcodeProfile, preset),
 			}
 			formats = append(formats, format)
 		}
