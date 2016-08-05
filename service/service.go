@@ -62,6 +62,9 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		"/jobs/:jobId": {
 			"GET": swagger.HandlerToJSONEndpoint(s.getTranscodeJob),
 		},
+		"/jobs/:jobId/cancel": {
+			"POST": swagger.HandlerToJSONEndpoint(s.cancelTranscodeJob),
+		},
 		"/presets": {
 			"POST": swagger.HandlerToJSONEndpoint(s.newPreset),
 		},

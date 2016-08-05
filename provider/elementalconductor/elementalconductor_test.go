@@ -635,6 +635,32 @@ func TestJobStatusMap(t *testing.T) {
 	}
 }
 
+func TestCancelJob(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	prov, err := fakeElementalConductorFactory(&elementalConductorConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = prov.CancelJob("idk")
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := prov.(*elementalConductorProvider).client.(*fakeElementalConductorClient)
+	if client.canceledJobs[0] != "idk" {
+		t.Errorf("did not cancel the correct job. Want %q. Got %q", "idk", client.canceledJobs[0])
+	}
+}
+
 func TestHealthcheck(t *testing.T) {
 	server := NewElementalServer(nil, nil)
 	defer server.Close()

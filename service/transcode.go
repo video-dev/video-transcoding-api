@@ -218,3 +218,37 @@ func (s *TranscodingService) postStatusToCallback(payloadStruct interface{}, cal
 	resp.Body.Close()
 	return nil
 }
+
+// swagger:route POST /jobs/{jobId}/cancel jobs cancelJob
+//
+// Creates a new transcoding job.
+//
+//     Responses:
+//       200: jobStatus
+//       404: jobNotFound
+//       410: jobNotFoundInTheProvider
+//       500: genericError
+func (s *TranscodingService) cancelTranscodeJob(r *http.Request) swagger.GizmoJSONResponse {
+	var params cancelTranscodeJobInput
+	params.loadParams(web.Vars(r))
+	job, _, prov, err := s.getTranscodeJobByID(params.JobID)
+	if err != nil {
+		if err == db.ErrJobNotFound {
+			return newJobNotFoundResponse(err)
+		}
+		if _, ok := err.(provider.JobNotFoundError); ok {
+			return newJobNotFoundProviderResponse(err)
+		}
+		return swagger.NewErrorResponse(err)
+	}
+	err = prov.CancelJob(job.ProviderJobID)
+	if err != nil {
+		return swagger.NewErrorResponse(err)
+	}
+	status, err := prov.JobStatus(job.ProviderJobID)
+	if err != nil {
+		return swagger.NewErrorResponse(err)
+	}
+	status.ProviderName = job.ProviderName
+	return newJobStatusResponse(status)
+}

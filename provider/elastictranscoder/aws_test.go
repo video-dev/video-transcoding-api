@@ -723,6 +723,45 @@ func TestAWSStatusMap(t *testing.T) {
 	}
 }
 
+func TestCancelJob(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	err := prov.CancelJob("idk")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if id := aws.StringValue(fakeTranscoder.canceledJobs[0].Id); id != "idk" {
+		t.Errorf("wrong job canceled. Want %q. Got %q", "idk", id)
+	}
+}
+
+func TestCancelJobInternalError(t *testing.T) {
+	prepErr := errors.New("failed to cancel job")
+	fakeTranscoder := newFakeElasticTranscoder()
+	fakeTranscoder.prepareFailure("CancelJob", prepErr)
+	provider := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	err := provider.CancelJob("idk")
+	if err != prepErr {
+		t.Errorf("wrong error returned.\nWant %#v\nGot  %#v", prepErr, err)
+	}
+}
+
 func TestHealthcheck(t *testing.T) {
 	fakeTranscoder := newFakeElasticTranscoder()
 	provider := &awsProvider{

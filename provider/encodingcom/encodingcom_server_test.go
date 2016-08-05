@@ -129,6 +129,8 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	switch req.Action {
 	case "AddMedia":
 		s.addMedia(w, req)
+	case "CancelMedia":
+		s.cancelMedia(w, req)
 	case "GetStatus":
 		s.getStatus(w, req)
 	case "GetPreset":
@@ -162,6 +164,19 @@ func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
+func (s *encodingComFakeServer) cancelMedia(w http.ResponseWriter, req request) {
+	media, err := s.getMedia(req.MediaID)
+	if err != nil {
+		s.Error(w, err.Error())
+		return
+	}
+	media.Status = "Canceled"
+	resp := map[string]map[string]interface{}{
+		"response": {"message": "Deleted"},
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
 func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 	media, err := s.getMedia(req.MediaID)
 	if err != nil {
@@ -170,7 +185,9 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 	}
 	now := time.Now().UTC()
 	status := "Saving"
-	if media.Status != "Finished" && now.Sub(media.Started) > time.Second {
+	if media.Status == "Canceled" {
+		status = media.Status
+	} else if media.Status != "Finished" && now.Sub(media.Started) > time.Second {
 		media.Finished = now
 		status = "Finished"
 		media.Status = status

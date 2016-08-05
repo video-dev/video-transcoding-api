@@ -31,6 +31,7 @@ var (
 type TranscodingProvider interface {
 	Transcode(*db.Job, TranscodeProfile) (*JobStatus, error)
 	JobStatus(id string) (*JobStatus, error)
+	CancelJob(id string) error
 	CreatePreset(Preset) (string, error)
 	DeletePreset(presetID string) error
 	GetPreset(presetID string) (interface{}, error)

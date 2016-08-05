@@ -43,7 +43,7 @@ func init() {
 
 type elementalConductorProvider struct {
 	config *config.Config
-	client elementalconductor.ClientInterface
+	client clientInterface
 }
 
 func (p *elementalConductorProvider) DeletePreset(presetID string) error {
@@ -267,6 +267,11 @@ func (p *elementalConductorProvider) newJob(job *db.Job, transcodeProfile provid
 		StreamAssembly: streamAssemblyList,
 	}
 	return &newJob, nil
+}
+
+func (p *elementalConductorProvider) CancelJob(id string) error {
+	_, err := p.client.CancelJob(id)
+	return err
 }
 
 func (p *elementalConductorProvider) Healthcheck() error {

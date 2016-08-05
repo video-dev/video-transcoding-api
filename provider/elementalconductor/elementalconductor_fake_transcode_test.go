@@ -10,6 +10,7 @@ import (
 
 type fakeElementalConductorClient struct {
 	*elementalconductor.Client
+	canceledJobs []string
 }
 
 func newFakeElementalConductorClient(cfg *config.Config) *fakeElementalConductorClient {
@@ -29,9 +30,11 @@ func newFakeElementalConductorClient(cfg *config.Config) *fakeElementalConductor
 func (c *fakeElementalConductorClient) GetAccessKeyID() string {
 	return c.AccessKeyID
 }
+
 func (c *fakeElementalConductorClient) GetSecretAccessKey() string {
 	return c.SecretAccessKey
 }
+
 func (c *fakeElementalConductorClient) GetDestination() string {
 	return c.Destination
 }
@@ -46,25 +49,16 @@ func (c *fakeElementalConductorClient) GetPreset(presetID string) (*elementalcon
 		Container: string(container),
 	}, nil
 }
+
 func (c *fakeElementalConductorClient) CreatePreset(preset *elementalconductor.Preset) (*elementalconductor.Preset, error) {
 	return &elementalconductor.Preset{
 		Name: preset.Name,
 	}, nil
 }
-func (c *fakeElementalConductorClient) DeletePreset(presetID string) error {
-	return nil
-}
-func (c *fakeElementalConductorClient) CreateJob(job *elementalconductor.Job) (*elementalconductor.Job, error) {
+
+func (c *fakeElementalConductorClient) CancelJob(jobID string) (*elementalconductor.Job, error) {
+	c.canceledJobs = append(c.canceledJobs, jobID)
 	return &elementalconductor.Job{}, nil
-}
-func (c *fakeElementalConductorClient) GetJob(jobID string) (*elementalconductor.Job, error) {
-	return &elementalconductor.Job{}, nil
-}
-func (c *fakeElementalConductorClient) GetNodes() ([]elementalconductor.Node, error) {
-	return []elementalconductor.Node{}, nil
-}
-func (c *fakeElementalConductorClient) GetCloudConfig() (*elementalconductor.CloudConfig, error) {
-	return &elementalconductor.CloudConfig{}, nil
 }
 
 func fakeElementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {

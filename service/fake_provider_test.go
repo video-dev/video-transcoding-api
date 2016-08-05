@@ -10,7 +10,11 @@ func init() {
 	provider.Register("fake", fakeProviderFactory)
 }
 
-type fakeProvider struct{}
+type fakeProvider struct {
+	canceledJobs []string
+}
+
+var fprovider fakeProvider
 
 func (p *fakeProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	for _, preset := range transcodeProfile.Presets {
@@ -43,9 +47,13 @@ func (*fakeProvider) DeletePreset(presetID string) error {
 
 func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	if id == "provider-job-123" {
+		status := provider.StatusFinished
+		if len(p.canceledJobs) > 0 {
+			status = provider.StatusCanceled
+		}
 		return &provider.JobStatus{
 			ProviderJobID: "provider-job-123",
-			Status:        provider.StatusFinished,
+			Status:        status,
 			StatusMessage: "The job is finished",
 			ProviderStatus: map[string]interface{}{
 				"progress":   100.0,
@@ -54,6 +62,14 @@ func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 		}, nil
 	}
 	return nil, provider.JobNotFoundError{ID: id}
+}
+
+func (p *fakeProvider) CancelJob(id string) error {
+	if id == "provider-job-123" {
+		p.canceledJobs = append(p.canceledJobs, id)
+		return nil
+	}
+	return provider.JobNotFoundError{ID: id}
 }
 
 func (p *fakeProvider) Healthcheck() error {
@@ -69,5 +85,5 @@ func (p *fakeProvider) Capabilities() provider.Capabilities {
 }
 
 func fakeProviderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	return &fakeProvider{}, nil
+	return &fprovider, nil
 }
