@@ -5,18 +5,17 @@ compose:
     image: redis
 build:
   tests:
-    image: balser/go-buildbox:1.6
+    image: mediafactory/video-transcoding-api
     environment:
       - GOROOT=/usr/local/go
       - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
     commands:
-      - yum install -y redis
       - make testdeps test
     when:
       event: [push, pull_request]
   deploy:
-    image: balser/go-buildbox:1.6
+    image: mediafactory/video-transcoding-api
     environment:
       - GOROOT=/usr/local/go
       - GOPATH=/drone
@@ -41,7 +40,7 @@ build:
       branch: master
       event: push
   make_live:
-    image: balser/go-buildbox:1.6
+    image: mediafactory/video-transcoding-api
     environment:
       - GOROOT=/usr/local/go
       - GOPATH=/drone
