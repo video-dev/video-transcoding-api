@@ -184,6 +184,56 @@ func TestEncodingComTranscode(t *testing.T) {
 	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
 	}
+
+	transcodeProfile.OutputPath = ""
+	transcodeProfile.OutputFilePrefix = ""
+
+	jobStatus, err = prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if expected := "it worked"; jobStatus.StatusMessage != expected {
+		t.Errorf("wrong StatusMessage. Want %q. Got %q", expected, jobStatus.StatusMessage)
+	}
+	if jobStatus.ProviderName != Name {
+		t.Errorf("wrong ProviderName. Want %q. Got %q", Name, jobStatus.ProviderName)
+	}
+	media, err = server.getMedia(jobStatus.ProviderJobID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedFormats = []encodingcom.Format{
+		{
+			Output:      []string{"123455"},
+			Destination: []string{dest + "job-123_720p.webm"},
+		},
+		{
+			Output:      []string{"123456"},
+			Destination: []string{dest + "job-123_480p.webm"},
+		},
+		{
+			Output:      []string{"321321"},
+			Destination: []string{dest + "job-123_1080p.mp4"},
+		},
+		{
+			Output:          []string{"advanced_hls"},
+			Destination:     []string{dest + "job-123_hls/video.m3u8"},
+			SegmentDuration: 3,
+			PackFiles:       &falseYesNoBoolean,
+			Stream: []encodingcom.Stream{
+				{
+					SubPath: "hls_1080p",
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
+		t.Errorf("Wrong format.\nWant %#v\nGot  %#v.", expectedFormats, media.Request.Format)
+	}
+	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
+		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
+	}
+
 }
 
 func TestEncodingComS3Input(t *testing.T) {
