@@ -22,6 +22,12 @@ type NewTranscodeJobInputPayload struct {
 	// provider to use in this job
 	Provider string `json:"provider"`
 
+	// Optional output path for transcoded files
+	OutputPath string `json:"outputPath"`
+
+	// Optional output file prefix for transcoded files
+	OutputFilePrefix string `json:"outputFilePrefix"`
+
 	// provider Adaptive Streaming parameters
 	StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
 
