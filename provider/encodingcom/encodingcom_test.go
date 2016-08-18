@@ -155,16 +155,16 @@ func TestEncodingComTranscode(t *testing.T) {
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	expectedFormats := []encodingcom.Format{
 		{
-			Output:      []string{"123455"},
-			Destination: []string{dest + "job-123/output/path/file-prefix_720p.webm"},
+			OutputPreset: "123455",
+			Destination:  []string{dest + "job-123/output/path/file-prefix_720p.webm"},
 		},
 		{
-			Output:      []string{"123456"},
-			Destination: []string{dest + "job-123/output/path/file-prefix_480p.webm"},
+			OutputPreset: "123456",
+			Destination:  []string{dest + "job-123/output/path/file-prefix_480p.webm"},
 		},
 		{
-			Output:      []string{"321321"},
-			Destination: []string{dest + "job-123/output/path/file-prefix_1080p.mp4"},
+			OutputPreset: "321321",
+			Destination:  []string{dest + "job-123/output/path/file-prefix_1080p.mp4"},
 		},
 		{
 			Output:          []string{"advanced_hls"},
@@ -204,16 +204,16 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	expectedFormats = []encodingcom.Format{
 		{
-			Output:      []string{"123455"},
-			Destination: []string{dest + "job-123_720p.webm"},
+			OutputPreset: "123455",
+			Destination:  []string{dest + "job-123_720p.webm"},
 		},
 		{
-			Output:      []string{"123456"},
-			Destination: []string{dest + "job-123_480p.webm"},
+			OutputPreset: "123456",
+			Destination:  []string{dest + "job-123_480p.webm"},
 		},
 		{
-			Output:      []string{"321321"},
-			Destination: []string{dest + "job-123_1080p.mp4"},
+			OutputPreset: "321321",
+			Destination:  []string{dest + "job-123_1080p.mp4"},
 		},
 		{
 			Output:          []string{"advanced_hls"},
@@ -291,8 +291,8 @@ func TestEncodingComS3Input(t *testing.T) {
 	dest := prov.config.EncodingCom.Destination
 	expectedFormats := []encodingcom.Format{
 		{
-			Output:      []string{"123455"},
-			Destination: []string{dest + "job-123_720p.webm"},
+			OutputPreset: "123455",
+			Destination:  []string{dest + "job-123_720p.webm"},
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {

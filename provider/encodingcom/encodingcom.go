@@ -223,8 +223,8 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 				extension = "." + filepath.Ext(transcodeProfile.SourceMedia)
 			}
 			format := encodingcom.Format{
-				Output:      []string{presetID},
-				Destination: e.getDestinations(job.ID, transcodeProfile, preset),
+				OutputPreset: presetID,
+				Destination:  e.getDestinations(job.ID, transcodeProfile, preset),
 			}
 			formats = append(formats, format)
 		}
