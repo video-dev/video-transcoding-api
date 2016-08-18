@@ -1,6 +1,9 @@
 package db
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 // Job represents the job that is persisted in the repository of the Transcoding
 // API.
@@ -112,4 +115,15 @@ type OutputOptions struct {
 	//
 	// required: true
 	Label string `redis-hash:"label" json:"label"`
+}
+
+// Validate checks that the OutputOptions object is properly defined.
+func (o *OutputOptions) Validate() error {
+	if o.Label == "" {
+		return errors.New("preset label is required")
+	}
+	if o.Extension == "" {
+		return errors.New("extension is required")
+	}
+	return nil
 }

@@ -1,12 +1,14 @@
 package service
 
 import (
+	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
 type newPresetInput struct {
-	Providers []string        `json:"providers"`
-	Preset    provider.Preset `json:"preset"`
+	Providers     []string         `json:"providers"`
+	Preset        provider.Preset  `json:"preset"`
+	OutputOptions db.OutputOptions `json:"outputOptions"`
 }
 
 // list of the results of the attempt to create a preset

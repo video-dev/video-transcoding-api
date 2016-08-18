@@ -3,6 +3,7 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 
@@ -140,6 +141,10 @@ func (p *newPresetMapInput) PresetMap(body io.Reader) (db.PresetMap, error) {
 	err = validatePresetMap(&p.Payload)
 	if err != nil {
 		return p.Payload, err
+	}
+	err = p.Payload.OutputOpts.Validate()
+	if err != nil {
+		return p.Payload, fmt.Errorf("invalid output: %s", err)
 	}
 	return p.Payload, nil
 }

@@ -87,6 +87,44 @@ func TestNewPresetMap(t *testing.T) {
 			},
 		},
 		{
+			"New presetmap missing label",
+			map[string]interface{}{
+				"name": "abc-123",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+				"output": map[string]string{
+					"extension": "mp4",
+				},
+			},
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "invalid output: preset label is required",
+			},
+		},
+		{
+			"New presetmap missing extension",
+			map[string]interface{}{
+				"name": "abc-123",
+				"providerMapping": map[string]string{
+					"elementalconductor": "18",
+					"elastictranscoder":  "18384284-0002",
+				},
+				"output": map[string]string{
+					"label": "mp4_720p",
+				},
+			},
+			false,
+
+			http.StatusBadRequest,
+			map[string]interface{}{
+				"error": "invalid output: extension is required",
+			},
+		},
+		{
 			"New preset missing providers",
 			map[string]interface{}{
 				"name":            "mypreset",
@@ -106,6 +144,10 @@ func TestNewPresetMap(t *testing.T) {
 				"providerMapping": map[string]string{
 					"elementalconductor": "18",
 					"elastictranscoder":  "18384284-0002",
+				},
+				"output": map[string]string{
+					"label":     "mp4_720p",
+					"extension": "mp4",
 				},
 			},
 			true,

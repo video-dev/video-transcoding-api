@@ -18,6 +18,7 @@ func TestNewPreset(t *testing.T) {
 	tests := []struct {
 		givenTestCase    string
 		givenRequestData map[string]interface{}
+		wantOutputOpts   db.OutputOptions
 		wantBody         map[string]interface{}
 		wantCode         int
 	}{
@@ -25,6 +26,10 @@ func TestNewPreset(t *testing.T) {
 			"Create new preset",
 			map[string]interface{}{
 				"providers": []string{"fake", "encodingcom"},
+				"outputOptions": map[string]interface{}{
+					"extension": "mp5",
+					"label":     "super_mp5",
+				},
 				"preset": map[string]interface{}{
 					"name":         "nyt_test_here_2wq",
 					"description":  "testing creation from api",
@@ -46,6 +51,10 @@ func TestNewPreset(t *testing.T) {
 					},
 				},
 			},
+			db.OutputOptions{
+				Extension: "mp4",
+				Label:     "super_mp5",
+			},
 			map[string]interface{}{
 				"Results": map[string]interface{}{
 					"fake": map[string]interface{}{
@@ -62,9 +71,45 @@ func TestNewPreset(t *testing.T) {
 			http.StatusOK,
 		},
 		{
+			"Validation error",
+			map[string]interface{}{
+				"providers": []string{"fake", "encodingcom"},
+				"outputOptions": map[string]interface{}{
+					"extension": "mp5",
+				},
+				"preset": map[string]interface{}{
+					"name":         "nyt_test_here_2wq",
+					"description":  "testing creation from api",
+					"container":    "mp4",
+					"profile":      "Main",
+					"profileLevel": "3.1",
+					"rateControl":  "VBR",
+					"video": map[string]string{
+						"height":        "720",
+						"codec":         "h264",
+						"bitrate":       "1000",
+						"gopSize":       "90",
+						"gopMode":       "fixed",
+						"interlaceMode": "progressive",
+					},
+					"audio": map[string]string{
+						"codec":   "aac",
+						"bitrate": "64000",
+					},
+				},
+			},
+			db.OutputOptions{},
+			map[string]interface{}{"error": "invalid outputOptions: preset label is required"},
+			http.StatusBadRequest,
+		},
+		{
 			"Error creating preset in all providers",
 			map[string]interface{}{
 				"providers": []string{"elastictranscoder", "encodingcom"},
+				"outputOptions": map[string]interface{}{
+					"extension": "mp5",
+					"label":     "super_mp5",
+				},
 				"preset": map[string]interface{}{
 					"name":         "nyt_test_here_3wq",
 					"description":  "testing creation from api",
@@ -86,6 +131,7 @@ func TestNewPreset(t *testing.T) {
 					},
 				},
 			},
+			db.OutputOptions{},
 			map[string]interface{}{
 				"Results": map[string]interface{}{
 					"elastictranscoder": map[string]interface{}{
@@ -99,14 +145,14 @@ func TestNewPreset(t *testing.T) {
 				},
 				"PresetMap": "",
 			},
-			http.StatusOK,
+			http.StatusInternalServerError,
 		},
 	}
 
 	for _, test := range tests {
+		name := test.givenRequestData["preset"].(map[string]interface{})["name"].(string)
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
-
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
@@ -123,6 +169,15 @@ func TestNewPreset(t *testing.T) {
 		}
 		if !reflect.DeepEqual(got, test.wantBody) {
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
+		}
+		if test.wantCode == http.StatusOK {
+			presetMap, err := fakeDB.GetPresetMap(name)
+			if err != nil {
+				t.Fatalf("%s: %s", test.givenTestCase, err)
+			}
+			if !reflect.DeepEqual(presetMap.OutputOpts, test.wantOutputOpts) {
+				t.Errorf("%s: wrong output options saved.\nWant %#v\nGot  %#v", test.givenTestCase, test.wantOutputOpts, presetMap.OutputOpts)
+			}
 		}
 	}
 }
