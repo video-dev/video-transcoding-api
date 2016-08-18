@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -68,6 +69,7 @@ func (s *TranscodingService) deletePreset(r *http.Request) swagger.GizmoJSONResp
 // Creates a new preset on given providers.
 //     Responses:
 //       200: newPresetOutputs
+//       400: invalidPreset
 //       500: genericError
 func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONResponse {
 	defer r.Body.Close()
@@ -84,6 +86,7 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 	if err != nil {
 		return swagger.NewErrorResponse(err)
 	}
+	presetMap.OutputOpts = input.OutputOptions
 
 	presetMap.ProviderMapping = make(map[string]string)
 	output.Results = make(map[string]newPresetOutput)
@@ -107,21 +110,28 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		output.Results[p] = newPresetOutput{PresetID: presetID, Error: ""}
 	}
 
+	status := http.StatusOK
 	output.PresetMap = ""
 	if len(presetMap.ProviderMapping) > 0 {
 		presetMap.Name = input.Preset.Name
 		presetMap.OutputOpts.Extension = input.Preset.Container
 
+		if err := presetMap.OutputOpts.Validate(); err != nil {
+			return newInvalidPresetResponse(fmt.Errorf("invalid outputOptions: %s", err))
+		}
+
 		err = s.db.CreatePresetMap(&presetMap)
 		if err == nil {
 			output.PresetMap = presetMap.Name
 		}
+	} else {
+		status = http.StatusInternalServerError
 	}
 
 	return &newPresetResponse{
 		baseResponse: baseResponse{
 			payload: output,
-			status:  http.StatusOK,
+			status:  status,
 		},
 	}
 }
