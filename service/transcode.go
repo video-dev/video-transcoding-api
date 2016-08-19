@@ -1,22 +1,16 @@
 package service
 
 import (
-	"bytes"
 	"crypto/rand"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
 	"github.com/nytm/video-transcoding-api/swagger"
-	"golang.org/x/net/context"
 )
-
-const maxJobTimeout = 8 * time.Hour
 
 // swagger:route POST /jobs jobs newJob
 //
@@ -63,12 +57,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		OutputFilePrefix: input.Payload.OutputFilePrefix,
 		StreamingParams:  input.Payload.StreamingParams,
 	}
-	job := db.Job{
-		ID:                     jobID,
-		StatusCallbackURL:      input.Payload.StatusCallbackURL,
-		StatusCallbackInterval: input.Payload.StatusCallbackInterval,
-		CompletionCallbackURL:  input.Payload.CompletionCallbackURL,
-	}
+	job := db.Job{ID: jobID}
 	jobStatus, err := providerObj.Transcode(&job, transcodeProfile)
 	if err == provider.ErrPresetMapNotFound {
 		return newInvalidJobResponse(err)
@@ -89,11 +78,6 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	err = s.db.CreateJob(&job)
 	if err != nil {
 		return swagger.NewErrorResponse(err)
-	}
-	if job.StatusCallbackURL != "" || job.CompletionCallbackURL != "" {
-		ctx, cancel := context.WithTimeout(context.Background(), maxJobTimeout)
-		defer cancel()
-		go s.statusCallback(ctx, job)
 	}
 	return newJobResponse(job.ID)
 }
@@ -165,60 +149,6 @@ func (s *TranscodingService) getTranscodeJobByID(jobID string) (*db.Job, *provid
 	}
 	jobStatus.ProviderName = job.ProviderName
 	return job, jobStatus, providerObj, nil
-}
-
-func (s *TranscodingService) statusCallback(ctx context.Context, job db.Job) error {
-	deadline, _ := ctx.Deadline()
-	for now := time.Now(); now.Before(deadline); now = time.Now() {
-		job, jobStatus, providerObj, err := s.getTranscodeJobByID(job.ID)
-		jobStatusResponseObj := s.getJobStatusResponse(job, jobStatus, providerObj, err)
-		var callbackPayload interface{}
-		if _, ok := jobStatusResponseObj.(*jobStatusResponse); ok {
-			callbackPayload = jobStatus
-		} else {
-			_, _, errorObj := jobStatusResponseObj.(swagger.GizmoJSONResponse).Result()
-			callbackPayload = errorObj
-		}
-		if jobStatus.Status != provider.StatusQueued &&
-			jobStatus.Status != provider.StatusStarted {
-			if job.CompletionCallbackURL != "" {
-				err := s.postStatusToCallback(callbackPayload, job.CompletionCallbackURL)
-				if err != nil {
-					continue
-				}
-			}
-			break
-		}
-		if job.StatusCallbackURL != "" {
-			err := s.postStatusToCallback(callbackPayload, job.StatusCallbackURL)
-			if err != nil {
-				continue
-			}
-		}
-		time.Sleep(time.Duration(job.StatusCallbackInterval) * time.Second)
-	}
-	return nil
-}
-
-func (s *TranscodingService) postStatusToCallback(payloadStruct interface{}, callbackURL string) error {
-	jsonPayload, err := json.Marshal(payloadStruct)
-	if err != nil {
-		fmt.Printf("Error generating response for status callback: %v\n", err)
-		return err
-	}
-	req, err := http.NewRequest("POST", callbackURL, bytes.NewBuffer(jsonPayload))
-	req.Header.Set("Content-Type", "application/json")
-	timeout := time.Duration(5 * time.Second)
-	client := &http.Client{
-		Timeout: timeout,
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Printf("Error calling status callback URL %s : %v\n", callbackURL, err)
-		return err
-	}
-	resp.Body.Close()
-	return nil
 }
 
 // swagger:route POST /jobs/{jobId}/cancel jobs cancelJob

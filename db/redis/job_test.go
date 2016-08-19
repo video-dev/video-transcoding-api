@@ -24,12 +24,9 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	job := db.Job{
-		ID:                     "job1",
-		ProviderName:           "encoding.com",
-		StreamingParams:        db.StreamingParams{SegmentDuration: 10, Protocol: "hls"},
-		StatusCallbackURL:      "http://callme",
-		StatusCallbackInterval: 5,
-		CompletionCallbackURL:  "http://callmewhendone",
+		ID:              "job1",
+		ProviderName:    "encoding.com",
+		StreamingParams: db.StreamingParams{SegmentDuration: 10, Protocol: "hls"},
 	}
 	err = repo.CreateJob(&job)
 	if err != nil {
@@ -53,9 +50,6 @@ func TestCreateJob(t *testing.T) {
 		"providerJobID":                   "",
 		"streamingparams_segmentDuration": "10",
 		"streamingparams_protocol":        "hls",
-		"statusCallbackURL":               "http://callme",
-		"statusCallbackInterval":          "5",
-		"completionCallbackURL":           "http://callmewhendone",
 		"creationTime":                    creationTime.Format(time.RFC3339Nano),
 	}
 	if !reflect.DeepEqual(items, expected) {

@@ -42,7 +42,7 @@ export AWS_SECRET_ACCESS_KEY=your.secret.access.key
 export AWS_REGION="us-east-1"
 ```
 
-In order to store preset maps, job statuses, and callback URLs we need a Redis instance running. Learn how to setup and run a Redis [here](http://redis.io/topics/quickstart). With the Redis instance running, set its configuration variables:
+In order to store preset maps and job statuses we need a Redis instance running. Learn how to setup and run a Redis [here](http://redis.io/topics/quickstart). With the Redis instance running, set its configuration variables:
 
 ````
 export REDIS_ADDR=200.221.14.140
