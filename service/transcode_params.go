@@ -8,8 +8,6 @@ import (
 	"github.com/nytm/video-transcoding-api/provider"
 )
 
-const defaultStatusCallbackInterval = 5
-
 // NewTranscodeJobInputPayload makes up the parameters available for
 // specifying a new transcoding job
 type NewTranscodeJobInputPayload struct {
@@ -30,22 +28,6 @@ type NewTranscodeJobInputPayload struct {
 
 	// provider Adaptive Streaming parameters
 	StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
-
-	// if StatusCallbackURL is defined, this service will make a POST
-	// request to it in the interval defined by StatusCallbackInterval
-	// until the job is finished. The payload will be the same as the one
-	// returned by a GET call to /jobs/<jobId>
-	StatusCallbackURL string `json:"statusCallbackURL"`
-
-	// defines the interval in seconds by which StatusCallbackURL is
-	// called. If not defined, it's set to defaultStatusCallbackInterval.
-	StatusCallbackInterval uint `json:"statusCallbackInterval"`
-
-	// if CompletionCallbackURL is defined, this service will make a POST
-	// request to it when the job is finished. The payload will be the same
-	// as the one returned by a GET call to /jobs/<jobId> after the job is
-	// done.
-	CompletionCallbackURL string `json:"completionCallbackURL"`
 }
 
 // swagger:parameters newJob
@@ -65,9 +47,6 @@ func (p *newTranscodeJobInput) ProviderFactory(body io.Reader) (provider.Factory
 	err = p.validate()
 	if err != nil {
 		return nil, err
-	}
-	if p.Payload.StatusCallbackURL != "" && p.Payload.StatusCallbackInterval == 0 {
-		p.Payload.StatusCallbackInterval = defaultStatusCallbackInterval
 	}
 	return provider.GetProviderFactory(p.Payload.Provider)
 }
