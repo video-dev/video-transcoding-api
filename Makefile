@@ -2,6 +2,7 @@
 
 HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
+LOG_LEVEL ?= debug
 
 all: test
 
@@ -36,7 +37,7 @@ build:
 	go build
 
 run: build
-	HTTP_PORT=$(HTTP_PORT) HTTP_ACCESS_LOG=$(HTTP_ACCESS_LOG) ./video-transcoding-api
+	HTTP_PORT=$(HTTP_PORT) HTTP_ACCESS_LOG=$(HTTP_ACCESS_LOG) LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
 
 vet: testdeps
 	go vet ./...
