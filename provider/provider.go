@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+	"time"
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
@@ -76,6 +77,21 @@ type JobStatus struct {
 	StatusMessage     string                 `json:"statusMessage,omitempty"`
 	ProviderStatus    map[string]interface{} `json:"providerStatus,omitempty"`
 	OutputDestination string                 `json:"outputDestination,omitempty"`
+	MediaInfo         MediaInfo              `json:"mediaInfo,omitempty"`
+}
+
+// MediaInfo contains information about media transcoded using the Transcoding
+// API.
+type MediaInfo struct {
+	// Duration of the media
+	Duration time.Duration `json:"duration,omitempty"`
+
+	// Dimension of the media, in pixels
+	Height int64 `json:"height,omitempty"`
+	Width  int64 `json:"width,omitempty"`
+
+	// Codec used for video medias
+	VideoCodec string `json:"videoCodec,omitempty"`
 }
 
 // StreamingParams contains all parameters related to the streaming protocol used.

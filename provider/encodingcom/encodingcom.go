@@ -21,6 +21,7 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
@@ -45,18 +46,9 @@ func init() {
 	provider.Register(Name, encodingComFactory)
 }
 
-type encodingComClient interface {
-	AddMedia(source []string, format []encodingcom.Format, Region string) (*encodingcom.AddMediaResponse, error)
-	CancelMedia(string) (*encodingcom.Response, error)
-	GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error)
-	SavePreset(name string, format encodingcom.Format) (*encodingcom.SavePresetResponse, error)
-	GetPreset(name string) (*encodingcom.Preset, error)
-	DeletePreset(name string) (*encodingcom.Response, error)
-}
-
 type encodingComProvider struct {
 	config *config.Config
-	client encodingComClient
+	client *encodingcom.Client
 }
 
 func (e *encodingComProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
@@ -251,10 +243,18 @@ func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) 
 	if len(resp) < 1 {
 		return nil, errors.New("invalid value returned by the Encoding.com API: []")
 	}
+	var mediaInfo provider.MediaInfo
+	status := e.statusMap(resp[0].MediaStatus)
+	if status == provider.StatusFinished {
+		mediaInfo, err = e.mediaInfo(id)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &provider.JobStatus{
 		ProviderJobID: id,
 		ProviderName:  "encoding.com",
-		Status:        e.statusMap(resp[0].MediaStatus),
+		Status:        status,
 		ProviderStatus: map[string]interface{}{
 			"progress":          resp[0].Progress,
 			"sourcefile":        resp[0].SourceFile,
@@ -266,7 +266,31 @@ func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) 
 			"destinationStatus": e.getOutputDestinationStatus(resp),
 		},
 		OutputDestination: e.getOutputDestination(resp),
+		MediaInfo:         mediaInfo,
 	}, nil
+}
+
+func (e *encodingComProvider) mediaInfo(id string) (provider.MediaInfo, error) {
+	var mediaInfo provider.MediaInfo
+	info, err := e.client.GetMediaInfo(id)
+	if err != nil {
+		return mediaInfo, err
+	}
+	parts := strings.SplitN(info.Size, "x", 2)
+	if len(parts) < 2 {
+		return mediaInfo, fmt.Errorf("invalid size returned by the Encoding.com API: %q", info.Size)
+	}
+	mediaInfo.Width, err = strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return mediaInfo, fmt.Errorf("invalid size returned by the Encoding.com API (%q): %s", info.Size, err)
+	}
+	mediaInfo.Height, err = strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return mediaInfo, fmt.Errorf("invalid size returned by the Encoding.com API (%q): %s", info.Size, err)
+	}
+	mediaInfo.Duration = info.Duration
+	mediaInfo.VideoCodec = info.VideoCodec
+	return mediaInfo, nil
 }
 
 func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusResponse) []string {

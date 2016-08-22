@@ -55,6 +55,12 @@ func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
 			ProviderJobID: "provider-job-123",
 			Status:        status,
 			StatusMessage: "The job is finished",
+			MediaInfo: provider.MediaInfo{
+				Width:      4096,
+				Height:     2160,
+				Duration:   183e9,
+				VideoCodec: "VP9",
+			},
 			ProviderStatus: map[string]interface{}{
 				"progress":   100.0,
 				"sourcefile": "http://some.source.file",

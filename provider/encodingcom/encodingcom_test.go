@@ -38,7 +38,7 @@ func TestEncodingComFactory(t *testing.T) {
 		UserID:   "myuser",
 		UserKey:  "secret-key",
 	}
-	if !reflect.DeepEqual(ecomProvider.client.(*encodingcom.Client), expected) {
+	if !reflect.DeepEqual(ecomProvider.client, expected) {
 		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, ecomProvider.client)
 	}
 	if !reflect.DeepEqual(ecomProvider.config, &cfg) {
@@ -357,14 +357,25 @@ func TestJobStatus(t *testing.T) {
 	defer server.Close()
 	now := time.Now().UTC().Truncate(time.Second)
 	media := fakeMedia{
-		ID:       "mymedia",
-		Status:   "Finished",
+		ID: "mymedia",
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Size:       "1920x1080",
+					VideoCodec: "VP9",
+				},
+			},
+		},
+		Status:   "Saving",
 		Created:  now.Add(-time.Hour),
 		Started:  now.Add(-50 * time.Minute),
 		Finished: now.Add(-10 * time.Minute),
 	}
 	server.medias["mymedia"] = &media
-	client := newEncodingComFakeClient(media)
+	client, err := encodingcom.NewClient(server.URL, "myuser", "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
 	prov := encodingComProvider{client: client}
 	prov.config = &config.Config{
 		EncodingCom: &config.EncodingCom{
@@ -395,10 +406,180 @@ func TestJobStatus(t *testing.T) {
 				},
 			},
 		},
+		MediaInfo: provider.MediaInfo{
+			Duration:   183e9,
+			Width:      1920,
+			Height:     1080,
+			VideoCodec: "VP9",
+		},
+		OutputDestination: "s3://mybucket/dir",
+	}
+	if !reflect.DeepEqual(*jobStatus, expected) {
+		t.Errorf("JobStatus: wrong job returned.\nWant %#v\nGot  %#v", expected, *jobStatus)
+	}
+}
+
+func TestJobStatusNotFinished(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	now := time.Now().UTC().Truncate(time.Second)
+	media := fakeMedia{
+		ID: "mymedia",
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Size:       "1920x1080",
+					VideoCodec: "VP9",
+				},
+			},
+		},
+		Status:   "Saving",
+		Created:  now,
+		Started:  now.Add(10 * time.Minute),
+		Finished: now.Add(time.Hour),
+	}
+	server.medias["mymedia"] = &media
+	client, err := encodingcom.NewClient(server.URL, "myuser", "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := encodingComProvider{client: client}
+	prov.config = &config.Config{
+		EncodingCom: &config.EncodingCom{
+			Destination: "mybucket",
+		},
+	}
+	jobStatus, err := prov.JobStatus("mymedia")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := provider.JobStatus{
+		ProviderJobID: "mymedia",
+		ProviderName:  "encoding.com",
+		Status:        provider.StatusStarted,
+		StatusMessage: "",
+		ProviderStatus: map[string]interface{}{
+			"progress":     100.0,
+			"sourcefile":   "http://some.source.file",
+			"timeleft":     "1",
+			"created":      media.Created,
+			"started":      media.Started,
+			"finished":     media.Finished,
+			"formatStatus": []string{""},
+			"destinationStatus": []encodingcom.DestinationStatus{
+				{
+					Name:   "s3://mybucket/dir/file.mp4",
+					Status: "Saved",
+				},
+			},
+		},
 		OutputDestination: "s3://mybucket/dir",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v.\nGot  %#v.", expected, *jobStatus)
+	}
+}
+
+func TestJobStatusInvalidMediaInfo(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	now := time.Now().UTC().Truncate(time.Second)
+	media1 := fakeMedia{
+		ID: "media1",
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Size:       "1920x1080x900",
+					VideoCodec: "VP9",
+				},
+			},
+		},
+		Status:   "Finished",
+		Created:  now,
+		Started:  now.Add(time.Minute),
+		Finished: now.Add(time.Hour),
+	}
+	server.medias["media1"] = &media1
+	media2 := fakeMedia{
+		ID: "media2",
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Size:       "πx1080",
+					VideoCodec: "VP9",
+				},
+			},
+		},
+		Status:   "Finished",
+		Created:  now,
+		Started:  now.Add(time.Minute),
+		Finished: now.Add(time.Hour),
+	}
+	server.medias["media2"] = &media2
+	media3 := fakeMedia{
+		ID: "media3",
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Size:       "π",
+					VideoCodec: "VP9",
+				},
+			},
+		},
+		Status:   "Finished",
+		Created:  now,
+		Started:  now.Add(time.Minute),
+		Finished: now.Add(time.Hour),
+	}
+	server.medias["media3"] = &media3
+	var tests = []struct {
+		testCase string
+		mediaID  string
+		errMsg   string
+	}{
+		{
+			"invalid media ID",
+			"something",
+			`Error returned by the Encoding.com API: {"Errors":["media not found"]}`,
+		},
+		{
+			"invalid height",
+			"media1",
+			`invalid size returned by the Encoding.com API ("1920x1080x900"): strconv.ParseInt: parsing "1080x900": invalid syntax`,
+		},
+		{
+			"invalid width",
+			"media2",
+			`invalid size returned by the Encoding.com API ("πx1080"): strconv.ParseInt: parsing "π": invalid syntax`,
+		},
+		{
+			"invalid size",
+			"media3",
+			`invalid size returned by the Encoding.com API: "π"`,
+		},
+	}
+	client, err := encodingcom.NewClient(server.URL, "myuser", "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := encodingComProvider{client: client}
+	prov.config = &config.Config{
+		EncodingCom: &config.EncodingCom{
+			Destination: "mybucket",
+		},
+	}
+	for _, test := range tests {
+		jobStatus, err := prov.JobStatus(test.mediaID)
+		if jobStatus != nil {
+			t.Errorf("%s: got unexpected non-nil status: %#v", test.testCase, jobStatus)
+		}
+		if err == nil {
+			t.Errorf("%s: got unexpected <nil> error", test.testCase)
+			continue
+		}
+		if err.Error() != test.errMsg {
+			t.Errorf("%s: wrong error message\nwant %q\ngot  %q", test.testCase, test.errMsg, err.Error())
+		}
 	}
 }
 
@@ -676,10 +857,12 @@ func TestCancelJob(t *testing.T) {
 		Finished: now.Add(-10 * time.Minute),
 	}
 	server.medias["mymedia"] = &media
-	client := newEncodingComFakeClient(media)
-	client.Client.Endpoint = server.URL
+	client, err := encodingcom.NewClient(server.URL, "user", "pass")
+	if err != nil {
+		t.Fatal(err)
+	}
 	prov := encodingComProvider{client: client}
-	err := prov.CancelJob("mymedia")
+	err = prov.CancelJob("mymedia")
 	if err != nil {
 		t.Fatal(err)
 	}
