@@ -110,12 +110,12 @@ func (s *TranscodingService) getTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID)).(swagger.GizmoJSONResponse)
 }
 
-func (s *TranscodingService) getJobStatusResponse(job *db.Job, jobStatus *provider.JobStatus, providerObj provider.TranscodingProvider, err error) interface{} {
+func (s *TranscodingService) getJobStatusResponse(job *db.Job, status *provider.JobStatus, p provider.TranscodingProvider, err error) swagger.GizmoJSONResponse {
 	if err != nil {
 		if err == db.ErrJobNotFound {
 			return newJobNotFoundResponse(err)
 		}
-		if providerObj != nil {
+		if p != nil {
 			providerError := fmt.Errorf("Error with provider %q when trying to retrieve job id %q: %s", job.ProviderName, job.ID, err)
 			if _, ok := err.(provider.JobNotFoundError); ok {
 				return newJobNotFoundProviderResponse(providerError)
@@ -124,7 +124,7 @@ func (s *TranscodingService) getJobStatusResponse(job *db.Job, jobStatus *provid
 		}
 		return swagger.NewErrorResponse(err)
 	}
-	return newJobStatusResponse(jobStatus)
+	return newJobStatusResponse(status)
 }
 
 func (s *TranscodingService) getTranscodeJobByID(jobID string) (*db.Job, *provider.JobStatus, provider.TranscodingProvider, error) {

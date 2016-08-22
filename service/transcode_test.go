@@ -173,6 +173,12 @@ func TestGetTranscodeJob(t *testing.T) {
 					"progress":   100.0,
 					"sourcefile": "http://some.source.file",
 				},
+				"mediaInfo": map[string]interface{}{
+					"width":      float64(4096),
+					"height":     float64(2160),
+					"duration":   183e9,
+					"videoCodec": "VP9",
+				},
 			},
 		},
 		{
@@ -239,6 +245,12 @@ func TestCancelTranscodeJob(t *testing.T) {
 				"providerStatus": map[string]interface{}{
 					"progress":   100.0,
 					"sourcefile": "http://some.source.file",
+				},
+				"mediaInfo": map[string]interface{}{
+					"width":      float64(4096),
+					"height":     float64(2160),
+					"duration":   183e9,
+					"videoCodec": "VP9",
 				},
 			},
 		},

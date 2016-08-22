@@ -57,45 +57,6 @@ type encodingComFakeServer struct {
 	status  *encodingcom.APIStatusResponse
 }
 
-type encodingComFakeClient struct {
-	media fakeMedia
-	encodingcom.Client
-}
-
-func newEncodingComFakeClient(mediaParam fakeMedia) *encodingComFakeClient {
-	client := encodingComFakeClient{
-		media: mediaParam,
-	}
-	return &client
-}
-
-func (c *encodingComFakeClient) GetStatus(mediaIDs []string) ([]encodingcom.StatusResponse, error) {
-	if len(mediaIDs) == 0 {
-		return nil, errors.New("please provide at least one media id")
-	}
-	statusResponse := make([]encodingcom.StatusResponse, 1)
-	statusResponse[0] = encodingcom.StatusResponse{
-		MediaStatus: "finished",
-		Progress:    100.0,
-		SourceFile:  "http://some.source.file",
-		TimeLeft:    "1",
-		CreateDate:  c.media.Created,
-		StartDate:   c.media.Started,
-		FinishDate:  c.media.Finished,
-		Formats: []encodingcom.FormatStatus{
-			{
-				Destinations: []encodingcom.DestinationStatus{
-					{
-						Name:   "https://mybucket.s3.amazonaws.com/dir/file.mp4",
-						Status: "Saved",
-					},
-				},
-			},
-		},
-	}
-	return statusResponse, nil
-}
-
 func newEncodingComFakeServer() *encodingComFakeServer {
 	server := encodingComFakeServer{
 		medias:  make(map[string]*fakeMedia),
@@ -133,6 +94,8 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 		s.cancelMedia(w, req)
 	case "GetStatus":
 		s.getStatus(w, req)
+	case "GetMediaInfo":
+		s.getMediaInfo(w, req)
 	case "GetPreset":
 		s.getPreset(w, req)
 	case "SavePreset":
@@ -177,18 +140,37 @@ func (s *encodingComFakeServer) cancelMedia(w http.ResponseWriter, req request) 
 	json.NewEncoder(w).Encode(resp)
 }
 
+func (s *encodingComFakeServer) getMediaInfo(w http.ResponseWriter, req request) {
+	media, err := s.getMedia(req.MediaID)
+	if err != nil {
+		s.Error(w, err.Error())
+		return
+	}
+	format := media.Request.Format[0]
+	resp := map[string]map[string]interface{}{
+		"response": {
+			"duration":    "183",
+			"size":        format.Size,
+			"video_codec": format.VideoCodec,
+		},
+	}
+	json.NewEncoder(w).Encode(resp)
+}
+
 func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 	media, err := s.getMedia(req.MediaID)
 	if err != nil {
 		s.Error(w, err.Error())
 		return
 	}
-	now := time.Now().UTC()
+	now := time.Now().UTC().Truncate(time.Second)
 	status := "Saving"
 	if media.Status == "Canceled" {
 		status = media.Status
 	} else if media.Status != "Finished" && now.Sub(media.Started) > time.Second {
-		media.Finished = now
+		if media.Finished.IsZero() {
+			media.Finished = now
+		}
 		status = "Finished"
 		media.Status = status
 	} else if media.Status != "" {
@@ -207,6 +189,10 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 					"created":    media.Created.Format(encodingComDateFormat),
 					"started":    media.Started.Format(encodingComDateFormat),
 					"finished":   media.Finished.Format(encodingComDateFormat),
+					"format": map[string]interface{}{
+						"destination":        "https://mybucket.s3.amazonaws.com/dir/file.mp4",
+						"destination_status": "Saved",
+					},
 				},
 			},
 		},
