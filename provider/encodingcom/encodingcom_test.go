@@ -399,10 +399,13 @@ func TestJobStatus(t *testing.T) {
 			"started":      media.Started,
 			"finished":     media.Finished,
 			"formatStatus": []string{""},
-			"destinationStatus": []encodingcom.DestinationStatus{
+			"destinationStatus": []destinationStatus{
 				{
-					Name:   "s3://mybucket/dir/file.mp4",
-					Status: "Saved",
+					DestinationStatus: encodingcom.DestinationStatus{
+						Name:   "s3://mybucket/dir/file.mp4",
+						Status: "Saved",
+					},
+					Size: "0x720",
 				},
 			},
 		},
@@ -466,10 +469,13 @@ func TestJobStatusNotFinished(t *testing.T) {
 			"started":      media.Started,
 			"finished":     media.Finished,
 			"formatStatus": []string{""},
-			"destinationStatus": []encodingcom.DestinationStatus{
+			"destinationStatus": []destinationStatus{
 				{
-					Name:   "s3://mybucket/dir/file.mp4",
-					Status: "Saved",
+					DestinationStatus: encodingcom.DestinationStatus{
+						Name:   "s3://mybucket/dir/file.mp4",
+						Status: "Saved",
+					},
+					Size: "0x720",
 				},
 			},
 		},
