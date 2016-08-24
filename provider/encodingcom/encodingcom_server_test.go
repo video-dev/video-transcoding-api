@@ -192,6 +192,8 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 					"format": map[string]interface{}{
 						"destination":        "https://mybucket.s3.amazonaws.com/dir/file.mp4",
 						"destination_status": "Saved",
+						"size":               "0x720",
+						"bitrate":            "2500k",
 					},
 				},
 			},

@@ -236,7 +236,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 }
 
 func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) {
-	resp, err := e.client.GetStatus([]string{id})
+	resp, err := e.client.GetStatus([]string{id}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -302,13 +302,24 @@ func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusRespons
 	return formatStatusList
 }
 
-func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse) []encodingcom.DestinationStatus {
-	destinationStatusList := []encodingcom.DestinationStatus{}
+type destinationStatus struct {
+	encodingcom.DestinationStatus
+	Size string
+}
+
+func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse) []destinationStatus {
+	var destinationStatusList []destinationStatus
 	formats := status[0].Formats
 	for _, formatStatus := range formats {
-		for _, destinationStatus := range formatStatus.Destinations {
-			destinationStatus.Name = e.destinationMedia(destinationStatus.Name)
-			destinationStatusList = append(destinationStatusList, destinationStatus)
+		for _, ds := range formatStatus.Destinations {
+			st := destinationStatus{
+				DestinationStatus: encodingcom.DestinationStatus{
+					Name:   e.destinationMedia(ds.Name),
+					Status: ds.Status,
+				},
+				Size: formatStatus.Size,
+			}
+			destinationStatusList = append(destinationStatusList, st)
 		}
 	}
 	return destinationStatusList
