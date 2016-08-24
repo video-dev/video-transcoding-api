@@ -48,7 +48,8 @@ In order to store preset maps and job statuses we need a Redis instance running.
 export REDIS_ADDR=200.221.14.140
 export REDIS_PASSWORD=p4ssw0rd.here
 ```
-If you are running Redis in the same host of the API and on the default port (6379) the API will automatically find the instance and connect to it. 
+
+If you are running Redis in the same host of the API and on the default port (6379) the API will automatically find the instance and connect to it.
 
 With all environment variables set and redis up and running, clone this repository and run:
 
@@ -77,5 +78,5 @@ Check out on our Wiki [how to](https://github.com/nytm/video-transcoding-api/wik
 
 ## License
 
-This code is under [Apache 2.0 License](https://github.com/nytm/video-transcoding-api/blob/master/LICENSE). 
+This code is under [Apache 2.0 License](https://github.com/nytm/video-transcoding-api/blob/master/LICENSE).
 
