@@ -361,8 +361,10 @@ func TestJobStatus(t *testing.T) {
 		Request: request{
 			Format: []encodingcom.Format{
 				{
+					Bitrate:    "2500k",
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
+					Output:     []string{"webm"},
 				},
 			},
 		},
@@ -405,7 +407,9 @@ func TestJobStatus(t *testing.T) {
 						Name:   "s3://mybucket/dir/file.mp4",
 						Status: "Saved",
 					},
-					Size: "0x720",
+					Size:       "1920x1080",
+					VideoCodec: "VP9",
+					Container:  "webm",
 				},
 			},
 		},
@@ -433,6 +437,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 				{
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
+					Output:     []string{"webm"},
 				},
 			},
 		},
@@ -475,7 +480,9 @@ func TestJobStatusNotFinished(t *testing.T) {
 						Name:   "s3://mybucket/dir/file.mp4",
 						Status: "Saved",
 					},
-					Size: "0x720",
+					Container:  "webm",
+					Size:       "1920x1080",
+					VideoCodec: "VP9",
 				},
 			},
 		},
@@ -497,6 +504,7 @@ func TestJobStatusInvalidMediaInfo(t *testing.T) {
 				{
 					Size:       "1920x1080x900",
 					VideoCodec: "VP9",
+					Output:     []string{"webm"},
 				},
 			},
 		},
@@ -513,6 +521,7 @@ func TestJobStatusInvalidMediaInfo(t *testing.T) {
 				{
 					Size:       "πx1080",
 					VideoCodec: "VP9",
+					Output:     []string{"webm"},
 				},
 			},
 		},
@@ -529,6 +538,7 @@ func TestJobStatusInvalidMediaInfo(t *testing.T) {
 				{
 					Size:       "π",
 					VideoCodec: "VP9",
+					Output:     []string{"webm"},
 				},
 			},
 		},
