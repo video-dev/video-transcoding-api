@@ -304,7 +304,9 @@ func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusRespons
 
 type destinationStatus struct {
 	encodingcom.DestinationStatus
-	Size string
+	Size       string
+	Container  string
+	VideoCodec string
 }
 
 func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse) []destinationStatus {
@@ -317,7 +319,9 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 					Name:   e.destinationMedia(ds.Name),
 					Status: ds.Status,
 				},
-				Size: formatStatus.Size,
+				Container:  formatStatus.Output,
+				Size:       formatStatus.Size,
+				VideoCodec: formatStatus.VideoCodec,
 			}
 			destinationStatusList = append(destinationStatusList, st)
 		}
