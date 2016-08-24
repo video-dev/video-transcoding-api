@@ -107,7 +107,7 @@ func (s *TranscodingService) genID() (string, error) {
 func (s *TranscodingService) getTranscodeJob(r *http.Request) swagger.GizmoJSONResponse {
 	var params getTranscodeJobInput
 	params.loadParams(web.Vars(r))
-	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID)).(swagger.GizmoJSONResponse)
+	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID))
 }
 
 func (s *TranscodingService) getJobStatusResponse(job *db.Job, status *provider.JobStatus, p provider.TranscodingProvider, err error) swagger.GizmoJSONResponse {
