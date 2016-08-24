@@ -176,28 +176,24 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 	} else if media.Status != "" {
 		status = media.Status
 	}
-	resp := map[string]map[string][]map[string]interface{}{
+	resp := map[string]map[string]interface{}{
 		"response": {
-			"job": []map[string]interface{}{
-				{
-					"id":         media.ID,
-					"sourcefile": "http://some.source.file",
-					"userid":     "someuser",
-					"status":     status,
-					"progress":   "100.0",
-					"time_left":  "1",
-					"created":    media.Created.Format(encodingComDateFormat),
-					"started":    media.Started.Format(encodingComDateFormat),
-					"finished":   media.Finished.Format(encodingComDateFormat),
-					"format": map[string]interface{}{
-						"destination":        "https://mybucket.s3.amazonaws.com/dir/file.mp4",
-						"destination_status": "Saved",
-						"size":               media.Request.Format[0].Size,
-						"bitrate":            media.Request.Format[0].Bitrate,
-						"output":             media.Request.Format[0].Output[0],
-						"video_codec":        media.Request.Format[0].VideoCodec,
-					},
-				},
+			"id":         media.ID,
+			"sourcefile": "http://some.source.file",
+			"userid":     "someuser",
+			"status":     status,
+			"progress":   "100.0",
+			"time_left":  "1",
+			"created":    media.Created.Format(encodingComDateFormat),
+			"started":    media.Started.Format(encodingComDateFormat),
+			"finished":   media.Finished.Format(encodingComDateFormat),
+			"format": map[string]interface{}{
+				"destination":        "https://mybucket.s3.amazonaws.com/dir/file.mp4",
+				"destination_status": "Saved",
+				"size":               media.Request.Format[0].Size,
+				"bitrate":            media.Request.Format[0].Bitrate,
+				"output":             media.Request.Format[0].Output[0],
+				"video_codec":        media.Request.Format[0].VideoCodec,
 			},
 		},
 	}
