@@ -108,12 +108,28 @@ func TestEncodingComTranscode(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "mp4", Label: "1080p"},
 		},
 		{
+			Name: "hls_360p",
+			ProviderMapping: map[string]string{
+				Name:           "321322",
+				"not-relevant": "allthings",
+			},
+			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "360p"},
+		},
+		{
+			Name: "hls_480p",
+			ProviderMapping: map[string]string{
+				Name:           "321322",
+				"not-relevant": "allthings",
+			},
+			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "480p"},
+		},
+		{
 			Name: "hls_1080p",
 			ProviderMapping: map[string]string{
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "hls"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "1080p"},
 		},
 	}
 	for _, preset := range presets {
@@ -173,6 +189,12 @@ func TestEncodingComTranscode(t *testing.T) {
 			PackFiles:       &falseYesNoBoolean,
 			Stream: []encodingcom.Stream{
 				{
+					SubPath: "hls_360p",
+				},
+				{
+					SubPath: "hls_480p",
+				},
+				{
 					SubPath: "hls_1080p",
 				},
 			},
@@ -221,6 +243,12 @@ func TestEncodingComTranscode(t *testing.T) {
 			SegmentDuration: 3,
 			PackFiles:       &falseYesNoBoolean,
 			Stream: []encodingcom.Stream{
+				{
+					SubPath: "hls_360p",
+				},
+				{
+					SubPath: "hls_480p",
+				},
 				{
 					SubPath: "hls_1080p",
 				},
@@ -364,7 +392,7 @@ func TestJobStatus(t *testing.T) {
 					Bitrate:    "2500k",
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
-					Output:     []string{"webm"},
+					Output:     []string{"advanced_hls"},
 				},
 			},
 		},
@@ -404,12 +432,21 @@ func TestJobStatus(t *testing.T) {
 			"destinationStatus": []destinationStatus{
 				{
 					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/file.mp4",
+						Name:   "s3://mybucket/dir/some_hls_preset/video-0.m3u8",
 						Status: "Saved",
 					},
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
-					Container:  "webm",
+					Container:  "advanced_hls",
+				},
+				{
+					DestinationStatus: encodingcom.DestinationStatus{
+						Name:   "s3://mybucket/dir/video.m3u8",
+						Status: "Saved",
+					},
+					Size:       "1920x1080",
+					VideoCodec: "VP9",
+					Container:  "advanced_hls",
 				},
 			},
 		},
@@ -419,7 +456,7 @@ func TestJobStatus(t *testing.T) {
 			Height:     1080,
 			VideoCodec: "VP9",
 		},
-		OutputDestination: "s3://mybucket/dir",
+		OutputDestination: "s3://mybucket/dir/some_hls_preset",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v\nGot  %#v", expected, *jobStatus)
@@ -437,7 +474,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 				{
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
-					Output:     []string{"webm"},
+					Output:     []string{"advanced_hls"},
 				},
 			},
 		},
@@ -477,16 +514,25 @@ func TestJobStatusNotFinished(t *testing.T) {
 			"destinationStatus": []destinationStatus{
 				{
 					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/file.mp4",
+						Name:   "s3://mybucket/dir/some_hls_preset/video-0.m3u8",
 						Status: "Saved",
 					},
-					Container:  "webm",
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
+					Container:  "advanced_hls",
+				},
+				{
+					DestinationStatus: encodingcom.DestinationStatus{
+						Name:   "s3://mybucket/dir/video.m3u8",
+						Status: "Saved",
+					},
+					Size:       "1920x1080",
+					VideoCodec: "VP9",
+					Container:  "advanced_hls",
 				},
 			},
 		},
-		OutputDestination: "s3://mybucket/dir",
+		OutputDestination: "s3://mybucket/dir/some_hls_preset",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v.\nGot  %#v.", expected, *jobStatus)

@@ -182,7 +182,7 @@ func (e *encodingComProvider) buildDestination(outputDestination string, jobID s
 	destinationPathWithPrefix := path.Join(jobID, outputPath, outputFilePrefix)
 	outputFile := destinationPathWithPrefix + "_" + presetLabel + "." + extension
 	if extension == "m3u8" {
-		outputFile = destinationPathWithPrefix + "_" + presetLabel + "/video.m3u8"
+		outputFile = destinationPathWithPrefix + "_hls" + "/video.m3u8"
 	}
 	return strings.TrimRight(outputDestination, "/") + "/" + outputFile
 }
@@ -225,7 +225,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 		falseValue := encodingcom.YesNoBoolean(false)
 		format := encodingcom.Format{
 			Output:          []string{"advanced_hls"},
-			Destination:     streamingPresetDestinations,
+			Destination:     streamingPresetDestinations[0:1],
 			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			Stream:          streams,
 			PackFiles:       &falseValue,
@@ -313,10 +313,24 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 	var destinationStatusList []destinationStatus
 	formats := status[0].Formats
 	for _, formatStatus := range formats {
-		for _, ds := range formatStatus.Destinations {
+		for idx, ds := range formatStatus.Destinations {
+			destinationName := ds.Name
+			if formatStatus.Output == "advanced_hls" {
+				streams := formatStatus.Stream
+				if idx < len(streams) {
+					destinationNameParts := strings.Split(destinationName, "/")
+					partsLength := len(destinationNameParts)
+					fixedDestination := append(
+						destinationNameParts[0:partsLength-2],
+						streams[idx].SubPath,
+						destinationNameParts[partsLength-1],
+					)
+					destinationName = strings.Join(fixedDestination, "/")
+				}
+			}
 			st := destinationStatus{
 				DestinationStatus: encodingcom.DestinationStatus{
-					Name:   e.destinationMedia(ds.Name),
+					Name:   e.destinationMedia(destinationName),
 					Status: ds.Status,
 				},
 				Container:  formatStatus.Output,

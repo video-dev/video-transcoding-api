@@ -187,13 +187,22 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 			"created":    media.Created.Format(encodingComDateFormat),
 			"started":    media.Started.Format(encodingComDateFormat),
 			"finished":   media.Finished.Format(encodingComDateFormat),
+			"output":     "advanced_hls",
 			"format": map[string]interface{}{
-				"destination":        "https://mybucket.s3.amazonaws.com/dir/file.mp4",
-				"destination_status": "Saved",
+				"destination": []string{
+					"https://mybucket.s3.amazonaws.com/dir/some_hls_preset/video-0.m3u8",
+					"https://mybucket.s3.amazonaws.com/dir/video.m3u8",
+				},
+				"destination_status": []string{"Saved", "Saved"},
 				"size":               media.Request.Format[0].Size,
 				"bitrate":            media.Request.Format[0].Bitrate,
 				"output":             media.Request.Format[0].Output[0],
 				"video_codec":        media.Request.Format[0].VideoCodec,
+				"stream": []map[string]interface{}{
+					{
+						"sub_path": "some_hls_preset",
+					},
+				},
 			},
 		},
 	}
