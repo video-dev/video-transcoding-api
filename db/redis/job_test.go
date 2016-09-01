@@ -9,6 +9,7 @@ import (
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
 )
 
@@ -18,7 +19,7 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -76,7 +77,7 @@ func TestCreateJobIsSafe(t *testing.T) {
 		{ID: "abcabc", ProviderJobID: "abc-213", ProviderName: "encoding.com"},
 		{ID: "abcabc", ProviderJobID: "ff12", ProviderName: "encoding.com"},
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +100,7 @@ func TestCreateJobNoID(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -118,7 +119,7 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,7 +148,7 @@ func TestDeleteJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +163,7 @@ func TestGetJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +186,7 @@ func TestGetJobNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -204,7 +205,7 @@ func TestListJobs(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -254,7 +255,7 @@ func TestListJobsLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -307,7 +308,7 @@ func TestListJobsInconsistency(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -360,7 +361,7 @@ func TestListJobsFiltering(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -419,7 +420,7 @@ func TestListJobsFilteringAndLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)

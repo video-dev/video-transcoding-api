@@ -7,6 +7,7 @@ import (
 
 	"github.com/NYTimes/gizmo/config/aws"
 	"github.com/NYTimes/gizmo/server"
+	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {
@@ -42,7 +43,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	cfg := LoadConfig()
 	expectedCfg := Config{
 		SwaggerManifest: "/opt/video-transcoding-api-swagger.json",
-		Redis: &Redis{
+		Redis: &storage.Config{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
 			SentinelMasterName: "supermaster",
 			RedisAddr:          "localhost:6379",
@@ -126,7 +127,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 	cfg := LoadConfig()
 	expectedCfg := Config{
 		SwaggerManifest: "/opt/video-transcoding-api-swagger.json",
-		Redis: &Redis{
+		Redis: &storage.Config{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
 			SentinelMasterName: "supermaster",
 			RedisAddr:          "127.0.0.1:6379",

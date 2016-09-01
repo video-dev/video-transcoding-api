@@ -6,6 +6,7 @@ import (
 
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
 func TestCreatePresetMap(t *testing.T) {
@@ -14,7 +15,7 @@ func TestCreatePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -53,7 +54,7 @@ func TestCreatePresetMapDuplicate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +77,7 @@ func TestUpdatePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -116,7 +117,7 @@ func TestUpdatePresetMapNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +132,7 @@ func TestDeletePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -156,7 +157,7 @@ func TestDeletePresetMapNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -171,7 +172,7 @@ func TestGetPresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,7 +203,7 @@ func TestGetPresetMapNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	repo, err := NewRepository(&config.Config{Redis: new(config.Redis)})
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -221,7 +222,7 @@ func TestListPresetMaps(t *testing.T) {
 		t.Fatal(err)
 	}
 	var cfg config.Config
-	cfg.Redis = new(config.Redis)
+	cfg.Redis = new(storage.Config)
 	repo, err := NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)

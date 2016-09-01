@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
+	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
 // Config is a struct to contain all the needed configuration for the
@@ -10,28 +11,10 @@ import (
 type Config struct {
 	Server             *server.Config
 	SwaggerManifest    string `envconfig:"SWAGGER_MANIFEST_PATH"`
-	Redis              *Redis
+	Redis              *storage.Config
 	EncodingCom        *EncodingCom
 	ElasticTranscoder  *ElasticTranscoder
 	ElementalConductor *ElementalConductor
-}
-
-// Redis represents the Redis configuration. RedisAddr and SentinelAddrs
-// configs are exclusive, and the API will prefer to use SentinelAddrs when
-// both are defined.
-type Redis struct {
-	// Comma-separated list of sentinel servers.
-	//
-	// Example: 10.10.10.10:6379,10.10.10.1:6379,10.10.10.2:6379.
-	SentinelAddrs      string `envconfig:"SENTINEL_ADDRS"`
-	SentinelMasterName string `envconfig:"SENTINEL_MASTER_NAME"`
-
-	RedisAddr          string `envconfig:"REDIS_ADDR" default:"127.0.0.1:6379"`
-	Password           string `envconfig:"REDIS_PASSWORD"`
-	PoolSize           int    `envconfig:"REDIS_POOL_SIZE"`
-	PoolTimeout        int    `envconfig:"REDIS_POOL_TIMEOUT_SECONDS"`
-	IdleTimeout        int    `envconfig:"REDIS_IDLE_TIMEOUT_SECONDS"`
-	IdleCheckFrequency int    `envconfig:"REDIS_IDLE_CHECK_FREQUENCY_SECONDS"`
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com
@@ -68,7 +51,7 @@ type ElementalConductor struct {
 // LoadConfig loads the configuration of the API using environment variables.
 func LoadConfig() *Config {
 	cfg := Config{
-		Redis:              new(Redis),
+		Redis:              new(storage.Config),
 		EncodingCom:        new(EncodingCom),
 		ElasticTranscoder:  new(ElasticTranscoder),
 		ElementalConductor: new(ElementalConductor),

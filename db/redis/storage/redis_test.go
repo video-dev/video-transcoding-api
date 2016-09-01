@@ -14,7 +14,7 @@ import (
 )
 
 func TestRedisClientRedisDefaultOptions(t *testing.T) {
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	client := storage.RedisClient()
 	defer client.Close()
 	_, err = client.Ping().Result()
@@ -30,11 +30,11 @@ func TestRedisClientRedisAddr(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer proc.Signal(os.Interrupt)
-	opts := NewStorageOptions{
+	cfg := Config{
 		RedisAddr: "127.0.0.1:" + port,
 		Password:  "not-secret",
 	}
-	storage, err := NewStorage(opts)
+	storage, err := NewStorage(&cfg)
 	client := storage.RedisClient()
 	defer client.Close()
 	_, err = client.Ping().Result()
@@ -49,11 +49,11 @@ func TestRedisClientRedisSentinel(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer cleanup()
-	opts := NewStorageOptions{
-		SentinelAddrs:      []string{"127.0.0.1:26379", "127.0.0.1:26380", "127.0.0.1:26381"},
+	cfg := Config{
+		SentinelAddrs:      "127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381",
 		SentinelMasterName: "mymaster",
 	}
-	storage, err := NewStorage(opts)
+	storage, err := NewStorage(&cfg)
 	client := storage.RedisClient()
 	defer client.Close()
 	_, err = client.Ping().Result()
@@ -77,7 +77,7 @@ func TestSave(t *testing.T) {
 		unexported:       "not relevant",
 		unexportedTagged: "not relevant, believe!",
 	}
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -121,7 +121,7 @@ func TestSavePointer(t *testing.T) {
 		unexported:       "not relevant",
 		unexportedTagged: "not relevant, believe!",
 	}
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -151,7 +151,7 @@ func TestSavePointer(t *testing.T) {
 }
 
 func TestSaveMap(t *testing.T) {
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -198,7 +198,7 @@ func TestSaveErrors(t *testing.T) {
 		}{}, "please provide a map[string]string"},
 	}
 
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,7 +218,7 @@ func TestSaveErrors(t *testing.T) {
 }
 
 func TestLoadStruct(t *testing.T) {
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -259,7 +259,7 @@ func TestLoadStruct(t *testing.T) {
 }
 
 func TestLoadMap(t *testing.T) {
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,7 +297,7 @@ func TestLoadErrors(t *testing.T) {
 		{"test-key", &InvalidInnerStruct{}, "please provide a map[string]string"},
 	}
 
-	storage, err := NewStorage(NewStorageOptions{})
+	storage, err := NewStorage(&Config{})
 	if err != nil {
 		t.Fatal(err)
 	}

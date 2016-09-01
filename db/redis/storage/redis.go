@@ -19,26 +19,60 @@ var ErrNotFound = errors.New("not found")
 // Storage is the basic type that provides methods for saving, listing and
 // deleting types on Redis.
 type Storage struct {
-	opts   NewStorageOptions
 	once   sync.Once
+	config *Config
 	client *redis.Client
 }
 
-// NewStorageOptions contains options used to create a new storage instance.
-type NewStorageOptions struct {
-	SentinelAddrs      []string
-	SentinelMasterName string
-	RedisAddr          string
-	Password           string
-	PoolSize           int
-	PoolTimeout        time.Duration
-	IdleTimeout        time.Duration
-	IdleCheckFrequency time.Duration
+// Config contains configuration for the Redis, in the standard proposed by
+// Gizmo.
+type Config struct {
+	// Comma-separated list of sentinel servers.
+	//
+	// Example: 10.10.10.10:6379,10.10.10.1:6379,10.10.10.2:6379.
+	SentinelAddrs      string `envconfig:"SENTINEL_ADDRS"`
+	SentinelMasterName string `envconfig:"SENTINEL_MASTER_NAME"`
+
+	RedisAddr          string `envconfig:"REDIS_ADDR" default:"127.0.0.1:6379"`
+	Password           string `envconfig:"REDIS_PASSWORD"`
+	PoolSize           int    `envconfig:"REDIS_POOL_SIZE"`
+	PoolTimeout        int    `envconfig:"REDIS_POOL_TIMEOUT_SECONDS"`
+	IdleTimeout        int    `envconfig:"REDIS_IDLE_TIMEOUT_SECONDS"`
+	IdleCheckFrequency int    `envconfig:"REDIS_IDLE_CHECK_FREQUENCY_SECONDS"`
+}
+
+// RedisClient creates a new instance of the client using the underlying
+// configuration.
+func (c *Config) RedisClient() *redis.Client {
+	if c.SentinelAddrs != "" {
+		sentinelAddrs := strings.Split(c.SentinelAddrs, ",")
+		return redis.NewFailoverClient(&redis.FailoverOptions{
+			SentinelAddrs:      sentinelAddrs,
+			MasterName:         c.SentinelMasterName,
+			Password:           c.Password,
+			PoolSize:           c.PoolSize,
+			PoolTimeout:        time.Duration(c.PoolTimeout) * time.Second,
+			IdleTimeout:        time.Duration(c.IdleTimeout) * time.Second,
+			IdleCheckFrequency: time.Duration(c.IdleCheckFrequency) * time.Second,
+		})
+	}
+	redisAddr := c.RedisAddr
+	if redisAddr == "" {
+		redisAddr = "127.0.0.1:6379"
+	}
+	return redis.NewClient(&redis.Options{
+		Addr:               redisAddr,
+		Password:           c.Password,
+		PoolSize:           c.PoolSize,
+		PoolTimeout:        time.Duration(c.PoolTimeout) * time.Second,
+		IdleTimeout:        time.Duration(c.IdleTimeout) * time.Second,
+		IdleCheckFrequency: time.Duration(c.IdleCheckFrequency) * time.Second,
+	})
 }
 
 // NewStorage returns a new instance of storage with the given configuration.
-func NewStorage(opts NewStorageOptions) (*Storage, error) {
-	return &Storage{opts: opts}, nil
+func NewStorage(cfg *Config) (*Storage, error) {
+	return &Storage{config: cfg}, nil
 }
 
 // Save creates the given key as a Redis hash.
@@ -272,30 +306,7 @@ func (s *Storage) Delete(key string) error {
 // RedisClient returns the underlying Redis client.
 func (s *Storage) RedisClient() *redis.Client {
 	s.once.Do(func() {
-		if len(s.opts.SentinelAddrs) > 0 {
-			s.client = redis.NewFailoverClient(&redis.FailoverOptions{
-				SentinelAddrs:      s.opts.SentinelAddrs,
-				MasterName:         s.opts.SentinelMasterName,
-				Password:           s.opts.Password,
-				PoolSize:           s.opts.PoolSize,
-				PoolTimeout:        s.opts.PoolTimeout,
-				IdleTimeout:        s.opts.IdleTimeout,
-				IdleCheckFrequency: s.opts.IdleCheckFrequency,
-			})
-		} else {
-			redisAddr := s.opts.RedisAddr
-			if redisAddr == "" {
-				redisAddr = "127.0.0.1:6379"
-			}
-			s.client = redis.NewClient(&redis.Options{
-				Addr:               redisAddr,
-				Password:           s.opts.Password,
-				PoolSize:           s.opts.PoolSize,
-				PoolTimeout:        s.opts.PoolTimeout,
-				IdleTimeout:        s.opts.IdleTimeout,
-				IdleCheckFrequency: s.opts.IdleCheckFrequency,
-			})
-		}
+		s.client = s.config.RedisClient()
 	})
 	return s.client
 }
