@@ -75,6 +75,7 @@ type JobStatus struct {
 	Status            Status                 `json:"status,omitempty"`
 	ProviderName      string                 `json:"providerName,omitempty"`
 	StatusMessage     string                 `json:"statusMessage,omitempty"`
+	Progress          float64                `json:"progress"`
 	ProviderStatus    map[string]interface{} `json:"providerStatus,omitempty"`
 	OutputDestination string                 `json:"outputDestination,omitempty"`
 	MediaInfo         MediaInfo              `json:"mediaInfo,omitempty"`

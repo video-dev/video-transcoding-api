@@ -169,8 +169,9 @@ func TestGetTranscodeJob(t *testing.T) {
 				"status":        "finished",
 				"providerName":  "fake",
 				"statusMessage": "The job is finished",
+				"progress":      10.3,
 				"providerStatus": map[string]interface{}{
-					"progress":   100.0,
+					"progress":   10.3,
 					"sourcefile": "http://some.source.file",
 				},
 				"mediaInfo": map[string]interface{}{
@@ -242,8 +243,9 @@ func TestCancelTranscodeJob(t *testing.T) {
 				"status":        "canceled",
 				"providerName":  "fake",
 				"statusMessage": "The job is finished",
+				"progress":      10.3,
 				"providerStatus": map[string]interface{}{
-					"progress":   100.0,
+					"progress":   10.3,
 					"sourcefile": "http://some.source.file",
 				},
 				"mediaInfo": map[string]interface{}{
