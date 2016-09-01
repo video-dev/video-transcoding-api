@@ -255,6 +255,7 @@ func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) 
 		ProviderJobID: id,
 		ProviderName:  "encoding.com",
 		Status:        status,
+		Progress:      resp[0].Progress,
 		ProviderStatus: map[string]interface{}{
 			"progress":          resp[0].Progress,
 			"sourcefile":        resp[0].SourceFile,

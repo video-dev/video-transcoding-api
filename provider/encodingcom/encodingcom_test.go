@@ -421,6 +421,7 @@ func TestJobStatus(t *testing.T) {
 		ProviderName:  "encoding.com",
 		Status:        provider.StatusFinished,
 		StatusMessage: "",
+		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"progress":     100.0,
 			"sourcefile":   "http://some.source.file",
@@ -503,6 +504,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 		ProviderName:  "encoding.com",
 		Status:        provider.StatusStarted,
 		StatusMessage: "",
+		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"progress":     100.0,
 			"sourcefile":   "http://some.source.file",
