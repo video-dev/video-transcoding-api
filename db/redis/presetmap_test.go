@@ -31,7 +31,7 @@ func TestCreatePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := repo.(*redisRepository).redisClient()
+	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
 	items, err := client.HGetAll("preset:" + preset.Name).Result()
 	if err != nil {
@@ -94,7 +94,7 @@ func TestUpdatePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := repo.(*redisRepository).redisClient()
+	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
 	items, err := client.HGetAll("preset:" + preset.Name).Result()
 	if err != nil {
@@ -144,7 +144,7 @@ func TestDeletePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := repo.(*redisRepository).redisClient()
+	client := repo.(*redisRepository).storage.RedisClient()
 	result := client.HGetAll("preset:mypreset")
 	if len(result.Val()) != 0 {
 		t.Errorf("Unexpected value after delete call: %v", result.Val())

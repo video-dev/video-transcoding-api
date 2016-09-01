@@ -2,6 +2,7 @@ package redis
 
 import (
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
 )
 
@@ -22,12 +23,12 @@ func (r *redisRepository) UpdatePresetMap(preset *db.PresetMap) error {
 }
 
 func (r *redisRepository) savePresetMap(preset *db.PresetMap) error {
-	fields, err := r.fieldList(preset)
+	fields, err := r.storage.FieldMap(preset)
 	if err != nil {
 		return err
 	}
 	presetKey := r.presetKey(preset.Name)
-	return r.redisClient().Watch(func(tx *redis.Tx) error {
+	return r.storage.RedisClient().Watch(func(tx *redis.Tx) error {
 		err := tx.HMSet(presetKey, fields).Err()
 		if err != nil {
 			return err
@@ -37,25 +38,28 @@ func (r *redisRepository) savePresetMap(preset *db.PresetMap) error {
 }
 
 func (r *redisRepository) DeletePresetMap(preset *db.PresetMap) error {
-	err := r.delete(r.presetKey(preset.Name), db.ErrPresetMapNotFound)
+	err := r.storage.Delete(r.presetKey(preset.Name))
 	if err != nil {
+		if err == storage.ErrNotFound {
+			return db.ErrPresetMapNotFound
+		}
 		return err
 	}
-	r.redisClient().SRem(presetsSetKey, preset.Name)
+	r.storage.RedisClient().SRem(presetsSetKey, preset.Name)
 	return nil
 }
 
 func (r *redisRepository) GetPresetMap(name string) (*db.PresetMap, error) {
 	preset := db.PresetMap{Name: name, ProviderMapping: make(map[string]string)}
-	err := r.load(r.presetKey(name), &preset)
-	if err == errNotFound {
+	err := r.storage.Load(r.presetKey(name), &preset)
+	if err == storage.ErrNotFound {
 		return nil, db.ErrPresetMapNotFound
 	}
 	return &preset, err
 }
 
 func (r *redisRepository) ListPresetMaps() ([]db.PresetMap, error) {
-	presetNames, err := r.redisClient().SMembers(presetsSetKey).Result()
+	presetNames, err := r.storage.RedisClient().SMembers(presetsSetKey).Result()
 	if err != nil {
 		return nil, err
 	}

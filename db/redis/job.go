@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/nytm/video-transcoding-api/db"
+	"github.com/nytm/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
 )
 
@@ -20,12 +21,12 @@ func (r *redisRepository) CreateJob(job *db.Job) error {
 }
 
 func (r *redisRepository) saveJob(job *db.Job) error {
-	fields, err := r.fieldList(job)
+	fields, err := r.storage.FieldMap(job)
 	if err != nil {
 		return err
 	}
 	jobKey := r.jobKey(job.ID)
-	return r.redisClient().Watch(func(tx *redis.Tx) error {
+	return r.storage.RedisClient().Watch(func(tx *redis.Tx) error {
 		err := tx.HMSet(jobKey, fields).Err()
 		if err != nil {
 			return err
@@ -35,17 +36,20 @@ func (r *redisRepository) saveJob(job *db.Job) error {
 }
 
 func (r *redisRepository) DeleteJob(job *db.Job) error {
-	err := r.delete(r.jobKey(job.ID), db.ErrJobNotFound)
+	err := r.storage.Delete(r.jobKey(job.ID))
 	if err != nil {
+		if err == storage.ErrNotFound {
+			return db.ErrJobNotFound
+		}
 		return err
 	}
-	return r.redisClient().ZRem(jobsSetKey, job.ID).Err()
+	return r.storage.RedisClient().ZRem(jobsSetKey, job.ID).Err()
 }
 
 func (r *redisRepository) GetJob(id string) (*db.Job, error) {
 	job := db.Job{ID: id}
-	err := r.load(r.jobKey(id), &job)
-	if err == errNotFound {
+	err := r.storage.Load(r.jobKey(id), &job)
+	if err == storage.ErrNotFound {
 		return nil, db.ErrJobNotFound
 	}
 	return &job, err
@@ -61,7 +65,7 @@ func (r *redisRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
 	if rangeOpts.Count == 0 {
 		rangeOpts.Count = -1
 	}
-	jobIDs, err := r.redisClient().ZRangeByScore(jobsSetKey, rangeOpts).Result()
+	jobIDs, err := r.storage.RedisClient().ZRangeByScore(jobsSetKey, rangeOpts).Result()
 	if err != nil {
 		return nil, err
 	}

@@ -39,7 +39,7 @@ func TestCreateJob(t *testing.T) {
 	if creationTime.Location() != time.UTC {
 		t.Errorf("Wrong location for creationTime. Want UTC. Got %#v", creationTime.Location())
 	}
-	client := repo.(*redisRepository).redisClient()
+	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
 	items, err := client.HGetAll("job:" + job.ID).Result()
 	if err != nil {
@@ -131,7 +131,7 @@ func TestDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	client := repo.(*redisRepository).redisClient()
+	client := repo.(*redisRepository).storage.RedisClient()
 	hGetResult := client.HGetAll("job:myjob")
 	if len(hGetResult.Val()) != 0 {
 		t.Errorf("Unexpected value after delete call: %v", hGetResult.Val())
@@ -335,8 +335,8 @@ func TestListJobsInconsistency(t *testing.T) {
 		},
 	}
 	redisRepo := repo.(*redisRepository)
-	redisRepo.redisClient().ZAddNX("some-weird-id1", redis.Z{Member: jobs[0], Score: math.Inf(0)})
-	redisRepo.redisClient().ZAddNX("some-weird-id2", redis.Z{Member: jobs[1], Score: math.Inf(0)})
+	redisRepo.storage.RedisClient().ZAddNX("some-weird-id1", redis.Z{Member: jobs[0], Score: math.Inf(0)})
+	redisRepo.storage.RedisClient().ZAddNX("some-weird-id2", redis.Z{Member: jobs[1], Score: math.Inf(0)})
 	expectedJobs := make([]db.Job, len(jobs))
 	for i, job := range jobs {
 		err = repo.CreateJob(&job)
