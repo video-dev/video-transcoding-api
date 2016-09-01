@@ -1,7 +1,6 @@
 package redis
 
 import (
-	"errors"
 	"strings"
 	"time"
 
@@ -9,8 +8,6 @@ import (
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
-
-var errNotFound = errors.New("not found")
 
 // NewRepository creates a new Repository that uses Redis for persistence.
 func NewRepository(cfg *config.Config) (db.Repository, error) {
