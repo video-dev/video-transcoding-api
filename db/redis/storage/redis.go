@@ -165,10 +165,13 @@ func (s *Storage) structToFieldList(value reflect.Value, prefixes ...string) (ma
 				key := strings.Join(append(prefixes, parts[0]), "_")
 				var strValue string
 				iface := fieldValue.Interface()
-				if t, ok := iface.(time.Time); ok {
-					strValue = t.Format(time.RFC3339Nano)
-				} else {
-					strValue = fmt.Sprintf("%v", fieldValue.Interface())
+				switch v := iface.(type) {
+				case time.Time:
+					strValue = v.Format(time.RFC3339Nano)
+				case []string:
+					strValue = strings.Join(v, "%%%")
+				default:
+					strValue = fmt.Sprintf("%v", v)
 				}
 				fields[key] = strValue
 			}
@@ -255,6 +258,11 @@ func (s *Storage) loadStruct(in map[string]string, out reflect.Value, prefixes .
 			key := strings.Join(append(prefixes, parts[0]), "_")
 			if value, ok := in[key]; ok {
 				switch fieldValue.Kind() {
+				case reflect.Slice:
+					values := strings.Split(value, "%%%")
+					if reflect.TypeOf(values).AssignableTo(fieldValue.Type()) {
+						fieldValue.Set(reflect.ValueOf(values))
+					}
 				case reflect.Bool:
 					boolValue, err := strconv.ParseBool(value)
 					if err != nil {

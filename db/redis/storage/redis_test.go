@@ -96,6 +96,7 @@ func TestSave(t *testing.T) {
 		"name":                    "gopher",
 		"age":                     "29",
 		"birth":                   person.BirthTime.Format(time.RFC3339Nano),
+		"colors":                  "",
 		"address_city_name":       "nyc",
 		"address_data_first_line": "secret",
 		"address_number":          "-2",
@@ -108,10 +109,11 @@ func TestSave(t *testing.T) {
 
 func TestSavePointer(t *testing.T) {
 	person := Person{
-		ID:        "some-id",
-		Name:      "gopher",
-		Age:       29,
-		BirthTime: time.Now().Add(-29 * 365 * 24 * time.Hour),
+		ID:              "some-id",
+		Name:            "gopher",
+		Age:             29,
+		BirthTime:       time.Now().Add(-29 * 365 * 24 * time.Hour),
+		PreferredColors: []string{"red", "blue", "yellow"},
 		Address: Address{
 			Data:   map[string]string{"first_line": "secret"},
 			Number: -2,
@@ -140,6 +142,7 @@ func TestSavePointer(t *testing.T) {
 		"name":                    "gopher",
 		"age":                     "29",
 		"birth":                   person.BirthTime.Format(time.RFC3339Nano),
+		"colors":                  "red%%%blue%%%yellow",
 		"address_city_name":       "nyc",
 		"address_data_first_line": "secret",
 		"address_number":          "-2",
@@ -229,6 +232,7 @@ func TestLoadStruct(t *testing.T) {
 		"name":              "Gopher",
 		"age":               "29",
 		"birth":             date.Format(time.RFC3339Nano),
+		"colors":            "red%%%green%%%blue%%%black",
 		"address_number":    "-2",
 		"address_main":      "true",
 		"address_city_name": "New York",
@@ -249,6 +253,7 @@ func TestLoadStruct(t *testing.T) {
 	expectedPerson.Name = "Gopher"
 	expectedPerson.Age = 29
 	expectedPerson.BirthTime = date
+	expectedPerson.PreferredColors = []string{"red", "green", "blue", "black"}
 	err = storage.Load("test-key", &person)
 	if err != nil {
 		t.Fatal(err)
