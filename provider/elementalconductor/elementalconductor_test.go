@@ -4,6 +4,7 @@ import (
 	"encoding/xml"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
@@ -632,6 +633,46 @@ func TestJobStatusMap(t *testing.T) {
 		if got != test.expected {
 			t.Errorf("statusMap(%q): wrong value. Want %q. Got %q", test.elementalConductorStatus, test.expected, got)
 		}
+	}
+}
+
+func TestJobStatus(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	submitted := elementalconductor.DateTime{Time: time.Now().UTC()}
+	client := newFakeElementalConductorClient(&elementalConductorConfig)
+	client.jobs["job-1"] = elementalconductor.Job{
+		Href:            "whatever",
+		PercentComplete: 89,
+		Status:          "running",
+		Submitted:       submitted,
+	}
+	prov := elementalConductorProvider{client: client, config: &elementalConductorConfig}
+	jobStatus, err := prov.JobStatus("job-1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedJobStatus := provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: "job-1",
+		Progress:      89.,
+		Status:        provider.StatusStarted,
+		ProviderStatus: map[string]interface{}{
+			"status":    "running",
+			"submitted": submitted,
+		},
+	}
+	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
+		t.Errorf("wrong job stats\nwant %#v\ngot  %#v", expectedJobStatus, *jobStatus)
 	}
 }
 

@@ -10,11 +10,13 @@ import (
 
 type fakeElementalConductorClient struct {
 	*elementalconductor.Client
+	jobs         map[string]elementalconductor.Job
 	canceledJobs []string
 }
 
 func newFakeElementalConductorClient(cfg *config.Config) *fakeElementalConductorClient {
 	return &fakeElementalConductorClient{
+		jobs: make(map[string]elementalconductor.Job),
 		Client: &elementalconductor.Client{
 			Host:            cfg.ElementalConductor.Host,
 			UserLogin:       cfg.ElementalConductor.UserLogin,
@@ -54,6 +56,11 @@ func (c *fakeElementalConductorClient) CreatePreset(preset *elementalconductor.P
 	return &elementalconductor.Preset{
 		Name: preset.Name,
 	}, nil
+}
+
+func (c *fakeElementalConductorClient) GetJob(jobID string) (*elementalconductor.Job, error) {
+	job := c.jobs[jobID]
+	return &job, nil
 }
 
 func (c *fakeElementalConductorClient) CancelJob(jobID string) (*elementalconductor.Job, error) {

@@ -108,9 +108,8 @@ func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, 
 		return nil, err
 	}
 	providerStatus := map[string]interface{}{
-		"status":       resp.Status,
-		"pct_complete": strconv.Itoa(resp.PercentComplete),
-		"submitted":    resp.Submitted,
+		"status":    resp.Status,
+		"submitted": resp.Submitted,
 	}
 	if !resp.StartTime.IsZero() {
 		providerStatus["start_time"] = resp.StartTime
@@ -126,7 +125,8 @@ func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, 
 	}
 	return &provider.JobStatus{
 		ProviderName:      Name,
-		ProviderJobID:     resp.GetID(),
+		ProviderJobID:     id,
+		Progress:          float64(resp.PercentComplete),
 		Status:            p.statusMap(resp.Status),
 		ProviderStatus:    providerStatus,
 		OutputDestination: p.getOutputDestination(resp),
