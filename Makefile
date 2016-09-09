@@ -11,12 +11,7 @@ testdeps:
 	go get -d -t ./...
 
 checkfmt: testdeps
-	@export output="$$(gofmt -s -l .)" && \
-		[ -n "$${output}" ] && \
-		echo "Unformatted files:" && \
-		echo && echo "$${output}" && \
-		echo && echo "Please fix them using 'gofmt -s -w .'" && \
-		export status=1; exit $${status:-0}
+	[ -z "$$(gofmt -s -d . | tee /dev/stderr)" ]
 
 deadcode:
 	go get github.com/remyoudompheng/go-misc/deadcode
