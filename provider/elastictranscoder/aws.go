@@ -249,8 +249,15 @@ func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	outputs := make(map[string]interface{})
+	totalJobs := len(resp.Job.Outputs)
+	completedJobs := float64(0)
+	outputs := make(map[string]interface{}, totalJobs)
 	for _, output := range resp.Job.Outputs {
+		outputStatus := p.statusMap(aws.StringValue(output.Status))
+		switch outputStatus {
+		case provider.StatusFinished, provider.StatusCanceled, provider.StatusFailed:
+			completedJobs++
+		}
 		outputs[aws.StringValue(output.Key)] = aws.StringValue(output.StatusDetail)
 	}
 	outputDestination, err := p.getOutputDestination(resp.Job)
@@ -260,6 +267,7 @@ func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderJobID:     aws.StringValue(resp.Job.Id),
 		Status:            p.statusMap(aws.StringValue(resp.Job.Status)),
+		Progress:          completedJobs / float64(totalJobs) * 100,
 		ProviderStatus:    map[string]interface{}{"outputs": outputs},
 		OutputDestination: outputDestination,
 	}, nil

@@ -603,6 +603,7 @@ func TestAWSJobStatus(t *testing.T) {
 	expectedJobStatus := provider.JobStatus{
 		ProviderJobID: id,
 		Status:        provider.StatusFinished,
+		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"outputs": map[string]interface{}{
 				"job-123/dir/mp4_720p/file.mp4":   "it's finished!",

@@ -87,6 +87,7 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 	for i, createJobOutput := range createJobInput.Outputs {
 		outputs[i] = &elastictranscoder.JobOutput{
 			Key:          createJobOutput.Key,
+			Status:       aws.String("Complete"),
 			StatusDetail: aws.String("it's finished!"),
 		}
 	}
