@@ -19,7 +19,6 @@ import (
 	"errors"
 	"fmt"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -210,10 +209,6 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 			destination := e.getDestinations(job.ID, transcodeProfile, preset)
 			streamingPresetDestinations = append(streamingPresetDestinations, destination[0])
 		} else {
-			extension := preset.OutputOpts.Extension
-			if extension == "" {
-				extension = "." + filepath.Ext(transcodeProfile.SourceMedia)
-			}
 			format := encodingcom.Format{
 				OutputPreset: presetID,
 				Destination:  e.getDestinations(job.ID, transcodeProfile, preset),
