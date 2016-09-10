@@ -1,4 +1,4 @@
-.PHONY: all testdeps lint test build run checkswagger swagger runswagger
+.PHONY: all testdeps lint test gotest build run checkswagger swagger runswagger
 
 HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
@@ -16,8 +16,10 @@ lint: testdeps
 	go get -t ./...
 	gometalinter -j 4 --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests ./...
 
-test: lint checkswagger
+gotest: testdeps
 	go test ./...
+
+test: lint checkswagger gotest
 
 build:
 	go build
