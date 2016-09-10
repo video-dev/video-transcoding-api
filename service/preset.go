@@ -32,19 +32,19 @@ func (s *TranscodingService) deletePreset(r *http.Request) swagger.GizmoJSONResp
 		output.PresetMap = "couldn't retrieve: " + err.Error()
 	} else {
 		for p, presetID := range presetmap.ProviderMapping {
-			providerFactory, err := provider.GetProviderFactory(p)
-			if err != nil {
-				output.Results[p] = deletePresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
+			providerFactory, ierr := provider.GetProviderFactory(p)
+			if ierr != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "getting factory: " + ierr.Error()}
 				continue
 			}
-			providerObj, err := providerFactory(s.config)
-			if err != nil {
-				output.Results[p] = deletePresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
+			providerObj, ierr := providerFactory(s.config)
+			if ierr != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "initializing provider: " + ierr.Error()}
 				continue
 			}
-			err = providerObj.DeletePreset(presetID)
-			if err != nil {
-				output.Results[p] = deletePresetOutput{PresetID: "", Error: "deleting preset: " + err.Error()}
+			ierr = providerObj.DeletePreset(presetID)
+			if ierr != nil {
+				output.Results[p] = deletePresetOutput{PresetID: "", Error: "deleting preset: " + ierr.Error()}
 				continue
 			}
 			output.Results[p] = deletePresetOutput{PresetID: presetID, Error: ""}
@@ -91,19 +91,19 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 	presetMap.ProviderMapping = make(map[string]string)
 	output.Results = make(map[string]newPresetOutput)
 	for _, p := range input.Providers {
-		providerFactory, err := provider.GetProviderFactory(p)
-		if err != nil {
-			output.Results[p] = newPresetOutput{PresetID: "", Error: "getting factory: " + err.Error()}
+		providerFactory, ierr := provider.GetProviderFactory(p)
+		if ierr != nil {
+			output.Results[p] = newPresetOutput{PresetID: "", Error: "getting factory: " + ierr.Error()}
 			continue
 		}
-		providerObj, err := providerFactory(s.config)
-		if err != nil {
-			output.Results[p] = newPresetOutput{PresetID: "", Error: "initializing provider: " + err.Error()}
+		providerObj, ierr := providerFactory(s.config)
+		if ierr != nil {
+			output.Results[p] = newPresetOutput{PresetID: "", Error: "initializing provider: " + ierr.Error()}
 			continue
 		}
-		presetID, err := providerObj.CreatePreset(input.Preset)
-		if err != nil {
-			output.Results[p] = newPresetOutput{PresetID: "", Error: "creating preset: " + err.Error()}
+		presetID, ierr := providerObj.CreatePreset(input.Preset)
+		if ierr != nil {
+			output.Results[p] = newPresetOutput{PresetID: "", Error: "creating preset: " + ierr.Error()}
 			continue
 		}
 		presetMap.ProviderMapping[p] = presetID
@@ -116,7 +116,7 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		presetMap.Name = input.Preset.Name
 		presetMap.OutputOpts.Extension = input.Preset.Container
 
-		if err := presetMap.OutputOpts.Validate(); err != nil {
+		if err = presetMap.OutputOpts.Validate(); err != nil {
 			return newInvalidPresetResponse(fmt.Errorf("invalid outputOptions: %s", err))
 		}
 

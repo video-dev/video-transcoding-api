@@ -37,12 +37,12 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	}
 	presetsMap := make([]db.PresetMap, len(input.Payload.Presets))
 	for i, presetID := range input.Payload.Presets {
-		presetMap, err := s.db.GetPresetMap(presetID)
-		if err != nil {
-			if err == db.ErrPresetMapNotFound {
-				return newInvalidJobResponse(err)
+		presetMap, presetErr := s.db.GetPresetMap(presetID)
+		if presetErr != nil {
+			if presetErr == db.ErrPresetMapNotFound {
+				return newInvalidJobResponse(presetErr)
 			}
-			return swagger.NewErrorResponse(err)
+			return swagger.NewErrorResponse(presetErr)
 		}
 		presetsMap[i] = *presetMap
 	}
