@@ -1,4 +1,4 @@
-.PHONY: all testdeps checkfmt lint test build run vet checkswagger swagger runswagger
+.PHONY: all testdeps lint test build run checkswagger swagger runswagger
 
 HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
@@ -10,32 +10,19 @@ testdeps:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
 	go get -d -t ./...
 
-checkfmt: testdeps
-	[ -z "$$(gofmt -s -d . | tee /dev/stderr)" ]
-
-deadcode:
-	go get github.com/remyoudompheng/go-misc/deadcode
-	go list ./... | sed -e "s;github.com/nytm/video-transcoding-api;.;" | xargs deadcode
-
 lint: testdeps
-	go get github.com/golang/lint/golint
-	@for file in $$(git ls-files '*.go'); do \
-		export output="$$(golint $${file})"; \
-		[ -n "$${output}" ] && echo "$${output}" && export status=1; \
-	done; \
-	exit $${status:-0}
+	go get github.com/alecthomas/gometalinter honnef.co/go/unused/cmd/unused
+	gometalinter --install
+	gometalinter -j 4 --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests ./...
 
-test: checkfmt lint vet deadcode checkswagger
+test: lint checkswagger
 	go test ./...
 
 build:
 	go build
 
 run: build
-	HTTP_PORT=$(HTTP_PORT) HTTP_ACCESS_LOG=$(HTTP_ACCESS_LOG) LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
-
-vet: testdeps
-	go vet ./...
+	HTTP_PORT=$(HTTP_PORT) HTTP_ACCESS_LOG=$(HTTP_ACCESS_LOG) APP_LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
 
 swagger:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
