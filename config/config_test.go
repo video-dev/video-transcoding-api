@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/NYTimes/gizmo/config/aws"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
@@ -27,7 +26,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"ENCODINGCOM_REGION":                       "sa-east-1",
 		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
 		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
-		"AWS_REGION":                               aws.RegionUSEast1,
+		"AWS_REGION":                               "us-east-1",
 		"ELASTICTRANSCODER_PIPELINE_ID":            "mypipeline",
 		"ELEMENTALCONDUCTOR_HOST":                  "elemental-server",
 		"ELEMENTALCONDUCTOR_USER_LOGIN":            "myuser",
@@ -61,7 +60,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		ElasticTranscoder: &ElasticTranscoder{
 			AccessKeyID:     "AKIANOTREALLY",
 			SecretAccessKey: "secret-key",
-			Region:          aws.RegionUSEast1,
+			Region:          "us-east-1",
 			PipelineID:      "mypipeline",
 		},
 		ElementalConductor: &ElementalConductor{
@@ -111,7 +110,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 		"ENCODINGCOM_DESTINATION":                  "https://safe-stuff",
 		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
 		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
-		"AWS_REGION":                               aws.RegionUSEast1,
+		"AWS_REGION":                               "us-east-1",
 		"ELASTICTRANSCODER_PIPELINE_ID":            "mypipeline",
 		"ELEMENTALCONDUCTOR_HOST":                  "elemental-server",
 		"ELEMENTALCONDUCTOR_USER_LOGIN":            "myuser",
@@ -146,7 +145,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 		ElasticTranscoder: &ElasticTranscoder{
 			AccessKeyID:     "AKIANOTREALLY",
 			SecretAccessKey: "secret-key",
-			Region:          aws.RegionUSEast1,
+			Region:          "us-east-1",
 			PipelineID:      "mypipeline",
 		},
 		ElementalConductor: &ElementalConductor{
