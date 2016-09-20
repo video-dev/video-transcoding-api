@@ -93,20 +93,10 @@ type OutputOptions struct {
 	//
 	// required: true
 	Extension string `redis-hash:"extension" json:"extension"`
-
-	// preset filename label, it's used when constructing the output
-	// filename or path. For example, if this is an mp4 1080p preset,
-	// one might use the label "1080p" and the extension "mp4".
-	//
-	// required: true
-	Label string `redis-hash:"label" json:"label"`
 }
 
 // Validate checks that the OutputOptions object is properly defined.
 func (o *OutputOptions) Validate() error {
-	if o.Label == "" {
-		return errors.New("preset label is required")
-	}
 	if o.Extension == "" {
 		return errors.New("extension is required")
 	}

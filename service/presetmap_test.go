@@ -33,7 +33,6 @@ func TestNewPresetMap(t *testing.T) {
 				},
 				"output": map[string]interface{}{
 					"extension": "mp4",
-					"label":     "123",
 				},
 			},
 			false,
@@ -47,7 +46,6 @@ func TestNewPresetMap(t *testing.T) {
 				},
 				"output": map[string]interface{}{
 					"extension": "mp4",
-					"label":     "123",
 				},
 			},
 		},
@@ -61,7 +59,6 @@ func TestNewPresetMap(t *testing.T) {
 				},
 				"output": map[string]interface{}{
 					"extension": "mp4",
-					"label":     "123",
 				},
 			},
 			false,
@@ -87,34 +84,12 @@ func TestNewPresetMap(t *testing.T) {
 			},
 		},
 		{
-			"New presetmap missing label",
-			map[string]interface{}{
-				"name": "abc-123",
-				"providerMapping": map[string]string{
-					"elementalconductor": "18",
-					"elastictranscoder":  "18384284-0002",
-				},
-				"output": map[string]string{
-					"extension": "mp4",
-				},
-			},
-			false,
-
-			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": "invalid output: preset label is required",
-			},
-		},
-		{
 			"New presetmap missing extension",
 			map[string]interface{}{
 				"name": "abc-123",
 				"providerMapping": map[string]string{
 					"elementalconductor": "18",
 					"elastictranscoder":  "18384284-0002",
-				},
-				"output": map[string]string{
-					"label": "mp4_720p",
 				},
 			},
 			false,
@@ -146,7 +121,6 @@ func TestNewPresetMap(t *testing.T) {
 					"elastictranscoder":  "18384284-0002",
 				},
 				"output": map[string]string{
-					"label":     "mp4_720p",
 					"extension": "mp4",
 				},
 			},

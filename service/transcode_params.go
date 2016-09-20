@@ -14,17 +14,14 @@ type NewTranscodeJobInputPayload struct {
 	// source media for the transcoding job.
 	Source string `json:"source"`
 
-	// presets to use in the transcoding job.
-	Presets []string `json:"presets"`
+	// list of outputs in this job
+	Outputs []struct {
+		FileName string `json:"fileName"`
+		Preset   string `json:"preset"`
+	} `json:"outputs"`
 
 	// provider to use in this job
 	Provider string `json:"provider"`
-
-	// Optional output path for transcoded files
-	OutputPath string `json:"outputPath"`
-
-	// Optional output file prefix for transcoded files
-	OutputFilePrefix string `json:"outputFilePrefix"`
 
 	// provider Adaptive Streaming parameters
 	StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
@@ -62,8 +59,8 @@ func (p *newTranscodeJobInput) validate() error {
 	if p.Payload.Source == "" {
 		return errors.New("missing source media from request")
 	}
-	if len(p.Payload.Presets) == 0 {
-		return errors.New("missing preset list from request")
+	if len(p.Payload.Outputs) == 0 {
+		return errors.New("missing output list from request")
 	}
 	return nil
 }

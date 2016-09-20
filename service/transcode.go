@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"path"
+	"path/filepath"
 
 	"github.com/NYTimes/gizmo/web"
 	"github.com/nytm/video-transcoding-api/db"
@@ -35,27 +37,32 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		}
 		return swagger.NewErrorResponse(formattedErr)
 	}
-	presetsMap := make([]db.PresetMap, len(input.Payload.Presets))
-	for i, presetID := range input.Payload.Presets {
-		presetMap, presetErr := s.db.GetPresetMap(presetID)
+	outputs := make([]provider.TranscodeOutput, len(input.Payload.Outputs))
+	for i, output := range input.Payload.Outputs {
+		presetMap, presetErr := s.db.GetPresetMap(output.Preset)
 		if presetErr != nil {
 			if presetErr == db.ErrPresetMapNotFound {
 				return newInvalidJobResponse(presetErr)
 			}
 			return swagger.NewErrorResponse(presetErr)
 		}
-		presetsMap[i] = *presetMap
+		fileName := output.FileName
+		if fileName == "" {
+			fileName = s.defaultFileName(input.Payload.Source, presetMap)
+		}
+		outputs[i] = provider.TranscodeOutput{FileName: fileName, Preset: *presetMap}
 	}
 	jobID, err := s.genID()
 	if err != nil {
 		return swagger.NewErrorResponse(err)
 	}
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:      input.Payload.Source,
-		Presets:          presetsMap,
-		OutputPath:       input.Payload.OutputPath,
-		OutputFilePrefix: input.Payload.OutputFilePrefix,
-		StreamingParams:  input.Payload.StreamingParams,
+		SourceMedia:     input.Payload.Source,
+		Outputs:         outputs,
+		StreamingParams: input.Payload.StreamingParams,
+	}
+	if transcodeProfile.StreamingParams.Protocol == "hls" && transcodeProfile.StreamingParams.PlaylistFileName == "" {
+		transcodeProfile.StreamingParams.PlaylistFileName = "hls/index.m3u8"
 	}
 	job := db.Job{ID: jobID}
 	jobStatus, err := providerObj.Transcode(&job, transcodeProfile)
@@ -92,6 +99,12 @@ func (s *TranscodingService) genID() (string, error) {
 		return "", io.ErrShortWrite
 	}
 	return fmt.Sprintf("%x", data), nil
+}
+
+func (s *TranscodingService) defaultFileName(source string, preset *db.PresetMap) string {
+	sourceExtension := filepath.Ext(source)
+	_, source = path.Split(source)
+	return fmt.Sprintf("%s_%s.%s", source[:len(source)-len(sourceExtension)], preset.Name, preset.OutputOpts.Extension)
 }
 
 // swagger:route GET /jobs/{jobId} jobs getJob

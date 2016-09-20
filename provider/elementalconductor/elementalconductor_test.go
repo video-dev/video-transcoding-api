@@ -103,27 +103,36 @@ func TestElementalNewJob(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name:            "webm_720p",
-			ProviderMapping: map[string]string{Name: "webm_720p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "webm"},
+			FileName: "output_720p.webm",
+			Preset: db.PresetMap{
+				Name:            "webm_720p",
+				ProviderMapping: map[string]string{Name: "webm_720p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "webm"},
+			},
 		},
 		{
-			Name:            "mp4_720p",
-			ProviderMapping: map[string]string{Name: "mp4_720p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name:            "mp4_720p",
+				ProviderMapping: map[string]string{Name: "mp4_720p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			},
 		},
 		{
-			Name:            "mp4_1080p",
-			ProviderMapping: map[string]string{Name: "mp4_1080p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: ""},
+			FileName: "output_1080p.mp4",
+			Preset: db.PresetMap{
+				Name:            "mp4_1080p",
+				ProviderMapping: map[string]string{Name: "mp4_1080p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			},
 		},
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         presets,
+		Outputs:         outputs,
 		StreamingParams: provider.StreamingParams{},
 	}
 	newJob, err := presetProvider.newJob(&db.Job{ID: "job-1"}, transcodeProfile)
@@ -147,7 +156,7 @@ func TestElementalNewJob(t *testing.T) {
 				Order: 1,
 				FileGroupSettings: &elementalconductor.FileGroupSettings{
 					Destination: &elementalconductor.Location{
-						URI:      "s3://destination/job-1/video",
+						URI:      "s3://destination/job-1/output_720p",
 						Username: "aws-access-key",
 						Password: "aws-secret-key",
 					},
@@ -156,21 +165,44 @@ func TestElementalNewJob(t *testing.T) {
 				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_0",
-						NameModifier:       "_webm_720p",
-						Order:              0,
+						Order:              1,
 						Container:          elementalconductor.Container("webm"),
 					},
+				},
+			},
+			{
+				Order: 2,
+				FileGroupSettings: &elementalconductor.FileGroupSettings{
+					Destination: &elementalconductor.Location{
+						URI:      "s3://destination/job-1/output_720p",
+						Username: "aws-access-key",
+						Password: "aws-secret-key",
+					},
+				},
+				Type: elementalconductor.FileOutputGroupType,
+				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_1",
-						NameModifier:       "_mp4_720p",
 						Order:              1,
 						Container:          elementalconductor.MPEG4,
 					},
+				},
+			},
+			{
+				Order: 3,
+				FileGroupSettings: &elementalconductor.FileGroupSettings{
+					Destination: &elementalconductor.Location{
+						URI:      "s3://destination/job-1/output_1080p",
+						Username: "aws-access-key",
+						Password: "aws-secret-key",
+					},
+				},
+				Type: elementalconductor.FileOutputGroupType,
+				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_2",
-						NameModifier:       "_mp4_1080p",
-						Order:              2,
-						Container:          "",
+						Order:              1,
+						Container:          elementalconductor.MPEG4,
 					},
 				},
 			},
@@ -190,8 +222,8 @@ func TestElementalNewJob(t *testing.T) {
 			},
 		},
 	}
-	if !reflect.DeepEqual(&expectedJob, newJob) {
-		t.Errorf("New job not according to spec.\nWanted %#v.\nGot    %#v.", &expectedJob, newJob)
+	if !reflect.DeepEqual(expectedJob, *newJob) {
+		t.Errorf("New job not according to spec.\nWanted %#v.\nGot    %#v.", expectedJob, *newJob)
 	}
 }
 
@@ -216,34 +248,47 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name:            "hls_360p",
-			ProviderMapping: map[string]string{Name: "hls_360p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "hls"},
+			FileName: "output_hls_360p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_360p",
+				ProviderMapping: map[string]string{Name: "hls_360p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "hls"},
+			},
 		},
 		{
-			Name:            "hls_480p",
-			ProviderMapping: map[string]string{Name: "hls_480p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "ts"},
+			FileName: "output_hls_480p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_480p",
+				ProviderMapping: map[string]string{Name: "hls_480p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "ts"},
+			},
 		},
 		{
-			Name:            "hls_720p",
-			ProviderMapping: map[string]string{Name: "hls_720p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			FileName: "output_hls_720p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_720p",
+				ProviderMapping: map[string]string{Name: "hls_720p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			},
 		},
 		{
-			Name:            "hls_1080p",
-			ProviderMapping: map[string]string{Name: "hls_1080p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: ".ts"},
+			FileName: "output_hls_1080p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_1080p",
+				ProviderMapping: map[string]string{Name: "hls_1080p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: ".ts"},
+			},
 		},
 	}
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
-		Presets:     presets,
+		Outputs:     outputs,
 		StreamingParams: provider.StreamingParams{
-			Protocol:        "hls",
-			SegmentDuration: 3,
+			Protocol:         "hls",
+			SegmentDuration:  3,
+			PlaylistFileName: "hls/master.m3u8",
 		},
 	}
 	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2"}, transcodeProfile)
@@ -267,36 +312,37 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 				Order: 1,
 				AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
 					Destination: &elementalconductor.Location{
-						URI:      "s3://destination/job-2/video",
+						URI:      "s3://destination/job-2/hls/master",
 						Username: "aws-access-key",
 						Password: "aws-secret-key",
 					},
 					SegmentDuration: 3,
+					EmitSingleFile:  true,
 				},
 				Type: elementalconductor.AppleLiveOutputGroupType,
 				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_0",
-						NameModifier:       "_hls_360p",
-						Order:              0,
-						Container:          elementalconductor.AppleHTTPLiveStreaming,
-					},
-					{
-						StreamAssemblyName: "stream_1",
-						NameModifier:       "_hls_480p",
+						NameModifier:       "_0000000001",
 						Order:              1,
 						Container:          elementalconductor.AppleHTTPLiveStreaming,
 					},
 					{
-						StreamAssemblyName: "stream_2",
-						NameModifier:       "_hls_720p",
+						StreamAssemblyName: "stream_1",
+						NameModifier:       "_0000000002",
 						Order:              2,
 						Container:          elementalconductor.AppleHTTPLiveStreaming,
 					},
 					{
-						StreamAssemblyName: "stream_3",
-						NameModifier:       "_hls_1080p",
+						StreamAssemblyName: "stream_2",
+						NameModifier:       "_0000000003",
 						Order:              3,
+						Container:          elementalconductor.AppleHTTPLiveStreaming,
+					},
+					{
+						StreamAssemblyName: "stream_3",
+						NameModifier:       "_0000000004",
+						Order:              4,
 						Container:          elementalconductor.AppleHTTPLiveStreaming,
 					},
 				},
@@ -347,49 +393,71 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name:            "webm_720p",
-			ProviderMapping: map[string]string{Name: "webm_720p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "webm"},
+			FileName: "output_720p.webm",
+			Preset: db.PresetMap{
+				Name:            "webm_720p",
+				ProviderMapping: map[string]string{Name: "webm_720p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "webm"},
+			},
 		},
 		{
-			Name:            "mp4_720p",
-			ProviderMapping: map[string]string{Name: "mp4_720p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name:            "mp4_720p",
+				ProviderMapping: map[string]string{Name: "mp4_720p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			},
 		},
 		{
-			Name:            "mp4_1080p",
-			ProviderMapping: map[string]string{Name: "mp4_1080p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: ""},
+			FileName: "output_1080p.mp4",
+			Preset: db.PresetMap{
+				Name:            "mp4_1080p",
+				ProviderMapping: map[string]string{Name: "mp4_1080p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			},
 		},
 		{
-			Name:            "hls_360p",
-			ProviderMapping: map[string]string{Name: "hls_360p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "hls"},
+			FileName: "output_hls_360p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_360p",
+				ProviderMapping: map[string]string{Name: "hls_360p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			},
 		},
 		{
-			Name:            "hls_480p",
-			ProviderMapping: map[string]string{Name: "hls_480p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "ts"},
+			FileName: "output_hls_480p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_480p",
+				ProviderMapping: map[string]string{Name: "hls_480p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			},
 		},
 		{
-			Name:            "hls_720p",
-			ProviderMapping: map[string]string{Name: "hls_720p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			FileName: "output_hls_720p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_720p",
+				ProviderMapping: map[string]string{Name: "hls_720p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			},
 		},
 		{
-			Name:            "hls_1080p",
-			ProviderMapping: map[string]string{Name: "hls_1080p", "other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: ".ts"},
+			FileName: "output_hls_1080p/video.m3u8",
+			Preset: db.PresetMap{
+				Name:            "hls_1080p",
+				ProviderMapping: map[string]string{Name: "hls_1080p", "other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "m3u8"},
+			},
 		},
 	}
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
-		Presets:     presets,
+		Outputs:     outputs,
 		StreamingParams: provider.StreamingParams{
-			Protocol:        "hls",
-			SegmentDuration: 3,
+			Protocol:         "hls",
+			SegmentDuration:  3,
+			PlaylistFileName: "output_hls/index.m3u8",
 		},
 	}
 	newJob, err := presetProvider.newJob(&db.Job{ID: "job-3"}, transcodeProfile)
@@ -411,47 +479,9 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 		OutputGroup: []elementalconductor.OutputGroup{
 			{
 				Order: 1,
-				AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
-					Destination: &elementalconductor.Location{
-						URI:      "s3://destination/job-3/video",
-						Username: "aws-access-key",
-						Password: "aws-secret-key",
-					},
-					SegmentDuration: 3,
-				},
-				Type: elementalconductor.AppleLiveOutputGroupType,
-				Output: []elementalconductor.Output{
-					{
-						StreamAssemblyName: "stream_3",
-						NameModifier:       "_hls_360p",
-						Order:              3,
-						Container:          elementalconductor.AppleHTTPLiveStreaming,
-					},
-					{
-						StreamAssemblyName: "stream_4",
-						NameModifier:       "_hls_480p",
-						Order:              4,
-						Container:          elementalconductor.AppleHTTPLiveStreaming,
-					},
-					{
-						StreamAssemblyName: "stream_5",
-						NameModifier:       "_hls_720p",
-						Order:              5,
-						Container:          elementalconductor.AppleHTTPLiveStreaming,
-					},
-					{
-						StreamAssemblyName: "stream_6",
-						NameModifier:       "_hls_1080p",
-						Order:              6,
-						Container:          elementalconductor.AppleHTTPLiveStreaming,
-					},
-				},
-			},
-			{
-				Order: 2,
 				FileGroupSettings: &elementalconductor.FileGroupSettings{
 					Destination: &elementalconductor.Location{
-						URI:      "s3://destination/job-3/video",
+						URI:      "s3://destination/job-3/output_720p",
 						Username: "aws-access-key",
 						Password: "aws-secret-key",
 					},
@@ -460,21 +490,83 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_0",
-						NameModifier:       "_webm_720p",
-						Order:              0,
+						Order:              1,
 						Container:          elementalconductor.Container("webm"),
 					},
+				},
+			},
+			{
+				Order: 2,
+				FileGroupSettings: &elementalconductor.FileGroupSettings{
+					Destination: &elementalconductor.Location{
+						URI:      "s3://destination/job-3/output_720p",
+						Username: "aws-access-key",
+						Password: "aws-secret-key",
+					},
+				},
+				Type: elementalconductor.FileOutputGroupType,
+				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_1",
-						NameModifier:       "_mp4_720p",
 						Order:              1,
 						Container:          elementalconductor.MPEG4,
 					},
+				},
+			},
+			{
+				Order: 3,
+				FileGroupSettings: &elementalconductor.FileGroupSettings{
+					Destination: &elementalconductor.Location{
+						URI:      "s3://destination/job-3/output_1080p",
+						Username: "aws-access-key",
+						Password: "aws-secret-key",
+					},
+				},
+				Type: elementalconductor.FileOutputGroupType,
+				Output: []elementalconductor.Output{
 					{
 						StreamAssemblyName: "stream_2",
-						NameModifier:       "_mp4_1080p",
+						Order:              1,
+						Container:          elementalconductor.MPEG4,
+					},
+				},
+			},
+			{
+				Order: 4,
+				AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
+					Destination: &elementalconductor.Location{
+						URI:      "s3://destination/job-3/output_hls/index",
+						Username: "aws-access-key",
+						Password: "aws-secret-key",
+					},
+					SegmentDuration: 3,
+					EmitSingleFile:  true,
+				},
+				Type: elementalconductor.AppleLiveOutputGroupType,
+				Output: []elementalconductor.Output{
+					{
+						StreamAssemblyName: "stream_3",
+						Order:              1,
+						NameModifier:       "_0000000001",
+						Container:          elementalconductor.AppleHTTPLiveStreaming,
+					},
+					{
+						StreamAssemblyName: "stream_4",
 						Order:              2,
-						Container:          "",
+						NameModifier:       "_0000000002",
+						Container:          elementalconductor.AppleHTTPLiveStreaming,
+					},
+					{
+						StreamAssemblyName: "stream_5",
+						Order:              3,
+						NameModifier:       "_0000000003",
+						Container:          elementalconductor.AppleHTTPLiveStreaming,
+					},
+					{
+						StreamAssemblyName: "stream_6",
+						Order:              4,
+						NameModifier:       "_0000000004",
+						Container:          elementalconductor.AppleHTTPLiveStreaming,
 					},
 				},
 			},
@@ -536,18 +628,16 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name:            "webm_720p",
-			ProviderMapping: map[string]string{"other": "not relevant"},
-			OutputOpts:      db.OutputOptions{Extension: "webm"},
+			Preset: db.PresetMap{
+				Name:            "webm_720p",
+				ProviderMapping: map[string]string{"other": "not relevant"},
+				OutputOpts:      db.OutputOptions{Extension: "webm"},
+			},
 		},
 	}
-	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     source,
-		Presets:         presets,
-		StreamingParams: provider.StreamingParams{},
-	}
+	transcodeProfile := provider.TranscodeProfile{SourceMedia: source, Outputs: outputs}
 	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2"}, transcodeProfile)
 	if err != provider.ErrPresetMapNotFound {
 		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)

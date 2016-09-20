@@ -22,80 +22,136 @@ func TestTranscode(t *testing.T) {
 		givenRequestBody    string
 		givenTriggerDBError bool
 
-		wantCode int
-		wantBody map[string]interface{}
+		wantCode             int
+		wantBody             map[string]interface{}
+		wantOutputFileNames  []string
+		wantPlaylistFileName string
 	}{
 		{
 			"New job",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_1080p"],
+  "outputs": [{"preset":"mp4_1080p","fileName":"91274824924924-published-supervideo-1080p.mp4"}],
+  "streamingParams": {"playlistFileName":"output_hls/master.m3u8","protocol":"hls"},
   "provider": "fake"
 }`,
 			false,
 
 			http.StatusOK,
-			map[string]interface{}{"jobId": ""},
+			map[string]interface{}{"jobId": "fill me"},
+			[]string{"91274824924924-published-supervideo-1080p.mp4"},
+			"output_hls/master.m3u8",
+		},
+		{
+			"New job - default playlist file name",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "outputs": [{"preset":"mp4_1080p","fileName":"91274824924924-published-supervideo-1080p.mp4"}],
+  "streamingParams": {"protocol":"hls"},
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{"jobId": "fill me"},
+			[]string{"91274824924924-published-supervideo-1080p.mp4"},
+			"hls/index.m3u8",
+		},
+		{
+			"New job - no playlist file name",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "outputs": [{"preset":"mp4_1080p","fileName":"91274824924924-published-supervideo-1080p.mp4"}],
+  "streamingParams": {},
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{"jobId": "fill me"},
+			[]string{"91274824924924-published-supervideo-1080p.mp4"},
+			"",
+		},
+		{
+			"New job - default output file name",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "outputs": [{"preset":"mp4_1080p"}],
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{"jobId": "fill me"},
+			[]string{"video_mp4_1080p.mp4"},
+			"",
 		},
 		{
 			"New job with preset not found in provider",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_360p"],
+  "outputs": [{"preset":"mp4_360p"}],
   "provider": "fake"
 }`,
 			false,
 
 			http.StatusBadRequest,
 			map[string]interface{}{"error": provider.ErrPresetMapNotFound.Error()},
+			nil,
+			"",
 		},
 		{
 			"New job with preset not found in the API",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_720p"],
+  "outputs": [{"preset":"mp4_720p"}],
   "provider": "fake"
 }`,
 			false,
 
 			http.StatusBadRequest,
 			map[string]interface{}{"error": db.ErrPresetMapNotFound.Error()},
+			nil,
+			"",
 		},
 		{
 			"New job with database error",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_1080p"],
+  "outputs": [{"preset":"mp4_1080p"}],
   "provider": "fake"
 }`,
 			true,
 
 			http.StatusInternalServerError,
-			map[string]interface{}{
-				"error": "database error",
-			},
+			map[string]interface{}{"error": "database error"},
+			nil,
+			"",
 		},
 		{
 			"New job with invalid provider",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
-  "presets": ["mp4_1080p"],
+  "outputs": [{"preset":"mp4_1080p"}],
   "provider": "nonexistent-provider"
 }`,
 			false,
 
 			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": "provider not found",
-			},
+			map[string]interface{}{"error": "provider not found"},
+			nil,
+			"",
 		},
 		{
-			"New job missing presets",
+			"New job missing outputs",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -104,27 +160,35 @@ func TestTranscode(t *testing.T) {
 			false,
 
 			http.StatusBadRequest,
-			map[string]interface{}{
-				"error": "missing preset list from request",
-			},
+			map[string]interface{}{"error": "missing output list from request"},
+			nil,
+			"",
 		},
 	}
 
 	for _, test := range tests {
+		fprovider.jobs = nil
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
-		fakeDBObj.CreatePresetMap(&db.PresetMap{Name: "mp4_1080p", ProviderMapping: map[string]string{"fake": "18828"}})
-		fakeDBObj.CreatePresetMap(&db.PresetMap{Name: "mp4_360p", ProviderMapping: map[string]string{"elementalconductor": "172712"}})
+		fakeDBObj.CreatePresetMap(&db.PresetMap{
+			Name:            "mp4_1080p",
+			ProviderMapping: map[string]string{"fake": "18828"},
+			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+		})
+		fakeDBObj.CreatePresetMap(&db.PresetMap{
+			Name:            "mp4_360p",
+			ProviderMapping: map[string]string{"elementalconductor": "172712"},
+		})
 		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
 		if w.Code != test.wantCode {
-			t.Errorf("%s: expected response code of %d; got %d", test.givenTestCase, test.wantCode, w.Code)
+			t.Errorf("%s: expected response code of %d. got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got map[string]interface{}
-		err := json.NewDecoder(w.Body).Decode(&got)
+		err := json.Unmarshal(w.Body.Bytes(), &got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
@@ -135,12 +199,25 @@ func TestTranscode(t *testing.T) {
 			test.wantBody["jobId"] = got["jobId"]
 		}
 		if !reflect.DeepEqual(got, test.wantBody) {
+			t.Logf("%s: raw response from the api:\n%s", test.givenTestCase, w.Body.Bytes())
 			t.Errorf("%s: expected response body of\n%#v;\ngot\n%#v", test.givenTestCase, test.wantBody, got)
 		}
 		if test.wantCode == http.StatusOK {
 			_, err = fakeDBObj.GetJob(got["jobId"].(string))
 			if err != nil {
 				t.Error(err)
+			}
+			profile := fprovider.jobs[0]
+			fileNames := make([]string, len(profile.Outputs))
+			for i, output := range profile.Outputs {
+				fileNames[i] = output.FileName
+			}
+			if !reflect.DeepEqual(fileNames, test.wantOutputFileNames) {
+				t.Errorf("%s: wrong file names for output files\nwant %#v\ngot  %#v", test.givenTestCase, test.wantOutputFileNames, fileNames)
+			}
+			playlistFile := fprovider.jobs[0].StreamingParams.PlaylistFileName
+			if playlistFile != test.wantPlaylistFileName {
+				t.Errorf("%s: wrong playlist filename\nwant %q\ngot  %q", test.givenTestCase, test.wantPlaylistFileName, playlistFile)
 			}
 		}
 	}

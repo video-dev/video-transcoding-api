@@ -18,7 +18,6 @@ package elementalconductor
 import (
 	"encoding/xml"
 	"fmt"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -164,30 +163,17 @@ func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) 
 	}
 }
 
-func (p *elementalConductorProvider) buildFullDestination(jobID, source string) string {
-	sourceParts := strings.Split(source, "/")
-	sourceFilenamePart := sourceParts[len(sourceParts)-1]
-	sourceFileName := strings.TrimSuffix(sourceFilenamePart, filepath.Ext(sourceFilenamePart))
-	destination := strings.TrimRight(p.client.GetDestination(), "/")
-	return destination + "/" + path.Join(jobID, sourceFileName)
-}
-
 func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) ([]elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
 	var streamingOutputList []elementalconductor.Output
-	var nonStreamingOutputList []elementalconductor.Output
-	var streamingOutputGroup elementalconductor.OutputGroup
-	var nonStreamingOutputGroup elementalconductor.OutputGroup
 	var streamAssemblyList []elementalconductor.StreamAssembly
 	var outputGroupList []elementalconductor.OutputGroup
-	for index, preset := range transcodeProfile.Presets {
+	var outputGroupOrder int
+	var streamingGroupOrder int
+	for index, output := range transcodeProfile.Outputs {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
-		output := elementalconductor.Output{
-			StreamAssemblyName: streamAssemblyName,
-			NameModifier:       "_" + preset.Name,
-			Order:              index,
-		}
-		presetID, ok := preset.ProviderMapping[Name]
+		out := elementalconductor.Output{StreamAssemblyName: streamAssemblyName}
+		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
 			return outputGroupList, nil, provider.ErrPresetMapNotFound
 		}
@@ -197,12 +183,26 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 		}
 		presetStruct := presetOutput.(*elementalconductor.Preset)
 		if presetStruct.Container == string(elementalconductor.AppleHTTPLiveStreaming) {
-			output.Container = elementalconductor.AppleHTTPLiveStreaming
-			streamingOutputList = append(streamingOutputList, output)
+			streamingGroupOrder++
+			out.NameModifier = fmt.Sprintf("_%010d", streamingGroupOrder)
+			out.Container = elementalconductor.AppleHTTPLiveStreaming
+			out.Order = streamingGroupOrder
+			streamingOutputList = append(streamingOutputList, out)
 		} else {
-			ext := strings.TrimLeft(preset.OutputOpts.Extension, ".")
-			output.Container = elementalconductor.Container(ext)
-			nonStreamingOutputList = append(nonStreamingOutputList, output)
+			outputGroupOrder++
+			location := outputLocation
+			location.URI += "/" + output.FileName[:len(output.FileName)-len(filepath.Ext(output.FileName))]
+			ext := strings.TrimLeft(output.Preset.OutputOpts.Extension, ".")
+			out.Container = elementalconductor.Container(ext)
+			out.Order = 1
+			outputGroupList = append(outputGroupList, elementalconductor.OutputGroup{
+				Order:  outputGroupOrder,
+				Type:   elementalconductor.FileOutputGroupType,
+				Output: []elementalconductor.Output{out},
+				FileGroupSettings: &elementalconductor.FileGroupSettings{
+					Destination: &location,
+				},
+			})
 		}
 		streamAssembly := elementalconductor.StreamAssembly{
 			Name:   streamAssemblyName,
@@ -210,31 +210,22 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 		}
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
-	outputGroupOrder := 0
 	if len(streamingOutputList) > 0 {
-		outputGroupOrder = outputGroupOrder + 1
-		streamingOutputGroup = elementalconductor.OutputGroup{
+		playlistFileName := transcodeProfile.StreamingParams.PlaylistFileName
+		location := outputLocation
+		location.URI += "/" + strings.TrimRight(playlistFileName, filepath.Ext(playlistFileName))
+		outputGroupOrder++
+		streamingOutputGroup := elementalconductor.OutputGroup{
 			Order: outputGroupOrder,
 			AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
-				Destination:     &outputLocation,
+				Destination:     &location,
 				SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
+				EmitSingleFile:  true,
 			},
 			Type:   elementalconductor.AppleLiveOutputGroupType,
 			Output: streamingOutputList,
 		}
 		outputGroupList = append(outputGroupList, streamingOutputGroup)
-	}
-	if len(nonStreamingOutputList) > 0 {
-		outputGroupOrder = outputGroupOrder + 1
-		nonStreamingOutputGroup = elementalconductor.OutputGroup{
-			Order: outputGroupOrder,
-			FileGroupSettings: &elementalconductor.FileGroupSettings{
-				Destination: &outputLocation,
-			},
-			Type:   elementalconductor.FileOutputGroupType,
-			Output: nonStreamingOutputList,
-		}
-		outputGroupList = append(outputGroupList, nonStreamingOutputGroup)
 	}
 	return outputGroupList, streamAssemblyList, nil
 }
@@ -246,8 +237,9 @@ func (p *elementalConductorProvider) newJob(job *db.Job, transcodeProfile provid
 		Username: p.client.GetAccessKeyID(),
 		Password: p.client.GetSecretAccessKey(),
 	}
+	baseLocation := strings.TrimRight(p.config.ElementalConductor.Destination, "/")
 	outputLocation := elementalconductor.Location{
-		URI:      p.buildFullDestination(job.ID, transcodeProfile.SourceMedia),
+		URI:      baseLocation + "/" + job.ID,
 		Username: p.client.GetAccessKeyID(),
 		Password: p.client.GetSecretAccessKey(),
 	}

@@ -28,7 +28,6 @@ func TestNewPreset(t *testing.T) {
 				"providers": []string{"fake", "encodingcom"},
 				"outputOptions": map[string]interface{}{
 					"extension": "mp5",
-					"label":     "super_mp5",
 				},
 				"preset": map[string]interface{}{
 					"name":         "nyt_test_here_2wq",
@@ -53,7 +52,6 @@ func TestNewPreset(t *testing.T) {
 			},
 			db.OutputOptions{
 				Extension: "mp4",
-				Label:     "super_mp5",
 			},
 			map[string]interface{}{
 				"Results": map[string]interface{}{
@@ -71,44 +69,11 @@ func TestNewPreset(t *testing.T) {
 			http.StatusOK,
 		},
 		{
-			"Validation error",
-			map[string]interface{}{
-				"providers": []string{"fake", "encodingcom"},
-				"outputOptions": map[string]interface{}{
-					"extension": "mp5",
-				},
-				"preset": map[string]interface{}{
-					"name":         "nyt_test_here_2wq",
-					"description":  "testing creation from api",
-					"container":    "mp4",
-					"profile":      "Main",
-					"profileLevel": "3.1",
-					"rateControl":  "VBR",
-					"video": map[string]string{
-						"height":        "720",
-						"codec":         "h264",
-						"bitrate":       "1000",
-						"gopSize":       "90",
-						"gopMode":       "fixed",
-						"interlaceMode": "progressive",
-					},
-					"audio": map[string]string{
-						"codec":   "aac",
-						"bitrate": "64000",
-					},
-				},
-			},
-			db.OutputOptions{},
-			map[string]interface{}{"error": "invalid outputOptions: preset label is required"},
-			http.StatusBadRequest,
-		},
-		{
 			"Error creating preset in all providers",
 			map[string]interface{}{
 				"providers": []string{"elastictranscoder", "encodingcom"},
 				"outputOptions": map[string]interface{}{
 					"extension": "mp5",
-					"label":     "super_mp5",
 				},
 				"preset": map[string]interface{}{
 					"name":         "nyt_test_here_3wq",

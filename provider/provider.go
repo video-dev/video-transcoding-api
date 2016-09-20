@@ -97,8 +97,9 @@ type MediaInfo struct {
 
 // StreamingParams contains all parameters related to the streaming protocol used.
 type StreamingParams struct {
-	SegmentDuration uint   `json:"segmentDuration,omitempty"`
-	Protocol        string `json:"protocol,omitempty"`
+	PlaylistFileName string `json:"playlistFileName,omitempty"`
+	SegmentDuration  uint   `json:"segmentDuration,omitempty"`
+	Protocol         string `json:"protocol,omitempty"`
 }
 
 // Preset define the set of parameters of a given preset
@@ -132,11 +133,16 @@ type AudioPreset struct {
 
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.
 type TranscodeProfile struct {
-	SourceMedia      string
-	Presets          []db.PresetMap
-	StreamingParams  StreamingParams
-	OutputPath       string
-	OutputFilePrefix string
+	SourceMedia     string
+	Outputs         []TranscodeOutput
+	StreamingParams StreamingParams
+}
+
+// TranscodeOutput represents a transcoding output. It's a combination of the
+// preset and the output file name.
+type TranscodeOutput struct {
+	Preset   db.PresetMap
+	FileName string
 }
 
 // Status is the status of a transcoding job.

@@ -13,26 +13,12 @@ func TestOutputOptionsValidation(t *testing.T) {
 	}{
 		{
 			"valid options",
-			OutputOptions{
-				Label:     "mp4_720p",
-				Extension: "mp4",
-			},
+			OutputOptions{Extension: "mp4"},
 			"",
 		},
 		{
-			"missing label",
-			OutputOptions{
-				Label:     "",
-				Extension: "mp4",
-			},
-			"preset label is required",
-		},
-		{
 			"missing extension",
-			OutputOptions{
-				Label:     "mp4_720p",
-				Extension: "",
-			},
+			OutputOptions{Extension: ""},
 			"extension is required",
 		},
 	}
