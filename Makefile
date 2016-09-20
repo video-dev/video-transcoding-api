@@ -12,7 +12,7 @@ testdeps:
 
 lint: testdeps
 	go get github.com/alecthomas/gometalinter honnef.co/go/unused/cmd/unused
-	gometalinter --install
+	gometalinter --install --vendored-linters
 	go get -t ./...
 	gometalinter -j 4 --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests ./...
 
