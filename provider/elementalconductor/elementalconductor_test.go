@@ -657,7 +657,7 @@ func TestJobStatus(t *testing.T) {
 		Submitted:       submitted,
 	}
 	prov := elementalConductorProvider{client: client, config: &elementalConductorConfig}
-	jobStatus, err := prov.JobStatus("job-1")
+	jobStatus, err := prov.JobStatus(&db.Job{ProviderJobID: "job-1"})
 	if err != nil {
 		t.Fatal(err)
 	}

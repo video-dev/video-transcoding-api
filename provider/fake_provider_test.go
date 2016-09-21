@@ -14,7 +14,7 @@ func (*fakeProvider) Transcode(*db.Job, TranscodeProfile) (*JobStatus, error) {
 	return nil, nil
 }
 
-func (*fakeProvider) JobStatus(string) (*JobStatus, error) {
+func (*fakeProvider) JobStatus(*db.Job) (*JobStatus, error) {
 	return nil, nil
 }
 

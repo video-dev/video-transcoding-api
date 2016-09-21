@@ -102,8 +102,8 @@ func (p *elementalConductorProvider) Transcode(job *db.Job, transcodeProfile pro
 	}, nil
 }
 
-func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, error) {
-	resp, err := p.client.GetJob(id)
+func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
+	resp, err := p.client.GetJob(job.ProviderJobID)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func (p *elementalConductorProvider) JobStatus(id string) (*provider.JobStatus, 
 	}
 	return &provider.JobStatus{
 		ProviderName:      Name,
-		ProviderJobID:     id,
+		ProviderJobID:     job.ProviderJobID,
 		Progress:          float64(resp.PercentComplete),
 		Status:            p.statusMap(resp.Status),
 		ProviderStatus:    providerStatus,

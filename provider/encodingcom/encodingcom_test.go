@@ -409,10 +409,10 @@ func TestJobStatus(t *testing.T) {
 	prov := encodingComProvider{client: client}
 	prov.config = &config.Config{
 		EncodingCom: &config.EncodingCom{
-			Destination: "mybucket",
+			Destination: "https://mybucket.s3.amazonaws.com/dir/",
 		},
 	}
-	jobStatus, err := prov.JobStatus("mymedia")
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: "mymedia"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -433,7 +433,7 @@ func TestJobStatus(t *testing.T) {
 			"destinationStatus": []destinationStatus{
 				{
 					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/some_hls_preset/video-0.m3u8",
+						Name:   "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
 						Status: "Saved",
 					},
 					Size:       "1920x1080",
@@ -442,7 +442,7 @@ func TestJobStatus(t *testing.T) {
 				},
 				{
 					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/video.m3u8",
+						Name:   "s3://mybucket/dir/job-123/video.m3u8",
 						Status: "Saved",
 					},
 					Size:       "1920x1080",
@@ -457,7 +457,7 @@ func TestJobStatus(t *testing.T) {
 			Height:     1080,
 			VideoCodec: "VP9",
 		},
-		OutputDestination: "s3://mybucket/dir/some_hls_preset",
+		OutputDestination: "s3://mybucket/dir/job-123/",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v\nGot  %#v", expected, *jobStatus)
@@ -492,10 +492,10 @@ func TestJobStatusNotFinished(t *testing.T) {
 	prov := encodingComProvider{client: client}
 	prov.config = &config.Config{
 		EncodingCom: &config.EncodingCom{
-			Destination: "mybucket",
+			Destination: "https://mybucket.s3.amazonaws.com/dir/",
 		},
 	}
-	jobStatus, err := prov.JobStatus("mymedia")
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: "mymedia"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -516,7 +516,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 			"destinationStatus": []destinationStatus{
 				{
 					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/some_hls_preset/video-0.m3u8",
+						Name:   "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
 						Status: "Saved",
 					},
 					Size:       "1920x1080",
@@ -525,7 +525,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 				},
 				{
 					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/video.m3u8",
+						Name:   "s3://mybucket/dir/job-123/video.m3u8",
 						Status: "Saved",
 					},
 					Size:       "1920x1080",
@@ -534,7 +534,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 				},
 			},
 		},
-		OutputDestination: "s3://mybucket/dir/some_hls_preset",
+		OutputDestination: "s3://mybucket/dir/job-123/",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v.\nGot  %#v.", expected, *jobStatus)
@@ -633,7 +633,7 @@ func TestJobStatusInvalidMediaInfo(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		jobStatus, err := prov.JobStatus(test.mediaID)
+		jobStatus, err := prov.JobStatus(&db.Job{ProviderJobID: test.mediaID})
 		if jobStatus != nil {
 			t.Errorf("%s: got unexpected non-nil status: %#v", test.testCase, jobStatus)
 		}
@@ -652,7 +652,7 @@ func TestJobStatusMediaNotFound(t *testing.T) {
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
 	provider := encodingComProvider{client: client}
-	jobStatus, err := provider.JobStatus("non-existent-job")
+	jobStatus, err := provider.JobStatus(&db.Job{ProviderJobID: "non-existent-job"})
 	if err == nil {
 		t.Errorf("JobStatus: got unexpected <nil> err.")
 	}
