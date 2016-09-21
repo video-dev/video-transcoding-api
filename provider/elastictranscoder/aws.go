@@ -244,7 +244,8 @@ func (p *awsProvider) DeletePreset(presetID string) error {
 	return err
 }
 
-func (p *awsProvider) JobStatus(id string) (*provider.JobStatus, error) {
+func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
+	id := job.ProviderJobID
 	resp, err := p.c.ReadJob(&elastictranscoder.ReadJobInput{Id: aws.String(id)})
 	if err != nil {
 		return nil, err

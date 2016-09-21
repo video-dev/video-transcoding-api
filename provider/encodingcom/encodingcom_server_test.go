@@ -190,8 +190,8 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 			"output":     "advanced_hls",
 			"format": map[string]interface{}{
 				"destination": []string{
-					"https://mybucket.s3.amazonaws.com/dir/some_hls_preset/video-0.m3u8",
-					"https://mybucket.s3.amazonaws.com/dir/video.m3u8",
+					"https://mybucket.s3.amazonaws.com/dir/job-123/some_hls_preset/video-0.m3u8",
+					"https://mybucket.s3.amazonaws.com/dir/job-123/video.m3u8",
 				},
 				"destination_status": []string{"Saved", "Saved"},
 				"size":               media.Request.Format[0].Size,

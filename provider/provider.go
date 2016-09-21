@@ -31,7 +31,7 @@ var (
 // might be a JSON, or an XML, or anything else.
 type TranscodingProvider interface {
 	Transcode(*db.Job, TranscodeProfile) (*JobStatus, error)
-	JobStatus(id string) (*JobStatus, error)
+	JobStatus(*db.Job) (*JobStatus, error)
 	CancelJob(id string) error
 	CreatePreset(Preset) (string, error)
 	DeletePreset(presetID string) error

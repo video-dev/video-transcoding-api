@@ -595,13 +595,12 @@ func TestAWSJobStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	id := jobStatus.ProviderJobID
-	jobStatus, err = prov.JobStatus(id)
+	jobStatus, err = prov.JobStatus(&db.Job{ProviderJobID: jobStatus.ProviderJobID})
 	if err != nil {
 		t.Fatal(err)
 	}
 	expectedJobStatus := provider.JobStatus{
-		ProviderJobID: id,
+		ProviderJobID: jobStatus.ProviderJobID,
 		Status:        provider.StatusFinished,
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
@@ -668,7 +667,7 @@ func TestAWSJobStatusNotFound(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	jobStatus, err := provider.JobStatus("idk")
+	jobStatus, err := provider.JobStatus(&db.Job{ProviderJobID: "idk"})
 	if err == nil {
 		t.Fatal("Got unexpected <nil> error")
 	}
@@ -694,7 +693,7 @@ func TestAWSJobStatusInternalError(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	jobStatus, err := provider.JobStatus("idk")
+	jobStatus, err := provider.JobStatus(&db.Job{ProviderJobID: "idk"})
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
 	}

@@ -45,7 +45,8 @@ func (*fakeProvider) DeletePreset(presetID string) error {
 	return nil
 }
 
-func (p *fakeProvider) JobStatus(id string) (*provider.JobStatus, error) {
+func (p *fakeProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
+	id := job.ProviderJobID
 	if id == "provider-job-123" {
 		status := provider.StatusFinished
 		if len(p.canceledJobs) > 0 {

@@ -143,7 +143,7 @@ func (s *TranscodingService) getTranscodeJobByID(jobID string) (*db.Job, *provid
 	if err != nil {
 		return job, nil, nil, fmt.Errorf("error initializing provider %q on job id %q: %s %s", job.ProviderName, jobID, providerObj, err)
 	}
-	jobStatus, err := providerObj.JobStatus(job.ProviderJobID)
+	jobStatus, err := providerObj.JobStatus(job)
 	if err != nil {
 		return job, nil, providerObj, err
 	}
@@ -177,7 +177,7 @@ func (s *TranscodingService) cancelTranscodeJob(r *http.Request) swagger.GizmoJS
 	if err != nil {
 		return swagger.NewErrorResponse(err)
 	}
-	status, err := prov.JobStatus(job.ProviderJobID)
+	status, err := prov.JobStatus(job)
 	if err != nil {
 		return swagger.NewErrorResponse(err)
 	}

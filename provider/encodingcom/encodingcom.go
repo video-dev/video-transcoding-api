@@ -230,8 +230,8 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 	return formats, nil
 }
 
-func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) {
-	resp, err := e.client.GetStatus([]string{id}, false)
+func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
+	resp, err := e.client.GetStatus([]string{job.ProviderJobID}, false)
 	if err != nil {
 		return nil, err
 	}
@@ -241,13 +241,13 @@ func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) 
 	var mediaInfo provider.MediaInfo
 	status := e.statusMap(resp[0].MediaStatus)
 	if status == provider.StatusFinished {
-		mediaInfo, err = e.mediaInfo(id)
+		mediaInfo, err = e.mediaInfo(job.ProviderJobID)
 		if err != nil {
 			return nil, err
 		}
 	}
 	return &provider.JobStatus{
-		ProviderJobID: id,
+		ProviderJobID: job.ProviderJobID,
 		ProviderName:  "encoding.com",
 		Status:        status,
 		Progress:      resp[0].Progress,
@@ -261,7 +261,7 @@ func (e *encodingComProvider) JobStatus(id string) (*provider.JobStatus, error) 
 			"formatStatus":      e.getFormatStatus(resp),
 			"destinationStatus": e.getOutputDestinationStatus(resp),
 		},
-		OutputDestination: e.getOutputDestination(resp),
+		OutputDestination: e.getOutputDestination(job),
 		MediaInfo:         mediaInfo,
 	}, nil
 }
@@ -339,17 +339,12 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 	return destinationStatusList
 }
 
-func (e *encodingComProvider) getOutputDestination(status []encodingcom.StatusResponse) string {
-	formats := status[0].Formats
-	for _, formatStatus := range formats {
-		for _, destinationStatus := range formatStatus.Destinations {
-			if destinationStatus.Status == "Saved" {
-				destination := strings.Split(destinationStatus.Name, "/")
-				return e.destinationMedia(strings.Join(destination[:len(destination)-1], "/"))
-			}
-		}
+func (e *encodingComProvider) getOutputDestination(job *db.Job) string {
+	parts := httpS3Regexp.FindStringSubmatch(strings.Trim(e.config.EncodingCom.Destination, "/"))
+	if len(parts) > 0 {
+		return fmt.Sprintf("s3://%s/%s/%s/", parts[1], parts[2], job.ID)
 	}
-	return ""
+	return strings.TrimRight(e.config.EncodingCom.Destination, "/") + "/" + job.ID
 }
 
 func (e *encodingComProvider) destinationMedia(input string) string {
