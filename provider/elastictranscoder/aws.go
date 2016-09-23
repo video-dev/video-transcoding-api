@@ -56,15 +56,15 @@ type awsProvider struct {
 }
 
 func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	var adaptiveStreamingPresets []db.PresetMap
+	var adaptiveStreamingOutputs []provider.TranscodeOutput
 	source := p.normalizeSource(transcodeProfile.SourceMedia)
 	params := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 	}
-	params.Outputs = make([]*elastictranscoder.CreateJobOutput, len(transcodeProfile.Presets))
-	for i, preset := range transcodeProfile.Presets {
-		presetID, ok := preset.ProviderMapping[Name]
+	params.Outputs = make([]*elastictranscoder.CreateJobOutput, len(transcodeProfile.Outputs))
+	for i, output := range transcodeProfile.Outputs {
+		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetMapNotFound
 		}
@@ -81,26 +81,28 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 		isAdaptiveStreamingPreset := false
 		if *presetOutput.Preset.Container == "ts" {
 			isAdaptiveStreamingPreset = true
-			adaptiveStreamingPresets = append(adaptiveStreamingPresets, preset)
+			adaptiveStreamingOutputs = append(adaptiveStreamingOutputs, output)
 		}
 		params.Outputs[i] = &elastictranscoder.CreateJobOutput{
 			PresetId: aws.String(presetID),
-			Key:      p.outputKey(job, preset.OutputOpts, source, preset.Name, isAdaptiveStreamingPreset),
+			Key:      p.outputKey(job, output.FileName, isAdaptiveStreamingPreset),
 		}
 		if isAdaptiveStreamingPreset {
 			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)))
 		}
 	}
 
-	if len(adaptiveStreamingPresets) > 0 {
+	if len(adaptiveStreamingOutputs) > 0 {
+		playlistFileName := transcodeProfile.StreamingParams.PlaylistFileName
+		playlistFileName = strings.TrimRight(playlistFileName, filepath.Ext(playlistFileName))
 		jobPlaylist := elastictranscoder.CreateJobPlaylist{
 			Format: aws.String("HLSv3"),
-			Name:   aws.String(job.ID + "/" + strings.TrimRight(source, filepath.Ext(source)) + "/master"),
+			Name:   aws.String(job.ID + "/" + playlistFileName),
 		}
 
-		jobPlaylist.OutputKeys = make([]*string, len(adaptiveStreamingPresets))
-		for i, preset := range adaptiveStreamingPresets {
-			jobPlaylist.OutputKeys[i] = p.outputKey(job, preset.OutputOpts, source, preset.Name, true)
+		jobPlaylist.OutputKeys = make([]*string, len(adaptiveStreamingOutputs))
+		for i, output := range adaptiveStreamingOutputs {
+			jobPlaylist.OutputKeys[i] = p.outputKey(job, output.FileName, true)
 		}
 
 		params.Playlists = []*elastictranscoder.CreateJobPlaylist{&jobPlaylist}
@@ -125,18 +127,11 @@ func (p *awsProvider) normalizeSource(source string) string {
 	return source
 }
 
-func (p *awsProvider) outputKey(job *db.Job, opts db.OutputOptions, source, presetName string, adaptiveStreaming bool) *string {
-	parts := append([]string{job.ID}, strings.Split(source, "/")...)
-	lastIndex := len(parts) - 1
-	fileName := parts[lastIndex]
-	if adaptiveStreaming {
+func (p *awsProvider) outputKey(job *db.Job, fileName string, adaptive bool) *string {
+	if adaptive {
 		fileName = strings.TrimRight(fileName, filepath.Ext(fileName))
-		parts = append(parts[0:lastIndex], fileName, presetName, "video")
-	} else {
-		fileName = strings.TrimRight(fileName, filepath.Ext(fileName)) + "." + strings.TrimLeft(opts.Extension, ".")
-		parts = append(parts[0:lastIndex], presetName, fileName)
 	}
-	return aws.String(strings.Join(parts, "/"))
+	return aws.String(job.ID + "/" + fileName)
 }
 
 func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscoder.VideoParameters {
@@ -261,7 +256,7 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		}
 		outputs[aws.StringValue(output.Key)] = aws.StringValue(output.StatusDetail)
 	}
-	outputDestination, err := p.getOutputDestination(resp.Job)
+	outputDestination, err := p.getOutputDestination(job, resp.Job)
 	if err != nil {
 		outputDestination = err.Error()
 	}
@@ -274,25 +269,17 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (p *awsProvider) getOutputDestination(job *elastictranscoder.Job) (string, error) {
+func (p *awsProvider) getOutputDestination(job *db.Job, awsJob *elastictranscoder.Job) (string, error) {
 	readPipelineOutput, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
-		Id: job.PipelineId,
+		Id: awsJob.PipelineId,
 	})
 	if err != nil {
 		return "", err
 	}
-	outputKeyPrefix := aws.StringValue(job.OutputKeyPrefix)
-	for _, output := range job.Outputs {
-		destinationFile := fmt.Sprintf("s3://%s/%s%s",
-			*readPipelineOutput.Pipeline.OutputBucket,
-			outputKeyPrefix,
-			*output.Key,
-		)
-		destination := strings.Split(destinationFile, "/")
-		destination = destination[:len(destination)-3]
-		return strings.Join(destination, "/"), nil
-	}
-	return "", nil
+	return fmt.Sprintf("s3://%s/%s",
+		aws.StringValue(readPipelineOutput.Pipeline.OutputBucket),
+		job.ID,
+	), nil
 }
 
 func (p *awsProvider) statusMap(awsStatus string) provider.Status {

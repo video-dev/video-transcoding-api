@@ -89,7 +89,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "123455",
 				"not-relevant": "something",
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm", Label: "720p"},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 		{
 			Name: "webm_480p",
@@ -97,7 +97,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "123456",
 				"not-relevant": "otherthing",
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm", Label: "480p"},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 		{
 			Name: "mp4_1080p",
@@ -105,7 +105,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321321",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "mp4", Label: "1080p"},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
 		},
 		{
 			Name: "hls_360p",
@@ -113,7 +113,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "360p"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 		{
 			Name: "hls_480p",
@@ -121,7 +121,7 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "480p"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 		{
 			Name: "hls_1080p",
@@ -129,10 +129,11 @@ func TestEncodingComTranscode(t *testing.T) {
 				Name:           "321322",
 				"not-relevant": "allthings",
 			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8", Label: "1080p"},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 	}
-	for _, preset := range presets {
+	outputs := make([]provider.TranscodeOutput, len(presets))
+	for i, preset := range presets {
 		_, err := prov.CreatePreset(provider.Preset{
 			Name:      preset.ProviderMapping[Name],
 			Container: preset.OutputOpts.Extension,
@@ -140,16 +141,23 @@ func TestEncodingComTranscode(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		fileName := "output-" + preset.Name + "." + preset.OutputOpts.Extension
+		if preset.OutputOpts.Extension == "m3u8" {
+			fileName = "output-" + preset.Name + "/video.m3u8"
+		}
+		outputs[i] = provider.TranscodeOutput{
+			Preset:   preset,
+			FileName: fileName,
+		}
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:      source,
-		Presets:          presets,
-		OutputPath:       "/output/path",
-		OutputFilePrefix: "file-prefix",
+		SourceMedia: source,
+		Outputs:     outputs,
 		StreamingParams: provider.StreamingParams{
-			Protocol:        "hls",
-			SegmentDuration: 3,
+			PlaylistFileName: "output_hls/video.m3u8",
+			Protocol:         "hls",
+			SegmentDuration:  3,
 		},
 	}
 
@@ -172,19 +180,19 @@ func TestEncodingComTranscode(t *testing.T) {
 	expectedFormats := []encodingcom.Format{
 		{
 			OutputPreset: "123455",
-			Destination:  []string{dest + "job-123/output/path/file-prefix_720p.webm"},
+			Destination:  []string{dest + "job-123/output-webm_720p.webm"},
 		},
 		{
 			OutputPreset: "123456",
-			Destination:  []string{dest + "job-123/output/path/file-prefix_480p.webm"},
+			Destination:  []string{dest + "job-123/output-webm_480p.webm"},
 		},
 		{
 			OutputPreset: "321321",
-			Destination:  []string{dest + "job-123/output/path/file-prefix_1080p.mp4"},
+			Destination:  []string{dest + "job-123/output-mp4_1080p.mp4"},
 		},
 		{
 			Output:          []string{"advanced_hls"},
-			Destination:     []string{dest + "job-123/output/path/file-prefix_hls/video.m3u8"},
+			Destination:     []string{dest + "job-123/output_hls/video.m3u8"},
 			SegmentDuration: 3,
 			PackFiles:       &falseYesNoBoolean,
 			Stream: []encodingcom.Stream{
@@ -201,14 +209,11 @@ func TestEncodingComTranscode(t *testing.T) {
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
-		t.Errorf("Wrong format.\nWant %#v\nGot  %#v.", expectedFormats, media.Request.Format)
+		t.Errorf("Wrong format.\nWant %#v\nGot  %#v", expectedFormats, media.Request.Format)
 	}
 	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
 	}
-
-	transcodeProfile.OutputPath = ""
-	transcodeProfile.OutputFilePrefix = ""
 
 	jobStatus, err = prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -227,19 +232,19 @@ func TestEncodingComTranscode(t *testing.T) {
 	expectedFormats = []encodingcom.Format{
 		{
 			OutputPreset: "123455",
-			Destination:  []string{dest + "job-123_720p.webm"},
+			Destination:  []string{dest + "job-123/output-webm_720p.webm"},
 		},
 		{
 			OutputPreset: "123456",
-			Destination:  []string{dest + "job-123_480p.webm"},
+			Destination:  []string{dest + "job-123/output-webm_480p.webm"},
 		},
 		{
 			OutputPreset: "321321",
-			Destination:  []string{dest + "job-123_1080p.mp4"},
+			Destination:  []string{dest + "job-123/output-mp4_1080p.mp4"},
 		},
 		{
 			Output:          []string{"advanced_hls"},
-			Destination:     []string{dest + "job-123_hls/video.m3u8"},
+			Destination:     []string{dest + "job-123/output_hls/video.m3u8"},
 			SegmentDuration: 3,
 			PackFiles:       &falseYesNoBoolean,
 			Stream: []encodingcom.Stream{
@@ -285,10 +290,11 @@ func TestEncodingComS3Input(t *testing.T) {
 				Name:           "123455",
 				"not-relevant": "something",
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm", Label: "720p"},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
-	for _, preset := range presets {
+	outputs := make([]provider.TranscodeOutput, len(presets))
+	for i, preset := range presets {
 		_, err := prov.CreatePreset(provider.Preset{
 			Name:      preset.ProviderMapping[Name],
 			Container: preset.OutputOpts.Extension,
@@ -296,11 +302,15 @@ func TestEncodingComS3Input(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		outputs[i] = provider.TranscodeOutput{
+			Preset:   preset,
+			FileName: "best-video-ever." + preset.OutputOpts.Extension,
+		}
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
-		Presets:     presets,
+		Outputs:     outputs,
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -320,7 +330,7 @@ func TestEncodingComS3Input(t *testing.T) {
 	expectedFormats := []encodingcom.Format{
 		{
 			OutputPreset: "123455",
-			Destination:  []string{dest + "job-123_720p.webm"},
+			Destination:  []string{dest + "job-123/best-video-ever.webm"},
 		},
 	}
 	if !reflect.DeepEqual(media.Request.Format, expectedFormats) {
@@ -344,36 +354,38 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 		},
 	}
 	source := "http://some.nice/video.mp4"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name: "webm_720p",
-			ProviderMapping: map[string]string{
-				Name:           "123455",
-				"not-relevant": "something",
+			Preset: db.PresetMap{
+				Name: "webm_720p",
+				ProviderMapping: map[string]string{
+					Name:           "123455",
+					"not-relevant": "something",
+				},
+				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 		{
-			Name: "webm_480p",
-			ProviderMapping: map[string]string{
-				"not-relevant": "otherthing",
+			Preset: db.PresetMap{
+				Name: "webm_480p",
+				ProviderMapping: map[string]string{
+					"not-relevant": "otherthing",
+				},
+				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia: source,
-		Presets:     presets,
-		StreamingParams: provider.StreamingParams{
-			SegmentDuration: 3,
-		},
+		SourceMedia:     source,
+		Outputs:         outputs,
+		StreamingParams: provider.StreamingParams{SegmentDuration: 3},
 	}
 
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-2"}, transcodeProfile)
 	expectedErrorString := "Error converting presets to formats on Transcode operation: Error getting preset info: Error returned by the Encoding.com API: {\"Errors\":[\"123455 preset not found\"]}"
 	if err.Error() != expectedErrorString {
-		t.Errorf("Wrong error. Want %#v. Got %#v", expectedErrorString, err.Error())
+		t.Errorf("Wrong error\nWant %#v\nGot  %#v", expectedErrorString, err.Error())
 	}
 	if jobStatus != nil {
 		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)

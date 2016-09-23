@@ -11,17 +11,19 @@ func init() {
 }
 
 type fakeProvider struct {
+	jobs         []provider.TranscodeProfile
 	canceledJobs []string
 }
 
 var fprovider fakeProvider
 
 func (p *fakeProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	for _, preset := range transcodeProfile.Presets {
-		if _, ok := preset.ProviderMapping["fake"]; !ok {
+	for _, output := range transcodeProfile.Outputs {
+		if _, ok := output.Preset.ProviderMapping["fake"]; !ok {
 			return nil, provider.ErrPresetMapNotFound
 		}
 	}
+	p.jobs = append(p.jobs, transcodeProfile)
 	return &provider.JobStatus{
 		ProviderJobID: "provider-preset-job-123",
 		Status:        provider.StatusFinished,

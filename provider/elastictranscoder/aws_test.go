@@ -132,36 +132,45 @@ func TestAWSTranscode(t *testing.T) {
 		},
 	}
 	source := "dir/file.mov"
-	presetmaps := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name: "mp4_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0001",
-				"other": "irrelevant",
+			FileName: "output-720p.mp4",
+			Preset: db.PresetMap{
+				Name: "mp4_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mp4"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "mp4"},
 		},
 		{
-			Name: "webm_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0002",
-				"other": "irrelevant",
+			FileName: "output-720p.webm",
+			Preset: db.PresetMap{
+				Name: "webm_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0002",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 		{
-			Name: "mov_1080p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0003",
-				"other": "irrelevant",
+			FileName: "output-1080p.mov",
+			Preset: db.PresetMap{
+				Name: "mov_1080p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0003",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mov"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "mov"},
 		},
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         presetmaps,
+		Outputs:         outputs,
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
@@ -187,13 +196,13 @@ func TestAWSTranscode(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001"), Key: aws.String("job-123/dir/mp4_720p/file.mp4")},
-			{PresetId: aws.String("93239832-0002"), Key: aws.String("job-123/dir/webm_720p/file.webm")},
-			{PresetId: aws.String("93239832-0003"), Key: aws.String("job-123/dir/mov_1080p/file.mov")},
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("job-123/output-720p.mp4")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("job-123/output-720p.webm")},
+			{PresetId: aws.String("93239832-0003"), Key: aws.String("job-123/output-1080p.mov")},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
-		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
+		t.Errorf("Elastic Transcoder: wrong input\nWant %#v\nGot  %#v", expectedJobInput, *jobInput)
 	}
 }
 
@@ -209,38 +218,50 @@ func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
 		},
 	}
 	source := "dir/file.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name: "hls_360p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0001-hls",
-				"other": "irrelevant",
+			FileName: "output_360p_hls/video.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_360p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001-hls",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "hls"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
-		},
-
-		{
-			Name: "hls_480p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0002-hls",
-				"other": "irrelevant",
-			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
 		},
 		{
-			Name: "hls_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0003-hls",
-				"other": "irrelevant",
+			FileName: "output_480p_hls/video.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_480p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0002-hls",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "hls"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
+		},
+		{
+			FileName: "output_720p_hls/video.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0003-hls",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "hls"},
+			},
 		},
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     source,
-		Presets:         presets,
-		StreamingParams: provider.StreamingParams{Protocol: "asdf", SegmentDuration: 3},
+		SourceMedia: source,
+		Outputs:     outputs,
+		StreamingParams: provider.StreamingParams{
+			PlaylistFileName: "video.m3u8",
+			Protocol:         "asdf",
+			SegmentDuration:  3,
+		},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -265,24 +286,24 @@ func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001-hls"), Key: aws.String("job-123/dir/file/hls_360p/video"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0002-hls"), Key: aws.String("job-123/dir/file/hls_480p/video"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0003-hls"), Key: aws.String("job-123/dir/file/hls_720p/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0001-hls"), Key: aws.String("job-123/output_360p_hls/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0002-hls"), Key: aws.String("job-123/output_480p_hls/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0003-hls"), Key: aws.String("job-123/output_720p_hls/video"), SegmentDuration: aws.String("3")},
 		},
 		Playlists: []*elastictranscoder.CreateJobPlaylist{
 			{
 				Format: aws.String("HLSv3"),
-				Name:   aws.String("job-123/dir/file/master"),
+				Name:   aws.String("job-123/video"),
 				OutputKeys: []*string{
-					aws.String("job-123/dir/file/hls_360p/video"),
-					aws.String("job-123/dir/file/hls_480p/video"),
-					aws.String("job-123/dir/file/hls_720p/video"),
+					aws.String("job-123/output_360p_hls/video"),
+					aws.String("job-123/output_480p_hls/video"),
+					aws.String("job-123/output_720p_hls/video"),
 				},
 			},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
-		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
+		t.Errorf("Elastic Transcoder: wrong input\nWant %#v\nGot  %#v", expectedJobInput, *jobInput)
 	}
 }
 
@@ -298,46 +319,61 @@ func TestAWSTranscodeAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 		},
 	}
 	source := "dir/file.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name: "hls_360p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0001-hls",
-				"other": "irrelevant",
+			FileName: "hls/output_hls_360p/video.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_360p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001-hls",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "hls"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
-		},
-
-		{
-			Name: "hls_480p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0002-hls",
-				"other": "irrelevant",
-			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
 		},
 		{
-			Name: "hls_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0003-hls",
-				"other": "irrelevant",
+			FileName: "hls/output_hls_480p/video.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_480p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0002-hls",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "hls"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "hls"},
 		},
 		{
-			Name: "mp4_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0004",
-				"other": "irrelevant",
+			FileName: "hls/output_hls_720p/video.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0003-hls",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "hls"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name: "mp4_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0004",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mp4"},
+			},
 		},
 	}
 
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     source,
-		Presets:         presets,
-		StreamingParams: provider.StreamingParams{Protocol: "asdf", SegmentDuration: 3},
+		SourceMedia: source,
+		Outputs:     outputs,
+		StreamingParams: provider.StreamingParams{
+			PlaylistFileName: "hls/video.m3u8",
+			Protocol:         "asdf",
+			SegmentDuration:  3,
+		},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -362,25 +398,25 @@ func TestAWSTranscodeAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001-hls"), Key: aws.String("job-123/dir/file/hls_360p/video"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0002-hls"), Key: aws.String("job-123/dir/file/hls_480p/video"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0003-hls"), Key: aws.String("job-123/dir/file/hls_720p/video"), SegmentDuration: aws.String("3")},
-			{PresetId: aws.String("93239832-0004"), Key: aws.String("job-123/dir/mp4_720p/file.mp4")},
+			{PresetId: aws.String("93239832-0001-hls"), Key: aws.String("job-123/hls/output_hls_360p/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0002-hls"), Key: aws.String("job-123/hls/output_hls_480p/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0003-hls"), Key: aws.String("job-123/hls/output_hls_720p/video"), SegmentDuration: aws.String("3")},
+			{PresetId: aws.String("93239832-0004"), Key: aws.String("job-123/output_720p.mp4")},
 		},
 		Playlists: []*elastictranscoder.CreateJobPlaylist{
 			{
 				Format: aws.String("HLSv3"),
-				Name:   aws.String("job-123/dir/file/master"),
+				Name:   aws.String("job-123/hls/video"),
 				OutputKeys: []*string{
-					aws.String("job-123/dir/file/hls_360p/video"),
-					aws.String("job-123/dir/file/hls_480p/video"),
-					aws.String("job-123/dir/file/hls_720p/video"),
+					aws.String("job-123/hls/output_hls_360p/video"),
+					aws.String("job-123/hls/output_hls_480p/video"),
+					aws.String("job-123/hls/output_hls_720p/video"),
 				},
 			},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
-		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
+		t.Errorf("Elastic Transcoder: wrong input\nWant %#v\nGot  %#v", expectedJobInput, *jobInput)
 	}
 }
 
@@ -396,27 +432,33 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 		},
 	}
 	source := "s3://bucketname/some/dir/with/subdir/file.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name: "mp4_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0001",
-				"other": "irrelevant",
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name: "mp4_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mp4"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "mp4"},
 		},
 		{
-			Name: "hls_1080p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0002",
-				"other": "irrelevant",
+			FileName: "output_1080p.webm",
+			Preset: db.PresetMap{
+				Name: "webm_1080p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0002",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "ts"},
 		},
 	}
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         presets,
+		Outputs:         outputs,
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-1"}, transcodeProfile)
@@ -442,56 +484,12 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 		PipelineId: aws.String("mypipeline"),
 		Input:      &elastictranscoder.JobInput{Key: aws.String("some/dir/with/subdir/file.mov")},
 		Outputs: []*elastictranscoder.CreateJobOutput{
-			{PresetId: aws.String("93239832-0001"), Key: aws.String("job-1/some/dir/with/subdir/mp4_720p/file.mp4")},
-			{PresetId: aws.String("93239832-0002"), Key: aws.String("job-1/some/dir/with/subdir/hls_1080p/file.ts")},
+			{PresetId: aws.String("93239832-0001"), Key: aws.String("job-1/output_720p.mp4")},
+			{PresetId: aws.String("93239832-0002"), Key: aws.String("job-1/output_1080p.webm")},
 		},
 	}
 	if !reflect.DeepEqual(*jobInput, expectedJobInput) {
-		t.Errorf("Elastic Transcoder: wrong input. Want %#v. Got %#v.", expectedJobInput, *jobInput)
-	}
-}
-
-func TestJobStatusOutputDestination(t *testing.T) {
-	var tests = []struct {
-		job      elastictranscoder.Job
-		expected string
-	}{
-		{
-			elastictranscoder.Job{
-				PipelineId:      aws.String("mypipeline"),
-				OutputKeyPrefix: aws.String("output-prefix"),
-				Outputs: []*elastictranscoder.JobOutput{
-					{
-						// Output for HLS preset
-						Key: aws.String("/job-id/some-dir/file-name/preset-name/video"),
-					},
-					{
-						// Output for MP4 preset
-						Key: aws.String("/job-id/some-dir/preset-name/file-name.mp4"),
-					},
-				},
-			},
-			"s3://some bucket/output-prefix/job-id/some-dir",
-		},
-	}
-	fakeTranscoder := newFakeElasticTranscoder()
-	prov := &awsProvider{
-		c: fakeTranscoder,
-		config: &config.ElasticTranscoder{
-			AccessKeyID:     "AKIA",
-			SecretAccessKey: "secret",
-			Region:          "sa-east-1",
-			PipelineID:      "mypipeline",
-		},
-	}
-	for _, test := range tests {
-		got, err := prov.getOutputDestination(&test.job)
-		if err != nil {
-			t.Error(err.Error())
-		}
-		if got != test.expected {
-			t.Errorf("Wrong output destination. Want %q. Got %q", test.expected, got)
-		}
+		t.Errorf("Elastic Transcoder: wrong input\nWant %#v\nGot  %#v", expectedJobInput, *jobInput)
 	}
 }
 
@@ -507,16 +505,19 @@ func TestAWSTranscodePresetNotFound(t *testing.T) {
 		},
 	}
 	source := "s3://bucketname/some/dir/with/subdir/file.mov"
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name:            "mp4_720p",
-			ProviderMapping: map[string]string{"other": "irrelevant"},
-			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name:            "mp4_720p",
+				ProviderMapping: map[string]string{"other": "irrelevant"},
+				OutputOpts:      db.OutputOptions{Extension: "mp4"},
+			},
 		},
 	}
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         presets,
+		Outputs:         outputs,
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
@@ -544,7 +545,6 @@ func TestAWSTranscodeAWSFailureInAmazon(t *testing.T) {
 	source := "dir/file.mp4"
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         nil,
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
@@ -567,35 +567,41 @@ func TestAWSJobStatus(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	presets := []db.PresetMap{
+	outputs := []provider.TranscodeOutput{
 		{
-			Name: "mp4_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0001",
-				"other": "irrelevant",
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name: "mp4_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mp4"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "mp4"},
 		},
 		{
-			Name: "webm_720p",
-			ProviderMapping: map[string]string{
-				Name:    "93239832-0002",
-				"other": "irrelevant",
+			FileName: "output_720p.webm",
+			Preset: db.PresetMap{
+				Name: "webm_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0002",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
-			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
 	source := "dir/file.mov"
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		Presets:         presets,
+		Outputs:         outputs,
 		StreamingParams: provider.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
 		t.Fatal(err)
 	}
-	jobStatus, err = prov.JobStatus(&db.Job{ProviderJobID: jobStatus.ProviderJobID})
+	jobStatus, err = prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: jobStatus.ProviderJobID})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -605,14 +611,14 @@ func TestAWSJobStatus(t *testing.T) {
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"outputs": map[string]interface{}{
-				"job-123/dir/mp4_720p/file.mp4":   "it's finished!",
-				"job-123/dir/webm_720p/file.webm": "it's finished!",
+				"job-123/output_720p.mp4":  "it's finished!",
+				"job-123/output_720p.webm": "it's finished!",
 			},
 		},
 		OutputDestination: "s3://some bucket/job-123",
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
-		t.Errorf("Wrong JobStatus. Want %#v. Got %#v.", expectedJobStatus, *jobStatus)
+		t.Errorf("Wrong JobStatus\nWant %#v\nGot  %#v", expectedJobStatus, *jobStatus)
 	}
 }
 

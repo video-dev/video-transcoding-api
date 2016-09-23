@@ -164,35 +164,22 @@ func (e *encodingComProvider) DeletePreset(presetID string) error {
 	return err
 }
 
-func (e *encodingComProvider) getDestinations(jobID string, transcodeProfile provider.TranscodeProfile, preset db.PresetMap) []string {
-	destination := e.buildDestination(
-		e.config.EncodingCom.Destination,
-		jobID,
-		transcodeProfile.OutputPath,
-		transcodeProfile.OutputFilePrefix,
-		preset.OutputOpts.Label,
-		preset.OutputOpts.Extension,
-	)
+func (e *encodingComProvider) getDestinations(jobID, fileName string) []string {
+	destination := e.buildDestination(e.config.EncodingCom.Destination, jobID, fileName)
 	return []string{destination}
 }
 
-func (e *encodingComProvider) buildDestination(outputDestination string, jobID string, outputDestinationPath string, outputFilePrefix string, presetLabel string, extension string) string {
-	outputPath := strings.TrimRight(outputDestinationPath, "/")
-	destinationPathWithPrefix := path.Join(jobID, outputPath, outputFilePrefix)
-	outputFile := destinationPathWithPrefix + "_" + presetLabel + "." + extension
-	if extension == "m3u8" {
-		outputFile = destinationPathWithPrefix + "_hls" + "/video.m3u8"
-	}
-	return strings.TrimRight(outputDestination, "/") + "/" + outputFile
+func (e *encodingComProvider) buildDestination(baseDestination, jobID, fileName string) string {
+	outputPath := strings.TrimRight(baseDestination, "/")
+	return outputPath + "/" + path.Join(jobID, fileName)
 }
 
 func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]encodingcom.Format, error) {
 	streams := []encodingcom.Stream{}
-	streamingPresetDestinations := []string{}
-	formats := make([]encodingcom.Format, 0, len(transcodeProfile.Presets))
-	for _, preset := range transcodeProfile.Presets {
-		presetName := preset.Name
-		presetID, ok := preset.ProviderMapping[Name]
+	formats := make([]encodingcom.Format, 0, len(transcodeProfile.Outputs))
+	for _, output := range transcodeProfile.Outputs {
+		presetName := output.Preset.Name
+		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetMapNotFound
 		}
@@ -206,12 +193,10 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 				stream.SubPath = presetName
 				streams = append(streams, stream)
 			}
-			destination := e.getDestinations(job.ID, transcodeProfile, preset)
-			streamingPresetDestinations = append(streamingPresetDestinations, destination[0])
 		} else {
 			format := encodingcom.Format{
 				OutputPreset: presetID,
-				Destination:  e.getDestinations(job.ID, transcodeProfile, preset),
+				Destination:  e.getDestinations(job.ID, output.FileName),
 			}
 			formats = append(formats, format)
 		}
@@ -220,7 +205,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 		falseValue := encodingcom.YesNoBoolean(false)
 		format := encodingcom.Format{
 			Output:          []string{"advanced_hls"},
-			Destination:     streamingPresetDestinations[0:1],
+			Destination:     e.getDestinations(job.ID, transcodeProfile.StreamingParams.PlaylistFileName),
 			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			Stream:          streams,
 			PackFiles:       &falseValue,
