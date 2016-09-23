@@ -128,22 +128,12 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 		Progress:          float64(resp.PercentComplete),
 		Status:            p.statusMap(resp.Status),
 		ProviderStatus:    providerStatus,
-		OutputDestination: p.getOutputDestination(resp),
+		OutputDestination: p.getOutputDestination(job),
 	}, nil
 }
 
-func (p *elementalConductorProvider) getOutputDestination(job *elementalconductor.Job) string {
-	for _, outputGroup := range job.OutputGroup {
-		destinationPrefix := ""
-		if outputGroup.Type == elementalconductor.FileOutputGroupType {
-			destinationPrefix = outputGroup.FileGroupSettings.Destination.URI
-		} else {
-			destinationPrefix = outputGroup.AppleLiveGroupSettings.Destination.URI
-		}
-		destinationParts := strings.Split(destinationPrefix, "/")
-		return strings.Join(destinationParts[:len(destinationParts)-1], "/")
-	}
-	return ""
+func (p *elementalConductorProvider) getOutputDestination(job *db.Job) string {
+	return strings.TrimRight(p.config.ElementalConductor.Destination, "/") + "/" + job.ID
 }
 
 func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) provider.Status {

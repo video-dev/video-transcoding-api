@@ -649,30 +649,23 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 
 func TestJobStatusOutputDestination(t *testing.T) {
 	var tests = []struct {
-		job      elementalconductor.Job
-		expected string
+		job            db.Job
+		destinationCfg string
+		expected       string
 	}{
 		{
-			elementalconductor.Job{
-				OutputGroup: []elementalconductor.OutputGroup{
-					{
-						Type: elementalconductor.FileOutputGroupType,
-						FileGroupSettings: &elementalconductor.FileGroupSettings{
-							Destination: &elementalconductor.Location{
-								URI: "some/dir/file.mp4",
-							},
-						},
-					}, {
-						Type: elementalconductor.AppleLiveOutputGroupType,
-						AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
-							Destination: &elementalconductor.Location{
-								URI: "some/dir/master.m3u8",
-							},
-						},
-					},
-				},
+			db.Job{
+				ID: "job-123",
 			},
-			"some/dir",
+			"s3://destination///",
+			"s3://destination/job-123",
+		},
+		{
+			db.Job{
+				ID: "job-123",
+			},
+			"s3://destination",
+			"s3://destination/job-123",
 		},
 	}
 	elementalConductorConfig := config.Config{
@@ -683,19 +676,19 @@ func TestJobStatusOutputDestination(t *testing.T) {
 			AuthExpires:     30,
 			AccessKeyID:     "aws-access-key",
 			SecretAccessKey: "aws-secret-key",
-			Destination:     "s3://destination",
 		},
 	}
 	prov, err := fakeElementalConductorFactory(&elementalConductorConfig)
 	if err != nil {
 		t.Fatal(err)
 	}
-	presetProvider, ok := prov.(*elementalConductorProvider)
+	provider, ok := prov.(*elementalConductorProvider)
 	if !ok {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	for _, test := range tests {
-		got := presetProvider.getOutputDestination(&test.job)
+		provider.config.ElementalConductor.Destination = test.destinationCfg
+		got := provider.getOutputDestination(&test.job)
 		if got != test.expected {
 			t.Errorf("Wrong output destination. Want %q. Got %q", test.expected, got)
 		}
@@ -747,15 +740,16 @@ func TestJobStatus(t *testing.T) {
 		Submitted:       submitted,
 	}
 	prov := elementalConductorProvider{client: client, config: &elementalConductorConfig}
-	jobStatus, err := prov.JobStatus(&db.Job{ProviderJobID: "job-1"})
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "super-job-1", ProviderJobID: "job-1"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	expectedJobStatus := provider.JobStatus{
-		ProviderName:  Name,
-		ProviderJobID: "job-1",
-		Progress:      89.,
-		Status:        provider.StatusStarted,
+		ProviderName:      Name,
+		ProviderJobID:     "job-1",
+		Progress:          89.,
+		Status:            provider.StatusStarted,
+		OutputDestination: "s3://destination/super-job-1",
 		ProviderStatus: map[string]interface{}{
 			"status":    "running",
 			"submitted": submitted,
