@@ -256,7 +256,7 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		}
 		outputs[aws.StringValue(output.Key)] = aws.StringValue(output.StatusDetail)
 	}
-	outputDestination, err := p.getOutputDestination(resp.Job)
+	outputDestination, err := p.getOutputDestination(job, resp.Job)
 	if err != nil {
 		outputDestination = err.Error()
 	}
@@ -269,24 +269,17 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (p *awsProvider) getOutputDestination(job *elastictranscoder.Job) (string, error) {
+func (p *awsProvider) getOutputDestination(job *db.Job, awsJob *elastictranscoder.Job) (string, error) {
 	readPipelineOutput, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
-		Id: job.PipelineId,
+		Id: awsJob.PipelineId,
 	})
 	if err != nil {
 		return "", err
 	}
-	outputKeyPrefix := aws.StringValue(job.OutputKeyPrefix)
-	for _, output := range job.Outputs {
-		destinationFile := fmt.Sprintf("s3://%s/%s%s",
-			aws.StringValue(readPipelineOutput.Pipeline.OutputBucket),
-			outputKeyPrefix,
-			aws.StringValue(output.Key),
-		)
-		destination := strings.Split(destinationFile, "/")
-		return strings.Join(destination[:len(destination)-1], "/"), nil
-	}
-	return "", nil
+	return fmt.Sprintf("s3://%s/%s",
+		aws.StringValue(readPipelineOutput.Pipeline.OutputBucket),
+		job.ID,
+	), nil
 }
 
 func (p *awsProvider) statusMap(awsStatus string) provider.Status {

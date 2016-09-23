@@ -601,7 +601,7 @@ func TestAWSJobStatus(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	jobStatus, err = prov.JobStatus(&db.Job{ProviderJobID: jobStatus.ProviderJobID})
+	jobStatus, err = prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: jobStatus.ProviderJobID})
 	if err != nil {
 		t.Fatal(err)
 	}
