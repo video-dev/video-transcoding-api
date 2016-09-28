@@ -34,6 +34,12 @@ func (c *fakeElasticTranscoder) CreateJob(input *elastictranscoder.CreateJobInpu
 	if err := c.getError("CreateJob"); err != nil {
 		return nil, err
 	}
+	input.Input.DetectedProperties = &elastictranscoder.DetectedProperties{
+		DurationMillis: aws.Int64(120e3),
+		FileSize:       aws.Int64(60356779),
+		Width:          aws.Int64(1920),
+		Height:         aws.Int64(1080),
+	}
 	id := fmt.Sprintf("job-%x", generateID())
 	c.jobs[id] = input
 	return &elastictranscoder.CreateJobResponse{

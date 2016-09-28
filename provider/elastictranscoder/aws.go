@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -265,6 +266,11 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
 		Progress:       completedJobs / float64(totalJobs) * 100,
 		ProviderStatus: map[string]interface{}{"outputs": outputs},
+		MediaInfo: provider.MediaInfo{
+			Duration: time.Duration(aws.Int64Value(resp.Job.Input.DetectedProperties.DurationMillis)) * time.Millisecond,
+			Height:   aws.Int64Value(resp.Job.Input.DetectedProperties.Height),
+			Width:    aws.Int64Value(resp.Job.Input.DetectedProperties.Width),
+		},
 		Output: provider.JobOutput{
 			Destination: outputDestination,
 		},
