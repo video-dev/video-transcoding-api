@@ -69,14 +69,20 @@ func (c *fakeElasticTranscoder) CreatePreset(input *elastictranscoder.CreatePres
 
 func (c *fakeElasticTranscoder) ReadPreset(input *elastictranscoder.ReadPresetInput) (*elastictranscoder.ReadPresetOutput, error) {
 	container := "mp4"
+	codec := "H.264"
 	if strings.Contains(*input.Id, "hls") {
 		container = "ts"
+	}
+	if strings.Contains(*input.Id, "webm") {
+		container = "webm"
+		codec = "VP8"
 	}
 	return &elastictranscoder.ReadPresetOutput{
 		Preset: &elastictranscoder.Preset{
 			Id:        input.Id,
 			Name:      input.Id,
 			Container: aws.String(container),
+			Video:     &elastictranscoder.VideoParameters{Codec: aws.String(codec)},
 		},
 	}, nil
 }
@@ -95,6 +101,9 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 			Key:          createJobOutput.Key,
 			Status:       aws.String("Complete"),
 			StatusDetail: aws.String("it's finished!"),
+			PresetId:     aws.String(fmt.Sprintf("preset-%s", aws.StringValue(createJobOutput.Key))),
+			Width:        aws.Int64(0),
+			Height:       aws.Int64(720),
 		}
 	}
 	return &elastictranscoder.ReadJobOutput{

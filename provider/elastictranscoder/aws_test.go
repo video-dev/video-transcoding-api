@@ -655,6 +655,22 @@ func TestAWSJobStatus(t *testing.T) {
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some bucket/job-123",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some bucket/job-123/output_720p.mp4",
+					Container:  "mp4",
+					VideoCodec: "H.264",
+					Width:      0,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some bucket/job-123/output_720p.webm",
+					Container:  "webm",
+					VideoCodec: "VP8",
+					Width:      0,
+					Height:     720,
+				},
+			},
 		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {

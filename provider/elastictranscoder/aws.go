@@ -261,6 +261,10 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		outputDestination = err.Error()
 	}
+	outputFiles, err := p.getOutputFiles(resp.Job)
+	if err != nil {
+		return nil, err
+	}
 	return &provider.JobStatus{
 		ProviderJobID:  aws.StringValue(resp.Job.Id),
 		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
@@ -273,6 +277,7 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		},
 		Output: provider.JobOutput{
 			Destination: outputDestination,
+			Files:       outputFiles,
 		},
 	}, nil
 }
@@ -288,6 +293,37 @@ func (p *awsProvider) getOutputDestination(job *db.Job, awsJob *elastictranscode
 		aws.StringValue(readPipelineOutput.Pipeline.OutputBucket),
 		job.ID,
 	), nil
+}
+
+func (p *awsProvider) getOutputFiles(job *elastictranscoder.Job) ([]provider.OutputFile, error) {
+	pipeline, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
+		Id: job.PipelineId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	files := make([]provider.OutputFile, len(job.Outputs))
+	for i, output := range job.Outputs {
+		preset, err := p.c.ReadPreset(&elastictranscoder.ReadPresetInput{
+			Id: output.PresetId,
+		})
+		if err != nil {
+			return nil, err
+		}
+		filePath := fmt.Sprintf("s3://%s/%s%s",
+			aws.StringValue(pipeline.Pipeline.OutputBucket),
+			aws.StringValue(job.OutputKeyPrefix),
+			aws.StringValue(output.Key),
+		)
+		files[i] = provider.OutputFile{
+			Path:       filePath,
+			Container:  aws.StringValue(preset.Preset.Container),
+			VideoCodec: aws.StringValue(preset.Preset.Video.Codec),
+			Width:      aws.Int64Value(output.Width),
+			Height:     aws.Int64Value(output.Height),
+		}
+	}
+	return files, nil
 }
 
 func (p *awsProvider) statusMap(awsStatus string) provider.Status {
