@@ -734,7 +734,19 @@ func TestJobStatus(t *testing.T) {
 	submitted := elementalconductor.DateTime{Time: time.Now().UTC()}
 	client := newFakeElementalConductorClient(&elementalConductorConfig)
 	client.jobs["job-1"] = elementalconductor.Job{
-		Href:            "whatever",
+		Href: "whatever",
+		Input: elementalconductor.Input{
+			InputInfo: &elementalconductor.InputInfo{
+				Video: elementalconductor.VideoInputInfo{
+					Format: "AVC",
+					Width:  "1 920 pixels",
+					Height: "1 080 pixels",
+				},
+			},
+		},
+		ContentDuration: &elementalconductor.ContentDuration{
+			InputDuration: 123,
+		},
 		PercentComplete: 89,
 		Status:          "running",
 		Submitted:       submitted,
@@ -751,6 +763,12 @@ func TestJobStatus(t *testing.T) {
 		Status:        provider.StatusStarted,
 		Output: provider.JobOutput{
 			Destination: "s3://destination/super-job-1",
+		},
+		MediaInfo: provider.MediaInfo{
+			Duration:   123 * time.Second,
+			Width:      1920,
+			Height:     1080,
+			VideoCodec: "AVC",
 		},
 		ProviderStatus: map[string]interface{}{
 			"status":    "running",

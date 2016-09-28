@@ -21,6 +21,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/nytm/video-transcoding-api/config"
@@ -128,6 +129,12 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 		Progress:       float64(resp.PercentComplete),
 		Status:         p.statusMap(resp.Status),
 		ProviderStatus: providerStatus,
+		MediaInfo: provider.MediaInfo{
+			Duration:   time.Duration(resp.ContentDuration.InputDuration) * time.Second,
+			VideoCodec: resp.Input.InputInfo.Video.Format,
+			Height:     resp.Input.InputInfo.Video.GetHeight(),
+			Width:      resp.Input.InputInfo.Video.GetWidth(),
+		},
 		Output: provider.JobOutput{
 			Destination: p.getOutputDestination(job),
 		},
