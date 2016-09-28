@@ -435,33 +435,12 @@ func TestJobStatus(t *testing.T) {
 		StatusMessage: "",
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
-			"progress":     100.0,
 			"sourcefile":   "http://some.source.file",
 			"timeleft":     "1",
 			"created":      media.Created,
 			"started":      media.Started,
 			"finished":     media.Finished,
 			"formatStatus": []string{""},
-			"destinationStatus": []destinationStatus{
-				{
-					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
-						Status: "Saved",
-					},
-					Size:       "1920x1080",
-					VideoCodec: "VP9",
-					Container:  "advanced_hls",
-				},
-				{
-					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/job-123/video.m3u8",
-						Status: "Saved",
-					},
-					Size:       "1920x1080",
-					VideoCodec: "VP9",
-					Container:  "advanced_hls",
-				},
-			},
 		},
 		MediaInfo: provider.MediaInfo{
 			Duration:   183e9,
@@ -469,7 +448,25 @@ func TestJobStatus(t *testing.T) {
 			Height:     1080,
 			VideoCodec: "VP9",
 		},
-		OutputDestination: "s3://mybucket/dir/job-123/",
+		Output: provider.JobOutput{
+			Destination: "s3://mybucket/dir/job-123/",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
+					VideoCodec: "VP9",
+					Width:      1920,
+					Height:     1080,
+					Container:  "advanced_hls",
+				},
+				{
+					Path:       "s3://mybucket/dir/job-123/video.m3u8",
+					VideoCodec: "VP9",
+					Width:      1920,
+					Height:     1080,
+					Container:  "advanced_hls",
+				},
+			},
+		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v\nGot  %#v", expected, *jobStatus)
@@ -518,35 +515,32 @@ func TestJobStatusNotFinished(t *testing.T) {
 		StatusMessage: "",
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
-			"progress":     100.0,
 			"sourcefile":   "http://some.source.file",
 			"timeleft":     "1",
 			"created":      media.Created,
 			"started":      media.Started,
 			"finished":     media.Finished,
 			"formatStatus": []string{""},
-			"destinationStatus": []destinationStatus{
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://mybucket/dir/job-123/",
+			Files: []provider.OutputFile{
 				{
-					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
-						Status: "Saved",
-					},
-					Size:       "1920x1080",
+					Path:       "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
+					Width:      1920,
+					Height:     1080,
 					VideoCodec: "VP9",
 					Container:  "advanced_hls",
 				},
 				{
-					DestinationStatus: encodingcom.DestinationStatus{
-						Name:   "s3://mybucket/dir/job-123/video.m3u8",
-						Status: "Saved",
-					},
-					Size:       "1920x1080",
+					Path:       "s3://mybucket/dir/job-123/video.m3u8",
+					Width:      1920,
+					Height:     1080,
 					VideoCodec: "VP9",
 					Container:  "advanced_hls",
 				},
 			},
 		},
-		OutputDestination: "s3://mybucket/dir/job-123/",
 	}
 	if !reflect.DeepEqual(*jobStatus, expected) {
 		t.Errorf("JobStatus: wrong job returned.\nWant %#v.\nGot  %#v.", expected, *jobStatus)

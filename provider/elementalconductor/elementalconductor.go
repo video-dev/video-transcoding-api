@@ -123,12 +123,14 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 		providerStatus["error_messages"] = resp.ErrorMessages
 	}
 	return &provider.JobStatus{
-		ProviderName:      Name,
-		ProviderJobID:     job.ProviderJobID,
-		Progress:          float64(resp.PercentComplete),
-		Status:            p.statusMap(resp.Status),
-		ProviderStatus:    providerStatus,
-		OutputDestination: p.getOutputDestination(job),
+		ProviderName:   Name,
+		ProviderJobID:  job.ProviderJobID,
+		Progress:       float64(resp.PercentComplete),
+		Status:         p.statusMap(resp.Status),
+		ProviderStatus: providerStatus,
+		Output: provider.JobOutput{
+			Destination: p.getOutputDestination(job),
+		},
 	}, nil
 }
 

@@ -745,11 +745,13 @@ func TestJobStatus(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedJobStatus := provider.JobStatus{
-		ProviderName:      Name,
-		ProviderJobID:     "job-1",
-		Progress:          89.,
-		Status:            provider.StatusStarted,
-		OutputDestination: "s3://destination/super-job-1",
+		ProviderName:  Name,
+		ProviderJobID: "job-1",
+		Progress:      89.,
+		Status:        provider.StatusStarted,
+		Output: provider.JobOutput{
+			Destination: "s3://destination/super-job-1",
+		},
 		ProviderStatus: map[string]interface{}{
 			"status":    "running",
 			"submitted": submitted,

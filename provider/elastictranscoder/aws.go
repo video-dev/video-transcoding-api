@@ -261,11 +261,13 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		outputDestination = err.Error()
 	}
 	return &provider.JobStatus{
-		ProviderJobID:     aws.StringValue(resp.Job.Id),
-		Status:            p.statusMap(aws.StringValue(resp.Job.Status)),
-		Progress:          completedJobs / float64(totalJobs) * 100,
-		ProviderStatus:    map[string]interface{}{"outputs": outputs},
-		OutputDestination: outputDestination,
+		ProviderJobID:  aws.StringValue(resp.Job.Id),
+		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
+		Progress:       completedJobs / float64(totalJobs) * 100,
+		ProviderStatus: map[string]interface{}{"outputs": outputs},
+		Output: provider.JobOutput{
+			Destination: outputDestination,
+		},
 	}, nil
 }
 

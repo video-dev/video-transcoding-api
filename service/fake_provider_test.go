@@ -69,6 +69,9 @@ func (p *fakeProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 				"progress":   10.3,
 				"sourcefile": "http://some.source.file",
 			},
+			Output: provider.JobOutput{
+				Destination: "s3://mybucket/some/dir/job-123",
+			},
 		}, nil
 	}
 	return nil, provider.JobNotFoundError{ID: id}

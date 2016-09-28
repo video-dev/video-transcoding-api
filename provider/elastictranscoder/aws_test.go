@@ -615,7 +615,9 @@ func TestAWSJobStatus(t *testing.T) {
 				"job-123/output_720p.webm": "it's finished!",
 			},
 		},
-		OutputDestination: "s3://some bucket/job-123",
+		Output: provider.JobOutput{
+			Destination: "s3://some bucket/job-123",
+		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
 		t.Errorf("Wrong JobStatus\nWant %#v\nGot  %#v", expectedJobStatus, *jobStatus)

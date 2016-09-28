@@ -251,6 +251,9 @@ func TestGetTranscodeJob(t *testing.T) {
 					"progress":   10.3,
 					"sourcefile": "http://some.source.file",
 				},
+				"output": map[string]interface{}{
+					"destination": "s3://mybucket/some/dir/job-123",
+				},
 				"mediaInfo": map[string]interface{}{
 					"width":      float64(4096),
 					"height":     float64(2160),
@@ -324,6 +327,9 @@ func TestCancelTranscodeJob(t *testing.T) {
 				"providerStatus": map[string]interface{}{
 					"progress":   10.3,
 					"sourcefile": "http://some.source.file",
+				},
+				"output": map[string]interface{}{
+					"destination": "s3://mybucket/some/dir/job-123",
 				},
 				"mediaInfo": map[string]interface{}{
 					"width":      float64(4096),

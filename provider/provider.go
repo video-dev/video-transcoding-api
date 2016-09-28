@@ -71,14 +71,29 @@ func (err JobNotFoundError) Error() string {
 //
 // swagger:model
 type JobStatus struct {
-	ProviderJobID     string                 `json:"providerJobId,omitempty"`
-	Status            Status                 `json:"status,omitempty"`
-	ProviderName      string                 `json:"providerName,omitempty"`
-	StatusMessage     string                 `json:"statusMessage,omitempty"`
-	Progress          float64                `json:"progress"`
-	ProviderStatus    map[string]interface{} `json:"providerStatus,omitempty"`
-	OutputDestination string                 `json:"outputDestination,omitempty"`
-	MediaInfo         MediaInfo              `json:"mediaInfo,omitempty"`
+	ProviderJobID  string                 `json:"providerJobId,omitempty"`
+	Status         Status                 `json:"status,omitempty"`
+	ProviderName   string                 `json:"providerName,omitempty"`
+	StatusMessage  string                 `json:"statusMessage,omitempty"`
+	Progress       float64                `json:"progress"`
+	ProviderStatus map[string]interface{} `json:"providerStatus,omitempty"`
+	Output         JobOutput              `json:"output"`
+	MediaInfo      MediaInfo              `json:"mediaInfo,omitempty"`
+}
+
+// JobOutput represents information about a job output.
+type JobOutput struct {
+	Destination string       `json:"destination,omitempty"`
+	Files       []OutputFile `json:"files,omitempty"`
+}
+
+// OutputFile represents an output file in a given job.
+type OutputFile struct {
+	Path       string `json:"path"`
+	Container  string `json:"container"`
+	VideoCodec string `json:"videoCodec"`
+	Height     int64  `json:"height"`
+	Width      int64  `json:"width"`
 }
 
 // MediaInfo contains information about media transcoded using the Transcoding
