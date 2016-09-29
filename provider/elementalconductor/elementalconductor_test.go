@@ -747,6 +747,96 @@ func TestJobStatus(t *testing.T) {
 		ContentDuration: &elementalconductor.ContentDuration{
 			InputDuration: 123,
 		},
+		OutputGroup: []elementalconductor.OutputGroup{
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1.mp4",
+						Extension:          "mp4",
+						StreamAssemblyName: "stream_0",
+						Container:          "mp4",
+					},
+				},
+			},
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1.webm",
+						Extension:          "webm",
+						StreamAssemblyName: "stream_1",
+						Container:          "webm",
+					},
+				},
+			},
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1.mov",
+						Extension:          "mov",
+						StreamAssemblyName: "unknwon",
+						Container:          "mov",
+					},
+				},
+			},
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1_720p.m3u8",
+						Extension:          "m3u8",
+						StreamAssemblyName: "stream_2",
+						Container:          "m3u8",
+					},
+					{
+						FullURI:            "s3://somebucket/dir/video1_1080p.m3u8",
+						Extension:          "m3u8",
+						StreamAssemblyName: "stream_3",
+						Container:          "m3u8",
+					},
+				},
+			},
+		},
+		StreamAssembly: []elementalconductor.StreamAssembly{
+			{
+				ID:   "2323",
+				Name: "stream_0",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "h.264",
+					EncoderType: "gpu",
+					Height:      "1080",
+					Width:       "1920",
+				},
+			},
+			{
+				ID:   "2324",
+				Name: "stream_1",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "vp8",
+					EncoderType: "gpu",
+					Height:      "1080",
+					Width:       "1920",
+				},
+			},
+			{
+				ID:   "2325",
+				Name: "stream_2",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "h.264",
+					EncoderType: "gpu",
+					Height:      "720",
+					Width:       "1280",
+				},
+			},
+			{
+				ID:   "2326",
+				Name: "stream_3",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "h.264",
+					EncoderType: "gpu",
+					Height:      "1080",
+					Width:       "1920",
+				},
+			},
+		},
 		PercentComplete: 89,
 		Status:          "running",
 		Submitted:       submitted,
@@ -763,9 +853,216 @@ func TestJobStatus(t *testing.T) {
 		Status:        provider.StatusStarted,
 		Output: provider.JobOutput{
 			Destination: "s3://destination/super-job-1",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://somebucket/dir/video1.mp4",
+					Container:  "mp4",
+					VideoCodec: "h.264",
+					Width:      1920,
+					Height:     1080,
+				},
+				{
+					Path:       "s3://somebucket/dir/video1.webm",
+					Container:  "webm",
+					VideoCodec: "vp8",
+					Width:      1920,
+					Height:     1080,
+				},
+				{
+					Path:       "s3://somebucket/dir/video1_720p.m3u8",
+					Container:  "m3u8",
+					VideoCodec: "h.264",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://somebucket/dir/video1_1080p.m3u8",
+					Container:  "m3u8",
+					VideoCodec: "h.264",
+					Width:      1920,
+					Height:     1080,
+				},
+			},
 		},
 		MediaInfo: provider.MediaInfo{
 			Duration:   123 * time.Second,
+			Width:      1920,
+			Height:     1080,
+			VideoCodec: "AVC",
+		},
+		ProviderStatus: map[string]interface{}{
+			"status":    "running",
+			"submitted": submitted,
+		},
+	}
+	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
+		t.Errorf("wrong job stats\nwant %#v\ngot  %#v", expectedJobStatus, *jobStatus)
+	}
+}
+
+func TestJobStatusNoDuration(t *testing.T) {
+	elementalConductorConfig := config.Config{
+		ElementalConductor: &config.ElementalConductor{
+			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+			UserLogin:       "myuser",
+			APIKey:          "elemental-api-key",
+			AuthExpires:     30,
+			AccessKeyID:     "aws-access-key",
+			SecretAccessKey: "aws-secret-key",
+			Destination:     "s3://destination",
+		},
+	}
+	submitted := elementalconductor.DateTime{Time: time.Now().UTC()}
+	client := newFakeElementalConductorClient(&elementalConductorConfig)
+	client.jobs["job-1"] = elementalconductor.Job{
+		Href: "whatever",
+		Input: elementalconductor.Input{
+			InputInfo: &elementalconductor.InputInfo{
+				Video: elementalconductor.VideoInputInfo{
+					Format: "AVC",
+					Width:  "1 920 pixels",
+					Height: "1 080 pixels",
+				},
+			},
+		},
+		OutputGroup: []elementalconductor.OutputGroup{
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1.mp4",
+						Extension:          "mp4",
+						StreamAssemblyName: "stream_0",
+						Container:          "mp4",
+					},
+				},
+			},
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1.webm",
+						Extension:          "webm",
+						StreamAssemblyName: "stream_1",
+						Container:          "webm",
+					},
+				},
+			},
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1.mov",
+						Extension:          "mov",
+						StreamAssemblyName: "unknwon",
+						Container:          "mov",
+					},
+				},
+			},
+			{
+				Output: []elementalconductor.Output{
+					{
+						FullURI:            "s3://somebucket/dir/video1_720p.m3u8",
+						Extension:          "m3u8",
+						StreamAssemblyName: "stream_2",
+						Container:          "m3u8",
+					},
+					{
+						FullURI:            "s3://somebucket/dir/video1_1080p.m3u8",
+						Extension:          "m3u8",
+						StreamAssemblyName: "stream_3",
+						Container:          "m3u8",
+					},
+				},
+			},
+		},
+		StreamAssembly: []elementalconductor.StreamAssembly{
+			{
+				ID:   "2323",
+				Name: "stream_0",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "h.264",
+					EncoderType: "gpu",
+					Height:      "1080",
+					Width:       "1920",
+				},
+			},
+			{
+				ID:   "2324",
+				Name: "stream_1",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "vp8",
+					EncoderType: "gpu",
+					Height:      "1080",
+					Width:       "1920",
+				},
+			},
+			{
+				ID:   "2325",
+				Name: "stream_2",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "h.264",
+					EncoderType: "gpu",
+					Height:      "720",
+					Width:       "1280",
+				},
+			},
+			{
+				ID:   "2326",
+				Name: "stream_3",
+				VideoDescription: &elementalconductor.StreamVideoDescription{
+					Codec:       "h.264",
+					EncoderType: "gpu",
+					Height:      "1080",
+					Width:       "1920",
+				},
+			},
+		},
+		PercentComplete: 89,
+		Status:          "running",
+		Submitted:       submitted,
+	}
+	prov := elementalConductorProvider{client: client, config: &elementalConductorConfig}
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "super-job-1", ProviderJobID: "job-1"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedJobStatus := provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: "job-1",
+		Progress:      89.,
+		Status:        provider.StatusStarted,
+		Output: provider.JobOutput{
+			Destination: "s3://destination/super-job-1",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://somebucket/dir/video1.mp4",
+					Container:  "mp4",
+					VideoCodec: "h.264",
+					Width:      1920,
+					Height:     1080,
+				},
+				{
+					Path:       "s3://somebucket/dir/video1.webm",
+					Container:  "webm",
+					VideoCodec: "vp8",
+					Width:      1920,
+					Height:     1080,
+				},
+				{
+					Path:       "s3://somebucket/dir/video1_720p.m3u8",
+					Container:  "m3u8",
+					VideoCodec: "h.264",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://somebucket/dir/video1_1080p.m3u8",
+					Container:  "m3u8",
+					VideoCodec: "h.264",
+					Width:      1920,
+					Height:     1080,
+				},
+			},
+		},
+		MediaInfo: provider.MediaInfo{
 			Width:      1920,
 			Height:     1080,
 			VideoCodec: "AVC",

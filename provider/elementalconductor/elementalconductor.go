@@ -123,6 +123,10 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 	if len(resp.ErrorMessages) > 0 {
 		providerStatus["error_messages"] = resp.ErrorMessages
 	}
+	var duration time.Duration
+	if resp.ContentDuration != nil {
+		duration = time.Duration(resp.ContentDuration.InputDuration) * time.Second
+	}
 	return &provider.JobStatus{
 		ProviderName:   Name,
 		ProviderJobID:  job.ProviderJobID,
@@ -130,19 +134,42 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 		Status:         p.statusMap(resp.Status),
 		ProviderStatus: providerStatus,
 		MediaInfo: provider.MediaInfo{
-			Duration:   time.Duration(resp.ContentDuration.InputDuration) * time.Second,
+			Duration:   duration,
 			VideoCodec: resp.Input.InputInfo.Video.Format,
 			Height:     resp.Input.InputInfo.Video.GetHeight(),
 			Width:      resp.Input.InputInfo.Video.GetWidth(),
 		},
 		Output: provider.JobOutput{
 			Destination: p.getOutputDestination(job),
+			Files:       p.getOutputFiles(resp),
 		},
 	}, nil
 }
 
 func (p *elementalConductorProvider) getOutputDestination(job *db.Job) string {
 	return strings.TrimRight(p.config.ElementalConductor.Destination, "/") + "/" + job.ID
+}
+
+func (p *elementalConductorProvider) getOutputFiles(job *elementalconductor.Job) []provider.OutputFile {
+	files := make([]provider.OutputFile, 0, len(job.OutputGroup))
+	streamFiles := make(map[string]provider.OutputFile, len(job.OutputGroup))
+	for _, outputGroup := range job.OutputGroup {
+		for _, output := range outputGroup.Output {
+			streamFiles[output.StreamAssemblyName] = provider.OutputFile{
+				Path:      output.FullURI,
+				Container: string(output.Container),
+			}
+		}
+	}
+	for _, stream := range job.StreamAssembly {
+		if file, ok := streamFiles[stream.Name]; ok {
+			file.VideoCodec = stream.VideoDescription.Codec
+			file.Width = stream.VideoDescription.GetWidth()
+			file.Height = stream.VideoDescription.GetHeight()
+			files = append(files, file)
+		}
+	}
+	return files
 }
 
 func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) provider.Status {
