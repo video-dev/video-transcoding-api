@@ -26,6 +26,7 @@ func TestTranscode(t *testing.T) {
 		wantBody             map[string]interface{}
 		wantOutputFileNames  []string
 		wantPlaylistFileName string
+		wantSegmentDuration  uint
 	}{
 		{
 			"New job",
@@ -33,7 +34,7 @@ func TestTranscode(t *testing.T) {
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
   "outputs": [{"preset":"mp4_1080p","fileName":"91274824924924-published-supervideo-1080p.mp4"}],
-  "streamingParams": {"playlistFileName":"output_hls/master.m3u8","protocol":"hls"},
+  "streamingParams": {"playlistFileName":"output_hls/master.m3u8","protocol":"hls","segmentDuration":3},
   "provider": "fake"
 }`,
 			false,
@@ -42,9 +43,10 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"jobId": "fill me"},
 			[]string{"91274824924924-published-supervideo-1080p.mp4"},
 			"output_hls/master.m3u8",
+			3,
 		},
 		{
-			"New job - default playlist file name",
+			"New job - default playlist file name & segment duration",
 			`{
   "source": "http://another.non.existent/video.mp4",
   "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
@@ -58,6 +60,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"jobId": "fill me"},
 			[]string{"91274824924924-published-supervideo-1080p.mp4"},
 			"hls/index.m3u8",
+			5,
 		},
 		{
 			"New job - no playlist file name",
@@ -74,6 +77,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"jobId": "fill me"},
 			[]string{"91274824924924-published-supervideo-1080p.mp4"},
 			"",
+			0,
 		},
 		{
 			"New job - default output file name",
@@ -89,6 +93,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"jobId": "fill me"},
 			[]string{"video_mp4_1080p.mp4"},
 			"",
+			0,
 		},
 		{
 			"New job with preset not found in provider",
@@ -104,6 +109,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": provider.ErrPresetMapNotFound.Error()},
 			nil,
 			"",
+			0,
 		},
 		{
 			"New job with preset not found in the API",
@@ -119,6 +125,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": db.ErrPresetMapNotFound.Error()},
 			nil,
 			"",
+			0,
 		},
 		{
 			"New job with database error",
@@ -134,6 +141,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": "database error"},
 			nil,
 			"",
+			0,
 		},
 		{
 			"New job with invalid provider",
@@ -149,6 +157,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": "provider not found"},
 			nil,
 			"",
+			0,
 		},
 		{
 			"New job missing outputs",
@@ -163,6 +172,7 @@ func TestTranscode(t *testing.T) {
 			map[string]interface{}{"error": "missing output list from request"},
 			nil,
 			"",
+			0,
 		},
 	}
 
@@ -179,7 +189,7 @@ func TestTranscode(t *testing.T) {
 			Name:            "mp4_360p",
 			ProviderMapping: map[string]string{"elementalconductor": "172712"},
 		})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
+		srvr.Register(&TranscodingService{config: &config.Config{DefaultSegmentDuration: 5}, db: fakeDBObj})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -218,6 +228,10 @@ func TestTranscode(t *testing.T) {
 			playlistFile := fprovider.jobs[0].StreamingParams.PlaylistFileName
 			if playlistFile != test.wantPlaylistFileName {
 				t.Errorf("%s: wrong playlist filename\nwant %q\ngot  %q", test.givenTestCase, test.wantPlaylistFileName, playlistFile)
+			}
+			segmentDuration := fprovider.jobs[0].StreamingParams.SegmentDuration
+			if segmentDuration != test.wantSegmentDuration {
+				t.Errorf("%s: wrong segment duration\nwant %d\ngot  %d", test.givenTestCase, test.wantSegmentDuration, segmentDuration)
 			}
 		}
 	}

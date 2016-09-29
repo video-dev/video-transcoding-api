@@ -61,8 +61,13 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		Outputs:         outputs,
 		StreamingParams: input.Payload.StreamingParams,
 	}
-	if transcodeProfile.StreamingParams.Protocol == "hls" && transcodeProfile.StreamingParams.PlaylistFileName == "" {
-		transcodeProfile.StreamingParams.PlaylistFileName = "hls/index.m3u8"
+	if transcodeProfile.StreamingParams.Protocol == "hls" {
+		if transcodeProfile.StreamingParams.PlaylistFileName == "" {
+			transcodeProfile.StreamingParams.PlaylistFileName = "hls/index.m3u8"
+		}
+		if transcodeProfile.StreamingParams.SegmentDuration == 0 {
+			transcodeProfile.StreamingParams.SegmentDuration = s.config.DefaultSegmentDuration
+		}
 	}
 	job := db.Job{ID: jobID}
 	jobStatus, err := providerObj.Transcode(&job, transcodeProfile)
