@@ -37,6 +37,10 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		}
 		return swagger.NewErrorResponse(formattedErr)
 	}
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     input.Payload.Source,
+		StreamingParams: input.Payload.StreamingParams,
+	}
 	outputs := make([]provider.TranscodeOutput, len(input.Payload.Outputs))
 	for i, output := range input.Payload.Outputs {
 		presetMap, presetErr := s.db.GetPresetMap(output.Preset)
@@ -52,14 +56,10 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		}
 		outputs[i] = provider.TranscodeOutput{FileName: fileName, Preset: *presetMap}
 	}
+	transcodeProfile.Outputs = outputs
 	jobID, err := s.genID()
 	if err != nil {
 		return swagger.NewErrorResponse(err)
-	}
-	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     input.Payload.Source,
-		Outputs:         outputs,
-		StreamingParams: input.Payload.StreamingParams,
 	}
 	if transcodeProfile.StreamingParams.Protocol == "hls" {
 		if transcodeProfile.StreamingParams.PlaylistFileName == "" {
@@ -109,7 +109,12 @@ func (s *TranscodingService) genID() (string, error) {
 func (s *TranscodingService) defaultFileName(source string, preset *db.PresetMap) string {
 	sourceExtension := filepath.Ext(source)
 	_, source = path.Split(source)
-	return fmt.Sprintf("%s_%s.%s", source[:len(source)-len(sourceExtension)], preset.Name, preset.OutputOpts.Extension)
+	source = source[:len(source)-len(sourceExtension)]
+	pattern := "%s_%s.%s"
+	if preset.OutputOpts.Extension == "m3u8" {
+		pattern = "hls/" + pattern
+	}
+	return fmt.Sprintf(pattern, source, preset.Name, preset.OutputOpts.Extension)
 }
 
 // swagger:route GET /jobs/{jobId} jobs getJob

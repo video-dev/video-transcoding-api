@@ -63,6 +63,23 @@ func TestTranscode(t *testing.T) {
 			5,
 		},
 		{
+			"New job - default playlist file name, segment duration & regular file name",
+			`{
+  "source": "http://another.non.existent/video.mp4",
+  "destination": "s3://some.bucket.s3.amazonaws.com/some_path",
+  "outputs": [{"preset":"hls_1080p","fileName":""}],
+  "streamingParams": {"protocol":"hls"},
+  "provider": "fake"
+}`,
+			false,
+
+			http.StatusOK,
+			map[string]interface{}{"jobId": "fill me"},
+			[]string{"hls/video_hls_1080p.m3u8"},
+			"hls/index.m3u8",
+			5,
+		},
+		{
 			"New job - no playlist file name",
 			`{
   "source": "http://another.non.existent/video.mp4",
@@ -184,6 +201,11 @@ func TestTranscode(t *testing.T) {
 			Name:            "mp4_1080p",
 			ProviderMapping: map[string]string{"fake": "18828"},
 			OutputOpts:      db.OutputOptions{Extension: "mp4"},
+		})
+		fakeDBObj.CreatePresetMap(&db.PresetMap{
+			Name:            "hls_1080p",
+			ProviderMapping: map[string]string{"fake": "19928"},
+			OutputOpts:      db.OutputOptions{Extension: "m3u8"},
 		})
 		fakeDBObj.CreatePresetMap(&db.PresetMap{
 			Name:            "mp4_360p",
