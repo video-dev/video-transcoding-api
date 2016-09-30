@@ -322,8 +322,7 @@ func (p *awsProvider) getOutputFiles(job *elastictranscoder.Job) ([]provider.Out
 		)
 		container := aws.StringValue(preset.Preset.Container)
 		if container == "ts" {
-			container = "m3u8"
-			filePath += ".m3u8"
+			continue
 		}
 		file := provider.OutputFile{
 			Path:       filePath,

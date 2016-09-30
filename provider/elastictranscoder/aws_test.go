@@ -687,13 +687,6 @@ func TestAWSJobStatus(t *testing.T) {
 					Height:     720,
 				},
 				{
-					Path:       "s3://some bucket/job-123/hls/output_720p.m3u8",
-					Container:  "m3u8",
-					VideoCodec: "H.264",
-					Width:      0,
-					Height:     720,
-				},
-				{
 					Path:      "s3://some bucket/job-123/hls/index.m3u8",
 					Container: "m3u8",
 				},
