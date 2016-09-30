@@ -779,6 +779,14 @@ func TestJobStatus(t *testing.T) {
 				},
 			},
 			{
+				Type: elementalconductor.AppleLiveOutputGroupType,
+				AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
+					Destination: &elementalconductor.Location{
+						URI: "s3://somebucket/dir/video1",
+					},
+					SegmentDuration: 3,
+					EmitSingleFile:  true,
+				},
 				Output: []elementalconductor.Output{
 					{
 						FullURI:            "s3://somebucket/dir/video1_720p.m3u8",
@@ -855,6 +863,10 @@ func TestJobStatus(t *testing.T) {
 			Destination: "s3://destination/super-job-1",
 			Files: []provider.OutputFile{
 				{
+					Path:      "s3://somebucket/dir/video1.m3u8",
+					Container: "m3u8",
+				},
+				{
 					Path:       "s3://somebucket/dir/video1.mp4",
 					Container:  "mp4",
 					VideoCodec: "h.264",
@@ -865,20 +877,6 @@ func TestJobStatus(t *testing.T) {
 					Path:       "s3://somebucket/dir/video1.webm",
 					Container:  "webm",
 					VideoCodec: "vp8",
-					Width:      1920,
-					Height:     1080,
-				},
-				{
-					Path:       "s3://somebucket/dir/video1_720p.m3u8",
-					Container:  "m3u8",
-					VideoCodec: "h.264",
-					Width:      1280,
-					Height:     720,
-				},
-				{
-					Path:       "s3://somebucket/dir/video1_1080p.m3u8",
-					Container:  "m3u8",
-					VideoCodec: "h.264",
 					Width:      1920,
 					Height:     1080,
 				},

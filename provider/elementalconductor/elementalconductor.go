@@ -154,10 +154,17 @@ func (p *elementalConductorProvider) getOutputFiles(job *elementalconductor.Job)
 	files := make([]provider.OutputFile, 0, len(job.OutputGroup))
 	streamFiles := make(map[string]provider.OutputFile, len(job.OutputGroup))
 	for _, outputGroup := range job.OutputGroup {
-		for _, output := range outputGroup.Output {
-			streamFiles[output.StreamAssemblyName] = provider.OutputFile{
-				Path:      output.FullURI,
-				Container: string(output.Container),
+		if outputGroup.Type == elementalconductor.AppleLiveOutputGroupType {
+			files = append(files, provider.OutputFile{
+				Path:      outputGroup.AppleLiveGroupSettings.Destination.URI + ".m3u8",
+				Container: "m3u8",
+			})
+		} else {
+			for _, output := range outputGroup.Output {
+				streamFiles[output.StreamAssemblyName] = provider.OutputFile{
+					Path:      output.FullURI,
+					Container: string(output.Container),
+				}
 			}
 		}
 	}
