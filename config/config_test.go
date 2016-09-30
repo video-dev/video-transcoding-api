@@ -38,10 +38,12 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
+		"DEFAULT_SEGMENT_DURATION":                 "3",
 	})
 	cfg := LoadConfig()
 	expectedCfg := Config{
-		SwaggerManifest: "/opt/video-transcoding-api-swagger.json",
+		SwaggerManifest:        "/opt/video-transcoding-api-swagger.json",
+		DefaultSegmentDuration: 3,
 		Redis: &storage.Config{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
 			SentinelMasterName: "supermaster",
@@ -79,6 +81,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
 		t.Errorf("LoadConfig(): wrong swagger manifest. Want %q. Got %q", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
+	}
+	if cfg.DefaultSegmentDuration != expectedCfg.DefaultSegmentDuration {
+		t.Errorf("LoadConfig(): wrong default segment duration. Want %q. Got %q", expectedCfg.DefaultSegmentDuration, cfg.DefaultSegmentDuration)
 	}
 	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
 		t.Errorf("LoadConfig(): wrong Redis config returned. Want %#v. Got %#v.", *expectedCfg.Redis, *cfg.Redis)
@@ -125,7 +130,8 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 	})
 	cfg := LoadConfig()
 	expectedCfg := Config{
-		SwaggerManifest: "/opt/video-transcoding-api-swagger.json",
+		SwaggerManifest:        "/opt/video-transcoding-api-swagger.json",
+		DefaultSegmentDuration: 5,
 		Redis: &storage.Config{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
 			SentinelMasterName: "supermaster",
@@ -164,6 +170,9 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 	}
 	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
 		t.Errorf("LoadConfig(): wrong swagger manifest. Want %q. Got %q", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
+	}
+	if cfg.DefaultSegmentDuration != expectedCfg.DefaultSegmentDuration {
+		t.Errorf("LoadConfig(): wrong default segment duration. Want %q. Got %q", expectedCfg.DefaultSegmentDuration, cfg.DefaultSegmentDuration)
 	}
 	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
 		t.Errorf("LoadConfig(): wrong Redis config returned. Want %#v. Got %#v.", *expectedCfg.Redis, *cfg.Redis)

@@ -22,6 +22,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -39,6 +40,7 @@ const (
 	Name = "elastictranscoder"
 
 	defaultAWSRegion = "us-east-1"
+	hlsPlayList      = "HLSv3"
 )
 
 var (
@@ -78,7 +80,7 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 		if presetOutput.Preset == nil || presetOutput.Preset.Container == nil {
 			return nil, fmt.Errorf("misconfigured preset: %s", presetID)
 		}
-		isAdaptiveStreamingPreset := false
+		var isAdaptiveStreamingPreset bool
 		if *presetOutput.Preset.Container == "ts" {
 			isAdaptiveStreamingPreset = true
 			adaptiveStreamingOutputs = append(adaptiveStreamingOutputs, output)
@@ -96,7 +98,7 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 		playlistFileName := transcodeProfile.StreamingParams.PlaylistFileName
 		playlistFileName = strings.TrimRight(playlistFileName, filepath.Ext(playlistFileName))
 		jobPlaylist := elastictranscoder.CreateJobPlaylist{
-			Format: aws.String("HLSv3"),
+			Format: aws.String(hlsPlayList),
 			Name:   aws.String(job.ID + "/" + playlistFileName),
 		}
 
@@ -260,12 +262,28 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		outputDestination = err.Error()
 	}
+	outputFiles, err := p.getOutputFiles(resp.Job)
+	if err != nil {
+		return nil, err
+	}
+	var mediaInfo provider.MediaInfo
+	if resp.Job.Input.DetectedProperties != nil {
+		mediaInfo = provider.MediaInfo{
+			Duration: time.Duration(aws.Int64Value(resp.Job.Input.DetectedProperties.DurationMillis)) * time.Millisecond,
+			Height:   aws.Int64Value(resp.Job.Input.DetectedProperties.Height),
+			Width:    aws.Int64Value(resp.Job.Input.DetectedProperties.Width),
+		}
+	}
 	return &provider.JobStatus{
-		ProviderJobID:     aws.StringValue(resp.Job.Id),
-		Status:            p.statusMap(aws.StringValue(resp.Job.Status)),
-		Progress:          completedJobs / float64(totalJobs) * 100,
-		ProviderStatus:    map[string]interface{}{"outputs": outputs},
-		OutputDestination: outputDestination,
+		ProviderJobID:  aws.StringValue(resp.Job.Id),
+		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
+		Progress:       completedJobs / float64(totalJobs) * 100,
+		ProviderStatus: map[string]interface{}{"outputs": outputs},
+		MediaInfo:      mediaInfo,
+		Output: provider.JobOutput{
+			Destination: outputDestination,
+			Files:       outputFiles,
+		},
 	}, nil
 }
 
@@ -280,6 +298,50 @@ func (p *awsProvider) getOutputDestination(job *db.Job, awsJob *elastictranscode
 		aws.StringValue(readPipelineOutput.Pipeline.OutputBucket),
 		job.ID,
 	), nil
+}
+
+func (p *awsProvider) getOutputFiles(job *elastictranscoder.Job) ([]provider.OutputFile, error) {
+	pipeline, err := p.c.ReadPipeline(&elastictranscoder.ReadPipelineInput{
+		Id: job.PipelineId,
+	})
+	if err != nil {
+		return nil, err
+	}
+	files := make([]provider.OutputFile, 0, len(job.Outputs)+len(job.Playlists))
+	for _, output := range job.Outputs {
+		preset, err := p.c.ReadPreset(&elastictranscoder.ReadPresetInput{
+			Id: output.PresetId,
+		})
+		if err != nil {
+			return nil, err
+		}
+		filePath := fmt.Sprintf("s3://%s/%s%s",
+			aws.StringValue(pipeline.Pipeline.OutputBucket),
+			aws.StringValue(job.OutputKeyPrefix),
+			aws.StringValue(output.Key),
+		)
+		container := aws.StringValue(preset.Preset.Container)
+		if container == "ts" {
+			continue
+		}
+		file := provider.OutputFile{
+			Path:       filePath,
+			Container:  container,
+			VideoCodec: aws.StringValue(preset.Preset.Video.Codec),
+			Width:      aws.Int64Value(output.Width),
+			Height:     aws.Int64Value(output.Height),
+		}
+		files = append(files, file)
+	}
+	for _, playlist := range job.Playlists {
+		filePath := fmt.Sprintf("s3://%s/%s%s",
+			aws.StringValue(pipeline.Pipeline.OutputBucket),
+			aws.StringValue(job.OutputKeyPrefix),
+			aws.StringValue(playlist.Name)+".m3u8",
+		)
+		files = append(files, provider.OutputFile{Path: filePath, Container: "m3u8"})
+	}
+	return files, nil
 }
 
 func (p *awsProvider) statusMap(awsStatus string) provider.Status {

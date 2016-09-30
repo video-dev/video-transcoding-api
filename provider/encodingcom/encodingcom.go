@@ -41,6 +41,8 @@ var (
 
 var errEncodingComInvalidConfig = provider.InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
 
+const hlsOutput = "advanced_hls"
+
 func init() {
 	provider.Register(Name, encodingComFactory)
 }
@@ -89,7 +91,7 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 	}
 	if preset.Container == "m3u8" {
-		format.Output = []string{"advanced_hls"}
+		format.Output = []string{hlsOutput}
 		format.PackFiles = &falseYesNoBoolean
 		stream := encodingcom.Stream{
 			Profile:      preset.Profile,
@@ -188,7 +190,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 			return nil, fmt.Errorf("Error getting preset info: %s", err.Error())
 		}
 		presetStruct := presetOutput.(*encodingcom.Preset)
-		if presetStruct.Output == "advanced_hls" {
+		if presetStruct.Output == hlsOutput {
 			for _, stream := range presetStruct.Format.Stream() {
 				stream.SubPath = presetName
 				streams = append(streams, stream)
@@ -204,7 +206,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 	if len(streams) > 0 {
 		falseValue := encodingcom.YesNoBoolean(false)
 		format := encodingcom.Format{
-			Output:          []string{"advanced_hls"},
+			Output:          []string{hlsOutput},
 			Destination:     e.getDestinations(job.ID, transcodeProfile.StreamingParams.PlaylistFileName),
 			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			Stream:          streams,
@@ -237,17 +239,18 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 		Status:        status,
 		Progress:      resp[0].Progress,
 		ProviderStatus: map[string]interface{}{
-			"progress":          resp[0].Progress,
-			"sourcefile":        resp[0].SourceFile,
-			"timeleft":          resp[0].TimeLeft,
-			"created":           resp[0].CreateDate,
-			"started":           resp[0].StartDate,
-			"finished":          resp[0].FinishDate,
-			"formatStatus":      e.getFormatStatus(resp),
-			"destinationStatus": e.getOutputDestinationStatus(resp),
+			"sourcefile":   resp[0].SourceFile,
+			"timeleft":     resp[0].TimeLeft,
+			"created":      resp[0].CreateDate,
+			"started":      resp[0].StartDate,
+			"finished":     resp[0].FinishDate,
+			"formatStatus": e.getFormatStatus(resp),
 		},
-		OutputDestination: e.getOutputDestination(job),
-		MediaInfo:         mediaInfo,
+		Output: provider.JobOutput{
+			Destination: e.getOutputDestination(job),
+			Files:       e.getOutputDestinationStatus(resp),
+		},
+		MediaInfo: mediaInfo,
 	}, nil
 }
 
@@ -257,21 +260,26 @@ func (e *encodingComProvider) mediaInfo(id string) (provider.MediaInfo, error) {
 	if err != nil {
 		return mediaInfo, err
 	}
-	parts := strings.SplitN(info.Size, "x", 2)
-	if len(parts) < 2 {
-		return mediaInfo, fmt.Errorf("invalid size returned by the Encoding.com API: %q", info.Size)
-	}
-	mediaInfo.Width, err = strconv.ParseInt(parts[0], 10, 64)
-	if err != nil {
-		return mediaInfo, fmt.Errorf("invalid size returned by the Encoding.com API (%q): %s", info.Size, err)
-	}
-	mediaInfo.Height, err = strconv.ParseInt(parts[1], 10, 64)
-	if err != nil {
-		return mediaInfo, fmt.Errorf("invalid size returned by the Encoding.com API (%q): %s", info.Size, err)
-	}
+	mediaInfo.Width, mediaInfo.Height, err = e.parseSize(info.Size)
 	mediaInfo.Duration = info.Duration
 	mediaInfo.VideoCodec = info.VideoCodec
-	return mediaInfo, nil
+	return mediaInfo, err
+}
+
+func (e *encodingComProvider) parseSize(size string) (width int64, height int64, err error) {
+	parts := strings.SplitN(size, "x", 2)
+	if len(parts) < 2 {
+		return width, height, fmt.Errorf("invalid size returned by the Encoding.com API: %q", size)
+	}
+	width, err = strconv.ParseInt(parts[0], 10, 64)
+	if err != nil {
+		return width, height, fmt.Errorf("invalid size returned by the Encoding.com API (%q): %s", size, err)
+	}
+	height, err = strconv.ParseInt(parts[1], 10, 64)
+	if err != nil {
+		return width, height, fmt.Errorf("invalid size returned by the Encoding.com API (%q): %s", size, err)
+	}
+	return width, height, nil
 }
 
 func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusResponse) []string {
@@ -283,20 +291,13 @@ func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusRespons
 	return formatStatusList
 }
 
-type destinationStatus struct {
-	encodingcom.DestinationStatus
-	Size       string
-	Container  string
-	VideoCodec string
-}
-
-func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse) []destinationStatus {
-	var destinationStatusList []destinationStatus
+func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse) []provider.OutputFile {
+	var outputFiles []provider.OutputFile
 	formats := status[0].Formats
 	for _, formatStatus := range formats {
 		for idx, ds := range formatStatus.Destinations {
 			destinationName := ds.Name
-			if formatStatus.Output == "advanced_hls" {
+			if formatStatus.Output == hlsOutput {
 				streams := formatStatus.Stream
 				if idx < len(streams) {
 					destinationNameParts := strings.Split(destinationName, "/")
@@ -309,19 +310,20 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 					destinationName = strings.Join(fixedDestination, "/")
 				}
 			}
-			st := destinationStatus{
-				DestinationStatus: encodingcom.DestinationStatus{
-					Name:   e.destinationMedia(destinationName),
-					Status: ds.Status,
-				},
-				Container:  formatStatus.Output,
-				Size:       formatStatus.Size,
+			container := formatStatus.Output
+			if container == hlsOutput {
+				container = "m3u8"
+			}
+			file := provider.OutputFile{
+				Path:       e.destinationMedia(destinationName),
+				Container:  container,
 				VideoCodec: formatStatus.VideoCodec,
 			}
-			destinationStatusList = append(destinationStatusList, st)
+			file.Width, file.Height, _ = e.parseSize(formatStatus.Size)
+			outputFiles = append(outputFiles, file)
 		}
 	}
-	return destinationStatusList
+	return outputFiles
 }
 
 func (e *encodingComProvider) getOutputDestination(job *db.Job) string {

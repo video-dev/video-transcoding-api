@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"regexp"
 	"testing"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
@@ -194,7 +195,15 @@ func TestAWSTranscode(t *testing.T) {
 
 	expectedJobInput := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String("mypipeline"),
-		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
+		Input: &elastictranscoder.JobInput{
+			Key: aws.String(source),
+			DetectedProperties: &elastictranscoder.DetectedProperties{
+				DurationMillis: aws.Int64(120e3),
+				FileSize:       aws.Int64(60356779),
+				Height:         aws.Int64(1080),
+				Width:          aws.Int64(1920),
+			},
+		},
 		Outputs: []*elastictranscoder.CreateJobOutput{
 			{PresetId: aws.String("93239832-0001"), Key: aws.String("job-123/output-720p.mp4")},
 			{PresetId: aws.String("93239832-0002"), Key: aws.String("job-123/output-720p.webm")},
@@ -284,7 +293,15 @@ func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
 
 	expectedJobInput := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String("mypipeline"),
-		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
+		Input: &elastictranscoder.JobInput{
+			Key: aws.String(source),
+			DetectedProperties: &elastictranscoder.DetectedProperties{
+				DurationMillis: aws.Int64(120e3),
+				FileSize:       aws.Int64(60356779),
+				Height:         aws.Int64(1080),
+				Width:          aws.Int64(1920),
+			},
+		},
 		Outputs: []*elastictranscoder.CreateJobOutput{
 			{PresetId: aws.String("93239832-0001-hls"), Key: aws.String("job-123/output_360p_hls/video"), SegmentDuration: aws.String("3")},
 			{PresetId: aws.String("93239832-0002-hls"), Key: aws.String("job-123/output_480p_hls/video"), SegmentDuration: aws.String("3")},
@@ -396,7 +413,15 @@ func TestAWSTranscodeAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 
 	expectedJobInput := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String("mypipeline"),
-		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
+		Input: &elastictranscoder.JobInput{
+			Key: aws.String(source),
+			DetectedProperties: &elastictranscoder.DetectedProperties{
+				DurationMillis: aws.Int64(120e3),
+				FileSize:       aws.Int64(60356779),
+				Height:         aws.Int64(1080),
+				Width:          aws.Int64(1920),
+			},
+		},
 		Outputs: []*elastictranscoder.CreateJobOutput{
 			{PresetId: aws.String("93239832-0001-hls"), Key: aws.String("job-123/hls/output_hls_360p/video"), SegmentDuration: aws.String("3")},
 			{PresetId: aws.String("93239832-0002-hls"), Key: aws.String("job-123/hls/output_hls_480p/video"), SegmentDuration: aws.String("3")},
@@ -482,7 +507,15 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 
 	expectedJobInput := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String("mypipeline"),
-		Input:      &elastictranscoder.JobInput{Key: aws.String("some/dir/with/subdir/file.mov")},
+		Input: &elastictranscoder.JobInput{
+			Key: aws.String("some/dir/with/subdir/file.mov"),
+			DetectedProperties: &elastictranscoder.DetectedProperties{
+				DurationMillis: aws.Int64(120e3),
+				FileSize:       aws.Int64(60356779),
+				Height:         aws.Int64(1080),
+				Width:          aws.Int64(1920),
+			},
+		},
 		Outputs: []*elastictranscoder.CreateJobOutput{
 			{PresetId: aws.String("93239832-0001"), Key: aws.String("job-1/output_720p.mp4")},
 			{PresetId: aws.String("93239832-0002"), Key: aws.String("job-1/output_1080p.webm")},
@@ -590,12 +623,27 @@ func TestAWSJobStatus(t *testing.T) {
 				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
 		},
+		{
+			FileName: "hls/output_720p.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_720p",
+				ProviderMapping: map[string]string{
+					Name:    "hls-93239832-0003",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "m3u8"},
+			},
+		},
 	}
 	source := "dir/file.mov"
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     source,
-		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		SourceMedia: source,
+		Outputs:     outputs,
+		StreamingParams: provider.StreamingParams{
+			PlaylistFileName: "hls/index.m3u8",
+			SegmentDuration:  3,
+			Protocol:         "hls",
+		},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -613,9 +661,122 @@ func TestAWSJobStatus(t *testing.T) {
 			"outputs": map[string]interface{}{
 				"job-123/output_720p.mp4":  "it's finished!",
 				"job-123/output_720p.webm": "it's finished!",
+				"job-123/hls/output_720p":  "it's finished!",
 			},
 		},
-		OutputDestination: "s3://some bucket/job-123",
+		MediaInfo: provider.MediaInfo{
+			Duration: 120 * time.Second,
+			Width:    1920,
+			Height:   1080,
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some bucket/job-123",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some bucket/job-123/output_720p.mp4",
+					Container:  "mp4",
+					VideoCodec: "H.264",
+					Width:      0,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some bucket/job-123/output_720p.webm",
+					Container:  "webm",
+					VideoCodec: "VP8",
+					Width:      0,
+					Height:     720,
+				},
+				{
+					Path:      "s3://some bucket/job-123/hls/index.m3u8",
+					Container: "m3u8",
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
+		t.Errorf("Wrong JobStatus\nWant %#v\nGot  %#v", expectedJobStatus, *jobStatus)
+	}
+}
+
+func TestAWSJobStatusNoDetectedProperties(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	outputs := []provider.TranscodeOutput{
+		{
+			FileName: "output_720p.mp4",
+			Preset: db.PresetMap{
+				Name: "mp4_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mp4"},
+			},
+		},
+		{
+			FileName: "output_720p.webm",
+			Preset: db.PresetMap{
+				Name: "webm_720p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0002",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "webm"},
+			},
+		},
+	}
+	source := "dir/file.mov"
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     source,
+		Outputs:         outputs,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fakeTranscoder.jobs[jobStatus.ProviderJobID].Input.DetectedProperties = nil
+	jobStatus, err = prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: jobStatus.ProviderJobID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedJobStatus := provider.JobStatus{
+		ProviderJobID: jobStatus.ProviderJobID,
+		Status:        provider.StatusFinished,
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"outputs": map[string]interface{}{
+				"job-123/output_720p.mp4":  "it's finished!",
+				"job-123/output_720p.webm": "it's finished!",
+			},
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some bucket/job-123",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some bucket/job-123/output_720p.mp4",
+					Container:  "mp4",
+					VideoCodec: "H.264",
+					Width:      0,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some bucket/job-123/output_720p.webm",
+					Container:  "webm",
+					VideoCodec: "VP8",
+					Width:      0,
+					Height:     720,
+				},
+			},
+		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
 		t.Errorf("Wrong JobStatus\nWant %#v\nGot  %#v", expectedJobStatus, *jobStatus)

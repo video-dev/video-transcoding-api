@@ -9,12 +9,13 @@ import (
 // Config is a struct to contain all the needed configuration for the
 // Transcoding API.
 type Config struct {
-	Server             *server.Config
-	SwaggerManifest    string `envconfig:"SWAGGER_MANIFEST_PATH"`
-	Redis              *storage.Config
-	EncodingCom        *EncodingCom
-	ElasticTranscoder  *ElasticTranscoder
-	ElementalConductor *ElementalConductor
+	Server                 *server.Config
+	SwaggerManifest        string `envconfig:"SWAGGER_MANIFEST_PATH"`
+	DefaultSegmentDuration uint   `envconfig:"DEFAULT_SEGMENT_DURATION" default:"5"`
+	Redis                  *storage.Config
+	EncodingCom            *EncodingCom
+	ElasticTranscoder      *ElasticTranscoder
+	ElementalConductor     *ElementalConductor
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com

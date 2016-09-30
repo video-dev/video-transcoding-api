@@ -34,6 +34,12 @@ func (c *fakeElasticTranscoder) CreateJob(input *elastictranscoder.CreateJobInpu
 	if err := c.getError("CreateJob"); err != nil {
 		return nil, err
 	}
+	input.Input.DetectedProperties = &elastictranscoder.DetectedProperties{
+		DurationMillis: aws.Int64(120e3),
+		FileSize:       aws.Int64(60356779),
+		Width:          aws.Int64(1920),
+		Height:         aws.Int64(1080),
+	}
 	id := fmt.Sprintf("job-%x", generateID())
 	c.jobs[id] = input
 	return &elastictranscoder.CreateJobResponse{
@@ -63,14 +69,20 @@ func (c *fakeElasticTranscoder) CreatePreset(input *elastictranscoder.CreatePres
 
 func (c *fakeElasticTranscoder) ReadPreset(input *elastictranscoder.ReadPresetInput) (*elastictranscoder.ReadPresetOutput, error) {
 	container := "mp4"
+	codec := "H.264"
 	if strings.Contains(*input.Id, "hls") {
 		container = "ts"
+	}
+	if strings.Contains(*input.Id, "webm") {
+		container = "webm"
+		codec = "VP8"
 	}
 	return &elastictranscoder.ReadPresetOutput{
 		Preset: &elastictranscoder.Preset{
 			Id:        input.Id,
 			Name:      input.Id,
 			Container: aws.String(container),
+			Video:     &elastictranscoder.VideoParameters{Codec: aws.String(codec)},
 		},
 	}, nil
 }
@@ -89,6 +101,17 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 			Key:          createJobOutput.Key,
 			Status:       aws.String("Complete"),
 			StatusDetail: aws.String("it's finished!"),
+			PresetId:     aws.String(fmt.Sprintf("preset-%s", aws.StringValue(createJobOutput.Key))),
+			Width:        aws.Int64(0),
+			Height:       aws.Int64(720),
+		}
+	}
+	playlists := make([]*elastictranscoder.Playlist, len(createJobInput.Playlists))
+	for i, createJobPlaylist := range createJobInput.Playlists {
+		playlists[i] = &elastictranscoder.Playlist{
+			Name:       createJobPlaylist.Name,
+			Format:     createJobPlaylist.Format,
+			OutputKeys: createJobPlaylist.OutputKeys,
 		}
 	}
 	return &elastictranscoder.ReadJobOutput{
@@ -98,6 +121,7 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 			PipelineId: createJobInput.PipelineId,
 			Status:     aws.String("Complete"),
 			Outputs:    outputs,
+			Playlists:  playlists,
 		},
 	}, nil
 }

@@ -187,7 +187,7 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 			"created":    media.Created.Format(encodingComDateFormat),
 			"started":    media.Started.Format(encodingComDateFormat),
 			"finished":   media.Finished.Format(encodingComDateFormat),
-			"output":     "advanced_hls",
+			"output":     hlsOutput,
 			"format": map[string]interface{}{
 				"destination": []string{
 					"https://mybucket.s3.amazonaws.com/dir/job-123/some_hls_preset/video-0.m3u8",
