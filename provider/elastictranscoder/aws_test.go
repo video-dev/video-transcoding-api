@@ -623,12 +623,27 @@ func TestAWSJobStatus(t *testing.T) {
 				OutputOpts: db.OutputOptions{Extension: "webm"},
 			},
 		},
+		{
+			FileName: "hls/output_720p.m3u8",
+			Preset: db.PresetMap{
+				Name: "hls_720p",
+				ProviderMapping: map[string]string{
+					Name:    "hls-93239832-0003",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "m3u8"},
+			},
+		},
 	}
 	source := "dir/file.mov"
 	transcodeProfile := provider.TranscodeProfile{
-		SourceMedia:     source,
-		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		SourceMedia: source,
+		Outputs:     outputs,
+		StreamingParams: provider.StreamingParams{
+			PlaylistFileName: "hls/index.m3u8",
+			SegmentDuration:  3,
+			Protocol:         "hls",
+		},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -646,6 +661,7 @@ func TestAWSJobStatus(t *testing.T) {
 			"outputs": map[string]interface{}{
 				"job-123/output_720p.mp4":  "it's finished!",
 				"job-123/output_720p.webm": "it's finished!",
+				"job-123/hls/output_720p":  "it's finished!",
 			},
 		},
 		MediaInfo: provider.MediaInfo{
@@ -669,6 +685,17 @@ func TestAWSJobStatus(t *testing.T) {
 					VideoCodec: "VP8",
 					Width:      0,
 					Height:     720,
+				},
+				{
+					Path:       "s3://some bucket/job-123/hls/output_720p.m3u8",
+					Container:  "m3u8",
+					VideoCodec: "H.264",
+					Width:      0,
+					Height:     720,
+				},
+				{
+					Path:      "s3://some bucket/job-123/hls/index.m3u8",
+					Container: "m3u8",
 				},
 			},
 		},

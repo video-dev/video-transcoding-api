@@ -40,6 +40,7 @@ const (
 	Name = "elastictranscoder"
 
 	defaultAWSRegion = "us-east-1"
+	hlsPlayList      = "HLSv3"
 )
 
 var (
@@ -79,7 +80,7 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 		if presetOutput.Preset == nil || presetOutput.Preset.Container == nil {
 			return nil, fmt.Errorf("misconfigured preset: %s", presetID)
 		}
-		isAdaptiveStreamingPreset := false
+		var isAdaptiveStreamingPreset bool
 		if *presetOutput.Preset.Container == "ts" {
 			isAdaptiveStreamingPreset = true
 			adaptiveStreamingOutputs = append(adaptiveStreamingOutputs, output)
@@ -97,7 +98,7 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 		playlistFileName := transcodeProfile.StreamingParams.PlaylistFileName
 		playlistFileName = strings.TrimRight(playlistFileName, filepath.Ext(playlistFileName))
 		jobPlaylist := elastictranscoder.CreateJobPlaylist{
-			Format: aws.String("HLSv3"),
+			Format: aws.String(hlsPlayList),
 			Name:   aws.String(job.ID + "/" + playlistFileName),
 		}
 
@@ -306,8 +307,8 @@ func (p *awsProvider) getOutputFiles(job *elastictranscoder.Job) ([]provider.Out
 	if err != nil {
 		return nil, err
 	}
-	files := make([]provider.OutputFile, len(job.Outputs))
-	for i, output := range job.Outputs {
+	files := make([]provider.OutputFile, 0, len(job.Outputs)+len(job.Playlists))
+	for _, output := range job.Outputs {
 		preset, err := p.c.ReadPreset(&elastictranscoder.ReadPresetInput{
 			Id: output.PresetId,
 		})
@@ -319,13 +320,27 @@ func (p *awsProvider) getOutputFiles(job *elastictranscoder.Job) ([]provider.Out
 			aws.StringValue(job.OutputKeyPrefix),
 			aws.StringValue(output.Key),
 		)
-		files[i] = provider.OutputFile{
+		container := aws.StringValue(preset.Preset.Container)
+		if container == "ts" {
+			container = "m3u8"
+			filePath += ".m3u8"
+		}
+		file := provider.OutputFile{
 			Path:       filePath,
-			Container:  aws.StringValue(preset.Preset.Container),
+			Container:  container,
 			VideoCodec: aws.StringValue(preset.Preset.Video.Codec),
 			Width:      aws.Int64Value(output.Width),
 			Height:     aws.Int64Value(output.Height),
 		}
+		files = append(files, file)
+	}
+	for _, playlist := range job.Playlists {
+		filePath := fmt.Sprintf("s3://%s/%s%s",
+			aws.StringValue(pipeline.Pipeline.OutputBucket),
+			aws.StringValue(job.OutputKeyPrefix),
+			aws.StringValue(playlist.Name)+".m3u8",
+		)
+		files = append(files, provider.OutputFile{Path: filePath, Container: "m3u8"})
 	}
 	return files, nil
 }

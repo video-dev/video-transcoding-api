@@ -106,6 +106,14 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 			Height:       aws.Int64(720),
 		}
 	}
+	playlists := make([]*elastictranscoder.Playlist, len(createJobInput.Playlists))
+	for i, createJobPlaylist := range createJobInput.Playlists {
+		playlists[i] = &elastictranscoder.Playlist{
+			Name:       createJobPlaylist.Name,
+			Format:     createJobPlaylist.Format,
+			OutputKeys: createJobPlaylist.OutputKeys,
+		}
+	}
 	return &elastictranscoder.ReadJobOutput{
 		Job: &elastictranscoder.Job{
 			Id:         input.Id,
@@ -113,6 +121,7 @@ func (c *fakeElasticTranscoder) ReadJob(input *elastictranscoder.ReadJobInput) (
 			PipelineId: createJobInput.PipelineId,
 			Status:     aws.String("Complete"),
 			Outputs:    outputs,
+			Playlists:  playlists,
 		},
 	}, nil
 }
