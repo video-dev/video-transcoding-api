@@ -191,7 +191,7 @@ func TestEncodingComTranscode(t *testing.T) {
 			Destination:  []string{dest + "job-123/output-mp4_1080p.mp4"},
 		},
 		{
-			Output:          []string{"advanced_hls"},
+			Output:          []string{hlsOutput},
 			Destination:     []string{dest + "job-123/output_hls/video.m3u8"},
 			SegmentDuration: 3,
 			PackFiles:       &falseYesNoBoolean,
@@ -243,7 +243,7 @@ func TestEncodingComTranscode(t *testing.T) {
 			Destination:  []string{dest + "job-123/output-mp4_1080p.mp4"},
 		},
 		{
-			Output:          []string{"advanced_hls"},
+			Output:          []string{hlsOutput},
 			Destination:     []string{dest + "job-123/output_hls/video.m3u8"},
 			SegmentDuration: 3,
 			PackFiles:       &falseYesNoBoolean,
@@ -404,7 +404,7 @@ func TestJobStatus(t *testing.T) {
 					Bitrate:    "2500k",
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
-					Output:     []string{"advanced_hls"},
+					Output:     []string{hlsOutput},
 				},
 			},
 		},
@@ -484,7 +484,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 				{
 					Size:       "1920x1080",
 					VideoCodec: "VP9",
-					Output:     []string{"advanced_hls"},
+					Output:     []string{hlsOutput},
 				},
 			},
 		},
@@ -777,7 +777,7 @@ func TestCreatePresetHLS(t *testing.T) {
 	fakePreset := server.presets[presetName]
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	expectedFormat := encodingcom.Format{
-		Output:      []string{"advanced_hls"},
+		Output:      []string{hlsOutput},
 		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 		PackFiles:   &falseYesNoBoolean,
 		Stream: []encodingcom.Stream{

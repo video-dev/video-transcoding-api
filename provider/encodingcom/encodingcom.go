@@ -41,6 +41,8 @@ var (
 
 var errEncodingComInvalidConfig = provider.InvalidConfigError("missing Encoding.com user id or key. Please define the environment variables ENCODINGCOM_USER_ID and ENCODINGCOM_USER_KEY or set these values in the configuration file")
 
+const hlsOutput = "advanced_hls"
+
 func init() {
 	provider.Register(Name, encodingComFactory)
 }
@@ -89,7 +91,7 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 	}
 	if preset.Container == "m3u8" {
-		format.Output = []string{"advanced_hls"}
+		format.Output = []string{hlsOutput}
 		format.PackFiles = &falseYesNoBoolean
 		stream := encodingcom.Stream{
 			Profile:      preset.Profile,
@@ -188,7 +190,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 			return nil, fmt.Errorf("Error getting preset info: %s", err.Error())
 		}
 		presetStruct := presetOutput.(*encodingcom.Preset)
-		if presetStruct.Output == "advanced_hls" {
+		if presetStruct.Output == hlsOutput {
 			for _, stream := range presetStruct.Format.Stream() {
 				stream.SubPath = presetName
 				streams = append(streams, stream)
@@ -204,7 +206,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 	if len(streams) > 0 {
 		falseValue := encodingcom.YesNoBoolean(false)
 		format := encodingcom.Format{
-			Output:          []string{"advanced_hls"},
+			Output:          []string{hlsOutput},
 			Destination:     e.getDestinations(job.ID, transcodeProfile.StreamingParams.PlaylistFileName),
 			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
 			Stream:          streams,
@@ -295,7 +297,7 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 	for _, formatStatus := range formats {
 		for idx, ds := range formatStatus.Destinations {
 			destinationName := ds.Name
-			if formatStatus.Output == "advanced_hls" {
+			if formatStatus.Output == hlsOutput {
 				streams := formatStatus.Stream
 				if idx < len(streams) {
 					destinationNameParts := strings.Split(destinationName, "/")
@@ -309,7 +311,7 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 				}
 			}
 			container := formatStatus.Output
-			if container == "advanced_hls" {
+			if container == hlsOutput {
 				container = "m3u8"
 			}
 			file := provider.OutputFile{
