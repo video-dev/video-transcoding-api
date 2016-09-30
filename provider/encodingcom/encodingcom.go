@@ -308,9 +308,13 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 					destinationName = strings.Join(fixedDestination, "/")
 				}
 			}
+			container := formatStatus.Output
+			if container == "advanced_hls" {
+				container = "m3u8"
+			}
 			file := provider.OutputFile{
 				Path:       e.destinationMedia(destinationName),
-				Container:  formatStatus.Output,
+				Container:  container,
 				VideoCodec: formatStatus.VideoCodec,
 			}
 			file.Width, file.Height, _ = e.parseSize(formatStatus.Size)
