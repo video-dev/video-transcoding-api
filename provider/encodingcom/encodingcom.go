@@ -134,8 +134,17 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 		if format.AudioCodec == "aac" {
 			format.AudioCodec = "dolby_aac"
 		}
+		if format.AudioCodec == "vorbis" {
+			format.AudioCodec = "libvorbis"
+		}
 		if format.VideoCodec == "h264" {
 			format.VideoCodec = "libx264"
+		}
+		if format.VideoCodec == "vp8" {
+			format.VideoCodec = "libvpx"
+		}
+		if format.VideoCodec == "vp9" {
+			format.VideoCodec = "libvpx-vp9"
 		}
 		if preset.RateControl == "VBR" {
 			format.TwoPass = true
