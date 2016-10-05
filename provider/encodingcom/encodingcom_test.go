@@ -1,11 +1,13 @@
 package encodingcom
 
 import (
+	"os"
 	"reflect"
 	"testing"
 	"time"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
+	"github.com/kr/pretty"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
@@ -796,6 +798,125 @@ func TestCreatePresetHLS(t *testing.T) {
 	}
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
+	}
+}
+
+func TestPresetToFormat(t *testing.T) {
+	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
+	var tests = []struct {
+		givenTestCase  string
+		givenPreset    provider.Preset
+		expectedFormat encodingcom.Format
+	}{
+		{
+			"HLS preset",
+			provider.Preset{
+				Container:    "m3u8",
+				Profile:      "Main",
+				ProfileLevel: "3.1",
+				Audio: provider.AudioPreset{
+					Codec: "aac",
+				},
+				Video: provider.VideoPreset{
+					Codec: "h264",
+				},
+			},
+			encodingcom.Format{
+				Output:               []string{"advanced_hls"},
+				Destination:          []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+				VideoCodecParameters: encodingcom.VideoCodecParameters{},
+				Stream: []encodingcom.Stream{
+					{
+						AudioCodec:  "dolby_aac",
+						AudioVolume: 100,
+						Size:        "0x0",
+						VideoCodec:  "libx264",
+						Profile:     "Main",
+					},
+				},
+				PackFiles: &falseYesNoBoolean,
+			},
+		},
+		{
+			"WEBM vp8 preset",
+			provider.Preset{
+				Container: "webm",
+				Audio: provider.AudioPreset{
+					Codec: "vorbis",
+				},
+				Video: provider.VideoPreset{
+					Codec:   "vp8",
+					GopSize: "90",
+				},
+			},
+			encodingcom.Format{
+				Output:      []string{"webm"},
+				Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+				AudioCodec:  "libvorbis",
+				AudioVolume: 100,
+				Gop:         "cgop",
+				Keyframe:    []string{"90"},
+				VideoCodec:  "libvpx",
+				Size:        "0x0",
+			},
+		},
+		{
+			"WEBM vp9 preset",
+			provider.Preset{
+				Container: "webm",
+				Audio: provider.AudioPreset{
+					Codec: "vorbis",
+				},
+				Video: provider.VideoPreset{
+					Codec:   "vp9",
+					GopSize: "90",
+				},
+			},
+			encodingcom.Format{
+				Output:      []string{"webm"},
+				Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+				AudioCodec:  "libvorbis",
+				AudioVolume: 100,
+				Gop:         "cgop",
+				Keyframe:    []string{"90"},
+				VideoCodec:  "libvpx-vp9",
+				Size:        "0x0",
+			},
+		},
+		{
+			"MP4 preset",
+			provider.Preset{
+				Container:    "mp4",
+				Profile:      "Main",
+				ProfileLevel: "3.1",
+				Audio: provider.AudioPreset{
+					Codec: "aac",
+				},
+				Video: provider.VideoPreset{
+					Codec:   "h264",
+					GopSize: "90",
+				},
+			},
+			encodingcom.Format{
+				Output:      []string{"mp4"},
+				Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+				AudioCodec:  "dolby_aac",
+				AudioVolume: 100,
+				Gop:         "cgop",
+				Keyframe:    []string{"90"},
+				Size:        "0x0",
+				VideoCodec:  "libx264",
+				Profile:     "Main",
+			},
+		},
+	}
+	var p encodingComProvider
+	for _, test := range tests {
+		resultingFormat := p.presetToFormat(test.givenPreset)
+		if !reflect.DeepEqual(resultingFormat, test.expectedFormat) {
+			t.Errorf("%s: presetToFormat: wrong value. Want %#v. Got %#v", test.givenTestCase, test.expectedFormat, resultingFormat)
+			pretty.Fdiff(os.Stderr, resultingFormat, test.expectedFormat)
+		}
 	}
 }
 

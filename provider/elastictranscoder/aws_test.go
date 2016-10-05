@@ -2,6 +2,7 @@ package elastictranscoder
 
 import (
 	"errors"
+	"os"
 	"reflect"
 	"regexp"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
+	"github.com/kr/pretty"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/provider"
@@ -820,6 +822,189 @@ func TestAWSCreatePreset(t *testing.T) {
 
 	if !reflect.DeepEqual(presetID, "preset_name-abc123") {
 		t.Errorf("CreatePreset: want %s. Got %s", presetID, "preset_name-abc123")
+	}
+}
+
+func TestCreateVideoPreset(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	var tests = []struct {
+		givenTestCase       string
+		givenPreset         provider.Preset
+		expectedVideoParams *elastictranscoder.VideoParameters
+	}{
+		{
+			"H.264 preset",
+			provider.Preset{
+				Container:    "m3u8",
+				Profile:      "Main",
+				ProfileLevel: "3.1",
+				Video: provider.VideoPreset{
+					Codec: "h264",
+				},
+			},
+			&elastictranscoder.VideoParameters{
+				BitRate: aws.String("0"),
+				Codec:   aws.String("H.264"),
+				CodecOptions: map[string]*string{
+					"MaxReferenceFrames": aws.String("2"),
+					"Profile":            aws.String("main"),
+					"Level":              aws.String("3.1"),
+				},
+				DisplayAspectRatio: aws.String("auto"),
+				FrameRate:          aws.String("auto"),
+				KeyframesMaxDist:   aws.String(""),
+				MaxHeight:          aws.String("auto"),
+				MaxWidth:           aws.String("auto"),
+				PaddingPolicy:      aws.String("Pad"),
+				SizingPolicy:       aws.String("Fill"),
+			},
+		},
+		{
+			"WEBM vp8 preset",
+			provider.Preset{
+				Container: "webm",
+				Video: provider.VideoPreset{
+					Codec:   "vp8",
+					GopSize: "90",
+				},
+			},
+			&elastictranscoder.VideoParameters{
+				BitRate: aws.String("0"),
+				Codec:   aws.String("vp8"),
+				CodecOptions: map[string]*string{
+					"Profile": aws.String("0"),
+				},
+				DisplayAspectRatio: aws.String("auto"),
+				FrameRate:          aws.String("auto"),
+				KeyframesMaxDist:   aws.String("90"),
+				MaxHeight:          aws.String("auto"),
+				MaxWidth:           aws.String("auto"),
+				PaddingPolicy:      aws.String("Pad"),
+				SizingPolicy:       aws.String("Fill"),
+			},
+		},
+		{
+			"WEBM vp9 preset",
+			provider.Preset{
+				Container: "webm",
+				Video: provider.VideoPreset{
+					Codec:   "vp9",
+					GopSize: "90",
+				},
+			},
+			&elastictranscoder.VideoParameters{
+				BitRate: aws.String("0"),
+				Codec:   aws.String("vp9"),
+				CodecOptions: map[string]*string{
+					"Profile": aws.String("0"),
+				},
+				DisplayAspectRatio: aws.String("auto"),
+				FrameRate:          aws.String("auto"),
+				KeyframesMaxDist:   aws.String("90"),
+				MaxHeight:          aws.String("auto"),
+				MaxWidth:           aws.String("auto"),
+				PaddingPolicy:      aws.String("Pad"),
+				SizingPolicy:       aws.String("Fill"),
+			},
+		},
+		{
+			"MP4 preset",
+			provider.Preset{
+				Container:    "mp4",
+				Profile:      "Main",
+				ProfileLevel: "3.1",
+				Video: provider.VideoPreset{
+					Codec:   "h264",
+					GopSize: "90",
+				},
+			},
+			&elastictranscoder.VideoParameters{
+				BitRate: aws.String("0"),
+				Codec:   aws.String("H.264"),
+				CodecOptions: map[string]*string{
+					"MaxReferenceFrames": aws.String("2"),
+					"Profile":            aws.String("main"),
+					"Level":              aws.String("3.1"),
+				},
+				DisplayAspectRatio: aws.String("auto"),
+				FrameRate:          aws.String("auto"),
+				KeyframesMaxDist:   aws.String("90"),
+				MaxHeight:          aws.String("auto"),
+				MaxWidth:           aws.String("auto"),
+				PaddingPolicy:      aws.String("Pad"),
+				SizingPolicy:       aws.String("Fill"),
+			},
+		},
+	}
+	for _, test := range tests {
+		videoParams := prov.createVideoPreset(test.givenPreset)
+		if !reflect.DeepEqual(test.expectedVideoParams, videoParams) {
+			t.Errorf("%s: CreateVideoPreset: want %s. Got %s", test.givenTestCase, test.expectedVideoParams, videoParams)
+			pretty.Fdiff(os.Stderr, videoParams, test.expectedVideoParams)
+		}
+	}
+}
+
+func TestCreateAudioPreset(t *testing.T) {
+	fakeTranscoder := newFakeElasticTranscoder()
+	prov := &awsProvider{
+		c: fakeTranscoder,
+		config: &config.ElasticTranscoder{
+			AccessKeyID:     "AKIA",
+			SecretAccessKey: "secret",
+			Region:          "sa-east-1",
+			PipelineID:      "mypipeline",
+		},
+	}
+	var tests = []struct {
+		givenTestCase       string
+		givenPreset         provider.Preset
+		expectedAudioParams *elastictranscoder.AudioParameters
+	}{
+		{
+			"AAC preset",
+			provider.Preset{
+				Audio: provider.AudioPreset{
+					Codec: "aac",
+				},
+			},
+			&elastictranscoder.AudioParameters{
+				BitRate:    aws.String("0"),
+				Channels:   aws.String("auto"),
+				Codec:      aws.String("AAC"),
+				SampleRate: aws.String("auto"),
+			},
+		},
+		{
+			"libvorbis preset",
+			provider.Preset{
+				Audio: provider.AudioPreset{
+					Codec: "libvorbis",
+				},
+			},
+			&elastictranscoder.AudioParameters{
+				BitRate:    aws.String("0"),
+				Channels:   aws.String("auto"),
+				Codec:      aws.String("vorbis"),
+				SampleRate: aws.String("auto"),
+			},
+		},
+	}
+	for _, test := range tests {
+		audioParams := prov.createAudioPreset(test.givenPreset)
+		if !reflect.DeepEqual(test.expectedAudioParams, audioParams) {
+			t.Errorf("%s: CreateAudioPreset: want %s. Got %s", test.givenTestCase, test.expectedAudioParams, audioParams)
+			pretty.Fdiff(os.Stderr, audioParams, test.expectedAudioParams)
+		}
 	}
 }
 

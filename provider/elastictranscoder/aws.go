@@ -163,8 +163,16 @@ func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscod
 	normalizedVideoBitRate, _ := strconv.Atoi(preset.Video.Bitrate)
 	videoBitrate := strconv.Itoa(normalizedVideoBitRate / 1000)
 	videoPreset.BitRate = &videoBitrate
-	if preset.Video.Codec == "h264" {
+	switch preset.Video.Codec {
+	case "h264":
 		videoPreset.Codec = aws.String("H.264")
+	case "vp8", "vp9":
+		videoPreset.Codec = aws.String(preset.Video.Codec)
+		delete(videoPreset.CodecOptions, "MaxReferenceFrames")
+		delete(videoPreset.CodecOptions, "Level")
+		// Recommended profile value is zero, based on:
+		// http://www.webmproject.org/docs/encoder-parameters/
+		videoPreset.CodecOptions["Profile"] = aws.String("0")
 	}
 	if preset.Video.GopMode == "fixed" {
 		videoPreset.FixedGOP = aws.String("true")
@@ -195,8 +203,11 @@ func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscod
 	audioBitrate := strconv.Itoa(normalizedAudioBitRate / 1000)
 	audioPreset.BitRate = &audioBitrate
 
-	if preset.Audio.Codec == "aac" {
+	switch preset.Audio.Codec {
+	case "aac":
 		audioPreset.Codec = aws.String("AAC")
+	case "libvorbis":
+		audioPreset.Codec = aws.String("vorbis")
 	}
 
 	return audioPreset
