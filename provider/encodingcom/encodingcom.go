@@ -35,7 +35,7 @@ const Name = "encodingcom"
 
 var (
 	kregexp      = regexp.MustCompile(`000$`)
-	s3regexp     = regexp.MustCompile(`^s3://([^/_.]+)/(.+)$`)
+	s3regexp     = regexp.MustCompile(`^s3://([^/_.]+)/([^?]+)(\?.+)?$`)
 	httpS3Regexp = regexp.MustCompile(`https?://([^/_.]+)\.s3\.amazonaws\.com/(.+)$`)
 )
 
@@ -79,7 +79,11 @@ func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, erro
 func (e *encodingComProvider) sourceMedia(original string) string {
 	parts := s3regexp.FindStringSubmatch(original)
 	if len(parts) > 0 {
-		return fmt.Sprintf("https://%s.s3.amazonaws.com/%s", parts[1], parts[2])
+		qs := parts[3]
+		if qs == "" {
+			qs = "?nocopy"
+		}
+		return fmt.Sprintf("https://%s.s3.amazonaws.com/%s%s", parts[1], parts[2], qs)
 	}
 	return original
 }
