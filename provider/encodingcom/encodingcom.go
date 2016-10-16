@@ -108,9 +108,6 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 		format.AudioCodec = e.getNormalizedCodec(preset.Audio.Codec)
 		format.VideoCodec = e.getNormalizedCodec(preset.Video.Codec)
 		format.Size = e.getSize(preset.Video.Width, preset.Video.Height)
-		if preset.RateControl == "VBR" {
-			format.TwoPass = true
-		}
 	}
 	return format
 }
@@ -126,9 +123,6 @@ func (e *encodingComProvider) buildStream(preset provider.Preset) []encodingcom.
 	stream.AudioCodec = e.getNormalizedCodec(preset.Audio.Codec)
 	stream.VideoCodec = e.getNormalizedCodec(preset.Video.Codec)
 	stream.Size = e.getSize(preset.Video.Width, preset.Video.Height)
-	if preset.RateControl == "VBR" {
-		stream.TwoPass = true
-	}
 
 	return []encodingcom.Stream{stream}
 }
