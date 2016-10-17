@@ -97,73 +97,55 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 	if preset.Container == "m3u8" {
 		format.Output = []string{hlsOutput}
 		format.PackFiles = &falseYesNoBoolean
-		stream := encodingcom.Stream{
-			Profile:      preset.Profile,
-			Keyframe:     preset.Video.GopSize,
-			Bitrate:      kregexp.ReplaceAllString(preset.Video.Bitrate, "k"),
-			VideoCodec:   preset.Video.Codec,
-			AudioBitrate: kregexp.ReplaceAllString(preset.Audio.Bitrate, "k"),
-			AudioCodec:   preset.Audio.Codec,
-			AudioVolume:  100,
-		}
-		if stream.AudioCodec == "aac" {
-			stream.AudioCodec = "dolby_aac"
-		}
-		if stream.VideoCodec == "h264" {
-			stream.VideoCodec = "libx264"
-		}
-		if preset.RateControl == "VBR" {
-			stream.TwoPass = true
-		}
-		width := preset.Video.Width
-		height := preset.Video.Height
-		if width == "" {
-			width = "0"
-		}
-		if height == "" {
-			height = "0"
-		}
-		stream.Size = width + "x" + height
-		format.Stream = []encodingcom.Stream{stream}
+		format.Stream = e.buildStream(preset)
 	} else {
 		format.Bitrate = kregexp.ReplaceAllString(preset.Video.Bitrate, "k")
 		format.AudioBitrate = kregexp.ReplaceAllString(preset.Audio.Bitrate, "k")
-		format.AudioCodec = preset.Audio.Codec
-		format.VideoCodec = preset.Video.Codec
 		format.Profile = preset.Profile
 		format.Gop = "cgop"
 		format.Keyframe = []string{preset.Video.GopSize}
 		format.AudioVolume = 100
-
-		if format.AudioCodec == "aac" {
-			format.AudioCodec = "dolby_aac"
-		}
-		if format.AudioCodec == "vorbis" {
-			format.AudioCodec = "libvorbis"
-		}
-		if format.VideoCodec == "h264" {
-			format.VideoCodec = "libx264"
-		}
-		if format.VideoCodec == "vp8" {
-			format.VideoCodec = "libvpx"
-		}
-		if format.VideoCodec == "vp9" {
-			format.VideoCodec = "libvpx-vp9"
-		}
-		if preset.RateControl == "VBR" {
-			format.TwoPass = true
-		}
-		width := preset.Video.Width
-		height := preset.Video.Height
-		if width == "" {
-			width = "0"
-		}
-		if height == "" {
-			height = "0"
-		}
-		format.Size = width + "x" + height
+		format.AudioCodec = e.getNormalizedCodec(preset.Audio.Codec)
+		format.VideoCodec = e.getNormalizedCodec(preset.Video.Codec)
+		format.Size = e.getSize(preset.Video.Width, preset.Video.Height)
 	}
 	return format
+}
+
+func (e *encodingComProvider) buildStream(preset provider.Preset) []encodingcom.Stream {
+	stream := encodingcom.Stream{
+		Profile:      preset.Profile,
+		Keyframe:     preset.Video.GopSize,
+		Bitrate:      kregexp.ReplaceAllString(preset.Video.Bitrate, "k"),
+		AudioBitrate: kregexp.ReplaceAllString(preset.Audio.Bitrate, "k"),
+		AudioVolume:  100,
+	}
+	stream.AudioCodec = e.getNormalizedCodec(preset.Audio.Codec)
+	stream.VideoCodec = e.getNormalizedCodec(preset.Video.Codec)
+	stream.Size = e.getSize(preset.Video.Width, preset.Video.Height)
+
+	return []encodingcom.Stream{stream}
+}
+
+func (e *encodingComProvider) getSize(width string, height string) string {
+	if width == "" {
+		width = "0"
+	}
+	if height == "" {
+		height = "0"
+	}
+	return width + "x" + height
+}
+
+func (e *encodingComProvider) getNormalizedCodec(codec string) string {
+	audioCodecs := map[string]string{"aac": "dolby_aac", "vorbis": "libvorbis"}
+	videoCodecs := map[string]string{"h264": "libx264", "vp8": "libvpx", "vp9": "libvpx-vp9"}
+	if c, ok := audioCodecs[codec]; ok {
+		return c
+	} else if c, ok = videoCodecs[codec]; ok {
+		return c
+	}
+	return codec
 }
 
 func (e *encodingComProvider) GetPreset(presetID string) (interface{}, error) {
