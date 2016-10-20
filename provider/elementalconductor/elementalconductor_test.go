@@ -773,7 +773,7 @@ func TestJobStatus(t *testing.T) {
 					{
 						FullURI:            "s3://somebucket/dir/video1.mov",
 						Extension:          "mov",
-						StreamAssemblyName: "unknwon",
+						StreamAssemblyName: "unknown",
 						Container:          "mov",
 					},
 				},
@@ -949,7 +949,7 @@ func TestJobStatusNoDuration(t *testing.T) {
 					{
 						FullURI:            "s3://somebucket/dir/video1.mov",
 						Extension:          "mov",
-						StreamAssemblyName: "unknwon",
+						StreamAssemblyName: "unknown",
 						Container:          "mov",
 					},
 				},
