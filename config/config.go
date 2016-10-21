@@ -3,6 +3,7 @@ package config
 import (
 	"github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
+	"github.com/marzagao/envconfigfromfile"
 	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
@@ -16,6 +17,7 @@ type Config struct {
 	EncodingCom            *EncodingCom
 	ElasticTranscoder      *ElasticTranscoder
 	ElementalConductor     *ElementalConductor
+	GCPCredentials         *envconfigfromfile.EnvConfigFromFile `envconfig:"GCP_CREDENTIALS_FILE"`
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com

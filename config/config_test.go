@@ -1,17 +1,21 @@
 package config
 
 import (
+	"io/ioutil"
 	"os"
 	"reflect"
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/marzagao/envconfigfromfile"
 	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {
 	os.Clearenv()
 	accessLog := "/var/log/transcoding-api-access.log"
+	gcpCredsTestFilePath := "testdata/fake_gcp_creds.json"
+	gcpCredsTestFileContents, _ := ioutil.ReadFile(gcpCredsTestFilePath)
 	setEnvs(map[string]string{
 		"SENTINEL_ADDRS":                           "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
 		"SENTINEL_MASTER_NAME":                     "supermaster",
@@ -39,6 +43,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
 		"DEFAULT_SEGMENT_DURATION":                 "3",
+		"GCP_CREDENTIALS_FILE":                     gcpCredsTestFilePath,
 	})
 	cfg := LoadConfig()
 	expectedCfg := Config{
@@ -78,6 +83,10 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			HTTPPort:      8080,
 			HTTPAccessLog: &accessLog,
 		},
+		GCPCredentials: &envconfigfromfile.EnvConfigFromFile{
+			FilePath: gcpCredsTestFilePath,
+			Value:    string(gcpCredsTestFileContents),
+		},
 	}
 	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
 		t.Errorf("LoadConfig(): wrong swagger manifest. Want %q. Got %q", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
@@ -96,6 +105,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
 		t.Errorf("LoadConfig(): wrong Elemental Conductor config returned. Want %#v. Got %#v.", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
+	}
+	if !reflect.DeepEqual(*cfg.GCPCredentials, *expectedCfg.GCPCredentials) {
+		t.Errorf("LoadConfig(): Wrong GCPCredentials returned. Want %#v. Got %#v.", *expectedCfg.GCPCredentials, *cfg.GCPCredentials)
 	}
 }
 

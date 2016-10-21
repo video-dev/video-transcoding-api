@@ -4,6 +4,7 @@ import (
 	"flag"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/knq/sdhook"
 	"github.com/nytm/video-transcoding-api/config"
 	_ "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
 	_ "github.com/nytm/video-transcoding-api/provider/elementalconductor"
@@ -17,8 +18,18 @@ func main() {
 	if cfg.Server.RouterType == "" {
 		cfg.Server.RouterType = "fast"
 	}
-
 	server.Init("video-transcoding-api", cfg.Server)
+	if cfg.GCPCredentials.String() != "" {
+		gcpLoggingHook, err := sdhook.New(
+			sdhook.GoogleServiceAccountCredentialsJSON([]byte(cfg.GCPCredentials.String())),
+		)
+		if err != nil {
+			server.Log.Fatal("unable to initialize GCP logging hook: ", err)
+		}
+		server.Log.Hooks.Add(gcpLoggingHook)
+	} else {
+		server.Log.Debug("GCP credentials were not set")
+	}
 	service, err := service.NewTranscodingService(cfg)
 	if err != nil {
 		server.Log.Fatal("unable to initialize service: ", err)
