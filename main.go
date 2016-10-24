@@ -30,7 +30,7 @@ func main() {
 	} else {
 		server.Log.Debug("GCP credentials were not set")
 	}
-	service, err := service.NewTranscodingService(cfg)
+	service, err := service.NewTranscodingService(cfg, server.Log)
 	if err != nil {
 		server.Log.Fatal("unable to initialize service: ", err)
 	}

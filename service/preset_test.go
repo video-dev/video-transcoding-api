@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/dbtest"
@@ -118,7 +119,7 @@ func TestNewPreset(t *testing.T) {
 		name := test.givenRequestData["preset"].(map[string]interface{})["name"].(string)
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB, logger: logrus.New()})
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
@@ -173,7 +174,7 @@ func TestDeletePreset(t *testing.T) {
 		fakeProviderMapping := make(map[string]string)
 		fakeProviderMapping["fake"] = "presetID_here"
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321", ProviderMapping: fakeProviderMapping})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB, logger: logrus.New()})
 		r, _ := http.NewRequest("DELETE", "/presets/abc-321", nil)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()

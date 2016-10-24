@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/dbtest"
@@ -134,7 +135,7 @@ func TestNewPresetMap(t *testing.T) {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321"})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB, logger: logrus.New()})
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presetmaps", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
@@ -190,6 +191,7 @@ func TestGetPresetMap(t *testing.T) {
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
+			logger: logrus.New(),
 		})
 		r, _ := http.NewRequest("GET", "/presetmaps/"+test.givenPresetMapName, nil)
 		w := httptest.NewRecorder()
@@ -262,6 +264,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
+			logger: logrus.New(),
 		})
 		data, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("PUT", "/presetmaps/"+test.givenPresetMapName, bytes.NewReader(data))
@@ -313,6 +316,7 @@ func TestDeletePresetMap(t *testing.T) {
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
+			logger: logrus.New(),
 		})
 		r, _ := http.NewRequest("DELETE", "/presetmaps/"+test.givenPresetMapName, nil)
 		w := httptest.NewRecorder()
@@ -385,6 +389,7 @@ func TestListPresetMaps(t *testing.T) {
 		srvr.Register(&TranscodingService{
 			config: &config.Config{},
 			db:     fakeDB,
+			logger: logrus.New(),
 		})
 		r, _ := http.NewRequest("GET", "/presetmaps", nil)
 		w := httptest.NewRecorder()

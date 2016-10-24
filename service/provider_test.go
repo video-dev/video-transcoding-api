@@ -8,12 +8,13 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 )
 
 func TestListProviders(t *testing.T) {
 	srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
-	srvr.Register(&TranscodingService{config: &config.Config{}})
+	srvr.Register(&TranscodingService{config: &config.Config{}, logger: logrus.New()})
 	r, _ := http.NewRequest("GET", "/providers", nil)
 	w := httptest.NewRecorder()
 	srvr.ServeHTTP(w, r)
@@ -63,7 +64,7 @@ func TestGetProvider(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
-		srvr.Register(&TranscodingService{config: &config.Config{}})
+		srvr.Register(&TranscodingService{config: &config.Config{}, logger: logrus.New()})
 		r, _ := http.NewRequest("GET", "/providers/"+test.name, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
