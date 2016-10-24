@@ -1,7 +1,7 @@
 package main
 
 import (
-	"flag"
+	"io/ioutil"
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/knq/sdhook"
@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	flag.Parse()
 	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
 		cfg.Server.RouterType = "fast"
@@ -27,6 +26,7 @@ func main() {
 			server.Log.Fatal("unable to initialize GCP logging hook: ", err)
 		}
 		server.Log.Hooks.Add(gcpLoggingHook)
+		server.Log.Out = ioutil.Discard
 	} else {
 		server.Log.Debug("GCP credentials were not set")
 	}
