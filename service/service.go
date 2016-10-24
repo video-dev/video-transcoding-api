@@ -2,7 +2,6 @@ package service
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 
 	"github.com/NYTimes/gizmo/server"
@@ -26,11 +25,6 @@ type TranscodingService struct {
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
 func NewTranscodingService(cfg *config.Config, logger *logrus.Logger) (*TranscodingService, error) {
-	if logger == nil {
-		logger = logrus.New()
-		logger.Out = ioutil.Discard
-		logger.Level = logrus.PanicLevel
-	}
 	dbRepo, err := redis.NewRepository(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
