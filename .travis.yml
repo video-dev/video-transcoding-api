@@ -1,7 +1,8 @@
 language: go
 sudo: false
 install: make testdeps
-script: make swagger test
+script: make swagger coverage
+after_success: bash <(curl -s https://codecov.io/bash)
 addons:
   apt:
     packages:

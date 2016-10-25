@@ -1,3 +1,4 @@
 access.log
 video-transcoding-api
 secrets.yml
+coverage.txt
