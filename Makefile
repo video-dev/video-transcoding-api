@@ -11,7 +11,7 @@ testdeps:
 	go get -d -t ./...
 
 lint: testdeps
-	go get github.com/alecthomas/gometalinter
+	go get github.com/alecthomas/gometalinter honnef.co/go/unused/cmd/unused
 	gometalinter --install --vendored-linters
 	go get -t ./...
 	go list -f '{{.TestImports}}' ./... | sed -e 's/\[\(.*\)\]/\1/' | tr ' ' '\n' | grep '^.*\..*/.*$$' | xargs go install
