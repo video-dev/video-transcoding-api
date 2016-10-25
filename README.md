@@ -78,5 +78,5 @@ Check out on our Wiki [how to](https://github.com/nytm/video-transcoding-api/wik
 
 ## License
 
-This code is under [Apache 2.0 License](https://github.com/nytm/video-transcoding-api/blob/master/LICENSE).
-
+- This code is under [Apache 2.0 license](https://github.com/nytm/video-transcoding-api/blob/master/LICENSE).
+- The video-transcoding-api logo is a variation on the Go gopher that was designed by Renee French and copyrighted under the [Creative Commons Attribution 3.0 license](https://creativecommons.org/licenses/by/3.0/).
