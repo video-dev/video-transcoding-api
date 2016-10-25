@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/Sirupsen/logrus"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/dbtest"
@@ -211,7 +212,11 @@ func TestTranscode(t *testing.T) {
 			Name:            "mp4_360p",
 			ProviderMapping: map[string]string{"elementalconductor": "172712"},
 		})
-		srvr.Register(&TranscodingService{config: &config.Config{DefaultSegmentDuration: 5}, db: fakeDBObj})
+		srvr.Register(&TranscodingService{
+			config: &config.Config{DefaultSegmentDuration: 5},
+			db:     fakeDBObj,
+			logger: logrus.New(),
+		})
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -320,7 +325,11 @@ func TestGetTranscodeJob(t *testing.T) {
 				SegmentDuration: test.givenSegmentDuration,
 				Protocol:        test.givenProtocol,
 			}})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
+		srvr.Register(&TranscodingService{
+			config: &config.Config{},
+			db:     fakeDBObj,
+			logger: logrus.New(),
+		})
 		r, _ := http.NewRequest("GET", test.givenURI, nil)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -415,7 +424,7 @@ func TestCancelTranscodeJob(t *testing.T) {
 			ProviderName:  "fake",
 			ProviderJobID: "some-job",
 		})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj})
+		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj, logger: logrus.New()})
 		r, _ := http.NewRequest("POST", "/jobs/"+test.givenJobID+"/cancel", bytes.NewReader(nil))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()

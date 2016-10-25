@@ -6,6 +6,8 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/gziphandler"
+	"github.com/Sirupsen/logrus"
+	"github.com/fsouza/ctxlogger"
 	"github.com/nytm/video-transcoding-api/config"
 	"github.com/nytm/video-transcoding-api/db"
 	"github.com/nytm/video-transcoding-api/db/redis"
@@ -17,11 +19,12 @@ import (
 type TranscodingService struct {
 	config *config.Config
 	db     db.Repository
+	logger *logrus.Logger
 }
 
 // NewTranscodingService will instantiate a JSONService
 // with the given configuration.
-func NewTranscodingService(cfg *config.Config) (*TranscodingService, error) {
+func NewTranscodingService(cfg *config.Config, logger *logrus.Logger) (*TranscodingService, error) {
 	dbRepo, err := redis.NewRepository(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
@@ -39,7 +42,8 @@ func (s *TranscodingService) Prefix() string {
 // In this implementation, we're using a GzipHandler middleware to
 // compress our responses.
 func (s *TranscodingService) Middleware(h http.Handler) http.Handler {
-	return gziphandler.GzipHandler(server.CORSHandler(h, ""))
+	logMiddleware := ctxlogger.ContextLogger(s.logger)
+	return gziphandler.GzipHandler(server.CORSHandler(logMiddleware(h), ""))
 }
 
 // JSONMiddleware provides a JSONEndpoint hook wrapped around all requests.

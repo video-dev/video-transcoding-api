@@ -15,6 +15,9 @@ import (
 
 func TestRedisClientRedisDefaultOptions(t *testing.T) {
 	storage, err := NewStorage(&Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	client := storage.RedisClient()
 	defer client.Close()
 	_, err = client.Ping().Result()
@@ -35,6 +38,9 @@ func TestRedisClientRedisAddr(t *testing.T) {
 		Password:  "not-secret",
 	}
 	storage, err := NewStorage(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	client := storage.RedisClient()
 	defer client.Close()
 	_, err = client.Ping().Result()
@@ -54,6 +60,9 @@ func TestRedisClientRedisSentinel(t *testing.T) {
 		SentinelMasterName: "mymaster",
 	}
 	storage, err := NewStorage(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 	client := storage.RedisClient()
 	defer client.Close()
 	_, err = client.Ping().Result()
