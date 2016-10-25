@@ -3,15 +3,18 @@
 
 # Video Transcoding API
 
-The Video Transcoding API provides an agnostic API to transcode media assets across different cloud services. Currently, it supports the following providers:
+The Video Transcoding API provides an agnostic API to transcode media assets
+across different cloud services. Currently, it supports the following
+providers:
 
 - [Elemental Conductor](http://www.elementaltechnologies.com/products/elemental-conductor)
-- [Encoding.com](encoding.com)
+- [Encoding.com](http://encoding.com)
 - [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
 
 ## Setting Up
 
-With [Go](https://golang.org/dl/) installed, make sure to export the follow environment variables:
+With [Go](https://golang.org/dl/) installed, make sure to export the follow
+environment variables:
 
 #### For [Elemental Conductor](http://www.elementaltechnologies.com/products/elemental-conductor)
 
@@ -49,12 +52,14 @@ export REDIS_ADDR=200.221.14.140
 export REDIS_PASSWORD=p4ssw0rd.here
 ```
 
-If you are running Redis in the same host of the API and on the default port (6379) the API will automatically find the instance and connect to it.
+If you are running Redis in the same host of the API and on the default port
+(6379) the API will automatically find the instance and connect to it.
 
-With all environment variables set and redis up and running, clone this repository and run:
+With all environment variables set and redis up and running, clone this
+repository and run:
 
 ```
-$ git clone https://github.com/nytm/video-transcoding-api.git
+$ git clone https://github.com/NYTimes/video-transcoding-api.git
 $ make run
 ```
 
@@ -66,7 +71,9 @@ $ make test
 
 ## Using the API
 
-Check out on our Wiki [how to](https://github.com/nytm/video-transcoding-api/wiki/Using-Video-Transcoding-API) use this API.
+Check out on our Wiki [how
+to](https://github.com/NYTimes/video-transcoding-api/wiki/Using-Video-Transcoding-API)
+use this API.
 
 ## Contributing
 
@@ -78,5 +85,8 @@ Check out on our Wiki [how to](https://github.com/nytm/video-transcoding-api/wik
 
 ## License
 
-- This code is under [Apache 2.0 license](https://github.com/nytm/video-transcoding-api/blob/master/LICENSE).
-- The video-transcoding-api logo is a variation on the Go gopher that was designed by Renee French and copyrighted under the [Creative Commons Attribution 3.0 license](https://creativecommons.org/licenses/by/3.0/).
+- This code is under [Apache 2.0
+  license](https://github.com/NYTimes/video-transcoding-api/blob/master/LICENSE).
+- The video-transcoding-api logo is a variation on the Go gopher that was
+  designed by Renee French and copyrighted under the [Creative Commons
+  Attribution 3.0 license](https://creativecommons.org/licenses/by/3.0/).
