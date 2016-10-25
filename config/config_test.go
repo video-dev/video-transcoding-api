@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/marzagao/envconfigfromfile"
-	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {

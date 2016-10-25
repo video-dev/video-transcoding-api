@@ -6,12 +6,12 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/gziphandler"
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis"
+	"github.com/NYTimes/video-transcoding-api/swagger"
 	"github.com/Sirupsen/logrus"
 	"github.com/fsouza/ctxlogger"
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/db/redis"
-	"github.com/nytm/video-transcoding-api/swagger"
 )
 
 // TranscodingService will implement server.JSONService and handle all requests

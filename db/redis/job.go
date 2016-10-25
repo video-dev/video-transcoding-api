@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/db/redis/storage"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
 )
 

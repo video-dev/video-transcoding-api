@@ -9,9 +9,9 @@ import (
 	"path/filepath"
 
 	"github.com/NYTimes/gizmo/web"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/provider"
-	"github.com/nytm/video-transcoding-api/swagger"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/NYTimes/video-transcoding-api/swagger"
 )
 
 // swagger:route POST /jobs jobs newJob

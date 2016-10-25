@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
 )
 
 var (

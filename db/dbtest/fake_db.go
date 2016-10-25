@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"github.com/nytm/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db"
 )
 
 type fakeRepository struct {

@@ -3,8 +3,8 @@ package config
 import (
 	"github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/marzagao/envconfigfromfile"
-	"github.com/nytm/video-transcoding-api/db/redis/storage"
 )
 
 // Config is a struct to contain all the needed configuration for the
