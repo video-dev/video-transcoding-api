@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/kr/pretty"
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/provider"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {

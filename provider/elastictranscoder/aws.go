@@ -5,8 +5,8 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/nytm/video-transcoding-api/provider"
-//         "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
+//         "github.com/NYTimes/video-transcoding-api/provider"
+//         "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
 //     )
 //
 //     func UseProvider() {
@@ -24,14 +24,14 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder/elastictranscoderiface"
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/provider"
 )
 
 const (

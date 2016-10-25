@@ -5,8 +5,8 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/nytm/video-transcoding-api/provider"
-//         "github.com/nytm/video-transcoding-api/provider/encodingcom"
+//         "github.com/NYTimes/video-transcoding-api/provider"
+//         "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
 //     )
 //
 //     func UseProvider() {
@@ -24,9 +24,9 @@ import (
 	"strings"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/provider"
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/provider"
 )
 
 // Name is the name used for registering the Encoding.com provider in the

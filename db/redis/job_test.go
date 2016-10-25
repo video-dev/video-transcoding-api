@@ -7,9 +7,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/db/redis/storage"
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
 )
 

@@ -8,8 +8,8 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/Sirupsen/logrus"
-	"github.com/nytm/video-transcoding-api/config"
 )
 
 func TestListProviders(t *testing.T) {

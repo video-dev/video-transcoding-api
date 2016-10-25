@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/nytm/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/config"
 )
 
 func TestSwaggerManifest(t *testing.T) {

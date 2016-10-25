@@ -13,7 +13,7 @@ export GOTMP=/tmp/video-transcoding-api-$RANDOM
 export OUTPUT=$GOTMP/output
 
 # Copy the current directory into the GOPATH
-export CODE=$GOTMP/src/github.com/nytm/video-transcoding-api
+export CODE=$GOTMP/src/github.com/NYTimes/video-transcoding-api
 mkdir -p $CODE
 cp -R . $CODE
 

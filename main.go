@@ -4,12 +4,12 @@ import (
 	"io/ioutil"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/NYTimes/video-transcoding-api/config"
+	_ "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
+	_ "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
+	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
+	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/knq/sdhook"
-	"github.com/nytm/video-transcoding-api/config"
-	_ "github.com/nytm/video-transcoding-api/provider/elastictranscoder"
-	_ "github.com/nytm/video-transcoding-api/provider/elementalconductor"
-	_ "github.com/nytm/video-transcoding-api/provider/encodingcom"
-	"github.com/nytm/video-transcoding-api/service"
 )
 
 func main() {
