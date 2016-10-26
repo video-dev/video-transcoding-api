@@ -34,7 +34,7 @@ func TestCreatePresetMap(t *testing.T) {
 	}
 	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
-	items, err := client.HGetAll("preset:" + presetmap.Name).Result()
+	items, err := client.HGetAll("presetmap:" + presetmap.Name).Result()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func TestUpdatePresetMap(t *testing.T) {
 	}
 	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
-	items, err := client.HGetAll("preset:" + presetmap.Name).Result()
+	items, err := client.HGetAll("presetmap:" + presetmap.Name).Result()
 	if err != nil {
 		t.Fatal(err)
 	}

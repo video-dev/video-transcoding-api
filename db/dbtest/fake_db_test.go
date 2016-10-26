@@ -237,7 +237,7 @@ func TestCreatePresetMapEmptyName(t *testing.T) {
 	if err == nil {
 		t.Fatal("got unexpected <nil> error")
 	}
-	expectedMsg := "invalid preset name"
+	expectedMsg := "invalid presetmap name"
 	if err.Error() != expectedMsg {
 		t.Errorf("CreatePresetMap: wrong error message. Want %q. Got %q", expectedMsg, err.Error())
 	}

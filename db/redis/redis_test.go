@@ -9,7 +9,7 @@ func cleanRedis() error {
 	if err != nil {
 		return err
 	}
-	err = deleteKeys("preset:*", client)
+	err = deleteKeys("presetmap:*", client)
 	if err != nil {
 		return err
 	}
