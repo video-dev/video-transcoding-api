@@ -224,9 +224,9 @@ func TestCreatePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedPresetMaps := map[string]*db.PresetMap{"mypreset": &preset}
-	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresetMaps) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
+	presetmaps := repo.(*fakeRepository).presetmaps
+	if !reflect.DeepEqual(presetmaps, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presetmaps)
 	}
 }
 
@@ -282,9 +282,9 @@ func TestUpdatePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedPresetMaps := map[string]*db.PresetMap{"mypreset": &newPresetMap}
-	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresetMaps) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
+	presetmaps := repo.(*fakeRepository).presetmaps
+	if !reflect.DeepEqual(presetmaps, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presetmaps)
 	}
 }
 
@@ -364,9 +364,9 @@ func TestDeletePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedPresetMaps := map[string]*db.PresetMap{"theirpreset": &preset2}
-	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresetMaps) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
+	presetmaps := repo.(*fakeRepository).presetmaps
+	if !reflect.DeepEqual(presetmaps, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presetmaps)
 	}
 }
 

@@ -28,13 +28,13 @@ func TestCreatePresetMap(t *testing.T) {
 		},
 		OutputOpts: db.OutputOptions{Extension: "ts"},
 	}
-	err = repo.CreatePresetMap(&preset)
+	err = repo.CreatePresetMap(&presetmap)
 	if err != nil {
 		t.Fatal(err)
 	}
 	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
-	items, err := client.HGetAll("preset:" + preset.Name).Result()
+	items, err := client.HGetAll("preset:" + presetmap.Name).Result()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -61,11 +61,11 @@ func TestCreatePresetMapDuplicate(t *testing.T) {
 		Name:            "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
-	err = repo.CreatePresetMap(&preset)
+	err = repo.CreatePresetMap(&presetmap)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.CreatePresetMap(&preset)
+	err = repo.CreatePresetMap(&presetmap)
 	if err != db.ErrPresetMapAlreadyExists {
 		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrPresetMapAlreadyExists, err)
 	}
@@ -80,23 +80,23 @@ func TestUpdatePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	presetmap := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.CreatePresetMap(&preset)
+	presetmap := db.PresetMap{Name: "mypresetmap", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.CreatePresetMap(&presetmap)
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset.ProviderMapping = map[string]string{
+	presetmap.ProviderMapping = map[string]string{
 		"elemental":         "abc1234",
 		"elastictranscoder": "def123",
 	}
-	preset.OutputOpts = db.OutputOptions{Extension: "mp4"}
-	err = repo.UpdatePresetMap(&preset)
+	presetmap.OutputOpts = db.OutputOptions{Extension: "mp4"}
+	err = repo.UpdatePresetMap(&presetmap)
 	if err != nil {
 		t.Fatal(err)
 	}
 	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
-	items, err := client.HGetAll("preset:" + preset.Name).Result()
+	items, err := client.HGetAll("preset:" + presetmap.Name).Result()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -119,7 +119,7 @@ func TestUpdatePresetMapNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.UpdatePresetMap(&db.PresetMap{Name: "mypreset"})
+	err = repo.UpdatePresetMap(&db.PresetMap{Name: "mypresetmap"})
 	if err != db.ErrPresetMapNotFound {
 		t.Errorf("Wrong error returned by DeletePresetMap. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
@@ -134,17 +134,17 @@ func TestDeletePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	presetmap := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
-	err = repo.CreatePresetMap(&preset)
+	presetmap := db.PresetMap{Name: "mypresetmap", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	err = repo.CreatePresetMap(&presetmap)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePresetMap(&db.PresetMap{Name: preset.Name})
+	err = repo.DeletePresetMap(&db.PresetMap{Name: presetmap.Name})
 	if err != nil {
 		t.Fatal(err)
 	}
 	client := repo.(*redisRepository).storage.RedisClient()
-	result := client.HGetAll("preset:mypreset")
+	result := client.HGetAll("presetmap:mypresetmap")
 	if len(result.Val()) != 0 {
 		t.Errorf("Unexpected value after delete call: %v", result.Val())
 	}
@@ -159,7 +159,7 @@ func TestDeletePresetMapNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = repo.DeletePresetMap(&db.PresetMap{Name: "mypreset"})
+	err = repo.DeletePresetMap(&db.PresetMap{Name: "mypresetmap"})
 	if err != db.ErrPresetMapNotFound {
 		t.Errorf("Wrong error returned by DeletePresetMap. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
@@ -175,7 +175,7 @@ func TestGetPresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	presetmap := db.PresetMap{
-		Name: "mypreset",
+		Name: "mypresetmap",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc-123",
 			"elastictranscoder":  "0129291-0001",
@@ -183,16 +183,16 @@ func TestGetPresetMap(t *testing.T) {
 		},
 		OutputOpts: db.OutputOptions{Extension: "ts"},
 	}
-	err = repo.CreatePresetMap(&preset)
+	err = repo.CreatePresetMap(&presetmap)
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotPresetMap, err := repo.GetPresetMap(preset.Name)
+	gotPresetMap, err := repo.GetPresetMap(presetmap.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !reflect.DeepEqual(*gotPresetMap, preset) {
-		t.Errorf("Wrong preset. Want %#v. Got %#v.", preset, *gotPresetMap)
+	if !reflect.DeepEqual(*gotPresetMap, presetmap) {
+		t.Errorf("Wrong preset. Want %#v. Got %#v.", presetmap, *gotPresetMap)
 	}
 }
 
@@ -205,12 +205,12 @@ func TestGetPresetMapNotFound(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	gotPresetMap, err := repo.GetPresetMap("mypreset")
+	gotPresetMap, err := repo.GetPresetMap("mypresetmap")
 	if err != db.ErrPresetMapNotFound {
 		t.Errorf("Wrong error returned. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
 	if gotPresetMap != nil {
-		t.Errorf("Unexpected non-nil preset: %#v.", gotPresetMap)
+		t.Errorf("Unexpected non-nil presetmap: %#v.", gotPresetMap)
 	}
 }
 
@@ -227,7 +227,7 @@ func TestListPresetMaps(t *testing.T) {
 	}
 	presetmaps := []db.PresetMap{
 		{
-			Name: "preset-1",
+			Name: "presetmap-1",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "abc123",
 				"elastictranscoder":  "1281742-93939",
@@ -235,7 +235,7 @@ func TestListPresetMaps(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "mp4"},
 		},
 		{
-			Name: "preset-2",
+			Name: "presetmap-2",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "abc124",
 				"elastictranscoder":  "1281743-93939",
@@ -243,7 +243,7 @@ func TestListPresetMaps(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 		{
-			Name: "preset-3",
+			Name: "presetmap-3",
 			ProviderMapping: map[string]string{
 				"elementalconductor": "abc125",
 				"elastictranscoder":  "1281744-93939",
@@ -275,7 +275,7 @@ func TestListPresetMaps(t *testing.T) {
 func presetListToMap(presetmaps []db.PresetMap) map[string]db.PresetMap {
 	result := make(map[string]db.PresetMap, len(presetmaps))
 	for _, presetmap := range presetmaps {
-		result[presetmap.Name] = preset
+		result[presetmap.Name] = presetmap
 	}
 	return result
 }

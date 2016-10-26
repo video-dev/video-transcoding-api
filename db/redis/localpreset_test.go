@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/nytm/video-transcoding-api/config"
-	"github.com/nytm/video-transcoding-api/db"
-	"github.com/nytm/video-transcoding-api/db/redis/storage"
+	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 )
 
 func TestCreateLocalPreset(t *testing.T) {
@@ -35,4 +35,23 @@ func TestCreateLocalPreset(t *testing.T) {
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
 	}
+}
+
+func TestNothing(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cfg config.Config
+	cfg.Redis = new(storage.Config)
+	repo, err := NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := db.LocalPreset{}
+	repo.UpdateLocalPreset(&preset)
+	repo.DeleteLocalPreset(&preset)
+	repo.GetLocalPreset("test")
+	repo.ListLocalPresets()
+
 }

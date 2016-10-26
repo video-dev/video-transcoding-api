@@ -18,11 +18,11 @@ var (
 	// exists.
 	ErrPresetMapAlreadyExists = errors.New("presetmap already exists")
 
-	// ErrPresetNotFound is the error returned when the local preset is not found
+	// ErrLocalPresetNotFound is the error returned when the local preset is not found
 	// on GetPresetMap, UpdatePresetMap or DeletePresetMap.
 	ErrLocalPresetNotFound = errors.New("local preset not found")
 
-	// ErrPresetMapAlreadyExists is the error returned when the local preset already
+	// ErrLocalPresetAlreadyExists is the error returned when the local preset already
 	// exists.
 	ErrLocalPresetAlreadyExists = errors.New("local preset already exists")
 )
