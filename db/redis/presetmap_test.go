@@ -20,7 +20,7 @@ func TestCreatePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.PresetMap{
+	presetmap := db.PresetMap{
 		Name: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc123",
@@ -44,7 +44,7 @@ func TestCreatePresetMap(t *testing.T) {
 		"output_extension":            "ts",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
-		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
+		t.Errorf("Wrong presetmap hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
 	}
 }
 
@@ -57,7 +57,7 @@ func TestCreatePresetMapDuplicate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.PresetMap{
+	presetmap := db.PresetMap{
 		Name:            "mypreset",
 		ProviderMapping: map[string]string{"elemental": "123"},
 	}
@@ -80,7 +80,7 @@ func TestUpdatePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	presetmap := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
 	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
@@ -106,7 +106,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		"output_extension":           "mp4",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
-		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
+		t.Errorf("Wrong presetmap hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
 	}
 }
 
@@ -134,7 +134,7 @@ func TestDeletePresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
+	presetmap := db.PresetMap{Name: "mypreset", ProviderMapping: map[string]string{"elemental": "abc123"}}
 	err = repo.CreatePresetMap(&preset)
 	if err != nil {
 		t.Fatal(err)
@@ -174,7 +174,7 @@ func TestGetPresetMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.PresetMap{
+	presetmap := db.PresetMap{
 		Name: "mypreset",
 		ProviderMapping: map[string]string{
 			"elementalconductor": "abc-123",
@@ -274,8 +274,8 @@ func TestListPresetMaps(t *testing.T) {
 
 func presetListToMap(presetmaps []db.PresetMap) map[string]db.PresetMap {
 	result := make(map[string]db.PresetMap, len(presetmaps))
-	for _, preset := range presetmaps {
-		result[preset.Name] = preset
+	for _, presetmap := range presetmaps {
+		result[presetmap.Name] = preset
 	}
 	return result
 }

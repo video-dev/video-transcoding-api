@@ -53,6 +53,18 @@ type StreamingParams struct {
 	Protocol string `redis-hash:"protocol" json:"protocol"`
 }
 
+// LocalPreset is a struct to persist encoding configurations. Some providers don't have
+// the ability to store presets on it's side so we persist locally.
+//
+// swagger:model
+type LocalPreset struct {
+	// name of the local preset
+	//
+	// unique: true
+	// required: true
+	Name string `redis-hash:"-" json:"name"`
+}
+
 // PresetMap represents the preset that is persisted in the repository of the
 // Transcoding API
 //
@@ -61,7 +73,7 @@ type StreamingParams struct {
 //
 // swagger:model
 type PresetMap struct {
-	// name of the preset
+	// name of the presetmap
 	//
 	// unique: true
 	// required: true
