@@ -43,9 +43,17 @@ export ENCODINGCOM_REGION="us-east-1"
 export AWS_ACCESS_KEY_ID=your.access.key.id
 export AWS_SECRET_ACCESS_KEY=your.secret.access.key
 export AWS_REGION="us-east-1"
+export ELASTICTRANSCODER_PIPELINE_ID="yourpipeline-id"
 ```
 
-In order to store preset maps and job statuses we need a Redis instance running. Learn how to setup and run a Redis [here](http://redis.io/topics/quickstart). With the Redis instance running, set its configuration variables:
+Please notice that for Elastic Transcoder you don't specify the destination
+bucket, as it is [defined in the Elastic Transcoder
+Pipeline](https://docs.aws.amazon.com/elastictranscoder/latest/developerguide/pipeline-settings.html#pipeline-settings-configure-transcoded-bucket).
+
+In order to store preset maps and job statuses we need a Redis instance
+running. Learn how to setup and run a Redis
+[here](http://redis.io/topics/quickstart). With the Redis instance running, set
+its configuration variables:
 
 ````
 export REDIS_ADDR=200.221.14.140
