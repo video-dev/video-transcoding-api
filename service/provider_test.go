@@ -14,7 +14,11 @@ import (
 
 func TestListProviders(t *testing.T) {
 	srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
-	srvr.Register(&TranscodingService{config: &config.Config{}, logger: logrus.New()})
+	service, err := NewTranscodingService(&config.Config{}, logrus.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	srvr.Register(service)
 	r, _ := http.NewRequest("GET", "/providers", nil)
 	w := httptest.NewRecorder()
 	srvr.ServeHTTP(w, r)
@@ -22,7 +26,7 @@ func TestListProviders(t *testing.T) {
 		t.Errorf("listProviders: wrong status code. Want %d. Got %d", http.StatusOK, w.Code)
 	}
 	var providers []string
-	err := json.NewDecoder(w.Body).Decode(&providers)
+	err = json.NewDecoder(w.Body).Decode(&providers)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +68,11 @@ func TestGetProvider(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
-		srvr.Register(&TranscodingService{config: &config.Config{}, logger: logrus.New()})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		srvr.Register(service)
 		r, _ := http.NewRequest("GET", "/providers/"+test.name, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
@@ -72,7 +80,7 @@ func TestGetProvider(t *testing.T) {
 			t.Errorf("%s: wrong status code. Want %d. Got %d", test.testCase, test.expectedStatus, w.Code)
 		}
 		var gotBody map[string]interface{}
-		err := json.NewDecoder(w.Body).Decode(&gotBody)
+		err = json.NewDecoder(w.Body).Decode(&gotBody)
 		if err != nil {
 			t.Errorf("%s: %s", test.testCase, err)
 		}

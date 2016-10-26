@@ -29,7 +29,7 @@ func NewTranscodingService(cfg *config.Config, logger *logrus.Logger) (*Transcod
 	if err != nil {
 		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
 	}
-	return &TranscodingService{config: cfg, db: dbRepo}, nil
+	return &TranscodingService{config: cfg, db: dbRepo, logger: logger}, nil
 }
 
 // Prefix returns the string prefix used for all endpoints within
