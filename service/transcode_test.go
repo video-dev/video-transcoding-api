@@ -212,11 +212,12 @@ func TestTranscode(t *testing.T) {
 			Name:            "mp4_360p",
 			ProviderMapping: map[string]string{"elementalconductor": "172712"},
 		})
-		srvr.Register(&TranscodingService{
-			config: &config.Config{DefaultSegmentDuration: 5},
-			db:     fakeDBObj,
-			logger: logrus.New(),
-		})
+		service, err := NewTranscodingService(&config.Config{DefaultSegmentDuration: 5}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDBObj
+		srvr.Register(service)
 		r, _ := http.NewRequest("POST", "/jobs", strings.NewReader(test.givenRequestBody))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -225,7 +226,7 @@ func TestTranscode(t *testing.T) {
 			t.Errorf("%s: expected response code of %d. got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &got)
+		err = json.Unmarshal(w.Body.Bytes(), &got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
@@ -324,12 +325,14 @@ func TestGetTranscodeJob(t *testing.T) {
 			StreamingParams: db.StreamingParams{
 				SegmentDuration: test.givenSegmentDuration,
 				Protocol:        test.givenProtocol,
-			}})
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDBObj,
-			logger: logrus.New(),
+			},
 		})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDBObj
+		srvr.Register(service)
 		r, _ := http.NewRequest("GET", test.givenURI, nil)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -338,7 +341,7 @@ func TestGetTranscodeJob(t *testing.T) {
 			t.Errorf("%s: expected response code of %d; got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got interface{}
-		err := json.NewDecoder(w.Body).Decode(&got)
+		err = json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
@@ -424,7 +427,12 @@ func TestCancelTranscodeJob(t *testing.T) {
 			ProviderName:  "fake",
 			ProviderJobID: "some-job",
 		})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDBObj, logger: logrus.New()})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDBObj
+		srvr.Register(service)
 		r, _ := http.NewRequest("POST", "/jobs/"+test.givenJobID+"/cancel", bytes.NewReader(nil))
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -433,7 +441,7 @@ func TestCancelTranscodeJob(t *testing.T) {
 			t.Errorf("%s: wrong code returned. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var body map[string]interface{}
-		err := json.Unmarshal(w.Body.Bytes(), &body)
+		err = json.Unmarshal(w.Body.Bytes(), &body)
 		if err != nil {
 			t.Fatalf("%s: %s", test.givenTestCase, err)
 		}

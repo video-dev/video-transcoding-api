@@ -135,7 +135,12 @@ func TestNewPresetMap(t *testing.T) {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321"})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB, logger: logrus.New()})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presetmaps", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
@@ -145,7 +150,7 @@ func TestNewPresetMap(t *testing.T) {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got map[string]interface{}
-		err := json.NewDecoder(w.Body).Decode(&got)
+		err = json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
@@ -188,11 +193,12 @@ func TestGetPresetMap(t *testing.T) {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDB,
-			logger: logrus.New(),
-		})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		r, _ := http.NewRequest("GET", "/presetmaps/"+test.givenPresetMapName, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
@@ -261,11 +267,12 @@ func TestUpdatePresetMap(t *testing.T) {
 				"elementalconductor": "some-id",
 			},
 		})
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDB,
-			logger: logrus.New(),
-		})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		data, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("PUT", "/presetmaps/"+test.givenPresetMapName, bytes.NewReader(data))
 		w := httptest.NewRecorder()
@@ -313,11 +320,12 @@ func TestDeletePresetMap(t *testing.T) {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDB,
-			logger: logrus.New(),
-		})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		r, _ := http.NewRequest("DELETE", "/presetmaps/"+test.givenPresetMapName, nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
@@ -386,11 +394,12 @@ func TestListPresetMaps(t *testing.T) {
 		for i := range test.givenPresetMaps {
 			fakeDB.CreatePresetMap(&test.givenPresetMaps[i])
 		}
-		srvr.Register(&TranscodingService{
-			config: &config.Config{},
-			db:     fakeDB,
-			logger: logrus.New(),
-		})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		r, _ := http.NewRequest("GET", "/presetmaps", nil)
 		w := httptest.NewRecorder()
 		srvr.ServeHTTP(w, r)
@@ -398,7 +407,7 @@ func TestListPresetMaps(t *testing.T) {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got map[string]db.PresetMap
-		err := json.NewDecoder(w.Body).Decode(&got)
+		err = json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}

@@ -119,7 +119,12 @@ func TestNewPreset(t *testing.T) {
 		name := test.givenRequestData["preset"].(map[string]interface{})["name"].(string)
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
 		fakeDB := dbtest.NewFakeRepository(false)
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB, logger: logrus.New()})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		body, _ := json.Marshal(test.givenRequestData)
 		r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
 		r.Header.Set("Content-Type", "application/json")
@@ -129,7 +134,7 @@ func TestNewPreset(t *testing.T) {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got map[string]interface{}
-		err := json.NewDecoder(w.Body).Decode(&got)
+		err = json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
@@ -174,7 +179,12 @@ func TestDeletePreset(t *testing.T) {
 		fakeProviderMapping := make(map[string]string)
 		fakeProviderMapping["fake"] = "presetID_here"
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321", ProviderMapping: fakeProviderMapping})
-		srvr.Register(&TranscodingService{config: &config.Config{}, db: fakeDB, logger: logrus.New()})
+		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		if err != nil {
+			t.Fatal(err)
+		}
+		service.db = fakeDB
+		srvr.Register(service)
 		r, _ := http.NewRequest("DELETE", "/presets/abc-321", nil)
 		r.Header.Set("Content-Type", "application/json")
 		w := httptest.NewRecorder()
@@ -183,7 +193,7 @@ func TestDeletePreset(t *testing.T) {
 			t.Errorf("%s: wrong response code. Want %d. Got %d", test.givenTestCase, test.wantCode, w.Code)
 		}
 		var got map[string]interface{}
-		err := json.NewDecoder(w.Body).Decode(&got)
+		err = json.NewDecoder(w.Body).Decode(&got)
 		if err != nil {
 			t.Errorf("%s: unable to JSON decode response body: %s", test.givenTestCase, err)
 		}
