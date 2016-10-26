@@ -157,7 +157,7 @@ func (d *fakeRepository) CreateLocalPreset(preset *db.LocalPreset) error {
 		return errors.New("database error")
 	}
 	if preset.Name == "" {
-		return errors.New("invalid preset name")
+		return errors.New("invalid local preset name")
 	}
 	if _, ok := d.localpresets[preset.Name]; ok {
 		return db.ErrLocalPresetAlreadyExists
@@ -170,10 +170,11 @@ func (d *fakeRepository) UpdateLocalPreset(preset *db.LocalPreset) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
-	if _, ok := d.localpresets[preset.Name]; ok {
+	if _, ok := d.localpresets[preset.Name]; !ok {
 		return db.ErrLocalPresetNotFound
 	}
 	d.localpresets[preset.Name] = preset
+
 	return nil
 }
 
@@ -191,7 +192,7 @@ func (d *fakeRepository) DeleteLocalPreset(preset *db.LocalPreset) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
-	if _, ok := d.localpresets[preset.Name]; ok {
+	if _, ok := d.localpresets[preset.Name]; !ok {
 		return db.ErrLocalPresetNotFound
 	}
 	delete(d.localpresets, preset.Name)
