@@ -13,7 +13,7 @@ providers:
 
 ## Setting Up
 
-With [Go](https://golang.org/dl/) installed, make sure to export the follow
+With [latest Go](https://golang.org/dl/) installed, make sure to export the follow
 environment variables:
 
 #### For [Elemental Conductor](http://www.elementaltechnologies.com/products/elemental-conductor)
