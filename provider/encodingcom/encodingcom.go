@@ -68,7 +68,7 @@ func (e *encodingComProvider) Transcode(job *db.Job, transcodeProfile provider.T
 	}, nil
 }
 
-func (e *encodingComProvider) CreatePreset(preset provider.Preset) (string, error) {
+func (e *encodingComProvider) CreatePreset(preset db.Preset) (string, error) {
 	resp, err := e.client.SavePreset(preset.Name, e.presetToFormat(preset))
 	if err != nil {
 		return "", err
@@ -88,7 +88,7 @@ func (e *encodingComProvider) sourceMedia(original string) string {
 	return original
 }
 
-func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom.Format {
+func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Format {
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	format := encodingcom.Format{
 		Output:      []string{preset.Container},
@@ -112,7 +112,7 @@ func (e *encodingComProvider) presetToFormat(preset provider.Preset) encodingcom
 	return format
 }
 
-func (e *encodingComProvider) buildStream(preset provider.Preset) []encodingcom.Stream {
+func (e *encodingComProvider) buildStream(preset db.Preset) []encodingcom.Stream {
 	stream := encodingcom.Stream{
 		Profile:      preset.Profile,
 		Keyframe:     preset.Video.GopSize,

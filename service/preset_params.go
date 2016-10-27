@@ -2,12 +2,11 @@ package service
 
 import (
 	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
 )
 
 type newPresetInput struct {
 	Providers     []string         `json:"providers"`
-	Preset        provider.Preset  `json:"preset"`
+	Preset        db.Preset        `json:"preset"`
 	OutputOptions db.OutputOptions `json:"outputOptions"`
 }
 

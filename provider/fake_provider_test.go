@@ -18,7 +18,7 @@ func (*fakeProvider) JobStatus(*db.Job) (*JobStatus, error) {
 	return nil, nil
 }
 
-func (*fakeProvider) CreatePreset(Preset) (string, error) {
+func (*fakeProvider) CreatePreset(db.Preset) (string, error) {
 	return "", nil
 }
 

@@ -136,7 +136,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	}
 	outputs := make([]provider.TranscodeOutput, len(presets))
 	for i, preset := range presets {
-		_, err := prov.CreatePreset(provider.Preset{
+		_, err := prov.CreatePreset(db.Preset{
 			Name:      preset.ProviderMapping[Name],
 			Container: preset.OutputOpts.Extension,
 		})
@@ -297,7 +297,7 @@ func TestEncodingComS3Input(t *testing.T) {
 	}
 	outputs := make([]provider.TranscodeOutput, len(presets))
 	for i, preset := range presets {
-		_, err := prov.CreatePreset(provider.Preset{
+		_, err := prov.CreatePreset(db.Preset{
 			Name:      preset.ProviderMapping[Name],
 			Container: preset.OutputOpts.Extension,
 		})
@@ -369,7 +369,7 @@ func TestEncodingComS3InputWithNoCopy(t *testing.T) {
 	}
 	outputs := make([]provider.TranscodeOutput, len(presets))
 	for i, preset := range presets {
-		_, err := prov.CreatePreset(provider.Preset{
+		_, err := prov.CreatePreset(db.Preset{
 			Name:      preset.ProviderMapping[Name],
 			Container: preset.OutputOpts.Extension,
 		})
@@ -779,8 +779,8 @@ func TestCreatePreset(t *testing.T) {
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
 	prov := encodingComProvider{client: client}
-	presetName, err := prov.CreatePreset(provider.Preset{
-		Audio: provider.AudioPreset{
+	presetName, err := prov.CreatePreset(db.Preset{
+		Audio: db.AudioPreset{
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
@@ -790,7 +790,7 @@ func TestCreatePreset(t *testing.T) {
 		Profile:      "main",
 		ProfileLevel: "3.1",
 		RateControl:  "VBR",
-		Video: provider.VideoPreset{
+		Video: db.VideoPreset{
 			Bitrate: "3500000",
 			Codec:   "h264",
 			GopMode: "fixed",
@@ -826,8 +826,8 @@ func TestCreatePresetHLS(t *testing.T) {
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
 	prov := encodingComProvider{client: client}
-	presetName, err := prov.CreatePreset(provider.Preset{
-		Audio: provider.AudioPreset{
+	presetName, err := prov.CreatePreset(db.Preset{
+		Audio: db.AudioPreset{
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
@@ -837,7 +837,7 @@ func TestCreatePresetHLS(t *testing.T) {
 		Profile:      "main",
 		ProfileLevel: "3.1",
 		RateControl:  "VBR",
-		Video: provider.VideoPreset{
+		Video: db.VideoPreset{
 			Bitrate: "3500000",
 			Codec:   "h264",
 			GopMode: "fixed",
@@ -877,19 +877,19 @@ func TestPresetToFormat(t *testing.T) {
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	var tests = []struct {
 		givenTestCase  string
-		givenPreset    provider.Preset
+		givenPreset    db.Preset
 		expectedFormat encodingcom.Format
 	}{
 		{
 			"HLS preset",
-			provider.Preset{
+			db.Preset{
 				Container:    "m3u8",
 				Profile:      "Main",
 				ProfileLevel: "3.1",
-				Audio: provider.AudioPreset{
+				Audio: db.AudioPreset{
 					Codec: "aac",
 				},
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec: "h264",
 				},
 			},
@@ -911,12 +911,12 @@ func TestPresetToFormat(t *testing.T) {
 		},
 		{
 			"WEBM vp8 preset",
-			provider.Preset{
+			db.Preset{
 				Container: "webm",
-				Audio: provider.AudioPreset{
+				Audio: db.AudioPreset{
 					Codec: "vorbis",
 				},
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec:   "vp8",
 					GopSize: "90",
 				},
@@ -934,12 +934,12 @@ func TestPresetToFormat(t *testing.T) {
 		},
 		{
 			"WEBM vp9 preset",
-			provider.Preset{
+			db.Preset{
 				Container: "webm",
-				Audio: provider.AudioPreset{
+				Audio: db.AudioPreset{
 					Codec: "vorbis",
 				},
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec:   "vp9",
 					GopSize: "90",
 				},
@@ -957,14 +957,14 @@ func TestPresetToFormat(t *testing.T) {
 		},
 		{
 			"MP4 preset",
-			provider.Preset{
+			db.Preset{
 				Container:    "mp4",
 				Profile:      "Main",
 				ProfileLevel: "3.1",
-				Audio: provider.AudioPreset{
+				Audio: db.AudioPreset{
 					Codec: "aac",
 				},
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec:   "h264",
 					GopSize: "90",
 				},
@@ -997,8 +997,8 @@ func TestGetPreset(t *testing.T) {
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
 	prov := encodingComProvider{client: client}
-	presetName, err := prov.CreatePreset(provider.Preset{
-		Audio: provider.AudioPreset{
+	presetName, err := prov.CreatePreset(db.Preset{
+		Audio: db.AudioPreset{
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
@@ -1008,7 +1008,7 @@ func TestGetPreset(t *testing.T) {
 		Profile:      "main",
 		ProfileLevel: "3.1",
 		RateControl:  "VBR",
-		Video: provider.VideoPreset{
+		Video: db.VideoPreset{
 			Bitrate: "3500000",
 			Codec:   "h264",
 			GopMode: "fixed",
@@ -1065,8 +1065,8 @@ func TestDeletePreset(t *testing.T) {
 	defer server.Close()
 	client, _ := encodingcom.NewClient(server.URL, "myuser", "secret")
 	prov := encodingComProvider{client: client}
-	presetName, err := prov.CreatePreset(provider.Preset{
-		Audio: provider.AudioPreset{
+	presetName, err := prov.CreatePreset(db.Preset{
+		Audio: db.AudioPreset{
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
@@ -1076,7 +1076,7 @@ func TestDeletePreset(t *testing.T) {
 		Profile:      "main",
 		ProfileLevel: "3.1",
 		RateControl:  "VBR",
-		Video: provider.VideoPreset{
+		Video: db.VideoPreset{
 			Bitrate: "3500000",
 			Codec:   "h264",
 			GopMode: "fixed",

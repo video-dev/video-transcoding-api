@@ -50,7 +50,7 @@ func (p *elementalConductorProvider) DeletePreset(presetID string) error {
 	return p.client.DeletePreset(presetID)
 }
 
-func (p *elementalConductorProvider) CreatePreset(preset provider.Preset) (string, error) {
+func (p *elementalConductorProvider) CreatePreset(preset db.Preset) (string, error) {
 	elementalConductorPreset := elementalconductor.Preset{
 		XMLName: xml.Name{Local: "preset"},
 	}
