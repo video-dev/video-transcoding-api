@@ -58,11 +58,6 @@ func (r *redisRepository) GetLocalPreset(name string) (*db.LocalPreset, error) {
 	return &localPreset, err
 }
 
-func (r *redisRepository) ListLocalPresets() ([]db.LocalPreset, error) {
-	r.localPresetKey("nothing")
-	return []db.LocalPreset{}, nil
-}
-
 func (r *redisRepository) localPresetKey(name string) string {
 	return "localpreset:" + name
 }

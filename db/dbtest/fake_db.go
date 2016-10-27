@@ -198,14 +198,3 @@ func (d *fakeRepository) DeleteLocalPreset(preset *db.LocalPreset) error {
 	delete(d.localpresets, preset.Name)
 	return nil
 }
-
-func (d *fakeRepository) ListLocalPresets() ([]db.LocalPreset, error) {
-	if d.triggerError {
-		return nil, errors.New("database error")
-	}
-	presets := make([]db.LocalPreset, 0, len(d.localpresets))
-	for _, preset := range d.localpresets {
-		presets = append(presets, *preset)
-	}
-	return presets, nil
-}

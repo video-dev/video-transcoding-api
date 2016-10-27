@@ -574,31 +574,3 @@ func TestDeleteLocalPresetDBError(t *testing.T) {
 		t.Errorf("DeleteLocalPreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }
-
-func TestListLocalPresets(t *testing.T) {
-	repo := NewFakeRepository(false)
-	preset := db.LocalPreset{Name: "mypreset"}
-	err := repo.CreateLocalPreset(&preset)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expectedLocalPresets := []db.LocalPreset{preset}
-	presets, err := repo.ListLocalPresets()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !reflect.DeepEqual(presets, expectedLocalPresets) {
-		t.Errorf("ListLocalPresets: wrong list returned. Want %#v. Got %#v", expectedLocalPresets, presets)
-	}
-}
-
-func TestListLocalPresetsDBError(t *testing.T) {
-	repo := NewFakeRepository(true)
-	presets, err := repo.ListLocalPresets()
-	if len(presets) > 0 {
-		t.Errorf("ListLocalPresets: got unexpected non-empty list: %#v", presets)
-	}
-	if err.Error() != dbErrorMsg {
-		t.Errorf("ListLocalPresets: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
-	}
-}

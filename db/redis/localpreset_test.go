@@ -180,18 +180,3 @@ func TestDeleteLocalPresetNotFound(t *testing.T) {
 		t.Errorf("Wrong error returned by DeleteLocalPreset. Want ErrLocalPresetNotFound. Got %#v.", err)
 	}
 }
-
-func TestNothing(t *testing.T) {
-	err := cleanRedis()
-	if err != nil {
-		t.Fatal(err)
-	}
-	var cfg config.Config
-	cfg.Redis = new(storage.Config)
-	repo, err := NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-	preset := db.LocalPreset{}
-	repo.ListLocalPresets()
-}

@@ -70,5 +70,4 @@ type LocalPresetRepository interface {
 	UpdateLocalPreset(*LocalPreset) error
 	DeleteLocalPreset(*LocalPreset) error
 	GetLocalPreset(name string) (*LocalPreset, error)
-	ListLocalPresets() ([]LocalPreset, error)
 }
