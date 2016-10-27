@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/NYTimes/video-transcoding-api/config"
@@ -19,21 +20,30 @@ func TestCreateLocalPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset := db.LocalPreset{}
+	preset := db.LocalPreset{
+		Name: "test",
+		Preset: map[string]string{
+			"videoCodec": "h264",
+			"audioCodec": "aac",
+		},
+	}
 	err = repo.CreateLocalPreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
 	client := repo.(*redisRepository).storage.RedisClient()
 	defer client.Close()
-	_, err = client.HGetAll("localpreset:" + preset.Name).Result()
+	items, err := client.HGetAll("localpreset:" + preset.Name).Result()
 	if err != nil {
 		t.Fatal(err)
 	}
-	//	expectedItems := map[string]string{"name": "test"}
-	//	if !reflect.DeepEqual(items, expectedItems) {
-	//		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
-	//	}
+	expectedItems := map[string]string{
+		"preset_audioCodec": "aac",
+		"preset_videoCodec": "h264",
+	}
+	if !reflect.DeepEqual(items, expectedItems) {
+		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
+	}
 }
 
 func TestNothing(t *testing.T) {

@@ -62,7 +62,8 @@ type LocalPreset struct {
 	//
 	// unique: true
 	// required: true
-	Name string `redis-hash:"-" json:"name"`
+	Name   string            `redis-hash:"-" json:"name"`
+	Preset map[string]string `redis-hash:"preset,expand" json:"preset"`
 }
 
 // PresetMap represents the preset that is persisted in the repository of the

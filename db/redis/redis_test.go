@@ -13,10 +13,19 @@ func cleanRedis() error {
 	if err != nil {
 		return err
 	}
+	err = deleteKeys("localpreset:*", client)
+	if err != nil {
+		return err
+	}
 	err = deleteKeys(presetmapsSetKey, client)
 	if err != nil {
 		return err
 	}
+	err = deleteKeys(localPresetsSetKey, client)
+	if err != nil {
+		return err
+	}
+
 	return deleteKeys(jobsSetKey, client)
 }
 
