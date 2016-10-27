@@ -15,8 +15,11 @@ func (r *redisRepository) CreateLocalPreset(localPreset *db.LocalPreset) error {
 	return r.saveLocalPreset(localPreset)
 }
 
-func (r *redisRepository) UpdateLocalPreset(preset *db.LocalPreset) error {
-	return nil
+func (r *redisRepository) UpdateLocalPreset(localPreset *db.LocalPreset) error {
+	if _, err := r.GetLocalPreset(localPreset.Name); err == db.ErrLocalPresetNotFound {
+		return err
+	}
+	return r.saveLocalPreset(localPreset)
 }
 
 func (r *redisRepository) saveLocalPreset(localPreset *db.LocalPreset) error {
@@ -42,7 +45,7 @@ func (r *redisRepository) GetLocalPreset(name string) (*db.LocalPreset, error) {
 	localPreset := db.LocalPreset{Name: name, Preset: make(map[string]string)}
 	err := r.storage.Load(r.localPresetKey(name), &localPreset)
 	if err == storage.ErrNotFound {
-		return nil, db.ErrLocalPresetAlreadyExists
+		return nil, db.ErrLocalPresetNotFound
 	}
 	return &localPreset, err
 }

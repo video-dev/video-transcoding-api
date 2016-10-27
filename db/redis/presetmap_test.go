@@ -121,7 +121,7 @@ func TestUpdatePresetMapNotFound(t *testing.T) {
 	}
 	err = repo.UpdatePresetMap(&db.PresetMap{Name: "mypresetmap"})
 	if err != db.ErrPresetMapNotFound {
-		t.Errorf("Wrong error returned by DeletePresetMap. Want ErrPresetMapNotFound. Got %#v.", err)
+		t.Errorf("Wrong error returned by UpdatePresetMap. Want ErrPresetMapNotFound. Got %#v.", err)
 	}
 }
 

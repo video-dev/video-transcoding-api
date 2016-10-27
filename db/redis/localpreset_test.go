@@ -73,6 +73,67 @@ func TestCreateLocalPresetDuplicate(t *testing.T) {
 	}
 }
 
+func TestUpdateLocalPreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := db.LocalPreset{
+		Name: "test",
+		Preset: map[string]string{
+			"videoCodec": "h264",
+			"audioCodec": "aac",
+		},
+	}
+	err = repo.CreateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset.Preset = map[string]string{
+		"videoCodec": "vp8",
+		"audioCodec": "aac",
+	}
+	err = repo.UpdateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := repo.(*redisRepository).storage.RedisClient()
+	defer client.Close()
+	items, err := client.HGetAll("localpreset:" + preset.Name).Result()
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedItems := map[string]string{
+		"preset_videoCodec": "vp8",
+		"preset_audioCodec": "aac",
+	}
+	if !reflect.DeepEqual(items, expectedItems) {
+		t.Errorf("Wrong presetmap hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
+	}
+}
+
+func TestUpdateLocalPresetNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.UpdateLocalPreset(&db.LocalPreset{
+		Name:   "non-existent",
+		Preset: map[string]string{"videoCodec": "vp8"},
+	})
+	if err != db.ErrLocalPresetNotFound {
+		t.Errorf("Wrong error returned by UpdateLocalPreset. Want ErrLocalPresetNotFound. Got %#v.", err)
+	}
+}
+
 func TestNothing(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
