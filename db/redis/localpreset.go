@@ -2,6 +2,7 @@ package redis
 
 import (
 	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
 )
 
@@ -38,7 +39,12 @@ func (r *redisRepository) DeleteLocalPreset(preset *db.LocalPreset) error {
 }
 
 func (r *redisRepository) GetLocalPreset(name string) (*db.LocalPreset, error) {
-	return nil, db.ErrPresetMapNotFound
+	localPreset := db.LocalPreset{Name: name, Preset: make(map[string]string)}
+	err := r.storage.Load(r.localPresetKey(name), &localPreset)
+	if err == storage.ErrNotFound {
+		return nil, db.ErrLocalPresetAlreadyExists
+	}
+	return &localPreset, err
 }
 
 func (r *redisRepository) ListLocalPresets() ([]db.LocalPreset, error) {

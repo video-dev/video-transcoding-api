@@ -46,6 +46,33 @@ func TestCreateLocalPreset(t *testing.T) {
 	}
 }
 
+func TestCreateLocalPresetDuplicate(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset := db.LocalPreset{
+		Name: "test",
+		Preset: map[string]string{
+			"videoCodec": "h264",
+			"audioCodec": "aac",
+		},
+	}
+	err = repo.CreateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = repo.CreateLocalPreset(&preset)
+	if err != db.ErrLocalPresetAlreadyExists {
+		t.Errorf("Got wrong error. Want %#v. Got %#v", db.ErrLocalPresetAlreadyExists, err)
+	}
+}
+
 func TestNothing(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
