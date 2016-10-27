@@ -62,7 +62,10 @@ type LocalPreset struct {
 	//
 	// unique: true
 	// required: true
-	Name   string            `redis-hash:"-" json:"name"`
+	Name string `redis-hash:"-" json:"name"`
+
+	// the preset structure
+	// required: true
 	Preset map[string]string `redis-hash:"preset,expand" json:"preset"`
 }
 

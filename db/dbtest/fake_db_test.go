@@ -419,7 +419,6 @@ func TestListPresetMapsDBError(t *testing.T) {
 	}
 }
 
-//##########################
 func TestCreateLocalPreset(t *testing.T) {
 	repo := NewFakeRepository(false)
 	preset := db.LocalPreset{Name: "mypreset"}
