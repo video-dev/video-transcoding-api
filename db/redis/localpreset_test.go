@@ -134,6 +134,53 @@ func TestUpdateLocalPresetNotFound(t *testing.T) {
 	}
 }
 
+func TestDeleteLocalPreset(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	preset := db.LocalPreset{
+		Name: "test",
+		Preset: map[string]string{
+			"videoCodec": "h264",
+			"audioCodec": "aac",
+		},
+	}
+	err = repo.CreateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeleteLocalPreset(&db.LocalPreset{Name: preset.Name})
+	if err != nil {
+		t.Fatal(err)
+	}
+	client := repo.(*redisRepository).storage.RedisClient()
+	result := client.HGetAll("localpreset:test")
+	if len(result.Val()) != 0 {
+		t.Errorf("Unexpected value after delete call: %v", result.Val())
+	}
+}
+
+func TestDeleteLocalPresetNotFound(t *testing.T) {
+	err := cleanRedis()
+	if err != nil {
+		t.Fatal(err)
+	}
+	repo, err := NewRepository(&config.Config{Redis: new(storage.Config)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeleteLocalPreset(&db.LocalPreset{Name: "non-existent"})
+	if err != db.ErrLocalPresetNotFound {
+		t.Errorf("Wrong error returned by DeleteLocalPreset. Want ErrLocalPresetNotFound. Got %#v.", err)
+	}
+}
+
 func TestNothing(t *testing.T) {
 	err := cleanRedis()
 	if err != nil {
@@ -146,9 +193,5 @@ func TestNothing(t *testing.T) {
 		t.Fatal(err)
 	}
 	preset := db.LocalPreset{}
-	repo.UpdateLocalPreset(&preset)
-	repo.DeleteLocalPreset(&preset)
-	repo.GetLocalPreset("test")
 	repo.ListLocalPresets()
-
 }

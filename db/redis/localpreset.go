@@ -37,7 +37,15 @@ func (r *redisRepository) saveLocalPreset(localPreset *db.LocalPreset) error {
 	}, localPresetKey)
 }
 
-func (r *redisRepository) DeleteLocalPreset(preset *db.LocalPreset) error {
+func (r *redisRepository) DeleteLocalPreset(localPreset *db.LocalPreset) error {
+	err := r.storage.Delete(r.localPresetKey(localPreset.Name))
+	if err != nil {
+		if err == storage.ErrNotFound {
+			return db.ErrLocalPresetNotFound
+		}
+		return err
+	}
+	r.storage.RedisClient().SRem(localPresetsSetKey, localPreset.Name)
 	return nil
 }
 
