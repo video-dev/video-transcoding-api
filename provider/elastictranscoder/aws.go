@@ -136,7 +136,7 @@ func (p *awsProvider) outputKey(job *db.Job, fileName string, adaptive bool) *st
 	return aws.String(job.ID + "/" + fileName)
 }
 
-func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscoder.VideoParameters {
+func (p *awsProvider) createVideoPreset(preset db.Preset) *elastictranscoder.VideoParameters {
 	videoPreset := elastictranscoder.VideoParameters{
 		DisplayAspectRatio: aws.String("auto"),
 		FrameRate:          aws.String("auto"),
@@ -180,7 +180,7 @@ func (p *awsProvider) createVideoPreset(preset provider.Preset) *elastictranscod
 	return &videoPreset
 }
 
-func (p *awsProvider) createThumbsPreset(preset provider.Preset) *elastictranscoder.Thumbnails {
+func (p *awsProvider) createThumbsPreset(preset db.Preset) *elastictranscoder.Thumbnails {
 	thumbsPreset := &elastictranscoder.Thumbnails{
 		PaddingPolicy: aws.String("Pad"),
 		Format:        aws.String("png"),
@@ -192,7 +192,7 @@ func (p *awsProvider) createThumbsPreset(preset provider.Preset) *elastictransco
 	return thumbsPreset
 }
 
-func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscoder.AudioParameters {
+func (p *awsProvider) createAudioPreset(preset db.Preset) *elastictranscoder.AudioParameters {
 	audioPreset := &elastictranscoder.AudioParameters{
 		Codec:      &preset.Audio.Codec,
 		Channels:   aws.String("auto"),
@@ -213,7 +213,7 @@ func (p *awsProvider) createAudioPreset(preset provider.Preset) *elastictranscod
 	return audioPreset
 }
 
-func (p *awsProvider) CreatePreset(preset provider.Preset) (string, error) {
+func (p *awsProvider) CreatePreset(preset db.Preset) (string, error) {
 	presetInput := elastictranscoder.CreatePresetInput{
 		Name:        &preset.Name,
 		Description: &preset.Description,

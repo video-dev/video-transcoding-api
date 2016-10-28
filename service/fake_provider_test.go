@@ -35,7 +35,7 @@ func (p *fakeProvider) Transcode(job *db.Job, transcodeProfile provider.Transcod
 	}, nil
 }
 
-func (*fakeProvider) CreatePreset(preset provider.Preset) (string, error) {
+func (*fakeProvider) CreatePreset(preset db.Preset) (string, error) {
 	return "presetID_here", nil
 }
 

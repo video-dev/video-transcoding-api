@@ -797,14 +797,14 @@ func TestAWSCreatePreset(t *testing.T) {
 		},
 	}
 
-	inputPreset := provider.Preset{
+	inputPreset := db.Preset{
 		Name:         "preset_name",
 		Description:  "description here",
 		Container:    "mp4",
 		Profile:      "Main",
 		ProfileLevel: "3.1",
 		RateControl:  "VBR",
-		Video: provider.VideoPreset{
+		Video: db.VideoPreset{
 			Height:        "720",
 			Codec:         "h264",
 			Bitrate:       "2500000",
@@ -812,7 +812,7 @@ func TestAWSCreatePreset(t *testing.T) {
 			GopMode:       "fixed",
 			InterlaceMode: "progressive",
 		},
-		Audio: provider.AudioPreset{
+		Audio: db.AudioPreset{
 			Codec:   "aac",
 			Bitrate: "64000",
 		},
@@ -838,16 +838,16 @@ func TestCreateVideoPreset(t *testing.T) {
 	}
 	var tests = []struct {
 		givenTestCase       string
-		givenPreset         provider.Preset
+		givenPreset         db.Preset
 		expectedVideoParams *elastictranscoder.VideoParameters
 	}{
 		{
 			"H.264 preset",
-			provider.Preset{
+			db.Preset{
 				Container:    "m3u8",
 				Profile:      "Main",
 				ProfileLevel: "3.1",
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec: "h264",
 				},
 			},
@@ -870,9 +870,9 @@ func TestCreateVideoPreset(t *testing.T) {
 		},
 		{
 			"WEBM vp8 preset",
-			provider.Preset{
+			db.Preset{
 				Container: "webm",
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec:   "vp8",
 					GopSize: "90",
 				},
@@ -894,9 +894,9 @@ func TestCreateVideoPreset(t *testing.T) {
 		},
 		{
 			"WEBM vp9 preset",
-			provider.Preset{
+			db.Preset{
 				Container: "webm",
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec:   "vp9",
 					GopSize: "90",
 				},
@@ -918,11 +918,11 @@ func TestCreateVideoPreset(t *testing.T) {
 		},
 		{
 			"MP4 preset",
-			provider.Preset{
+			db.Preset{
 				Container:    "mp4",
 				Profile:      "Main",
 				ProfileLevel: "3.1",
-				Video: provider.VideoPreset{
+				Video: db.VideoPreset{
 					Codec:   "h264",
 					GopSize: "90",
 				},
@@ -967,13 +967,13 @@ func TestCreateAudioPreset(t *testing.T) {
 	}
 	var tests = []struct {
 		givenTestCase       string
-		givenPreset         provider.Preset
+		givenPreset         db.Preset
 		expectedAudioParams *elastictranscoder.AudioParameters
 	}{
 		{
 			"AAC preset",
-			provider.Preset{
-				Audio: provider.AudioPreset{
+			db.Preset{
+				Audio: db.AudioPreset{
 					Codec: "aac",
 				},
 			},
@@ -986,8 +986,8 @@ func TestCreateAudioPreset(t *testing.T) {
 		},
 		{
 			"libvorbis preset",
-			provider.Preset{
-				Audio: provider.AudioPreset{
+			db.Preset{
+				Audio: db.AudioPreset{
 					Codec: "libvorbis",
 				},
 			},

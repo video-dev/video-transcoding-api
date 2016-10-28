@@ -183,7 +183,7 @@ func TestGetPresetMap(t *testing.T) {
 			http.StatusOK,
 		},
 		{
-			"Get preset not found",
+			"Get presetmap not found",
 			"preset-unknown",
 			nil,
 			http.StatusNotFound,
@@ -246,7 +246,7 @@ func TestUpdatePresetMap(t *testing.T) {
 			http.StatusOK,
 		},
 		{
-			"Update preset not found",
+			"Update presetmap not found",
 			"preset-unknown",
 			map[string]interface{}{
 				"providerMapping": map[string]string{
@@ -311,7 +311,7 @@ func TestDeletePresetMap(t *testing.T) {
 			http.StatusOK,
 		},
 		{
-			"Delete preset not found",
+			"Delete presetmap not found",
 			"preset-unknown",
 			http.StatusNotFound,
 		},

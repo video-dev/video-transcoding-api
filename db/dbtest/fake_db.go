@@ -9,7 +9,8 @@ import (
 
 type fakeRepository struct {
 	triggerError bool
-	presets      map[string]*db.PresetMap
+	presetmaps   map[string]*db.PresetMap
+	localpresets map[string]*db.LocalPreset
 	jobs         []*db.Job
 }
 
@@ -19,7 +20,8 @@ type fakeRepository struct {
 func NewFakeRepository(triggerError bool) db.Repository {
 	return &fakeRepository{
 		triggerError: triggerError,
-		presets:      make(map[string]*db.PresetMap),
+		presetmaps:   make(map[string]*db.PresetMap),
+		localpresets: make(map[string]*db.LocalPreset),
 	}
 }
 
@@ -93,28 +95,28 @@ func (d *fakeRepository) ListJobs(filter db.JobFilter) ([]db.Job, error) {
 	return jobs, nil
 }
 
-func (d *fakeRepository) CreatePresetMap(preset *db.PresetMap) error {
+func (d *fakeRepository) CreatePresetMap(presetmap *db.PresetMap) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
-	if preset.Name == "" {
-		return errors.New("invalid preset name")
+	if presetmap.Name == "" {
+		return errors.New("invalid presetmap name")
 	}
-	if _, ok := d.presets[preset.Name]; ok {
+	if _, ok := d.presetmaps[presetmap.Name]; ok {
 		return db.ErrPresetMapAlreadyExists
 	}
-	d.presets[preset.Name] = preset
+	d.presetmaps[presetmap.Name] = presetmap
 	return nil
 }
 
-func (d *fakeRepository) UpdatePresetMap(preset *db.PresetMap) error {
+func (d *fakeRepository) UpdatePresetMap(presetmap *db.PresetMap) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
-	if _, ok := d.presets[preset.Name]; !ok {
+	if _, ok := d.presetmaps[presetmap.Name]; !ok {
 		return db.ErrPresetMapNotFound
 	}
-	d.presets[preset.Name] = preset
+	d.presetmaps[presetmap.Name] = presetmap
 	return nil
 }
 
@@ -122,20 +124,20 @@ func (d *fakeRepository) GetPresetMap(name string) (*db.PresetMap, error) {
 	if d.triggerError {
 		return nil, errors.New("database error")
 	}
-	if preset, ok := d.presets[name]; ok {
-		return preset, nil
+	if presetmap, ok := d.presetmaps[name]; ok {
+		return presetmap, nil
 	}
 	return nil, db.ErrPresetMapNotFound
 }
 
-func (d *fakeRepository) DeletePresetMap(preset *db.PresetMap) error {
+func (d *fakeRepository) DeletePresetMap(presetmap *db.PresetMap) error {
 	if d.triggerError {
 		return errors.New("database error")
 	}
-	if _, ok := d.presets[preset.Name]; !ok {
+	if _, ok := d.presetmaps[presetmap.Name]; !ok {
 		return db.ErrPresetMapNotFound
 	}
-	delete(d.presets, preset.Name)
+	delete(d.presetmaps, presetmap.Name)
 	return nil
 }
 
@@ -143,9 +145,56 @@ func (d *fakeRepository) ListPresetMaps() ([]db.PresetMap, error) {
 	if d.triggerError {
 		return nil, errors.New("database error")
 	}
-	presets := make([]db.PresetMap, 0, len(d.presets))
-	for _, preset := range d.presets {
-		presets = append(presets, *preset)
+	presetmaps := make([]db.PresetMap, 0, len(d.presetmaps))
+	for _, presetmap := range d.presetmaps {
+		presetmaps = append(presetmaps, *presetmap)
 	}
-	return presets, nil
+	return presetmaps, nil
+}
+
+func (d *fakeRepository) CreateLocalPreset(preset *db.LocalPreset) error {
+	if d.triggerError {
+		return errors.New("database error")
+	}
+	if preset.Name == "" {
+		return errors.New("invalid local preset name")
+	}
+	if _, ok := d.localpresets[preset.Name]; ok {
+		return db.ErrLocalPresetAlreadyExists
+	}
+	d.localpresets[preset.Name] = preset
+	return nil
+}
+
+func (d *fakeRepository) UpdateLocalPreset(preset *db.LocalPreset) error {
+	if d.triggerError {
+		return errors.New("database error")
+	}
+	if _, ok := d.localpresets[preset.Name]; !ok {
+		return db.ErrLocalPresetNotFound
+	}
+	d.localpresets[preset.Name] = preset
+
+	return nil
+}
+
+func (d *fakeRepository) GetLocalPreset(name string) (*db.LocalPreset, error) {
+	if d.triggerError {
+		return nil, errors.New("database error")
+	}
+	if localpreset, ok := d.localpresets[name]; ok {
+		return localpreset, nil
+	}
+	return nil, db.ErrLocalPresetNotFound
+}
+
+func (d *fakeRepository) DeleteLocalPreset(preset *db.LocalPreset) error {
+	if d.triggerError {
+		return errors.New("database error")
+	}
+	if _, ok := d.localpresets[preset.Name]; !ok {
+		return db.ErrLocalPresetNotFound
+	}
+	delete(d.localpresets, preset.Name)
+	return nil
 }

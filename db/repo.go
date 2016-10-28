@@ -10,19 +10,28 @@ var (
 	// DeleteJob.
 	ErrJobNotFound = errors.New("job not found")
 
-	// ErrPresetMapNotFound is the error returned when the preset is not found
+	// ErrPresetMapNotFound is the error returned when the presetmap is not found
 	// on GetPresetMap, UpdatePresetMap or DeletePresetMap.
-	ErrPresetMapNotFound = errors.New("preset not found")
+	ErrPresetMapNotFound = errors.New("presetmap not found")
 
-	// ErrPresetMapAlreadyExists is the error returned when the preset already
+	// ErrPresetMapAlreadyExists is the error returned when the presetmap already
 	// exists.
-	ErrPresetMapAlreadyExists = errors.New("preset already exists")
+	ErrPresetMapAlreadyExists = errors.New("presetmap already exists")
+
+	// ErrLocalPresetNotFound is the error returned when the local preset is not found
+	// on GetPresetMap, UpdatePresetMap or DeletePresetMap.
+	ErrLocalPresetNotFound = errors.New("local preset not found")
+
+	// ErrLocalPresetAlreadyExists is the error returned when the local preset already
+	// exists.
+	ErrLocalPresetAlreadyExists = errors.New("local preset already exists")
 )
 
 // Repository represents the repository for persisting types of the API.
 type Repository interface {
 	JobRepository
 	PresetMapRepository
+	LocalPresetRepository
 }
 
 // JobRepository is the interface that defines the set of methods for managing Job
@@ -52,4 +61,13 @@ type PresetMapRepository interface {
 	DeletePresetMap(*PresetMap) error
 	GetPresetMap(name string) (*PresetMap, error)
 	ListPresetMaps() ([]PresetMap, error)
+}
+
+// LocalPresetRepository provides an interface that defines the set of methods for
+// managing presets when the provider don't have the ability to store/manage it.
+type LocalPresetRepository interface {
+	CreateLocalPreset(*LocalPreset) error
+	UpdateLocalPreset(*LocalPreset) error
+	DeleteLocalPreset(*LocalPreset) error
+	GetLocalPreset(name string) (*LocalPreset, error)
 }

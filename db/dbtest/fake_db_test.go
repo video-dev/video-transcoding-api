@@ -224,9 +224,9 @@ func TestCreatePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedPresetMaps := map[string]*db.PresetMap{"mypreset": &preset}
-	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresetMaps) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
+	presetmaps := repo.(*fakeRepository).presetmaps
+	if !reflect.DeepEqual(presetmaps, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presetmaps)
 	}
 }
 
@@ -237,7 +237,7 @@ func TestCreatePresetMapEmptyName(t *testing.T) {
 	if err == nil {
 		t.Fatal("got unexpected <nil> error")
 	}
-	expectedMsg := "invalid preset name"
+	expectedMsg := "invalid presetmap name"
 	if err.Error() != expectedMsg {
 		t.Errorf("CreatePresetMap: wrong error message. Want %q. Got %q", expectedMsg, err.Error())
 	}
@@ -282,9 +282,9 @@ func TestUpdatePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedPresetMaps := map[string]*db.PresetMap{"mypreset": &newPresetMap}
-	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresetMaps) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
+	presetmaps := repo.(*fakeRepository).presetmaps
+	if !reflect.DeepEqual(presetmaps, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presetmaps)
 	}
 }
 
@@ -364,9 +364,9 @@ func TestDeletePresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedPresetMaps := map[string]*db.PresetMap{"theirpreset": &preset2}
-	presets := repo.(*fakeRepository).presets
-	if !reflect.DeepEqual(presets, expectedPresetMaps) {
-		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presets)
+	presetmaps := repo.(*fakeRepository).presetmaps
+	if !reflect.DeepEqual(presetmaps, expectedPresetMaps) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedPresetMaps, presetmaps)
 	}
 }
 
@@ -416,5 +416,160 @@ func TestListPresetMapsDBError(t *testing.T) {
 	}
 	if err.Error() != dbErrorMsg {
 		t.Errorf("ListPresetMaps: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+	}
+}
+
+func TestCreateLocalPreset(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.CreateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedLocalPresets := map[string]*db.LocalPreset{"mypreset": &preset}
+	localpresets := repo.(*fakeRepository).localpresets
+	if !reflect.DeepEqual(localpresets, expectedLocalPresets) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedLocalPresets, localpresets)
+	}
+}
+
+func TestCreateLocalPresetEmptyName(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset := db.LocalPreset{}
+	err := repo.CreateLocalPreset(&preset)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error")
+	}
+	expectedMsg := "invalid local preset name"
+	if err.Error() != expectedMsg {
+		t.Errorf("CreateLocalPreset: wrong error message. Want %q. Got %q", expectedMsg, err.Error())
+	}
+}
+
+func TestCreateLocalPresetDuplicate(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.CreateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.CreateLocalPreset(&preset)
+	if err != db.ErrLocalPresetAlreadyExists {
+		t.Errorf("CreateLocalPreset: wrong error returned. Want %#v. Got %#v", db.ErrLocalPresetAlreadyExists, err)
+	}
+}
+
+func TestCreateLocalPresetDBError(t *testing.T) {
+	repo := NewFakeRepository(true)
+	preset := db.LocalPreset{}
+	err := repo.CreateLocalPreset(&preset)
+	if err == nil {
+		t.Fatal("got unexpected <nil> error")
+	}
+	if err.Error() != dbErrorMsg {
+		t.Errorf("CreateLocalPreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+	}
+}
+
+func TestUpdateLocalPresetNotFound(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.UpdateLocalPreset(&preset)
+	if err != db.ErrLocalPresetNotFound {
+		t.Errorf("UpdateLocalPreset: wrong error. Want %#v. Got %#v", db.ErrLocalPresetNotFound, err)
+	}
+}
+
+func TestUpdateLocalPresetDBError(t *testing.T) {
+	repo := NewFakeRepository(true)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.UpdateLocalPreset(&preset)
+	if err == nil {
+		t.Fatal("Unexpected <nil> error")
+	}
+	if err.Error() != dbErrorMsg {
+		t.Errorf("UpdateLocalPreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+	}
+}
+
+func TestGetLocalPreset(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.CreateLocalPreset(&preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	gotLocalPreset, err := repo.GetLocalPreset(preset.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(*gotLocalPreset, preset) {
+		t.Errorf("GetLocalPreset: wrong preset returned. Want %#v. Got %#v", preset, *gotLocalPreset)
+	}
+}
+
+func TestGetLocalPresetNotFound(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset, err := repo.GetLocalPreset("some-preset")
+	if preset != nil {
+		t.Errorf("GetLocalPreset: unexpected non-nil preset: %#v", *preset)
+	}
+	if err != db.ErrLocalPresetNotFound {
+		t.Errorf("GetLocalPreset: wrong error. Want ErrLocalPresetNotFound. Got %#v", err)
+	}
+}
+
+func TestGetLocalPresetDBError(t *testing.T) {
+	repo := NewFakeRepository(true)
+	preset, err := repo.GetLocalPreset("some-preset")
+	if preset != nil {
+		t.Errorf("GetLocalPreset: unexpected non-nil preset: %#v", *preset)
+	}
+	if err.Error() != dbErrorMsg {
+		t.Errorf("GetLocalPreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
+	}
+}
+
+func TestDeleteLocalPreset(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset1 := db.LocalPreset{Name: "mypreset"}
+	err := repo.CreateLocalPreset(&preset1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	preset2 := db.LocalPreset{Name: "theirpreset"}
+	err = repo.CreateLocalPreset(&preset2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = repo.DeleteLocalPreset(&preset1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedLocalPresets := map[string]*db.LocalPreset{"theirpreset": &preset2}
+	localpresets := repo.(*fakeRepository).localpresets
+	if !reflect.DeepEqual(localpresets, expectedLocalPresets) {
+		t.Errorf("Wrong internal preset registry. Want %#v. Got %#v", expectedLocalPresets, localpresets)
+	}
+}
+
+func TestDeleteLocalPresetNotFound(t *testing.T) {
+	repo := NewFakeRepository(false)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.DeleteLocalPreset(&preset)
+	if err != db.ErrLocalPresetNotFound {
+		t.Errorf("DeleteLocalPreset: wrong error. Want %#v. Got %#v", db.ErrLocalPresetNotFound, err)
+	}
+}
+
+func TestDeleteLocalPresetDBError(t *testing.T) {
+	repo := NewFakeRepository(true)
+	preset := db.LocalPreset{Name: "mypreset"}
+	err := repo.DeleteLocalPreset(&preset)
+	if err == nil {
+		t.Fatal("Unexpected <nil> error")
+	}
+	if err.Error() != dbErrorMsg {
+		t.Errorf("DeleteLocalPreset: wrong error message. Want %q. Got %q", dbErrorMsg, err.Error())
 	}
 }
