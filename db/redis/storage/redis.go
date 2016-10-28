@@ -175,9 +175,8 @@ func (s *Storage) structToFieldList(value reflect.Value, prefixes ...string) (ma
 				}
 				if parts[len(parts)-1] == "omitempty" && strValue == "" {
 					continue
-				} else {
-					fields[key] = strValue
 				}
+				fields[key] = strValue
 			}
 		}
 	}
