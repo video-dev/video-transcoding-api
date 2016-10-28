@@ -1,6 +1,7 @@
 package zencoder
 
 import (
+	"errors"
 	"reflect"
 	"testing"
 
@@ -119,5 +120,19 @@ func TestCreatePreset(t *testing.T) {
 	}
 	if !reflect.DeepEqual(res, expected) {
 		t.Errorf("Got wrong preset. Want %#v. Got %#v", expected, res)
+	}
+}
+
+func TestCreatePresetError(t *testing.T) {
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	preset := db.Preset{}
+	provider, err := zencoderFactory(&cfg)
+
+	_, err = provider.CreatePreset(preset)
+	if !reflect.DeepEqual(err, errors.New("preset name missing")) {
+		t.Errorf("Got wrong error. Want %#v. Got %#v", errors.New("preset name missing"), err)
 	}
 }
