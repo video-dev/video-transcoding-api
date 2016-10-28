@@ -2,6 +2,7 @@ package zencoder
 
 import (
 	"errors"
+	"fmt"
 	"reflect"
 	"testing"
 
@@ -64,7 +65,7 @@ func TestZencoderFactoryValidation(t *testing.T) {
 	}
 }
 
-func TestCapabilities(t *testing.T) {
+func TestZencoderCapabilities(t *testing.T) {
 	var prov zencoderProvider
 	expected := provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
@@ -77,7 +78,7 @@ func TestCapabilities(t *testing.T) {
 	}
 }
 
-func TestCreatePreset(t *testing.T) {
+func TestZencoderCreatePreset(t *testing.T) {
 	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
@@ -182,7 +183,7 @@ func TestGetPreset(t *testing.T) {
 	}
 }
 
-func TestDeletePreset(t *testing.T) {
+func TestZencoderDeletePreset(t *testing.T) {
 	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
@@ -218,6 +219,24 @@ func TestDeletePreset(t *testing.T) {
 	if err != db.ErrLocalPresetNotFound {
 		t.Errorf("Got wrong error. Want errLocalPresetNotFound. Got %#v", err)
 	}
+}
+
+func TestZencoderTranscode(t *testing.T) {
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	provider := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+	fmt.Println(provider.client)
 }
 
 func cleanLocalPresets() error {
