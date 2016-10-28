@@ -57,7 +57,7 @@ func (z *zencoderProvider) CreatePreset(preset db.Preset) (string, error) {
 }
 
 func (z *zencoderProvider) GetPreset(presetID string) (interface{}, error) {
-	return "", nil
+	return z.db.GetLocalPreset(presetID)
 }
 
 func (z *zencoderProvider) DeletePreset(presetID string) error {

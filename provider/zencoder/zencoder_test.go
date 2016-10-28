@@ -11,6 +11,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/brandscreen/zencoder"
+	redisDriver "gopkg.in/redis.v4"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {
@@ -77,6 +78,7 @@ func TestCapabilities(t *testing.T) {
 }
 
 func TestCreatePreset(t *testing.T) {
+	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
 		Redis:    new(storage.Config),
@@ -124,6 +126,7 @@ func TestCreatePreset(t *testing.T) {
 }
 
 func TestCreatePresetError(t *testing.T) {
+	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
 		Redis:    new(storage.Config),
@@ -135,4 +138,65 @@ func TestCreatePresetError(t *testing.T) {
 	if !reflect.DeepEqual(err, errors.New("preset name missing")) {
 		t.Errorf("Got wrong error. Want %#v. Got %#v", errors.New("preset name missing"), err)
 	}
+}
+
+func TestGetPreset(t *testing.T) {
+	cleanLocalPresets()
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	preset := db.Preset{
+		Name: "get_preset",
+		Video: db.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Height:  "1080",
+		},
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+	}
+	provider, err := zencoderFactory(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	presetName, err := provider.CreatePreset(preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := &db.LocalPreset{
+		Name:   "get_preset",
+		Preset: preset,
+	}
+	res, err := provider.GetPreset(presetName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(res, expected) {
+		t.Errorf("Got wrong preset. Want %#v. Got %#v", expected, res)
+	}
+}
+
+func cleanLocalPresets() error {
+	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
+	defer client.Close()
+	err := deleteKeys("localpreset:*", client)
+	err = deleteKeys("localpresets", client)
+	return err
+}
+
+func deleteKeys(pattern string, client *redisDriver.Client) error {
+	keys, err := client.Keys(pattern).Result()
+	if err != nil {
+		return err
+	}
+	if len(keys) > 0 {
+		_, err = client.Del(keys...).Result()
+	}
+	return err
 }
