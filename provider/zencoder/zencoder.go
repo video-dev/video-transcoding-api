@@ -1,16 +1,16 @@
-// Package encodingcom provides a implementation of the provider that uses the
-// Encoding.com API for transcoding media files.
+// Package zencoder provides a implementation of the provider that uses the
+// Zencoder API for transcoding media files.
 //
 // It doesn't expose any public type. In order to use the provider, one must
 // import this package and then grab the factory from the provider package:
 //
 //     import (
 //         "github.com/NYTimes/video-transcoding-api/provider"
-//         "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
+//         "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 //     )
 //
 //     func UseProvider() {
-//         factory, err := provider.GetProviderFactory(encodingcom.Name)
+//         factory, err := provider.GetProviderFactory(Zencoder.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
 package zencoder
