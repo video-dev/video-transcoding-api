@@ -16,8 +16,11 @@
 package zencoder
 
 import (
+	"fmt"
+
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/brandscreen/zencoder"
 )
@@ -35,6 +38,7 @@ func init() {
 type zencoderProvider struct {
 	config *config.Config
 	client *zencoder.Zencoder
+	db     db.Repository
 }
 
 func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
@@ -42,7 +46,14 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 }
 
 func (z *zencoderProvider) CreatePreset(preset db.Preset) (string, error) {
-	return "", nil
+	err := z.db.CreateLocalPreset(&db.LocalPreset{
+		Name:   preset.Name,
+		Preset: preset,
+	})
+	if err != nil {
+		return "", err
+	}
+	return preset.Name, nil
 }
 
 func (z *zencoderProvider) GetPreset(presetID string) (interface{}, error) {
@@ -78,5 +89,9 @@ func zencoderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 		return nil, errZencoderInvalidConfig
 	}
 	client := zencoder.NewZencoder(cfg.Zencoder.APIKey)
-	return &zencoderProvider{client: client, config: cfg}, nil
+	dbRepo, err := redis.NewRepository(cfg)
+	if err != nil {
+		return nil, fmt.Errorf("Error initializing zencoder wrapper: %s", err)
+	}
+	return &zencoderProvider{client: client, db: dbRepo, config: cfg}, nil
 }

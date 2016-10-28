@@ -5,6 +5,9 @@ import (
 	"testing"
 
 	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/NYTimes/video-transcoding-api/db/redis"
+	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/brandscreen/zencoder"
 )
@@ -69,5 +72,52 @@ func TestCapabilities(t *testing.T) {
 	cap := prov.Capabilities()
 	if !reflect.DeepEqual(cap, expected) {
 		t.Errorf("Capabilities: want %#v. Got %#v", expected, cap)
+	}
+}
+
+func TestCreatePreset(t *testing.T) {
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	preset := db.Preset{
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:    "mp4",
+		Description:  "my nice preset",
+		Name:         "mp4_1080p",
+		Profile:      "main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: db.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Height:  "1080",
+		},
+	}
+	provider, err := zencoderFactory(&cfg)
+	repo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	presetName, err := provider.CreatePreset(preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := &db.LocalPreset{
+		Name:   "mp4_1080p",
+		Preset: preset,
+	}
+	res, err := repo.GetLocalPreset(presetName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(res, expected) {
+		t.Errorf("Got wrong preset. Want %#v. Got %#v", expected, res)
 	}
 }
