@@ -66,7 +66,11 @@ func (z *zencoderProvider) Healthcheck() error {
 }
 
 func (z *zencoderProvider) Capabilities() provider.Capabilities {
-	return provider.Capabilities{}
+	return provider.Capabilities{
+		InputFormats:  []string{"prores", "h264"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
+		Destinations:  []string{"akamai", "s3"},
+	}
 }
 
 func zencoderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
