@@ -45,6 +45,18 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 	return &provider.JobStatus{}, nil
 }
 
+func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
+	return &provider.JobStatus{}, nil
+}
+
+func (z *zencoderProvider) CancelJob(id string) error {
+	return nil
+}
+
+func (z *zencoderProvider) Healthcheck() error {
+	return nil
+}
+
 func (z *zencoderProvider) CreatePreset(preset db.Preset) (string, error) {
 	err := z.db.CreateLocalPreset(&db.LocalPreset{
 		Name:   preset.Name,
@@ -61,19 +73,11 @@ func (z *zencoderProvider) GetPreset(presetID string) (interface{}, error) {
 }
 
 func (z *zencoderProvider) DeletePreset(presetID string) error {
-	return nil
-}
-
-func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
-	return &provider.JobStatus{}, nil
-}
-
-func (z *zencoderProvider) CancelJob(id string) error {
-	return nil
-}
-
-func (z *zencoderProvider) Healthcheck() error {
-	return nil
+	preset, err := z.GetPreset(presetID)
+	if err != nil {
+		return err
+	}
+	return z.db.DeleteLocalPreset(preset.(*db.LocalPreset))
 }
 
 func (z *zencoderProvider) Capabilities() provider.Capabilities {

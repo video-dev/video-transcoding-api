@@ -182,6 +182,44 @@ func TestGetPreset(t *testing.T) {
 	}
 }
 
+func TestDeletePreset(t *testing.T) {
+	cleanLocalPresets()
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	preset := db.Preset{
+		Name: "get_preset",
+		Video: db.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Height:  "1080",
+		},
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+	}
+	provider, err := zencoderFactory(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	presetName, err := provider.CreatePreset(preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	err = provider.DeletePreset(presetName)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = provider.GetPreset(presetName)
+	if err != db.ErrLocalPresetNotFound {
+		t.Errorf("Got wrong error. Want errLocalPresetNotFound. Got %#v", err)
+	}
+}
+
 func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
