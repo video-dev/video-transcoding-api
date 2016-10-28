@@ -35,15 +35,15 @@ func init() {
 	provider.Register(Name, zencoderFactory)
 }
 
-// ZencoderClient is a interface that both
+// Client is a interface that both
 // brandscreen/zencoder and fakeZencoder implements
-type ZencoderClient interface {
+type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
 }
 
 type zencoderProvider struct {
 	config *config.Config
-	client ZencoderClient
+	client Client
 	db     db.Repository
 }
 
