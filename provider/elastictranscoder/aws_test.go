@@ -33,7 +33,7 @@ func TestElasticTranscoderProvider(t *testing.T) {
 			Region:          "sa-east-1",
 		},
 	}
-	provider, err := elasticTranscoderProvider(&cfg)
+	provider, err := elasticTranscoderFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +67,7 @@ func TestElasticTranscoderProviderDefaultRegion(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	provider, err := elasticTranscoderProvider(&cfg)
+	provider, err := elasticTranscoderFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func TestElasticTranscoderProviderValidation(t *testing.T) {
 				PipelineID:      test.pipelineID,
 			},
 		}
-		provider, err := elasticTranscoderProvider(&cfg)
+		provider, err := elasticTranscoderFactory(&cfg)
 		if provider != nil {
 			t.Errorf("Got unexpected non-nil provider: %#v", provider)
 		}

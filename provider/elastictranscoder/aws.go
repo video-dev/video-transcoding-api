@@ -49,7 +49,7 @@ var (
 )
 
 func init() {
-	provider.Register(Name, elasticTranscoderProvider)
+	provider.Register(Name, elasticTranscoderFactory)
 }
 
 type awsProvider struct {
@@ -390,7 +390,7 @@ func (p *awsProvider) Capabilities() provider.Capabilities {
 	}
 }
 
-func elasticTranscoderProvider(cfg *config.Config) (provider.TranscodingProvider, error) {
+func elasticTranscoderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.ElasticTranscoder.AccessKeyID == "" || cfg.ElasticTranscoder.SecretAccessKey == "" || cfg.ElasticTranscoder.PipelineID == "" {
 		return nil, errAWSInvalidConfig
 	}
