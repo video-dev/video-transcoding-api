@@ -66,36 +66,36 @@ type LocalPreset struct {
 
 	// the preset structure
 	// required: true
-	Preset map[string]string `redis-hash:"preset,expand" json:"preset"`
+	Preset Preset `redis-hash:"preset,expand" json:"preset"`
 }
 
 // Preset define the set of parameters of a given preset
 type Preset struct {
-	Name         string      `json:"name,omitempty"`
-	Description  string      `json:"description,omitempty"`
-	Container    string      `json:"container,omitempty"`
-	Profile      string      `json:"profile,omitempty"`
-	ProfileLevel string      `json:"profileLevel,omitempty"`
-	RateControl  string      `json:"rateControl,omitempty"`
-	Video        VideoPreset `json:"video"`
-	Audio        AudioPreset `json:"audio"`
+	Name         string      `json:"name,omitempty" redis-hash:"name"`
+	Description  string      `json:"description,omitempty" redis-hash:"description,omitempty"`
+	Container    string      `json:"container,omitempty" redis-hash:"container,omitempty"`
+	Profile      string      `json:"profile,omitempty" redis-hash:"profile,omitempty"`
+	ProfileLevel string      `json:"profileLevel,omitempty" redis-hash:"profilelevel,omitempty"`
+	RateControl  string      `json:"rateControl,omitempty" redis-hash:"ratecontrol,omitempty"`
+	Video        VideoPreset `json:"video" redis-hash:"video,expand"`
+	Audio        AudioPreset `json:"audio" redis-hash:"audio,expand"`
 }
 
 // VideoPreset define the set of parameters for video on a given preset
 type VideoPreset struct {
-	Width         string `json:"width,omitempty"`
-	Height        string `json:"height,omitempty"`
-	Codec         string `json:"codec,omitempty"`
-	Bitrate       string `json:"bitrate,omitempty"`
-	GopSize       string `json:"gopSize,omitempty"`
-	GopMode       string `json:"gopMode,omitempty"`
-	InterlaceMode string `json:"interlaceMode,omitempty"`
+	Width         string `json:"width,omitempty" redis-hash:"width,omitempty"`
+	Height        string `json:"height,omitempty" redis-hash:"height,omitempty"`
+	Codec         string `json:"codec,omitempty" redis-hash:"codec,omitempty"`
+	Bitrate       string `json:"bitrate,omitempty" redis-hash:"bitrate,omitempty"`
+	GopSize       string `json:"gopSize,omitempty" redis-hash:"gopsize,omitempty"`
+	GopMode       string `json:"gopMode,omitempty" redis-hash:"gopmode,omitempty"`
+	InterlaceMode string `json:"interlaceMode,omitempty" redis-hash:"interlacemode,omitempty"`
 }
 
 // AudioPreset define the set of parameters for audio on a given preset
 type AudioPreset struct {
-	Codec   string `json:"codec,omitempty"`
-	Bitrate string `json:"bitrate,omitempty"`
+	Codec   string `json:"codec,omitempty" redis-hash:"codec,omitempty"`
+	Bitrate string `json:"bitrate,omitempty" redis-hash:"bitrate,omitempty"`
 }
 
 // PresetMap represents the preset that is persisted in the repository of the

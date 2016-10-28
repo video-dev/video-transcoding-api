@@ -22,9 +22,8 @@ func TestCreateLocalPreset(t *testing.T) {
 	}
 	preset := db.LocalPreset{
 		Name: "test",
-		Preset: map[string]string{
-			"videoCodec": "h264",
-			"audioCodec": "aac",
+		Preset: db.Preset{
+			Name: "test",
 		},
 	}
 	err = repo.CreateLocalPreset(&preset)
@@ -38,8 +37,7 @@ func TestCreateLocalPreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedItems := map[string]string{
-		"preset_audioCodec": "aac",
-		"preset_videoCodec": "h264",
+		"preset_name": "test",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong preset hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
@@ -57,9 +55,8 @@ func TestCreateLocalPresetDuplicate(t *testing.T) {
 	}
 	preset := db.LocalPreset{
 		Name: "test",
-		Preset: map[string]string{
-			"videoCodec": "h264",
-			"audioCodec": "aac",
+		Preset: db.Preset{
+			Name: "test",
 		},
 	}
 	err = repo.CreateLocalPreset(&preset)
@@ -84,19 +81,16 @@ func TestUpdateLocalPreset(t *testing.T) {
 	}
 	preset := db.LocalPreset{
 		Name: "test",
-		Preset: map[string]string{
-			"videoCodec": "h264",
-			"audioCodec": "aac",
+		Preset: db.Preset{
+			Name: "test",
 		},
 	}
 	err = repo.CreateLocalPreset(&preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	preset.Preset = map[string]string{
-		"videoCodec": "vp8",
-		"audioCodec": "aac",
-	}
+	preset.Preset.Name = "test-different"
+
 	err = repo.UpdateLocalPreset(&preset)
 	if err != nil {
 		t.Fatal(err)
@@ -108,8 +102,7 @@ func TestUpdateLocalPreset(t *testing.T) {
 		t.Fatal(err)
 	}
 	expectedItems := map[string]string{
-		"preset_videoCodec": "vp8",
-		"preset_audioCodec": "aac",
+		"preset_name": "test-different",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong presetmap hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
@@ -126,8 +119,10 @@ func TestUpdateLocalPresetNotFound(t *testing.T) {
 		t.Fatal(err)
 	}
 	err = repo.UpdateLocalPreset(&db.LocalPreset{
-		Name:   "non-existent",
-		Preset: map[string]string{"videoCodec": "vp8"},
+		Name: "non-existent",
+		Preset: db.Preset{
+			Name: "test",
+		},
 	})
 	if err != db.ErrLocalPresetNotFound {
 		t.Errorf("Wrong error returned by UpdateLocalPreset. Want ErrLocalPresetNotFound. Got %#v.", err)
@@ -146,9 +141,8 @@ func TestDeleteLocalPreset(t *testing.T) {
 
 	preset := db.LocalPreset{
 		Name: "test",
-		Preset: map[string]string{
-			"videoCodec": "h264",
-			"audioCodec": "aac",
+		Preset: db.Preset{
+			Name: "test",
 		},
 	}
 	err = repo.CreateLocalPreset(&preset)

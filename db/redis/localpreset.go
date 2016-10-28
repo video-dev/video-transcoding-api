@@ -50,7 +50,7 @@ func (r *redisRepository) DeleteLocalPreset(localPreset *db.LocalPreset) error {
 }
 
 func (r *redisRepository) GetLocalPreset(name string) (*db.LocalPreset, error) {
-	localPreset := db.LocalPreset{Name: name, Preset: make(map[string]string)}
+	localPreset := db.LocalPreset{Name: name, Preset: db.Preset{}}
 	err := r.storage.Load(r.localPresetKey(name), &localPreset)
 	if err == storage.ErrNotFound {
 		return nil, db.ErrLocalPresetNotFound
