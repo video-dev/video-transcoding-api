@@ -16,14 +16,6 @@
 package zencoder
 
 import (
-	"errors"
-	"fmt"
-	"path"
-	"regexp"
-	"strconv"
-	"strings"
-
-	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
@@ -62,24 +54,25 @@ func (z *zencoderProvider) DeletePreset(presetID string) error {
 }
 
 func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
+	return &provider.JobStatus{}, nil
 }
 
 func (z *zencoderProvider) CancelJob(id string) error {
+	return nil
 }
 
 func (z *zencoderProvider) Healthcheck() error {
+	return nil
 }
 
 func (z *zencoderProvider) Capabilities() provider.Capabilities {
+	return provider.Capabilities{}
 }
 
 func zencoderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	if cfg.Zencoder.ApiKey == "" {
+	if cfg.Zencoder.APIKey == "" {
 		return nil, errZencoderInvalidConfig
 	}
-	client, err := zencoder.NewZencoder(cfg.Zencoder.ApiKey)
-	if err != nil {
-		return nil, err
-	}
+	client := zencoder.NewZencoder(cfg.Zencoder.APIKey)
 	return &zencoderProvider{client: client, config: cfg}, nil
 }

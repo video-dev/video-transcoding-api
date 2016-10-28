@@ -17,6 +17,7 @@ type Config struct {
 	EncodingCom            *EncodingCom
 	ElasticTranscoder      *ElasticTranscoder
 	ElementalConductor     *ElementalConductor
+	Zencoder               *Zencoder
 	GCPCredentials         *envconfigfromfile.EnvConfigFromFile `envconfig:"GCP_CREDENTIALS_FILE"`
 }
 
@@ -28,6 +29,12 @@ type EncodingCom struct {
 	Destination    string `envconfig:"ENCODINGCOM_DESTINATION"`
 	Region         string `envconfig:"ENCODINGCOM_REGION"`
 	StatusEndpoint string `envconfig:"ENCODINGCOM_STATUS_ENDPOINT" default:"http://status.encoding.com"`
+}
+
+// Zencoder represents the set of configurations for the Zencoder
+// provider.
+type Zencoder struct {
+	APIKey string `envconfig:"ZENCODER_API_KEY"`
 }
 
 // ElasticTranscoder represents the set of configurations for the Elastic
