@@ -34,7 +34,8 @@ type EncodingCom struct {
 // Zencoder represents the set of configurations for the Zencoder
 // provider.
 type Zencoder struct {
-	APIKey string `envconfig:"ZENCODER_API_KEY"`
+	APIKey      string `envconfig:"ZENCODER_API_KEY"`
+	Destination string `envconfig:"ZENCODER_DESTINATION"`
 }
 
 // ElasticTranscoder represents the set of configurations for the Elastic
