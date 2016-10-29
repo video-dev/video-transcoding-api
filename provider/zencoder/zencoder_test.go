@@ -379,6 +379,9 @@ func TestZencoderBuildOutput(t *testing.T) {
 		}
 		result := make(map[string]interface{})
 		err = json.Unmarshal(resultJSON, &result)
+		if err != nil {
+			t.Fatal(err)
+		}
 		if !reflect.DeepEqual(result, test.Expected) {
 			pretty.Fdiff(os.Stderr, test.Expected, result)
 			t.Errorf("Failed to build output. Want\n %+v. Got\n %+v.", test.Expected, result)
