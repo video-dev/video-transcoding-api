@@ -8,5 +8,7 @@ type FakeZencoder struct {
 }
 
 func (z *FakeZencoder) CreateJob(settings *zencoderClient.EncodingSettings) (*zencoderClient.CreateJobResponse, error) {
-	return &zencoderClient.CreateJobResponse{}, nil
+	return &zencoderClient.CreateJobResponse{
+		Id: 123,
+	}, nil
 }

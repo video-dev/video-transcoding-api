@@ -17,6 +17,7 @@ package zencoder
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
@@ -48,7 +49,41 @@ type zencoderProvider struct {
 }
 
 func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	return &provider.JobStatus{}, nil
+	outputs, err := z.buildOutputs(transcodeProfile)
+	if err != nil {
+		return &provider.JobStatus{}, err
+	}
+	encodingSettings := zencoder.EncodingSettings{
+		Input:      transcodeProfile.SourceMedia,
+		Outputs:    outputs,
+		LiveStream: false,
+		Region:     "US",
+	}
+	response, err := z.client.CreateJob(&encodingSettings)
+	if err != nil {
+		return &provider.JobStatus{}, err
+	}
+	return &provider.JobStatus{
+		ProviderJobID: strconv.FormatInt(response.Id, 10),
+		StatusMessage: "created",
+		ProviderName:  Name,
+	}, nil
+}
+
+func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
+	zencoderOutputs := make([]*zencoder.OutputSettings, 0, len(transcodeProfile.Outputs))
+	for _, output := range transcodeProfile.Outputs {
+		localPresetOutput, err := z.GetPreset(output.Preset.Name)
+		if err != nil {
+			return nil, fmt.Errorf("Error getting preset info: %s", err.Error())
+		}
+		localPresetStruct := localPresetOutput.(*db.LocalPreset)
+		zencoderOutput := zencoder.OutputSettings{
+			VideoCodec: localPresetStruct.Preset.Video.Codec,
+		}
+		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
+	}
+	return zencoderOutputs, nil
 }
 
 func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {

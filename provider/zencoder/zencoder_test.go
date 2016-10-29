@@ -2,7 +2,6 @@ package zencoder
 
 import (
 	"errors"
-	"fmt"
 	"reflect"
 	"testing"
 
@@ -28,13 +27,13 @@ func TestZencoderFactory(t *testing.T) {
 			APIKey: "api-key-here",
 		},
 	}
-	provider, err := zencoderFactory(&cfg)
+	prov, err := zencoderFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	zencoderProvider, ok := provider.(*zencoderProvider)
+	zencoderProvider, ok := prov.(*zencoderProvider)
 	if !ok {
-		t.Fatalf("Wrong provider returned. Want zencoderProvider instance. Got %#v.", provider)
+		t.Fatalf("Wrong provider returned. Want zencoderProvider instance. Got %#v.", prov)
 	}
 	expected := zencoder.NewZencoder("api-key-here")
 	if !reflect.DeepEqual(zencoderProvider.client, expected) {
@@ -47,18 +46,18 @@ func TestZencoderFactory(t *testing.T) {
 
 func TestZencoderFactoryValidation(t *testing.T) {
 	cfg := config.Config{Zencoder: &config.Zencoder{APIKey: "api-key"}}
-	provider, err := zencoderFactory(&cfg)
-	if provider == nil {
-		t.Errorf("Unexpected nil provider: %#v", provider)
+	prov, err := zencoderFactory(&cfg)
+	if prov == nil {
+		t.Errorf("Unexpected nil provider: %#v", prov)
 	}
 	if err != nil {
 		t.Errorf("Unexpected Error returned. Got %#v", err)
 	}
 
 	cfg = config.Config{Zencoder: &config.Zencoder{APIKey: ""}}
-	provider, err = zencoderFactory(&cfg)
-	if provider != nil {
-		t.Errorf("Unexpected non-nil provider: %#v", provider)
+	prov, err = zencoderFactory(&cfg)
+	if prov != nil {
+		t.Errorf("Unexpected non-nil provider: %#v", prov)
 	}
 	if err != errZencoderInvalidConfig {
 		t.Errorf("Wrong error returned. Want errZencoderInvalidConfig. Got %#v", err)
@@ -203,25 +202,26 @@ func TestZencoderDeletePreset(t *testing.T) {
 			Codec:   "aac",
 		},
 	}
-	provider, err := zencoderFactory(&cfg)
+	prov, err := zencoderFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
-	presetName, err := provider.CreatePreset(preset)
+	presetName, err := prov.CreatePreset(preset)
 	if err != nil {
 		t.Fatal(err)
 	}
-	err = provider.DeletePreset(presetName)
+	err = prov.DeletePreset(presetName)
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = provider.GetPreset(presetName)
+	_, err = prov.GetPreset(presetName)
 	if err != db.ErrLocalPresetNotFound {
 		t.Errorf("Got wrong error. Want errLocalPresetNotFound. Got %#v", err)
 	}
 }
 
 func TestZencoderTranscode(t *testing.T) {
+	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
 		Redis:    new(storage.Config),
@@ -231,12 +231,59 @@ func TestZencoderTranscode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	provider := &zencoderProvider{
+	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
-	fmt.Println(provider.client)
+	preset := db.Preset{
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:    "mp4",
+		Description:  "my nice preset",
+		Name:         "mp4_1080p",
+		Profile:      "main",
+		ProfileLevel: "3.1",
+		RateControl:  "VBR",
+		Video: db.VideoPreset{
+			Bitrate: "3500000",
+			Codec:   "h264",
+			GopMode: "fixed",
+			GopSize: "90",
+			Height:  "1080",
+		},
+	}
+	_, err = prov.CreatePreset(preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	outputs := []provider.TranscodeOutput{
+		{
+			FileName: "output-720p.mp4",
+			Preset: db.PresetMap{
+				Name: "mp4_1080p",
+				ProviderMapping: map[string]string{
+					Name:    "93239832-0001",
+					"other": "irrelevant",
+				},
+				OutputOpts: db.OutputOptions{Extension: "mp4"},
+			},
+		},
+	}
+	transcodeProfile := provider.TranscodeProfile{
+		SourceMedia:     "dir/file.mov",
+		Outputs:         outputs,
+		StreamingParams: provider.StreamingParams{},
+	}
+	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if jobStatus.ProviderJobID != "123" {
+		t.Errorf("Got wrong jobStatus ID. Expected 123, got %#v", jobStatus.ProviderJobID)
+	}
 }
 
 func cleanLocalPresets() error {
