@@ -75,12 +75,40 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 	for _, output := range transcodeProfile.Outputs {
 		localPresetOutput, err := z.GetPreset(output.Preset.Name)
 		if err != nil {
-			return nil, fmt.Errorf("Error getting preset info: %s", err.Error())
+			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
+		preset := localPresetStruct.Preset
 		zencoderOutput := zencoder.OutputSettings{
-			VideoCodec: localPresetStruct.Preset.Video.Codec,
+			Label:      preset.Name + ":" + preset.Description,
+			Format:     preset.Container,
+			VideoCodec: preset.Video.Codec,
+			AudioCodec: preset.Audio.Codec,
 		}
+		width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
+		zencoderOutput.Width = int32(width)
+		height, err := strconv.ParseInt(preset.Video.Height, 10, 32)
+		zencoderOutput.Height = int32(height)
+		videoBitrate, err := strconv.ParseInt(preset.Video.Bitrate, 10, 32)
+		zencoderOutput.VideoBitrate = int32(videoBitrate)
+		keyframeInterval, err := strconv.ParseInt(preset.Video.GopSize, 10, 32)
+		zencoderOutput.KeyframeInterval = int32(keyframeInterval)
+		audioBitrate, err := strconv.ParseInt(preset.Audio.Bitrate, 10, 32)
+		zencoderOutput.AudioBitrate = int32(audioBitrate)
+		if err != nil {
+			return nil, err
+		}
+		if preset.Video.GopMode == "fixed" {
+			zencoderOutput.FixedKeyframeInterval = true
+		}
+		if preset.Video.Codec == "h264" {
+			zencoderOutput.H264Profile = preset.Profile
+			zencoderOutput.H264Level = preset.ProfileLevel
+		}
+		if preset.RateControl == "CBR" {
+			zencoderOutput.ConstantBitrate = true
+		}
+		zencoderOutput.Deinterlace = "on"
 		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
 	}
 	return zencoderOutputs, nil
