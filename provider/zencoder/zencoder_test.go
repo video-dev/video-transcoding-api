@@ -1,7 +1,9 @@
 package zencoder
 
 import (
+	"encoding/json"
 	"errors"
+	"os"
 	"reflect"
 	"testing"
 
@@ -11,6 +13,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/brandscreen/zencoder"
+	"github.com/kr/pretty"
 	redisDriver "gopkg.in/redis.v4"
 )
 
@@ -283,6 +286,103 @@ func TestZencoderTranscode(t *testing.T) {
 	}
 	if jobStatus.ProviderJobID != "123" {
 		t.Errorf("Got wrong jobStatus ID. Expected 123, got %#v", jobStatus.ProviderJobID)
+	}
+}
+
+func TestZencoderBuildOutput(t *testing.T) {
+	prov := &zencoderProvider{}
+	var tests = []struct {
+		Description string
+		Preset      db.Preset
+		Expected    map[string]interface{}
+	}{
+		{
+			"Test with mp4 preset",
+			db.Preset{
+				Name:         "mp4_1080p",
+				Description:  "my nice preset",
+				Container:    "mp4",
+				Profile:      "main",
+				ProfileLevel: "3.1",
+				RateControl:  "CBR",
+				Video: db.VideoPreset{
+					Bitrate: "3500000",
+					Codec:   "h264",
+					GopMode: "fixed",
+					GopSize: "90",
+					Height:  "1080",
+					Width:   "1920",
+				},
+				Audio: db.AudioPreset{
+					Bitrate: "128000",
+					Codec:   "aac",
+				},
+			},
+			map[string]interface{}{
+				"label":                   "mp4_1080p:my nice preset",
+				"format":                  "mp4",
+				"video_codec":             "h264",
+				"h264_profile":            "main",
+				"h264_level":              "3.1",
+				"audio_codec":             "aac",
+				"width":                   float64(1920),
+				"height":                  float64(1080),
+				"video_bitrate":           float64(3500000),
+				"audio_bitrate":           float64(128000),
+				"keyframe_interval":       float64(90),
+				"fixed_keyframe_interval": true,
+				"constant_bitrate":        true,
+				"deinterlace":             "on",
+			},
+		},
+		{
+			"Test with webm preset",
+			db.Preset{
+				Name:        "webm_1080p",
+				Description: "my vp8 preset",
+				Container:   "webm",
+				Video: db.VideoPreset{
+					Bitrate: "3500000",
+					Codec:   "vp8",
+					GopSize: "90",
+					Height:  "1080",
+					Width:   "1920",
+				},
+				Audio: db.AudioPreset{
+					Bitrate: "128000",
+					Codec:   "aac",
+				},
+			},
+			map[string]interface{}{
+				"label":             "webm_1080p:my vp8 preset",
+				"format":            "webm",
+				"video_codec":       "vp8",
+				"audio_codec":       "aac",
+				"width":             float64(1920),
+				"height":            float64(1080),
+				"video_bitrate":     float64(3500000),
+				"audio_bitrate":     float64(128000),
+				"keyframe_interval": float64(90),
+				"deinterlace":       "on",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		res, err := prov.buildOutput(test.Preset)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resultJSON, err := json.Marshal(res)
+		if err != nil {
+			t.Fatal(err)
+		}
+		result := make(map[string]interface{})
+		err = json.Unmarshal(resultJSON, &result)
+		if !reflect.DeepEqual(result, test.Expected) {
+			pretty.Fdiff(os.Stderr, test.Expected, result)
+			t.Errorf("Failed to build output. Want\n %+v. Got\n %+v.", test.Expected, result)
+		}
 	}
 }
 
