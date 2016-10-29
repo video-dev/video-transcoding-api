@@ -18,6 +18,7 @@ package zencoder
 import (
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
@@ -42,6 +43,8 @@ type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
 	ListJobs() ([]*zencoder.JobDetails, error)
 	CancelJob(id int64) error
+	GetJobProgress(id int64) (*zencoder.JobProgress, error)
+	GetJobDetails(id int64) (*zencoder.JobDetails, error)
 }
 
 type zencoderProvider struct {
@@ -124,7 +127,67 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 }
 
 func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
-	return &provider.JobStatus{}, nil
+	jobID, err := strconv.ParseInt(job.ID, 10, 64)
+	if err != nil {
+		return &provider.JobStatus{}, err
+	}
+	jobOutputs, err := z.getJobOutputs(jobID)
+	if err != nil {
+		return &provider.JobStatus{}, err
+	}
+	progress, err := z.client.GetJobProgress(jobID)
+	if err != nil {
+		return &provider.JobStatus{}, err
+	}
+	mediaInfo, err := z.getMediaInfo(jobID)
+	if err != nil {
+		return &provider.JobStatus{}, err
+	}
+	return &provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: job.ProviderJobID,
+		Status:        provider.Status(progress.State),
+		Progress:      progress.JobProgress,
+		Output:        jobOutputs,
+		MediaInfo:     mediaInfo,
+	}, nil
+}
+
+// we are debating if this field still makes sense or not.
+// refs #107
+func (z *zencoderProvider) getMediaInfo(jobID int64) (provider.MediaInfo, error) {
+	jobDetails, err := z.client.GetJobDetails(jobID)
+	if err != nil {
+		return provider.MediaInfo{}, err
+	}
+	firstMediaFile := jobDetails.Job.OutputMediaFiles[0]
+	return provider.MediaInfo{
+		Duration:   time.Duration(firstMediaFile.DurationInMs * 1000),
+		Height:     int64(firstMediaFile.Height),
+		Width:      int64(firstMediaFile.Width),
+		VideoCodec: firstMediaFile.VideoCodec,
+	}, nil
+}
+
+func (z *zencoderProvider) getJobOutputs(jobID int64) (provider.JobOutput, error) {
+	jobDetails, err := z.client.GetJobDetails(jobID)
+	if err != nil {
+		return provider.JobOutput{}, err
+	}
+	files := make([]provider.OutputFile, 0, len(jobDetails.Job.OutputMediaFiles))
+	for _, mediaFile := range jobDetails.Job.OutputMediaFiles {
+		file := provider.OutputFile{
+			Path:       mediaFile.Url,
+			Container:  mediaFile.Format,
+			VideoCodec: mediaFile.VideoCodec,
+			Width:      int64(mediaFile.Width),
+			Height:     int64(mediaFile.Height),
+		}
+		files = append(files, file)
+	}
+	return provider.JobOutput{
+		Files: files,
+	}, nil
 }
 
 func (z *zencoderProvider) CancelJob(id string) error {

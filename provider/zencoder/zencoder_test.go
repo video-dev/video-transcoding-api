@@ -433,6 +433,73 @@ func TestZencoderCancelJob(t *testing.T) {
 	}
 }
 
+func TestZencoderJobStatus(t *testing.T) {
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+	jobStatus, err := prov.JobStatus(&db.Job{
+		ID:            "1234",
+		ProviderJobID: "1234567890",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	resultJSON, err := json.Marshal(jobStatus)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := make(map[string]interface{})
+	err = json.Unmarshal(resultJSON, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := map[string]interface{}{
+		"providerName":  "zencoder",
+		"providerJobId": "1234567890",
+		"status":        "Transcoding",
+		"progress":      float64(10),
+		"mediaInfo": map[string]interface{}{
+			"duration":   float64(10000000),
+			"height":     float64(1080),
+			"width":      float64(1920),
+			"videoCodec": "h264",
+		},
+		"output": map[string]interface{}{
+			"files": []interface{}{
+				map[string]interface{}{
+					"path":       "http://nyt.net/output1.mp4",
+					"container":  "mp4",
+					"videoCodec": "h264",
+					"height":     float64(1080),
+					"width":      float64(1920),
+				},
+				map[string]interface{}{
+					"height":     float64(720),
+					"width":      float64(1080),
+					"path":       "http://nyt.net/output2.webm",
+					"container":  "webm",
+					"videoCodec": "vp8",
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(result, expected) {
+		pretty.Fdiff(os.Stderr, expected, result)
+		t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", expected, result)
+	}
+}
+
 func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
