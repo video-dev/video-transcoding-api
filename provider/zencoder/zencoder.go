@@ -41,6 +41,7 @@ func init() {
 type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
 	ListJobs() ([]*zencoder.JobDetails, error)
+	CancelJob(id int64) error
 }
 
 type zencoderProvider struct {
@@ -127,7 +128,11 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 }
 
 func (z *zencoderProvider) CancelJob(id string) error {
-	return nil
+	jobID, err := strconv.ParseInt(id, 10, 64)
+	if err != nil {
+		return err
+	}
+	return z.client.CancelJob(jobID)
 }
 
 func (z *zencoderProvider) Healthcheck() error {
