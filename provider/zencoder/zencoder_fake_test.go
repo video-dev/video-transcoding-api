@@ -12,3 +12,7 @@ func (z *FakeZencoder) CreateJob(settings *zencoderClient.EncodingSettings) (*ze
 		Id: 123,
 	}, nil
 }
+
+func (z *FakeZencoder) ListJobs() ([]*zencoderClient.JobDetails, error) {
+	return []*zencoderClient.JobDetails{}, nil
+}

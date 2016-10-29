@@ -389,6 +389,28 @@ func TestZencoderBuildOutput(t *testing.T) {
 	}
 }
 
+func TestZencoderHealthcheck(t *testing.T) {
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+
+	err = prov.Healthcheck()
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()

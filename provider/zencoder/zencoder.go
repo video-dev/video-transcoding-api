@@ -40,6 +40,7 @@ func init() {
 // brandscreen/zencoder and fakeZencoder implements
 type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
+	ListJobs() ([]*zencoder.JobDetails, error)
 }
 
 type zencoderProvider struct {
@@ -130,7 +131,8 @@ func (z *zencoderProvider) CancelJob(id string) error {
 }
 
 func (z *zencoderProvider) Healthcheck() error {
-	return nil
+	_, err := z.client.ListJobs()
+	return err
 }
 
 func (z *zencoderProvider) CreatePreset(preset db.Preset) (string, error) {
