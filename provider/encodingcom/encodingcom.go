@@ -149,7 +149,11 @@ func (e *encodingComProvider) getNormalizedCodec(codec string) string {
 }
 
 func (e *encodingComProvider) GetPreset(presetID string) (interface{}, error) {
-	return e.client.GetPreset(presetID)
+	preset, err := e.client.GetPreset(presetID)
+	if err != nil {
+		return nil, err
+	}
+	return preset, nil
 }
 
 func (e *encodingComProvider) DeletePreset(presetID string) error {
