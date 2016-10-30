@@ -51,7 +51,7 @@ export ELASTICTRANSCODER_PIPELINE_ID="yourpipeline-id"
 
 ```
 export ZENCODER_API_KEY=your.api.key
-export ENCODINGCOM_DESTINATION=http://access.key.id:secret.access.key@your-s3-bucket.s3.amazonaws.com/
+export ZENCODER_DESTINATION=http://access.key.id:secret.access.key@your-s3-bucket.s3.amazonaws.com/
 ```
 
 
