@@ -153,19 +153,17 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-// we are debating if this field still makes sense or not.
-// refs #107
 func (z *zencoderProvider) getMediaInfo(jobID int64) (provider.MediaInfo, error) {
 	jobDetails, err := z.client.GetJobDetails(jobID)
 	if err != nil {
 		return provider.MediaInfo{}, err
 	}
-	firstMediaFile := jobDetails.Job.OutputMediaFiles[0]
+	inputMediaFile := jobDetails.Job.InputMediaFile
 	return provider.MediaInfo{
-		Duration:   time.Duration(firstMediaFile.DurationInMs * 1000),
-		Height:     int64(firstMediaFile.Height),
-		Width:      int64(firstMediaFile.Width),
-		VideoCodec: firstMediaFile.VideoCodec,
+		Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
+		Height:     int64(inputMediaFile.Height),
+		Width:      int64(inputMediaFile.Width),
+		VideoCodec: inputMediaFile.VideoCodec,
 	}, nil
 }
 

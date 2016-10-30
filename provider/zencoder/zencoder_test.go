@@ -473,7 +473,7 @@ func TestZencoderJobStatus(t *testing.T) {
 			"duration":   float64(10000000),
 			"height":     float64(1080),
 			"width":      float64(1920),
-			"videoCodec": "h264",
+			"videoCodec": "ProRes422",
 		},
 		"output": map[string]interface{}{
 			"files": []interface{}{

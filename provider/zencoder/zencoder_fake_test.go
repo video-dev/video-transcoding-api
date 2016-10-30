@@ -31,6 +31,14 @@ func (z *FakeZencoder) GetJobProgress(id int64) (*zencoderClient.JobProgress, er
 func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, error) {
 	return &zencoderClient.JobDetails{
 		Job: &zencoderClient.Job{
+			InputMediaFile: &zencoderClient.MediaFile{
+				Url:          "http://nyt.net/input.mov",
+				Format:       "mov",
+				VideoCodec:   "ProRes422",
+				Width:        1920,
+				Height:       1080,
+				DurationInMs: 10000,
+			},
 			OutputMediaFiles: []*zencoderClient.MediaFile{
 				{
 					Url:          "http://nyt.net/output1.mp4",
