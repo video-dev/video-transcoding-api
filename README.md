@@ -10,6 +10,7 @@ providers:
 - [Elemental Conductor](http://www.elementaltechnologies.com/products/elemental-conductor)
 - [Encoding.com](http://encoding.com)
 - [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
+- [Zencoder](http://zencoder.com)
 
 ## Setting Up
 
@@ -45,6 +46,14 @@ export AWS_SECRET_ACCESS_KEY=your.secret.access.key
 export AWS_REGION="us-east-1"
 export ELASTICTRANSCODER_PIPELINE_ID="yourpipeline-id"
 ```
+
+#### For [Zencoder](http://zencoder.com)
+
+```
+export ZENCODER_API_KEY=your.api.key
+export ZENCODER_DESTINATION=http://access.key.id:secret.access.key@your-s3-bucket.s3.amazonaws.com/
+```
+
 
 Please notice that for Elastic Transcoder you don't specify the destination
 bucket, as it is [defined in the Elastic Transcoder

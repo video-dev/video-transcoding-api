@@ -1,6 +1,8 @@
 package redis
 
 import (
+	"errors"
+
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"gopkg.in/redis.v4"
@@ -26,6 +28,9 @@ func (r *redisRepository) saveLocalPreset(localPreset *db.LocalPreset) error {
 	fields, err := r.storage.FieldMap(localPreset)
 	if err != nil {
 		return err
+	}
+	if localPreset.Name == "" {
+		return errors.New("preset name missing")
 	}
 	localPresetKey := r.localPresetKey(localPreset.Name)
 	return r.storage.RedisClient().Watch(func(tx *redis.Tx) error {
