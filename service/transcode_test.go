@@ -296,7 +296,7 @@ func TestGetTranscodeJob(t *testing.T) {
 				"output": map[string]interface{}{
 					"destination": "s3://mybucket/some/dir/job-123",
 				},
-				"mediaInfo": map[string]interface{}{
+				"sourceInfo": map[string]interface{}{
 					"width":      float64(4096),
 					"height":     float64(2160),
 					"duration":   183e9,
@@ -379,7 +379,7 @@ func TestCancelTranscodeJob(t *testing.T) {
 				"output": map[string]interface{}{
 					"destination": "s3://mybucket/some/dir/job-123",
 				},
-				"mediaInfo": map[string]interface{}{
+				"sourceInfo": map[string]interface{}{
 					"width":      float64(4096),
 					"height":     float64(2160),
 					"duration":   183e9,

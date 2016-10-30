@@ -133,7 +133,7 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 		Progress:       float64(resp.PercentComplete),
 		Status:         p.statusMap(resp.Status),
 		ProviderStatus: providerStatus,
-		MediaInfo: provider.MediaInfo{
+		SourceInfo: provider.SourceInfo{
 			Duration:   duration,
 			VideoCodec: resp.Input.InputInfo.Video.Format,
 			Height:     resp.Input.InputInfo.Video.GetHeight(),

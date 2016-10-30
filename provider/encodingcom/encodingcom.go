@@ -220,10 +220,10 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 	if len(resp) < 1 {
 		return nil, errors.New("invalid value returned by the Encoding.com API: []")
 	}
-	var mediaInfo provider.MediaInfo
+	var sourceInfo provider.SourceInfo
 	status := e.statusMap(resp[0].MediaStatus)
 	if status == provider.StatusFinished {
-		mediaInfo, err = e.mediaInfo(job.ProviderJobID)
+		sourceInfo, err = e.sourceInfo(job.ProviderJobID)
 		if err != nil {
 			return nil, err
 		}
@@ -245,20 +245,20 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 			Destination: e.getOutputDestination(job),
 			Files:       e.getOutputDestinationStatus(resp),
 		},
-		MediaInfo: mediaInfo,
+		SourceInfo: sourceInfo,
 	}, nil
 }
 
-func (e *encodingComProvider) mediaInfo(id string) (provider.MediaInfo, error) {
-	var mediaInfo provider.MediaInfo
+func (e *encodingComProvider) sourceInfo(id string) (provider.SourceInfo, error) {
+	var sourceInfo provider.SourceInfo
 	info, err := e.client.GetMediaInfo(id)
 	if err != nil {
-		return mediaInfo, err
+		return sourceInfo, err
 	}
-	mediaInfo.Width, mediaInfo.Height, err = e.parseSize(info.Size)
-	mediaInfo.Duration = info.Duration
-	mediaInfo.VideoCodec = info.VideoCodec
-	return mediaInfo, err
+	sourceInfo.Width, sourceInfo.Height, err = e.parseSize(info.Size)
+	sourceInfo.Duration = info.Duration
+	sourceInfo.VideoCodec = info.VideoCodec
+	return sourceInfo, err
 }
 
 func (e *encodingComProvider) parseSize(size string) (width int64, height int64, err error) {

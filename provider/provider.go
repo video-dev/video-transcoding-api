@@ -78,7 +78,7 @@ type JobStatus struct {
 	Progress       float64                `json:"progress"`
 	ProviderStatus map[string]interface{} `json:"providerStatus,omitempty"`
 	Output         JobOutput              `json:"output"`
-	MediaInfo      MediaInfo              `json:"mediaInfo,omitempty"`
+	SourceInfo     SourceInfo             `json:"sourceInfo,omitempty"`
 }
 
 // JobOutput represents information about a job output.
@@ -96,9 +96,9 @@ type OutputFile struct {
 	Width      int64  `json:"width"`
 }
 
-// MediaInfo contains information about media transcoded using the Transcoding
+// SourceInfo contains information about media transcoded using the Transcoding
 // API.
-type MediaInfo struct {
+type SourceInfo struct {
 	// Duration of the media
 	Duration time.Duration `json:"duration,omitempty"`
 
