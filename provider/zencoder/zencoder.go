@@ -56,7 +56,7 @@ type zencoderProvider struct {
 func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
 	outputs, err := z.buildOutputs(transcodeProfile)
 	if err != nil {
-		return &provider.JobStatus{}, err
+		return nil, err
 	}
 	encodingSettings := zencoder.EncodingSettings{
 		Input:      transcodeProfile.SourceMedia,
@@ -66,7 +66,7 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 	}
 	response, err := z.client.CreateJob(&encodingSettings)
 	if err != nil {
-		return &provider.JobStatus{}, err
+		return nil, err
 	}
 	return &provider.JobStatus{
 		ProviderJobID: strconv.FormatInt(response.Id, 10),
@@ -147,19 +147,19 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	jobID, err := strconv.ParseInt(job.ID, 10, 64)
 	if err != nil {
-		return &provider.JobStatus{}, fmt.Errorf("error converting job ID (%q): %s", job.ID, err)
+		return nil, fmt.Errorf("error converting job ID (%q): %s", job.ID, err)
 	}
 	jobOutputs, err := z.getJobOutputs(jobID)
 	if err != nil {
-		return &provider.JobStatus{}, fmt.Errorf("error getting job outputs: %s", err)
+		return nil, fmt.Errorf("error getting job outputs: %s", err)
 	}
 	progress, err := z.client.GetJobProgress(jobID)
 	if err != nil {
-		return &provider.JobStatus{}, fmt.Errorf("error getting job progress: %s", err)
+		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
 	mediaInfo, err := z.getMediaInfo(jobID)
 	if err != nil {
-		return &provider.JobStatus{}, fmt.Errorf("error getting media info: %s", err)
+		return nil, fmt.Errorf("error getting media info: %s", err)
 	}
 	return &provider.JobStatus{
 		ProviderName:  Name,
