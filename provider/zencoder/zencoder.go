@@ -85,7 +85,7 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
 		zencoderOutput, err := z.buildOutput(localPresetStruct.Preset)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
 		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
 	}
@@ -99,19 +99,37 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
 	}
+
 	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
-	zencoderOutput.Width = int32(width)
-	height, err := strconv.ParseInt(preset.Video.Height, 10, 32)
-	zencoderOutput.Height = int32(height)
-	videoBitrate, err := strconv.ParseInt(preset.Video.Bitrate, 10, 32)
-	zencoderOutput.VideoBitrate = int32(videoBitrate)
-	keyframeInterval, err := strconv.ParseInt(preset.Video.GopSize, 10, 32)
-	zencoderOutput.KeyframeInterval = int32(keyframeInterval)
-	audioBitrate, err := strconv.ParseInt(preset.Audio.Bitrate, 10, 32)
-	zencoderOutput.AudioBitrate = int32(audioBitrate)
 	if err != nil {
-		return zencoder.OutputSettings{}, err
+		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset width (%q): %s", preset.Video.Width, err)
 	}
+	zencoderOutput.Width = int32(width)
+
+	height, err := strconv.ParseInt(preset.Video.Height, 10, 32)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset height (%q): %s", preset.Video.Height, err)
+	}
+	zencoderOutput.Height = int32(height)
+
+	videoBitrate, err := strconv.ParseInt(preset.Video.Bitrate, 10, 32)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset video bitrate (%q): %s", preset.Video.Bitrate, err)
+	}
+	zencoderOutput.VideoBitrate = int32(videoBitrate)
+
+	keyframeInterval, err := strconv.ParseInt(preset.Video.GopSize, 10, 32)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset keyframe interval (%q): %s", preset.Video.GopSize, err)
+	}
+	zencoderOutput.KeyframeInterval = int32(keyframeInterval)
+
+	audioBitrate, err := strconv.ParseInt(preset.Audio.Bitrate, 10, 32)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset audio bitrate (%q): %s", preset.Audio.Bitrate, err)
+	}
+	zencoderOutput.AudioBitrate = int32(audioBitrate)
+
 	if preset.Video.GopMode == "fixed" {
 		zencoderOutput.FixedKeyframeInterval = true
 	}
@@ -129,19 +147,19 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	jobID, err := strconv.ParseInt(job.ID, 10, 64)
 	if err != nil {
-		return &provider.JobStatus{}, err
+		return &provider.JobStatus{}, fmt.Errorf("error converting job ID (%q): %s", job.ID, err)
 	}
 	jobOutputs, err := z.getJobOutputs(jobID)
 	if err != nil {
-		return &provider.JobStatus{}, err
+		return &provider.JobStatus{}, fmt.Errorf("error getting job outputs: %s", err)
 	}
 	progress, err := z.client.GetJobProgress(jobID)
 	if err != nil {
-		return &provider.JobStatus{}, err
+		return &provider.JobStatus{}, fmt.Errorf("error getting job progress: %s", err)
 	}
 	mediaInfo, err := z.getMediaInfo(jobID)
 	if err != nil {
-		return &provider.JobStatus{}, err
+		return &provider.JobStatus{}, fmt.Errorf("error getting media info: %s", err)
 	}
 	return &provider.JobStatus{
 		ProviderName:  Name,
@@ -156,7 +174,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 func (z *zencoderProvider) getMediaInfo(jobID int64) (provider.MediaInfo, error) {
 	jobDetails, err := z.client.GetJobDetails(jobID)
 	if err != nil {
-		return provider.MediaInfo{}, err
+		return provider.MediaInfo{}, fmt.Errorf("error getting job details: %s", err)
 	}
 	inputMediaFile := jobDetails.Job.InputMediaFile
 	return provider.MediaInfo{
@@ -170,7 +188,7 @@ func (z *zencoderProvider) getMediaInfo(jobID int64) (provider.MediaInfo, error)
 func (z *zencoderProvider) getJobOutputs(jobID int64) (provider.JobOutput, error) {
 	jobDetails, err := z.client.GetJobDetails(jobID)
 	if err != nil {
-		return provider.JobOutput{}, err
+		return provider.JobOutput{}, fmt.Errorf("error getting job details: %s", err)
 	}
 	files := make([]provider.OutputFile, 0, len(jobDetails.Job.OutputMediaFiles))
 	for _, mediaFile := range jobDetails.Job.OutputMediaFiles {
@@ -191,7 +209,7 @@ func (z *zencoderProvider) getJobOutputs(jobID int64) (provider.JobOutput, error
 func (z *zencoderProvider) CancelJob(id string) error {
 	jobID, err := strconv.ParseInt(id, 10, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf("error canceling job %s: %s", id, err)
 	}
 	return z.client.CancelJob(jobID)
 }

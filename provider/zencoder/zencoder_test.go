@@ -256,6 +256,7 @@ func TestZencoderTranscode(t *testing.T) {
 			GopMode: "fixed",
 			GopSize: "90",
 			Height:  "1080",
+			Width:   "720",
 		},
 	}
 	_, err = prov.CreatePreset(preset)
