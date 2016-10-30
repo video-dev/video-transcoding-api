@@ -59,7 +59,7 @@ func (p *fakeProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			Status:        status,
 			StatusMessage: "The job is finished",
 			Progress:      10.3,
-			MediaInfo: provider.MediaInfo{
+			SourceInfo: provider.SourceInfo{
 				Width:      4096,
 				Height:     2160,
 				Duration:   183e9,

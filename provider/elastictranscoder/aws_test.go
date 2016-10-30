@@ -666,7 +666,7 @@ func TestAWSJobStatus(t *testing.T) {
 				"job-123/hls/output_720p":  "it's finished!",
 			},
 		},
-		MediaInfo: provider.MediaInfo{
+		SourceInfo: provider.SourceInfo{
 			Duration: 120 * time.Second,
 			Width:    1920,
 			Height:   1080,

@@ -157,7 +157,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
-	mediaInfo, err := z.getMediaInfo(jobID)
+	sourceInfo, err := z.getSourceInfo(jobID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting media info: %s", err)
 	}
@@ -167,17 +167,17 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		Status:        provider.Status(progress.State),
 		Progress:      progress.JobProgress,
 		Output:        jobOutputs,
-		MediaInfo:     mediaInfo,
+		SourceInfo:    sourceInfo,
 	}, nil
 }
 
-func (z *zencoderProvider) getMediaInfo(jobID int64) (provider.MediaInfo, error) {
+func (z *zencoderProvider) getSourceInfo(jobID int64) (provider.SourceInfo, error) {
 	jobDetails, err := z.client.GetJobDetails(jobID)
 	if err != nil {
-		return provider.MediaInfo{}, fmt.Errorf("error getting job details: %s", err)
+		return provider.SourceInfo{}, fmt.Errorf("error getting job details: %s", err)
 	}
 	inputMediaFile := jobDetails.Job.InputMediaFile
-	return provider.MediaInfo{
+	return provider.SourceInfo{
 		Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
 		Height:     int64(inputMediaFile.Height),
 		Width:      int64(inputMediaFile.Width),

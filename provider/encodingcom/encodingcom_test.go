@@ -516,7 +516,7 @@ func TestJobStatus(t *testing.T) {
 			"finished":     media.Finished,
 			"formatStatus": []string{""},
 		},
-		MediaInfo: provider.MediaInfo{
+		SourceInfo: provider.SourceInfo{
 			Duration:   183e9,
 			Width:      1920,
 			Height:     1080,
@@ -621,7 +621,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 	}
 }
 
-func TestJobStatusInvalidMediaInfo(t *testing.T) {
+func TestJobStatusInvalidSourceInfo(t *testing.T) {
 	server := newEncodingComFakeServer()
 	defer server.Close()
 	now := time.Now().UTC().Truncate(time.Second)

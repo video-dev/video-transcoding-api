@@ -470,7 +470,7 @@ func TestZencoderJobStatus(t *testing.T) {
 		"providerJobId": "1234567890",
 		"status":        "Transcoding",
 		"progress":      float64(10),
-		"mediaInfo": map[string]interface{}{
+		"sourceInfo": map[string]interface{}{
 			"duration":   float64(10000000),
 			"height":     float64(1080),
 			"width":      float64(1920),

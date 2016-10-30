@@ -882,7 +882,7 @@ func TestJobStatus(t *testing.T) {
 				},
 			},
 		},
-		MediaInfo: provider.MediaInfo{
+		SourceInfo: provider.SourceInfo{
 			Duration:   123 * time.Second,
 			Width:      1920,
 			Height:     1080,
@@ -1060,7 +1060,7 @@ func TestJobStatusNoDuration(t *testing.T) {
 				},
 			},
 		},
-		MediaInfo: provider.MediaInfo{
+		SourceInfo: provider.SourceInfo{
 			Width:      1920,
 			Height:     1080,
 			VideoCodec: "AVC",

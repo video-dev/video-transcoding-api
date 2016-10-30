@@ -277,9 +277,9 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	var mediaInfo provider.MediaInfo
+	var sourceInfo provider.SourceInfo
 	if resp.Job.Input.DetectedProperties != nil {
-		mediaInfo = provider.MediaInfo{
+		sourceInfo = provider.SourceInfo{
 			Duration: time.Duration(aws.Int64Value(resp.Job.Input.DetectedProperties.DurationMillis)) * time.Millisecond,
 			Height:   aws.Int64Value(resp.Job.Input.DetectedProperties.Height),
 			Width:    aws.Int64Value(resp.Job.Input.DetectedProperties.Width),
@@ -290,7 +290,7 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
 		Progress:       completedJobs / float64(totalJobs) * 100,
 		ProviderStatus: map[string]interface{}{"outputs": outputs},
-		MediaInfo:      mediaInfo,
+		SourceInfo:     sourceInfo,
 		Output: provider.JobOutput{
 			Destination: outputDestination,
 			Files:       outputFiles,

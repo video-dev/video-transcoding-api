@@ -462,8 +462,8 @@
       "type": "object",
       "properties": {
         "mediaInfo": {
-          "x-go-name": "MediaInfo",
-          "$ref": "#/definitions/MediaInfo"
+          "x-go-name": "SourceInfo",
+          "$ref": "#/definitions/SourceInfo"
         },
         "output": {
           "x-go-name": "Output",
@@ -500,8 +500,8 @@
       },
       "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
     },
-    "MediaInfo": {
-      "description": "MediaInfo contains information about media transcoded using the Transcoding\nAPI.",
+    "SourceInfo": {
+      "description": "SourceInfo contains information about media transcoded using the Transcoding\nAPI.",
       "type": "object",
       "properties": {
         "duration": {
