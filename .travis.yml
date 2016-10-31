@@ -12,3 +12,6 @@ go:
   - tip
 services:
   - redis-server
+matrix:
+  allow_failures:
+    - go: tip
