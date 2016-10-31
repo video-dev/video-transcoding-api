@@ -3,6 +3,9 @@
 
 # Video Transcoding API
 
+[![Build Status](https://travis-ci.org/NYTimes/video-transcoding-api.svg?branch=master)](https://travis-ci.org/NYTimes/video-transcoding-api)
+[![codecov](https://codecov.io/gh/NYTimes/video-transcoding-api/branch/master/graph/badge.svg)](https://codecov.io/gh/NYTimes/video-transcoding-api)
+
 The Video Transcoding API provides an agnostic API to transcode media assets
 across different cloud services. Currently, it supports the following
 providers:
