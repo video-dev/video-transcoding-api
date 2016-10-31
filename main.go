@@ -8,6 +8,7 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
 	_ "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
 	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
+	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/knq/sdhook"
 )
