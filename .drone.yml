@@ -13,7 +13,8 @@ build:
     commands:
       - make testdeps test
     when:
-      event: [push, pull_request]
+      branch: master
+      event: push
   deploy:
     image: mediafactory/video-transcoding-api
     environment:
