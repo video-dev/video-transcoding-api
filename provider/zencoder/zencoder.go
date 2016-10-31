@@ -116,7 +116,7 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 	if err != nil {
 		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset video bitrate (%q): %s", preset.Video.Bitrate, err)
 	}
-	zencoderOutput.VideoBitrate = int32(videoBitrate)
+	zencoderOutput.VideoBitrate = int32(videoBitrate) / 1000
 
 	keyframeInterval, err := strconv.ParseInt(preset.Video.GopSize, 10, 32)
 	if err != nil {
@@ -128,7 +128,7 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 	if err != nil {
 		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset audio bitrate (%q): %s", preset.Audio.Bitrate, err)
 	}
-	zencoderOutput.AudioBitrate = int32(audioBitrate)
+	zencoderOutput.AudioBitrate = int32(audioBitrate) / 1000
 
 	if preset.Video.GopMode == "fixed" {
 		zencoderOutput.FixedKeyframeInterval = true
