@@ -145,7 +145,7 @@ func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSetting
 }
 
 func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
-	jobID, err := strconv.ParseInt(job.ID, 10, 64)
+	jobID, err := strconv.ParseInt(job.ProviderJobID, 10, 64)
 	if err != nil {
 		return nil, fmt.Errorf("error converting job ID (%q): %s", job.ID, err)
 	}

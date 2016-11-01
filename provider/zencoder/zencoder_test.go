@@ -450,7 +450,6 @@ func TestZencoderJobStatus(t *testing.T) {
 		db:     dbRepo,
 	}
 	jobStatus, err := prov.JobStatus(&db.Job{
-		ID:            "1234",
 		ProviderJobID: "1234567890",
 	})
 	if err != nil {
