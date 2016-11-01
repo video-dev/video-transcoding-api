@@ -328,8 +328,8 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_codec":             "aac",
 				"width":                   float64(1920),
 				"height":                  float64(1080),
-				"video_bitrate":           float64(3500000),
-				"audio_bitrate":           float64(128000),
+				"video_bitrate":           float64(3500),
+				"audio_bitrate":           float64(128),
 				"keyframe_interval":       float64(90),
 				"fixed_keyframe_interval": true,
 				"constant_bitrate":        true,
@@ -361,8 +361,8 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_codec":       "aac",
 				"width":             float64(1920),
 				"height":            float64(1080),
-				"video_bitrate":     float64(3500000),
-				"audio_bitrate":     float64(128000),
+				"video_bitrate":     float64(3500),
+				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
 			},
@@ -450,7 +450,6 @@ func TestZencoderJobStatus(t *testing.T) {
 		db:     dbRepo,
 	}
 	jobStatus, err := prov.JobStatus(&db.Job{
-		ID:            "1234",
 		ProviderJobID: "1234567890",
 	})
 	if err != nil {
