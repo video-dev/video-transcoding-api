@@ -33,7 +33,7 @@ export ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY=your.secret.access.key
 export ELEMENTALCONDUCTOR_DESTINATION=s3://your-s3-bucket/
 ```
 
-#### For [Encoding.com](encoding.com)
+#### For [Encoding.com](http://encoding.com)
 
 ```
 export ENCODINGCOM_USER_ID=your.user.id
