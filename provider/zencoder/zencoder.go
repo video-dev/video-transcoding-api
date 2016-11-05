@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/NYTimes/video-transcoding-api/config"
@@ -110,7 +111,6 @@ func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
 func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name + ":" + preset.Description,
-		Format:     preset.Container,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
 		Filename:   outputFileName,
@@ -144,12 +144,22 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFile
 		zencoderOutput.FixedKeyframeInterval = true
 	}
 	if preset.Video.Codec == "h264" {
-		zencoderOutput.H264Profile = preset.Profile
-		zencoderOutput.H264Level = preset.ProfileLevel
+		zencoderOutput.H264Profile = strings.ToLower(preset.Profile)
+		zencoderOutput.H264Level = strings.ToLower(preset.ProfileLevel)
 	}
 	if preset.RateControl == "CBR" {
 		zencoderOutput.ConstantBitrate = true
 	}
+	if preset.Container == "m3u8" {
+		zencoderOutput.Type = "segmented"
+		zencoderOutput.Format = "ts"
+		zencoderOutput.SegmentSeconds = int32(job.StreamingParams.SegmentDuration)
+		zencoderOutput.PrepareForSegmenting = job.StreamingParams.Protocol
+		zencoderOutput.HLSOptimizedTS = true
+	} else {
+		zencoderOutput.Format = preset.Container
+	}
+
 	zencoderOutput.Deinterlace = "on"
 	return zencoderOutput, nil
 }
