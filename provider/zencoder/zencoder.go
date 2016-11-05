@@ -182,11 +182,11 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			VideoCodec: inputMediaFile.VideoCodec,
 		},
 		ProviderStatus: map[string]interface{}{
-			"source":    jobDetails.Job.InputMediaFile.Url,
-			"created":   jobDetails.Job.CreatedAt,
-			"finished":  jobDetails.Job.FinishedAt,
-			"updated":   jobDetails.Job.UpdatedAt,
-			"submitted": jobDetails.Job.SubmittedAt,
+			"sourcefile": jobDetails.Job.InputMediaFile.Url,
+			"started":    jobDetails.Job.CreatedAt,
+			"finished":   jobDetails.Job.FinishedAt,
+			"updated":    jobDetails.Job.UpdatedAt,
+			"created":    jobDetails.Job.SubmittedAt,
 		},
 	}, nil
 }

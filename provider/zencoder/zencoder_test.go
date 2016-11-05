@@ -528,11 +528,11 @@ func TestZencoderJobStatus(t *testing.T) {
 			"videoCodec": "ProRes422",
 		},
 		"providerStatus": map[string]interface{}{
-			"source":    "http://nyt.net/input.mov",
-			"created":   "2016-11-05T05:02:57Z",
-			"finished":  "2016-11-05T05:02:57Z",
-			"updated":   "2016-11-05T05:02:57Z",
-			"submitted": "2016-11-05T05:02:57Z",
+			"sourcefile": "http://nyt.net/input.mov",
+			"created":    "2016-11-05T05:02:57Z",
+			"finished":   "2016-11-05T05:02:57Z",
+			"updated":    "2016-11-05T05:02:57Z",
+			"started":    "2016-11-05T05:02:57Z",
 		},
 		"output": map[string]interface{}{
 			"files": []interface{}{
