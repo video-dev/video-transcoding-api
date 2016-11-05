@@ -18,6 +18,7 @@ package zencoder
 import (
 	"fmt"
 	"net/url"
+	"path"
 	"strconv"
 	"time"
 
@@ -105,7 +106,8 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFile
 	if err != nil {
 		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
 	}
-	zencoderOutput.BaseUrl = destinationURL.String() + job.ID + "/"
+	destinationURL.Path = path.Join(destinationURL.Path, job.ID) + "/"
+	zencoderOutput.BaseUrl = destinationURL.String()
 
 	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
 	if err != nil {
@@ -208,9 +210,10 @@ func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencod
 		return provider.JobOutput{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
 	}
 
+	destinationURL.Path = path.Join(destinationURL.Path, job.ID) + "/"
 	return provider.JobOutput{
 		Files:       files,
-		Destination: destinationURL.String() + job.ID + "/",
+		Destination: destinationURL.String(),
 	}, nil
 }
 
