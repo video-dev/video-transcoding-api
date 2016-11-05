@@ -293,12 +293,14 @@ func TestZencoderTranscode(t *testing.T) {
 func TestZencoderBuildOutput(t *testing.T) {
 	prov := &zencoderProvider{}
 	var tests = []struct {
-		Description string
-		Preset      db.Preset
-		Expected    map[string]interface{}
+		Description    string
+		OutputFileName string
+		Preset         db.Preset
+		Expected       map[string]interface{}
 	}{
 		{
 			"Test with mp4 preset",
+			"test.mp4",
 			db.Preset{
 				Name:         "mp4_1080p",
 				Description:  "my nice preset",
@@ -334,10 +336,13 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"fixed_keyframe_interval": true,
 				"constant_bitrate":        true,
 				"deinterlace":             "on",
+				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"filename":                "test.mp4",
 			},
 		},
 		{
 			"Test with webm preset",
+			"test.webm",
 			db.Preset{
 				Name:        "webm_1080p",
 				Description: "my vp8 preset",
@@ -365,12 +370,21 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"filename":          "test.webm",
 			},
 		},
 	}
 
+	prov.config = &config.Config{
+		Zencoder: &config.Zencoder{
+			APIKey:      "api-key-here",
+			Destination: "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+		},
+	}
+
 	for _, test := range tests {
-		res, err := prov.buildOutput(test.Preset)
+		res, err := prov.buildOutput(test.Preset, test.OutputFileName)
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -83,7 +83,7 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
-		zencoderOutput, err := z.buildOutput(localPresetStruct.Preset)
+		zencoderOutput, err := z.buildOutput(localPresetStruct.Preset, output.FileName)
 		if err != nil {
 			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
@@ -92,12 +92,14 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 	return zencoderOutputs, nil
 }
 
-func (z *zencoderProvider) buildOutput(preset db.Preset) (zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutput(preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name + ":" + preset.Description,
 		Format:     preset.Container,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
+		BaseUrl:    z.config.Zencoder.Destination,
+		Filename:   outputFileName,
 	}
 
 	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
