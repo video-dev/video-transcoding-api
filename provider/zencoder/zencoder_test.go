@@ -295,12 +295,14 @@ func TestZencoderBuildOutput(t *testing.T) {
 	var tests = []struct {
 		Description    string
 		OutputFileName string
+		Destination    string
 		Preset         db.Preset
 		Expected       map[string]interface{}
 	}{
 		{
 			"Test with mp4 preset",
 			"test.mp4",
+			"http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
 			db.Preset{
 				Name:         "mp4_1080p",
 				Description:  "my nice preset",
@@ -336,13 +338,14 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"fixed_keyframe_interval": true,
 				"constant_bitrate":        true,
 				"deinterlace":             "on",
-				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
 				"filename":                "test.mp4",
 			},
 		},
 		{
 			"Test with webm preset",
 			"test.webm",
+			"http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
 			db.Preset{
 				Name:        "webm_1080p",
 				Description: "my vp8 preset",
@@ -370,21 +373,60 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
+				"filename":          "test.webm",
+			},
+		},
+		{
+			"Test credentials with special chars",
+			"test.webm",
+			"http://user:pass!word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+			db.Preset{
+				Name:        "webm_1080p",
+				Description: "my vp8 preset",
+				Container:   "webm",
+				Video: db.VideoPreset{
+					Bitrate: "3500000",
+					Codec:   "vp8",
+					GopSize: "90",
+					Height:  "1080",
+					Width:   "1920",
+				},
+				Audio: db.AudioPreset{
+					Bitrate: "128000",
+					Codec:   "aac",
+				},
+			},
+			map[string]interface{}{
+				"label":             "webm_1080p:my vp8 preset",
+				"format":            "webm",
+				"video_codec":       "vp8",
+				"audio_codec":       "aac",
+				"width":             float64(1920),
+				"height":            float64(1080),
+				"video_bitrate":     float64(3500),
+				"audio_bitrate":     float64(128),
+				"keyframe_interval": float64(90),
+				"deinterlace":       "on",
+				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
 				"filename":          "test.webm",
 			},
 		},
 	}
 
-	prov.config = &config.Config{
-		Zencoder: &config.Zencoder{
-			APIKey:      "api-key-here",
-			Destination: "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
-		},
-	}
-
 	for _, test := range tests {
-		res, err := prov.buildOutput(test.Preset, test.OutputFileName)
+		prov.config = &config.Config{
+			Zencoder: &config.Zencoder{
+				APIKey:      "api-key-here",
+				Destination: test.Destination,
+			},
+		}
+
+		job := db.Job{
+			ID: "abcdef",
+		}
+
+		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -489,7 +531,15 @@ func TestZencoderJobStatus(t *testing.T) {
 			"width":      float64(1920),
 			"videoCodec": "ProRes422",
 		},
+		"providerStatus": map[string]interface{}{
+			"sourcefile": "http://nyt.net/input.mov",
+			"created":    "2016-11-05T05:02:57Z",
+			"finished":   "2016-11-05T05:02:57Z",
+			"updated":    "2016-11-05T05:02:57Z",
+			"started":    "2016-11-05T05:02:57Z",
+		},
 		"output": map[string]interface{}{
+			"destination": "/",
 			"files": []interface{}{
 				map[string]interface{}{
 					"path":       "http://nyt.net/output1.mp4",

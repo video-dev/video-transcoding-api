@@ -17,6 +17,8 @@ package zencoder
 
 import (
 	"fmt"
+	"net/url"
+	"path"
 	"strconv"
 	"time"
 
@@ -54,7 +56,7 @@ type zencoderProvider struct {
 }
 
 func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	outputs, err := z.buildOutputs(transcodeProfile)
+	outputs, err := z.buildOutputs(job, transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +77,7 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 	}, nil
 }
 
-func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
 	zencoderOutputs := make([]*zencoder.OutputSettings, 0, len(transcodeProfile.Outputs))
 	for _, output := range transcodeProfile.Outputs {
 		localPresetOutput, err := z.GetPreset(output.Preset.Name)
@@ -83,7 +85,7 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
-		zencoderOutput, err := z.buildOutput(localPresetStruct.Preset, output.FileName)
+		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName)
 		if err != nil {
 			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
@@ -92,15 +94,20 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 	return zencoderOutputs, nil
 }
 
-func (z *zencoderProvider) buildOutput(preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name + ":" + preset.Description,
 		Format:     preset.Container,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
-		BaseUrl:    z.config.Zencoder.Destination,
 		Filename:   outputFileName,
 	}
+	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
+	}
+	destinationURL.Path = path.Join(destinationURL.Path, job.ID) + "/"
+	zencoderOutput.BaseUrl = destinationURL.String()
 
 	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
 	if err != nil {
@@ -151,7 +158,11 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error converting job ID (%q): %s", job.ID, err)
 	}
-	jobOutputs, err := z.getJobOutputs(jobID)
+	jobDetails, err := z.client.GetJobDetails(jobID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting job details: %s", err)
+	}
+	jobOutputs, err := z.getJobOutputs(job, jobDetails.Job.OutputMediaFiles)
 	if err != nil {
 		return nil, fmt.Errorf("error getting job outputs: %s", err)
 	}
@@ -159,41 +170,32 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
-	sourceInfo, err := z.getSourceInfo(jobID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting media info: %s", err)
-	}
+	inputMediaFile := jobDetails.Job.InputMediaFile
 	return &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: job.ProviderJobID,
 		Status:        provider.Status(progress.State),
 		Progress:      progress.JobProgress,
 		Output:        jobOutputs,
-		SourceInfo:    sourceInfo,
+		SourceInfo: provider.SourceInfo{
+			Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
+			Height:     int64(inputMediaFile.Height),
+			Width:      int64(inputMediaFile.Width),
+			VideoCodec: inputMediaFile.VideoCodec,
+		},
+		ProviderStatus: map[string]interface{}{
+			"sourcefile": jobDetails.Job.InputMediaFile.Url,
+			"started":    jobDetails.Job.CreatedAt,
+			"finished":   jobDetails.Job.FinishedAt,
+			"updated":    jobDetails.Job.UpdatedAt,
+			"created":    jobDetails.Job.SubmittedAt,
+		},
 	}, nil
 }
 
-func (z *zencoderProvider) getSourceInfo(jobID int64) (provider.SourceInfo, error) {
-	jobDetails, err := z.client.GetJobDetails(jobID)
-	if err != nil {
-		return provider.SourceInfo{}, fmt.Errorf("error getting job details: %s", err)
-	}
-	inputMediaFile := jobDetails.Job.InputMediaFile
-	return provider.SourceInfo{
-		Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
-		Height:     int64(inputMediaFile.Height),
-		Width:      int64(inputMediaFile.Width),
-		VideoCodec: inputMediaFile.VideoCodec,
-	}, nil
-}
-
-func (z *zencoderProvider) getJobOutputs(jobID int64) (provider.JobOutput, error) {
-	jobDetails, err := z.client.GetJobDetails(jobID)
-	if err != nil {
-		return provider.JobOutput{}, fmt.Errorf("error getting job details: %s", err)
-	}
-	files := make([]provider.OutputFile, 0, len(jobDetails.Job.OutputMediaFiles))
-	for _, mediaFile := range jobDetails.Job.OutputMediaFiles {
+func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencoder.MediaFile) (provider.JobOutput, error) {
+	files := make([]provider.OutputFile, 0, len(outputMediaFiles))
+	for _, mediaFile := range outputMediaFiles {
 		file := provider.OutputFile{
 			Path:       mediaFile.Url,
 			Container:  mediaFile.Format,
@@ -203,8 +205,15 @@ func (z *zencoderProvider) getJobOutputs(jobID int64) (provider.JobOutput, error
 		}
 		files = append(files, file)
 	}
+	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
+	if err != nil {
+		return provider.JobOutput{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
+	}
+
+	destinationURL.Path = path.Join(destinationURL.Path, job.ID) + "/"
 	return provider.JobOutput{
-		Files: files,
+		Files:       files,
+		Destination: destinationURL.String(),
 	}, nil
 }
 
