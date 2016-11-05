@@ -160,6 +160,10 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting job outputs: %s", err)
 	}
+	providerStatus, err := z.getProviderStatus(jobID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting provider status: %s", err)
+	}
 	progress, err := z.client.GetJobProgress(jobID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
@@ -169,12 +173,27 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		return nil, fmt.Errorf("error getting media info: %s", err)
 	}
 	return &provider.JobStatus{
-		ProviderName:  Name,
-		ProviderJobID: job.ProviderJobID,
-		Status:        provider.Status(progress.State),
-		Progress:      progress.JobProgress,
-		Output:        jobOutputs,
-		SourceInfo:    sourceInfo,
+		ProviderName:   Name,
+		ProviderJobID:  job.ProviderJobID,
+		Status:         provider.Status(progress.State),
+		Progress:       progress.JobProgress,
+		Output:         jobOutputs,
+		SourceInfo:     sourceInfo,
+		ProviderStatus: providerStatus,
+	}, nil
+}
+
+func (z *zencoderProvider) getProviderStatus(jobID int64) (map[string]interface{}, error) {
+	jobDetails, err := z.client.GetJobDetails(jobID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting job details: %s", err)
+	}
+	return map[string]interface{}{
+		"source":    jobDetails.Job.InputMediaFile.Url,
+		"created":   jobDetails.Job.CreatedAt,
+		"finished":  jobDetails.Job.FinishedAt,
+		"updated":   jobDetails.Job.UpdatedAt,
+		"submitted": jobDetails.Job.SubmittedAt,
 	}, nil
 }
 

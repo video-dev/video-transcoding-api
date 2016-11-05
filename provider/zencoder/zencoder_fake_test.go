@@ -39,6 +39,10 @@ func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, erro
 				Height:       1080,
 				DurationInMs: 10000,
 			},
+			CreatedAt:   "2016-11-05T05:02:57Z",
+			FinishedAt:  "2016-11-05T05:02:57Z",
+			UpdatedAt:   "2016-11-05T05:02:57Z",
+			SubmittedAt: "2016-11-05T05:02:57Z",
 			OutputMediaFiles: []*zencoderClient.MediaFile{
 				{
 					Url:          "http://nyt.net/output1.mp4",
