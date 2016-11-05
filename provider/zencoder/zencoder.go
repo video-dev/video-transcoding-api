@@ -17,6 +17,7 @@ package zencoder
 
 import (
 	"fmt"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -98,9 +99,13 @@ func (z *zencoderProvider) buildOutput(preset db.Preset, outputFileName string) 
 		Format:     preset.Container,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
-		BaseUrl:    z.config.Zencoder.Destination,
 		Filename:   outputFileName,
 	}
+	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
+	}
+	zencoderOutput.BaseUrl = destinationURL.String()
 
 	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
 	if err != nil {

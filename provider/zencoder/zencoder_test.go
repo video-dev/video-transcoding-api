@@ -295,12 +295,14 @@ func TestZencoderBuildOutput(t *testing.T) {
 	var tests = []struct {
 		Description    string
 		OutputFileName string
+		Destination    string
 		Preset         db.Preset
 		Expected       map[string]interface{}
 	}{
 		{
 			"Test with mp4 preset",
 			"test.mp4",
+			"http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
 			db.Preset{
 				Name:         "mp4_1080p",
 				Description:  "my nice preset",
@@ -343,6 +345,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 		{
 			"Test with webm preset",
 			"test.webm",
+			"http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
 			db.Preset{
 				Name:        "webm_1080p",
 				Description: "my vp8 preset",
@@ -374,16 +377,51 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"filename":          "test.webm",
 			},
 		},
-	}
-
-	prov.config = &config.Config{
-		Zencoder: &config.Zencoder{
-			APIKey:      "api-key-here",
-			Destination: "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+		{
+			"Test credentials with special chars",
+			"test.webm",
+			"http://user:pass!word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+			db.Preset{
+				Name:        "webm_1080p",
+				Description: "my vp8 preset",
+				Container:   "webm",
+				Video: db.VideoPreset{
+					Bitrate: "3500000",
+					Codec:   "vp8",
+					GopSize: "90",
+					Height:  "1080",
+					Width:   "1920",
+				},
+				Audio: db.AudioPreset{
+					Bitrate: "128000",
+					Codec:   "aac",
+				},
+			},
+			map[string]interface{}{
+				"label":             "webm_1080p:my vp8 preset",
+				"format":            "webm",
+				"video_codec":       "vp8",
+				"audio_codec":       "aac",
+				"width":             float64(1920),
+				"height":            float64(1080),
+				"video_bitrate":     float64(3500),
+				"audio_bitrate":     float64(128),
+				"keyframe_interval": float64(90),
+				"deinterlace":       "on",
+				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"filename":          "test.webm",
+			},
 		},
 	}
 
 	for _, test := range tests {
+		prov.config = &config.Config{
+			Zencoder: &config.Zencoder{
+				APIKey:      "api-key-here",
+				Destination: test.Destination,
+			},
+		}
+
 		res, err := prov.buildOutput(test.Preset, test.OutputFileName)
 		if err != nil {
 			t.Fatal(err)
