@@ -23,7 +23,7 @@ func (z *FakeZencoder) CancelJob(id int64) error {
 
 func (z *FakeZencoder) GetJobProgress(id int64) (*zencoderClient.JobProgress, error) {
 	return &zencoderClient.JobProgress{
-		State:       "Transcoding",
+		State:       "processing",
 		JobProgress: 10,
 	}, nil
 }
