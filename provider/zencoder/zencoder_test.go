@@ -523,7 +523,7 @@ func TestZencoderJobStatus(t *testing.T) {
 	expected := map[string]interface{}{
 		"providerName":  "zencoder",
 		"providerJobId": "1234567890",
-		"status":        "Transcoding",
+		"status":        "started",
 		"progress":      float64(10),
 		"sourceInfo": map[string]interface{}{
 			"duration":   float64(10000000),
@@ -561,6 +561,41 @@ func TestZencoderJobStatus(t *testing.T) {
 	if !reflect.DeepEqual(result, expected) {
 		pretty.Fdiff(os.Stderr, expected, result)
 		t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", expected, result)
+	}
+}
+
+func TestZencoderStatusMap(t *testing.T) {
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+	var tests = []struct {
+		Input    string
+		Expected provider.Status
+	}{
+		{"waiting", provider.StatusQueued},
+		{"pending", provider.StatusQueued},
+		{"assigning", provider.StatusQueued},
+		{"processing", provider.StatusStarted},
+		{"finished", provider.StatusFinished},
+		{"cancelled", provider.StatusCanceled},
+		{"failed", provider.StatusFailed},
+		{"unknown", provider.StatusFailed},
+	}
+	for _, test := range tests {
+		if prov.statusMap(test.Input) != test.Expected {
+			t.Errorf("Wrong Status Map: Want %s. Got %s.", test.Expected, prov.statusMap(test.Input))
+		}
 	}
 }
 

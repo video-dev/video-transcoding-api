@@ -174,7 +174,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: job.ProviderJobID,
-		Status:        provider.Status(progress.State),
+		Status:        z.statusMap(progress.State),
 		Progress:      progress.JobProgress,
 		Output:        jobOutputs,
 		SourceInfo: provider.SourceInfo{
@@ -191,6 +191,25 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			"created":    jobDetails.Job.SubmittedAt,
 		},
 	}, nil
+}
+
+func (z *zencoderProvider) statusMap(zencoderStatus string) provider.Status {
+	switch zencoderStatus {
+	case "waiting":
+		return provider.StatusQueued
+	case "pending":
+		return provider.StatusQueued
+	case "assigning":
+		return provider.StatusQueued
+	case "processing":
+		return provider.StatusStarted
+	case "finished":
+		return provider.StatusFinished
+	case "cancelled":
+		return provider.StatusCanceled
+	default:
+		return provider.StatusFailed
+	}
 }
 
 func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencoder.MediaFile) (provider.JobOutput, error) {
