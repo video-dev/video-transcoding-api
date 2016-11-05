@@ -339,9 +339,9 @@ func (e *encodingComProvider) destinationMedia(input string) string {
 
 func (e *encodingComProvider) statusMap(encodingComStatus string) provider.Status {
 	switch strings.ToLower(encodingComStatus) {
-	case "new":
+	case "new", "waiting for encoder":
 		return provider.StatusQueued
-	case "downloading", "ready to process", "waiting for encoder", "processing", "saving":
+	case "downloading", "ready to process", "processing", "saving":
 		return provider.StatusStarted
 	case "finished":
 		return provider.StatusFinished
