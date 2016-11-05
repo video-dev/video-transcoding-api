@@ -145,8 +145,8 @@ func (p *awsProvider) createVideoPreset(preset db.Preset) *elastictranscoder.Vid
 		Codec:              &preset.Video.Codec,
 		KeyframesMaxDist:   &preset.Video.GopSize,
 		CodecOptions: map[string]*string{
-			"Profile":            aws.String(strings.ToLower(preset.Profile)),
-			"Level":              &preset.ProfileLevel,
+			"Profile":            aws.String(strings.ToLower(preset.Video.Profile)),
+			"Level":              &preset.Video.ProfileLevel,
 			"MaxReferenceFrames": aws.String("2"),
 		},
 	}

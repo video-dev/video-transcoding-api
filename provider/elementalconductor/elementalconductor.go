@@ -57,8 +57,8 @@ func (p *elementalConductorProvider) CreatePreset(preset db.Preset) (string, err
 	elementalConductorPreset.Name = preset.Name
 	elementalConductorPreset.Description = preset.Description
 	elementalConductorPreset.Container = preset.Container
-	elementalConductorPreset.Profile = preset.Profile
-	elementalConductorPreset.ProfileLevel = preset.ProfileLevel
+	elementalConductorPreset.Profile = preset.Video.Profile
+	elementalConductorPreset.ProfileLevel = preset.Video.ProfileLevel
 	elementalConductorPreset.RateControl = preset.RateControl
 	elementalConductorPreset.Width = preset.Video.Width
 	elementalConductorPreset.Height = preset.Video.Height
