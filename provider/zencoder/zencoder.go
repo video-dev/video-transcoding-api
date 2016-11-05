@@ -55,7 +55,7 @@ type zencoderProvider struct {
 }
 
 func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	outputs, err := z.buildOutputs(transcodeProfile)
+	outputs, err := z.buildOutputs(job, transcodeProfile)
 	if err != nil {
 		return nil, err
 	}
@@ -76,7 +76,7 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 	}, nil
 }
 
-func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
 	zencoderOutputs := make([]*zencoder.OutputSettings, 0, len(transcodeProfile.Outputs))
 	for _, output := range transcodeProfile.Outputs {
 		localPresetOutput, err := z.GetPreset(output.Preset.Name)
@@ -84,7 +84,7 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
-		zencoderOutput, err := z.buildOutput(localPresetStruct.Preset, output.FileName)
+		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName)
 		if err != nil {
 			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
@@ -93,7 +93,7 @@ func (z *zencoderProvider) buildOutputs(transcodeProfile provider.TranscodeProfi
 	return zencoderOutputs, nil
 }
 
-func (z *zencoderProvider) buildOutput(preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name + ":" + preset.Description,
 		Format:     preset.Container,
@@ -105,7 +105,7 @@ func (z *zencoderProvider) buildOutput(preset db.Preset, outputFileName string) 
 	if err != nil {
 		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
 	}
-	zencoderOutput.BaseUrl = destinationURL.String()
+	zencoderOutput.BaseUrl = destinationURL.String() + job.ID + "/"
 
 	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
 	if err != nil {
@@ -160,7 +160,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting job details: %s", err)
 	}
-	jobOutputs, err := z.getJobOutputs(jobDetails.Job.OutputMediaFiles)
+	jobOutputs, err := z.getJobOutputs(job, jobDetails.Job.OutputMediaFiles)
 	if err != nil {
 		return nil, fmt.Errorf("error getting job outputs: %s", err)
 	}
@@ -191,7 +191,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (z *zencoderProvider) getJobOutputs(outputMediaFiles []*zencoder.MediaFile) (provider.JobOutput, error) {
+func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencoder.MediaFile) (provider.JobOutput, error) {
 	files := make([]provider.OutputFile, 0, len(outputMediaFiles))
 	for _, mediaFile := range outputMediaFiles {
 		file := provider.OutputFile{
@@ -203,8 +203,14 @@ func (z *zencoderProvider) getJobOutputs(outputMediaFiles []*zencoder.MediaFile)
 		}
 		files = append(files, file)
 	}
+	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
+	if err != nil {
+		return provider.JobOutput{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
+	}
+
 	return provider.JobOutput{
-		Files: files,
+		Files:       files,
+		Destination: destinationURL.String() + job.ID + "/",
 	}, nil
 }
 

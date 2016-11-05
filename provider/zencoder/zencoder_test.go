@@ -338,7 +338,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"fixed_keyframe_interval": true,
 				"constant_bitrate":        true,
 				"deinterlace":             "on",
-				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
 				"filename":                "test.mp4",
 			},
 		},
@@ -373,7 +373,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
 				"filename":          "test.webm",
 			},
 		},
@@ -408,7 +408,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
 				"filename":          "test.webm",
 			},
 		},
@@ -422,7 +422,11 @@ func TestZencoderBuildOutput(t *testing.T) {
 			},
 		}
 
-		res, err := prov.buildOutput(test.Preset, test.OutputFileName)
+		job := db.Job{
+			ID: "abcdef",
+		}
+
+		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -535,6 +539,7 @@ func TestZencoderJobStatus(t *testing.T) {
 			"started":    "2016-11-05T05:02:57Z",
 		},
 		"output": map[string]interface{}{
+			"destination": "/",
 			"files": []interface{}{
 				map[string]interface{}{
 					"path":       "http://nyt.net/output1.mp4",
