@@ -598,6 +598,43 @@ func TestZencoderStatusMap(t *testing.T) {
 		}
 	}
 }
+func TestZencoderGetResolution(t *testing.T) {
+	cleanLocalPresets()
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+
+	var tests = []struct {
+		preset db.Preset
+		width  int32
+		height int32
+	}{
+		{db.Preset{Video: db.VideoPreset{Width: "1080", Height: "720"}}, int32(1080), int32(720)},
+		{db.Preset{Video: db.VideoPreset{Width: "1080", Height: "0"}}, int32(1080), int32(0)},
+		{db.Preset{Video: db.VideoPreset{Width: "1080", Height: ""}}, int32(1080), int32(0)},
+		{db.Preset{Video: db.VideoPreset{Width: "1080"}}, int32(1080), int32(0)},
+		{db.Preset{Video: db.VideoPreset{Width: "0", Height: "720"}}, int32(0), int32(720)},
+		{db.Preset{Video: db.VideoPreset{Width: "", Height: "720"}}, int32(0), int32(720)},
+		{db.Preset{Video: db.VideoPreset{Height: "720"}}, int32(0), int32(720)},
+	}
+	for _, test := range tests {
+		width, height := prov.getResolution(test.preset)
+		if width != test.width || height != test.height {
+			t.Errorf("Wrong resolution. Want %dx%d, got %dx%d", test.width, test.height, width, height)
+		}
+	}
+}
 
 func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})

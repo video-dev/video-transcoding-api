@@ -94,6 +94,19 @@ func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.T
 	return zencoderOutputs, nil
 }
 
+func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
+	var width, height int64
+	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
+	if err != nil || preset.Video.Width == "0" || preset.Video.Width == "" {
+		width = 0
+	}
+	height, err = strconv.ParseInt(preset.Video.Height, 10, 32)
+	if err != nil || preset.Video.Height == "0" || preset.Video.Height == "" {
+		height = 0
+	}
+	return int32(width), int32(height)
+}
+
 func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name + ":" + preset.Description,
@@ -108,19 +121,7 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFile
 	}
 	destinationURL.Path = path.Join(destinationURL.Path, job.ID) + "/"
 	zencoderOutput.BaseUrl = destinationURL.String()
-
-	width, err := strconv.ParseInt(preset.Video.Width, 10, 32)
-	if err != nil {
-		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset width (%q): %s", preset.Video.Width, err)
-	}
-	zencoderOutput.Width = int32(width)
-
-	height, err := strconv.ParseInt(preset.Video.Height, 10, 32)
-	if err != nil {
-		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset height (%q): %s", preset.Video.Height, err)
-	}
-	zencoderOutput.Height = int32(height)
-
+	zencoderOutput.Width, zencoderOutput.Height = z.getResolution(preset)
 	videoBitrate, err := strconv.ParseInt(preset.Video.Bitrate, 10, 32)
 	if err != nil {
 		return zencoder.OutputSettings{}, fmt.Errorf("error converting preset video bitrate (%q): %s", preset.Video.Bitrate, err)
