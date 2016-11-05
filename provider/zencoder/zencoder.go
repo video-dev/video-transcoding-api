@@ -156,68 +156,44 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error converting job ID (%q): %s", job.ID, err)
 	}
-	jobOutputs, err := z.getJobOutputs(jobID)
+	jobDetails, err := z.client.GetJobDetails(jobID)
+	if err != nil {
+		return nil, fmt.Errorf("error getting job details: %s", err)
+	}
+	jobOutputs, err := z.getJobOutputs(jobDetails.Job.OutputMediaFiles)
 	if err != nil {
 		return nil, fmt.Errorf("error getting job outputs: %s", err)
-	}
-	providerStatus, err := z.getProviderStatus(jobID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting provider status: %s", err)
 	}
 	progress, err := z.client.GetJobProgress(jobID)
 	if err != nil {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
-	sourceInfo, err := z.getSourceInfo(jobID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting media info: %s", err)
-	}
-	return &provider.JobStatus{
-		ProviderName:   Name,
-		ProviderJobID:  job.ProviderJobID,
-		Status:         provider.Status(progress.State),
-		Progress:       progress.JobProgress,
-		Output:         jobOutputs,
-		SourceInfo:     sourceInfo,
-		ProviderStatus: providerStatus,
-	}, nil
-}
-
-func (z *zencoderProvider) getProviderStatus(jobID int64) (map[string]interface{}, error) {
-	jobDetails, err := z.client.GetJobDetails(jobID)
-	if err != nil {
-		return nil, fmt.Errorf("error getting job details: %s", err)
-	}
-	return map[string]interface{}{
-		"source":    jobDetails.Job.InputMediaFile.Url,
-		"created":   jobDetails.Job.CreatedAt,
-		"finished":  jobDetails.Job.FinishedAt,
-		"updated":   jobDetails.Job.UpdatedAt,
-		"submitted": jobDetails.Job.SubmittedAt,
-	}, nil
-}
-
-func (z *zencoderProvider) getSourceInfo(jobID int64) (provider.SourceInfo, error) {
-	jobDetails, err := z.client.GetJobDetails(jobID)
-	if err != nil {
-		return provider.SourceInfo{}, fmt.Errorf("error getting job details: %s", err)
-	}
 	inputMediaFile := jobDetails.Job.InputMediaFile
-	return provider.SourceInfo{
-		Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
-		Height:     int64(inputMediaFile.Height),
-		Width:      int64(inputMediaFile.Width),
-		VideoCodec: inputMediaFile.VideoCodec,
+	return &provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: job.ProviderJobID,
+		Status:        provider.Status(progress.State),
+		Progress:      progress.JobProgress,
+		Output:        jobOutputs,
+		SourceInfo: provider.SourceInfo{
+			Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
+			Height:     int64(inputMediaFile.Height),
+			Width:      int64(inputMediaFile.Width),
+			VideoCodec: inputMediaFile.VideoCodec,
+		},
+		ProviderStatus: map[string]interface{}{
+			"source":    jobDetails.Job.InputMediaFile.Url,
+			"created":   jobDetails.Job.CreatedAt,
+			"finished":  jobDetails.Job.FinishedAt,
+			"updated":   jobDetails.Job.UpdatedAt,
+			"submitted": jobDetails.Job.SubmittedAt,
+		},
 	}, nil
 }
 
-func (z *zencoderProvider) getJobOutputs(jobID int64) (provider.JobOutput, error) {
-	jobDetails, err := z.client.GetJobDetails(jobID)
-	if err != nil {
-		return provider.JobOutput{}, fmt.Errorf("error getting job details: %s", err)
-	}
-	files := make([]provider.OutputFile, 0, len(jobDetails.Job.OutputMediaFiles))
-	for _, mediaFile := range jobDetails.Job.OutputMediaFiles {
+func (z *zencoderProvider) getJobOutputs(outputMediaFiles []*zencoder.MediaFile) (provider.JobOutput, error) {
+	files := make([]provider.OutputFile, 0, len(outputMediaFiles))
+	for _, mediaFile := range outputMediaFiles {
 		file := provider.OutputFile{
 			Path:       mediaFile.Url,
 			Container:  mediaFile.Format,
