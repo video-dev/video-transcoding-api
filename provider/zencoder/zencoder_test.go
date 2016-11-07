@@ -290,6 +290,104 @@ func TestZencoderTranscode(t *testing.T) {
 	}
 }
 
+func TestZencoderBuildOutputs(t *testing.T) {
+	cleanLocalPresets()
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+
+	var tests = []struct {
+		Description      string
+		Job              *db.Job
+		Presets          []db.Preset
+		TranscodeProfile provider.TranscodeProfile
+		Expected         []map[string]interface{}
+	}{
+		{
+			"Test with a single preset",
+			&db.Job{ID: "1234567890"},
+			[]db.Preset{
+				db.Preset{
+					Name:         "preset1",
+					Description:  "my nice preset",
+					Container:    "mp4",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					RateControl:  "VBR",
+					Audio:        db.AudioPreset{Bitrate: "128000", Codec: "aac"},
+					Video:        db.VideoPreset{Bitrate: "500000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
+				},
+			},
+			provider.TranscodeProfile{
+				SourceMedia: "http://nyt-bucket/source_here.mov",
+				Outputs: []provider.TranscodeOutput{
+					provider.TranscodeOutput{
+						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
+						FileName: "output.mp4",
+					},
+				},
+				StreamingParams: provider.StreamingParams{},
+			},
+			[]map[string]interface{}{
+				map[string]interface{}{
+					"label":                   "preset1:my nice preset",
+					"video_codec":             "h264",
+					"h264_level":              "3.1",
+					"h264_profile":            "main",
+					"base_url":                "1234567890/",
+					"keyframe_interval":       float64(90),
+					"width":                   float64(720),
+					"height":                  float64(1080),
+					"video_bitrate":           float64(500),
+					"audio_bitrate":           float64(128),
+					"fixed_keyframe_interval": true,
+					"deinterlace":             "on",
+					"format":                  "mp4",
+					"audio_codec":             "aac",
+					"filename":                "output.mp4",
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		for _, preset := range test.Presets {
+			_, err := prov.CreatePreset(preset)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		res, err := prov.buildOutputs(test.Job, test.TranscodeProfile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resultJSON, err := json.Marshal(res)
+		if err != nil {
+			t.Fatal(err)
+		}
+		result := make([]map[string]interface{}, len(res))
+		err = json.Unmarshal(resultJSON, &result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(result, test.Expected) {
+			pretty.Fdiff(os.Stderr, test.Expected, result)
+			t.Errorf("Failed to build outputs. Want\n %+v. Got\n %+v.", test.Expected, result)
+		}
+	}
+}
+
 func TestZencoderBuildOutput(t *testing.T) {
 	prov := &zencoderProvider{}
 	var tests = []struct {
