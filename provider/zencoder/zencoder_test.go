@@ -293,7 +293,7 @@ func TestZencoderTranscode(t *testing.T) {
 func TestZencoderBuildOutputs(t *testing.T) {
 	cleanLocalPresets()
 	cfg := config.Config{
-		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
+		Zencoder: &config.Zencoder{APIKey: "api-key-here", Destination: "https://log:pass@s3.here.com"},
 		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
@@ -315,7 +315,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		Expected         []map[string]interface{}
 	}{
 		{
-			"Test with a single preset",
+			"Test with a single mp4 preset",
 			&db.Job{ID: "1234567890"},
 			[]db.Preset{
 				db.Preset{
@@ -341,11 +341,11 @@ func TestZencoderBuildOutputs(t *testing.T) {
 			},
 			[]map[string]interface{}{
 				map[string]interface{}{
-					"label":                   "preset1:my nice preset",
+					"label":                   "preset1",
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
 					"h264_profile":            "main",
-					"base_url":                "1234567890/",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/",
 					"keyframe_interval":       float64(90),
 					"width":                   float64(720),
 					"height":                  float64(1080),
@@ -362,6 +362,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		cleanLocalPresets()
 		for _, preset := range test.Presets {
 			_, err := prov.CreatePreset(preset)
 			if err != nil {
@@ -422,7 +423,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":                   "mp4_1080p:my nice preset",
+				"label":                   "mp4_1080p",
 				"format":                  "mp4",
 				"video_codec":             "h264",
 				"h264_profile":            "main",
@@ -461,7 +462,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":             "hls_1080p:my hls preset",
+				"label":             "hls_1080p",
 				"format":            "ts",
 				"video_codec":       "h264",
 				"audio_codec":       "aac",
@@ -498,7 +499,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":             "webm_1080p:my vp8 preset",
+				"label":             "webm_1080p",
 				"format":            "webm",
 				"video_codec":       "vp8",
 				"audio_codec":       "aac",
@@ -533,7 +534,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":             "webm_1080p:my vp8 preset",
+				"label":             "webm_1080p",
 				"format":            "webm",
 				"video_codec":       "vp8",
 				"audio_codec":       "aac",

@@ -110,7 +110,7 @@ func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
 
 func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
-		Label:      preset.Name + ":" + preset.Description,
+		Label:      preset.Name,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
 		Filename:   outputFileName,
