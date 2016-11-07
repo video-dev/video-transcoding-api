@@ -12,7 +12,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/brandscreen/zencoder"
+	"github.com/flavioribeiro/zencoder"
 	"github.com/kr/pretty"
 	redisDriver "gopkg.in/redis.v4"
 )
@@ -359,6 +359,105 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				},
 			},
 		},
+		{
+			"Test with multiple HLS presets",
+			&db.Job{
+				ID: "1234567890",
+				StreamingParams: db.StreamingParams{
+					SegmentDuration: 3,
+					Protocol:        "hls",
+				},
+			},
+			[]db.Preset{
+				db.Preset{
+					Name:         "preset1",
+					Description:  "my nice preset",
+					Container:    "m3u8",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					RateControl:  "VBR",
+					Audio:        db.AudioPreset{Bitrate: "128000", Codec: "aac"},
+					Video:        db.VideoPreset{Bitrate: "500000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
+				},
+				db.Preset{
+					Name:         "preset2",
+					Description:  "my second nice preset",
+					Container:    "m3u8",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					RateControl:  "VBR",
+					Audio:        db.AudioPreset{Bitrate: "64000", Codec: "aac"},
+					Video:        db.VideoPreset{Bitrate: "1000000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
+				},
+			},
+			provider.TranscodeProfile{
+				SourceMedia: "http://nyt-bucket/source_here.mov",
+				Outputs: []provider.TranscodeOutput{
+					provider.TranscodeOutput{
+						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
+						FileName: "output1.m3u8",
+					},
+					provider.TranscodeOutput{
+						Preset:   db.PresetMap{Name: "preset2", ProviderMapping: map[string]string{"zencoder": "preset2"}},
+						FileName: "output2.m3u8",
+					},
+				},
+				StreamingParams: provider.StreamingParams{},
+			},
+			[]map[string]interface{}{
+				map[string]interface{}{
+					"label":                   "preset1",
+					"video_codec":             "h264",
+					"h264_level":              "3.1",
+					"h264_profile":            "main",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"keyframe_interval":       float64(90),
+					"width":                   float64(720),
+					"height":                  float64(1080),
+					"video_bitrate":           float64(500),
+					"audio_bitrate":           float64(128),
+					"fixed_keyframe_interval": true,
+					"deinterlace":             "on",
+					"format":                  "ts",
+					"type":                    "segmented",
+					"audio_codec":             "aac",
+					"hls_optimized_ts":        true,
+					"filename":                "output1.m3u8",
+					"segment_seconds":         float64(3),
+					"prepare_for_segmenting":  "hls",
+				},
+				map[string]interface{}{
+					"label":                   "preset2",
+					"video_codec":             "h264",
+					"h264_level":              "3.1",
+					"h264_profile":            "main",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"keyframe_interval":       float64(90),
+					"width":                   float64(720),
+					"height":                  float64(1080),
+					"video_bitrate":           float64(1000),
+					"audio_bitrate":           float64(64),
+					"fixed_keyframe_interval": true,
+					"deinterlace":             "on",
+					"format":                  "ts",
+					"type":                    "segmented",
+					"audio_codec":             "aac",
+					"hls_optimized_ts":        true,
+					"filename":                "output2.m3u8",
+					"segment_seconds":         float64(3),
+					"prepare_for_segmenting":  "hls",
+				},
+				map[string]interface{}{
+					"base_url": "https://log:pass@s3.here.com/1234567890/",
+					"filename": "master.m3u8",
+					"type":     "playlist",
+					"streams": []interface{}{
+						map[string]interface{}{"source": "preset1", "path": "output1.m3u8"},
+						map[string]interface{}{"source": "preset2", "path": "output2.m3u8"},
+					},
+				},
+			},
+		},
 	}
 
 	for _, test := range tests {
@@ -384,7 +483,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		}
 		if !reflect.DeepEqual(result, test.Expected) {
 			pretty.Fdiff(os.Stderr, test.Expected, result)
-			t.Errorf("Failed to build outputs. Want\n %+v. Got\n %+v.", test.Expected, result)
+			t.Errorf("Failed to build outputs. Want:\n %#v\n Got\n %#v", test.Expected, result)
 		}
 	}
 }

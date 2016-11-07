@@ -27,7 +27,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/brandscreen/zencoder"
+	"github.com/flavioribeiro/zencoder"
 )
 
 // Name is the name used for registering the Encoding.com provider in the
@@ -80,6 +80,7 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 
 func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
 	zencoderOutputs := make([]*zencoder.OutputSettings, 0, len(transcodeProfile.Outputs))
+	hlsOutputs := 0
 	for _, output := range transcodeProfile.Outputs {
 		localPresetOutput, err := z.GetPreset(output.Preset.Name)
 		if err != nil {
@@ -90,9 +91,39 @@ func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.T
 		if err != nil {
 			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
+		if zencoderOutput.Format == "ts" {
+			hlsOutputs++
+		}
 		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
 	}
+	if hlsOutputs > 0 {
+		outputsWithHLS := make([]*zencoder.OutputSettings, len(zencoderOutputs)+1)
+		copy(outputsWithHLS, zencoderOutputs)
+		hlsPlaylist := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs)
+		outputsWithHLS[len(zencoderOutputs)] = &hlsPlaylist
+		zencoderOutputs = outputsWithHLS
+	}
 	return zencoderOutputs, nil
+}
+
+func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int) zencoder.OutputSettings {
+	output := zencoder.OutputSettings{
+		BaseUrl:  outputs[0].BaseUrl,
+		Filename: "master.m3u8",
+		Type:     "playlist",
+	}
+	streams := make([]*zencoder.StreamSettings, 0, hlsOutputs)
+	for _, output := range outputs {
+		if output.Format == "ts" {
+			stream := zencoder.StreamSettings{
+				Path:   output.Filename,
+				Source: output.Label,
+			}
+			streams = append(streams, &stream)
+		}
+	}
+	output.Streams = streams
+	return output
 }
 
 func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
