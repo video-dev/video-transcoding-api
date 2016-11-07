@@ -318,7 +318,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 			"Test with a single mp4 preset",
 			&db.Job{ID: "1234567890"},
 			[]db.Preset{
-				db.Preset{
+				{
 					Name:         "preset1",
 					Description:  "my nice preset",
 					Container:    "mp4",
@@ -332,7 +332,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 			provider.TranscodeProfile{
 				SourceMedia: "http://nyt-bucket/source_here.mov",
 				Outputs: []provider.TranscodeOutput{
-					provider.TranscodeOutput{
+					{
 						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
 						FileName: "output.mp4",
 					},
@@ -340,7 +340,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				StreamingParams: provider.StreamingParams{},
 			},
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"label":                   "preset1",
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
@@ -369,7 +369,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				},
 			},
 			[]db.Preset{
-				db.Preset{
+				{
 					Name:         "preset1",
 					Description:  "my nice preset",
 					Container:    "m3u8",
@@ -379,7 +379,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					Audio:        db.AudioPreset{Bitrate: "128000", Codec: "aac"},
 					Video:        db.VideoPreset{Bitrate: "500000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
 				},
-				db.Preset{
+				{
 					Name:         "preset2",
 					Description:  "my second nice preset",
 					Container:    "m3u8",
@@ -393,11 +393,11 @@ func TestZencoderBuildOutputs(t *testing.T) {
 			provider.TranscodeProfile{
 				SourceMedia: "http://nyt-bucket/source_here.mov",
 				Outputs: []provider.TranscodeOutput{
-					provider.TranscodeOutput{
+					{
 						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
 						FileName: "output1.m3u8",
 					},
-					provider.TranscodeOutput{
+					{
 						Preset:   db.PresetMap{Name: "preset2", ProviderMapping: map[string]string{"zencoder": "preset2"}},
 						FileName: "output2.m3u8",
 					},
@@ -405,7 +405,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				StreamingParams: provider.StreamingParams{},
 			},
 			[]map[string]interface{}{
-				map[string]interface{}{
+				{
 					"label":                   "preset1",
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
@@ -426,7 +426,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"segment_seconds":         float64(3),
 					"prepare_for_segmenting":  "hls",
 				},
-				map[string]interface{}{
+				{
 					"label":                   "preset2",
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
@@ -447,7 +447,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"segment_seconds":         float64(3),
 					"prepare_for_segmenting":  "hls",
 				},
-				map[string]interface{}{
+				{
 					"base_url": "https://log:pass@s3.here.com/1234567890/",
 					"filename": "master.m3u8",
 					"type":     "playlist",
