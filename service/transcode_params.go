@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io"
 
+	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
 )
 
@@ -24,7 +25,7 @@ type NewTranscodeJobInputPayload struct {
 	Provider string `json:"provider"`
 
 	// provider Adaptive Streaming parameters
-	StreamingParams provider.StreamingParams `json:"streamingParams,omitempty"`
+	StreamingParams db.StreamingParams `json:"streamingParams,omitempty"`
 }
 
 // swagger:parameters newJob

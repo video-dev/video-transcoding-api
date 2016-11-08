@@ -110,18 +110,11 @@ type SourceInfo struct {
 	VideoCodec string `json:"videoCodec,omitempty"`
 }
 
-// StreamingParams contains all parameters related to the streaming protocol used.
-type StreamingParams struct {
-	PlaylistFileName string `json:"playlistFileName,omitempty"`
-	SegmentDuration  uint   `json:"segmentDuration,omitempty"`
-	Protocol         string `json:"protocol,omitempty"`
-}
-
 // TranscodeProfile defines the set of inputs necessary for running a transcoding job.
 type TranscodeProfile struct {
 	SourceMedia     string
 	Outputs         []TranscodeOutput
-	StreamingParams StreamingParams
+	StreamingParams db.StreamingParams
 }
 
 // TranscodeOutput represents a transcoding output. It's a combination of the
