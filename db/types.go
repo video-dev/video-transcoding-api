@@ -71,18 +71,18 @@ type LocalPreset struct {
 
 // Preset define the set of parameters of a given preset
 type Preset struct {
-	Name         string      `json:"name,omitempty" redis-hash:"name"`
-	Description  string      `json:"description,omitempty" redis-hash:"description,omitempty"`
-	Container    string      `json:"container,omitempty" redis-hash:"container,omitempty"`
-	Profile      string      `json:"profile,omitempty" redis-hash:"profile,omitempty"`
-	ProfileLevel string      `json:"profileLevel,omitempty" redis-hash:"profilelevel,omitempty"`
-	RateControl  string      `json:"rateControl,omitempty" redis-hash:"ratecontrol,omitempty"`
-	Video        VideoPreset `json:"video" redis-hash:"video,expand"`
-	Audio        AudioPreset `json:"audio" redis-hash:"audio,expand"`
+	Name        string      `json:"name,omitempty" redis-hash:"name"`
+	Description string      `json:"description,omitempty" redis-hash:"description,omitempty"`
+	Container   string      `json:"container,omitempty" redis-hash:"container,omitempty"`
+	RateControl string      `json:"rateControl,omitempty" redis-hash:"ratecontrol,omitempty"`
+	Video       VideoPreset `json:"video" redis-hash:"video,expand"`
+	Audio       AudioPreset `json:"audio" redis-hash:"audio,expand"`
 }
 
 // VideoPreset define the set of parameters for video on a given preset
 type VideoPreset struct {
+	Profile       string `json:"profile,omitempty" redis-hash:"profile,omitempty"`
+	ProfileLevel  string `json:"profileLevel,omitempty" redis-hash:"profilelevel,omitempty"`
 	Width         string `json:"width,omitempty" redis-hash:"width,omitempty"`
 	Height        string `json:"height,omitempty" redis-hash:"height,omitempty"`
 	Codec         string `json:"codec,omitempty" redis-hash:"codec,omitempty"`

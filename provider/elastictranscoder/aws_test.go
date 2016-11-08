@@ -798,13 +798,13 @@ func TestAWSCreatePreset(t *testing.T) {
 	}
 
 	inputPreset := db.Preset{
-		Name:         "preset_name",
-		Description:  "description here",
-		Container:    "mp4",
-		Profile:      "Main",
-		ProfileLevel: "3.1",
-		RateControl:  "VBR",
+		Name:        "preset_name",
+		Description: "description here",
+		Container:   "mp4",
+		RateControl: "VBR",
 		Video: db.VideoPreset{
+			Profile:       "Main",
+			ProfileLevel:  "3.1",
 			Height:        "720",
 			Codec:         "h264",
 			Bitrate:       "2500000",
@@ -844,11 +844,11 @@ func TestCreateVideoPreset(t *testing.T) {
 		{
 			"H.264 preset",
 			db.Preset{
-				Container:    "m3u8",
-				Profile:      "Main",
-				ProfileLevel: "3.1",
+				Container: "m3u8",
 				Video: db.VideoPreset{
-					Codec: "h264",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					Codec:        "h264",
 				},
 			},
 			&elastictranscoder.VideoParameters{
@@ -919,12 +919,12 @@ func TestCreateVideoPreset(t *testing.T) {
 		{
 			"MP4 preset",
 			db.Preset{
-				Container:    "mp4",
-				Profile:      "Main",
-				ProfileLevel: "3.1",
+				Container: "mp4",
 				Video: db.VideoPreset{
-					Codec:   "h264",
-					GopSize: "90",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					Codec:        "h264",
+					GopSize:      "90",
 				},
 			},
 			&elastictranscoder.VideoParameters{

@@ -101,7 +101,7 @@ func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Forma
 	} else {
 		format.Bitrate = kregexp.ReplaceAllString(preset.Video.Bitrate, "k")
 		format.AudioBitrate = kregexp.ReplaceAllString(preset.Audio.Bitrate, "k")
-		format.Profile = preset.Profile
+		format.Profile = preset.Video.Profile
 		format.Gop = "cgop"
 		format.Keyframe = []string{preset.Video.GopSize}
 		format.AudioVolume = 100
@@ -114,7 +114,7 @@ func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Forma
 
 func (e *encodingComProvider) buildStream(preset db.Preset) []encodingcom.Stream {
 	stream := encodingcom.Stream{
-		Profile:      preset.Profile,
+		Profile:      preset.Video.Profile,
 		Keyframe:     preset.Video.GopSize,
 		Bitrate:      kregexp.ReplaceAllString(preset.Video.Bitrate, "k"),
 		AudioBitrate: kregexp.ReplaceAllString(preset.Audio.Bitrate, "k"),

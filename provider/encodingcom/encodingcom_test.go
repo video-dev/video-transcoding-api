@@ -784,18 +784,18 @@ func TestCreatePreset(t *testing.T) {
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
-		Container:    "mp4",
-		Description:  "my nice preset",
-		Name:         "mp4_1080p",
-		Profile:      "main",
-		ProfileLevel: "3.1",
-		RateControl:  "VBR",
+		Container:   "mp4",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
 		Video: db.VideoPreset{
-			Bitrate: "3500000",
-			Codec:   "h264",
-			GopMode: "fixed",
-			GopSize: "90",
-			Height:  "1080",
+			Profile:      "main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Height:       "1080",
 		},
 	})
 	if err != nil {
@@ -817,7 +817,9 @@ func TestCreatePreset(t *testing.T) {
 		Destination:  []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 	}
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
+		pretty.Fdiff(os.Stderr, fakePreset.Request.Format[0], expectedFormat)
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
+
 	}
 }
 
@@ -831,18 +833,18 @@ func TestCreatePresetHLS(t *testing.T) {
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
-		Container:    "m3u8",
-		Description:  "my nice preset",
-		Name:         "mp4_1080p",
-		Profile:      "main",
-		ProfileLevel: "3.1",
-		RateControl:  "VBR",
+		Container:   "m3u8",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
 		Video: db.VideoPreset{
-			Bitrate: "3500000",
-			Codec:   "h264",
-			GopMode: "fixed",
-			GopSize: "90",
-			Height:  "1080",
+			Profile:      "main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Height:       "1080",
 		},
 	})
 	if err != nil {
@@ -883,14 +885,14 @@ func TestPresetToFormat(t *testing.T) {
 		{
 			"HLS preset",
 			db.Preset{
-				Container:    "m3u8",
-				Profile:      "Main",
-				ProfileLevel: "3.1",
+				Container: "m3u8",
 				Audio: db.AudioPreset{
 					Codec: "aac",
 				},
 				Video: db.VideoPreset{
-					Codec: "h264",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					Codec:        "h264",
 				},
 			},
 			encodingcom.Format{
@@ -958,15 +960,15 @@ func TestPresetToFormat(t *testing.T) {
 		{
 			"MP4 preset",
 			db.Preset{
-				Container:    "mp4",
-				Profile:      "Main",
-				ProfileLevel: "3.1",
+				Container: "mp4",
 				Audio: db.AudioPreset{
 					Codec: "aac",
 				},
 				Video: db.VideoPreset{
-					Codec:   "h264",
-					GopSize: "90",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					Codec:        "h264",
+					GopSize:      "90",
 				},
 			},
 			encodingcom.Format{
@@ -1002,18 +1004,18 @@ func TestGetPreset(t *testing.T) {
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
-		Container:    "mp4",
-		Description:  "my nice preset",
-		Name:         "mp4_1080p",
-		Profile:      "main",
-		ProfileLevel: "3.1",
-		RateControl:  "VBR",
+		Container:   "mp4",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
 		Video: db.VideoPreset{
-			Bitrate: "3500000",
-			Codec:   "h264",
-			GopMode: "fixed",
-			GopSize: "90",
-			Width:   "1920",
+			Profile:      "main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Width:        "1920",
 		},
 	})
 	if err != nil {
@@ -1070,18 +1072,18 @@ func TestDeletePreset(t *testing.T) {
 			Bitrate: "128000",
 			Codec:   "aac",
 		},
-		Container:    "mp4",
-		Description:  "my nice preset",
-		Name:         "mp4_1080p",
-		Profile:      "main",
-		ProfileLevel: "3.1",
-		RateControl:  "VBR",
+		Container:   "mp4",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
 		Video: db.VideoPreset{
-			Bitrate: "3500000",
-			Codec:   "h264",
-			GopMode: "fixed",
-			GopSize: "90",
-			Width:   "1920",
+			Profile:      "Main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Width:        "1920",
 		},
 	})
 	if err != nil {
