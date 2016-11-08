@@ -2,6 +2,7 @@ package redis
 
 import (
 	"math"
+	"os"
 	"reflect"
 	"sync"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/kr/pretty"
 	"gopkg.in/redis.v4"
 )
 
@@ -27,7 +29,7 @@ func TestCreateJob(t *testing.T) {
 	job := db.Job{
 		ID:              "job1",
 		ProviderName:    "encoding.com",
-		StreamingParams: db.StreamingParams{SegmentDuration: 10, Protocol: "hls"},
+		StreamingParams: db.StreamingParams{SegmentDuration: 10, Protocol: "hls", PlaylistFileName: "hls/playlist.m3u8"},
 	}
 	err = repo.CreateJob(&job)
 	if err != nil {
@@ -47,13 +49,15 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := map[string]string{
-		"providerName":                    "encoding.com",
-		"providerJobID":                   "",
-		"streamingparams_segmentDuration": "10",
-		"streamingparams_protocol":        "hls",
-		"creationTime":                    creationTime.Format(time.RFC3339Nano),
+		"providerName":                     "encoding.com",
+		"providerJobID":                    "",
+		"streamingparams_segmentDuration":  "10",
+		"streamingparams_protocol":         "hls",
+		"streamingparams_playlistFileName": "hls/playlist.m3u8",
+		"creationTime":                     creationTime.Format(time.RFC3339Nano),
 	}
 	if !reflect.DeepEqual(items, expected) {
+		pretty.Fdiff(os.Stderr, expected, items)
 		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
 	}
 	setEntries, err := client.ZRange(jobsSetKey, 0, -1).Result()
@@ -62,6 +66,7 @@ func TestCreateJob(t *testing.T) {
 	}
 	expectedSetEntries := []string{job.ID}
 	if !reflect.DeepEqual(setEntries, expectedSetEntries) {
+		pretty.Fdiff(os.Stderr, expectedSetEntries, setEntries)
 		t.Errorf("Wrong job set returned from Redis. Want %#v. Got %#v.", expectedSetEntries, setEntries)
 	}
 }
