@@ -6,12 +6,15 @@ after_success: bash <(curl -s https://codecov.io/bash)
 addons:
   apt:
     packages:
-      - redis-server
+    - redis-server
 go:
-  - 1.7.3
-  - tip
+- 1.7.3
+- tip
 services:
-  - redis-server
+- redis-server
 matrix:
   allow_failures:
-    - go: tip
+  - go: tip
+notifications:
+  slack:
+    secure: pHCJFd7Bzrsx/MFWX/WXBP1PHnIVtuoXTdjPkoADB05mqY3qCUrnI37bvyh6NEZRjA1GlIMh7oF+RL+Guek28wdMIB3xP/k1dKxI8C87qKu45t0dr9CjLnd+48BV7Dma6nkVwwrycoMXEwcoOUMCzPtXj3hq8vbP0f0W5tK2E5bglTIsdv12HREPuCFLIyTtyzs6YU0VFTwDpY7jnweCwwLb0H/geoYUuDoqBqkAM6p3VqS3E/qwHRNy0PY7sigq4EDhiaRK66nUfE32+0V85XwhLe4BVlf7VQ8rZB9YuB0FuIxWb4eF4eJA/q39ztAGVb1YHbdIRH6VcewkA3VOvXcYgm9ohBx/TF2x/8rsjsUkzHildwg4NAOylQwBDDxHV+nIRCN4RPIxUXmYj7cK08Z3ljZtYHYaQAAiqnGWM7JrWRrzY/dwXYIzkBs3pzQWppFgXupVH5BH02MyNGcHxBijsbqaF2bnXU17g5oGE2gcm6or8le5PFV0BMGBTnhiFmD/OlKszDGmv12rHCzWx+AT1jCwzw3MYRfUqDVnHB0bpiNV6xwY4OB95gYE7iZJ39zoW5zSJCLA5gp/JpKHO2JQgkW3qjZdQrHKntA9Jn7nCsx9KJvdZRjNY5XX9pRBA4/DZkPPIMjY/0gXEifCMDIu2zDP0rtm46sg4vITvNQ=
