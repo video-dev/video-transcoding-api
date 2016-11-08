@@ -286,7 +286,7 @@ func TestZencoderTranscode(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     "dir/file.mov",
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -342,7 +342,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 						FileName: "output.mp4",
 					},
 				},
-				StreamingParams: provider.StreamingParams{},
+				StreamingParams: db.StreamingParams{},
 			},
 			[]map[string]interface{}{
 				{
@@ -400,7 +400,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 						FileName: "output2.m3u8",
 					},
 				},
-				StreamingParams: provider.StreamingParams{
+				StreamingParams: db.StreamingParams{
 					SegmentDuration:  3,
 					Protocol:         "hls",
 					PlaylistFileName: "hls/playlist.m3u8",
@@ -663,7 +663,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 			ID: "abcdef",
 		}
 
-		streamingParams := provider.StreamingParams{}
+		streamingParams := db.StreamingParams{}
 		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName, streamingParams)
 		if err != nil {
 			t.Fatal(err)

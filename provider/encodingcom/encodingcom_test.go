@@ -156,7 +156,7 @@ func TestEncodingComTranscode(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
 		Outputs:     outputs,
-		StreamingParams: provider.StreamingParams{
+		StreamingParams: db.StreamingParams{
 			PlaylistFileName: "output_hls/video.m3u8",
 			Protocol:         "hls",
 			SegmentDuration:  3,
@@ -453,7 +453,7 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{SegmentDuration: 3},
+		StreamingParams: db.StreamingParams{SegmentDuration: 3},
 	}
 
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-2"}, transcodeProfile)

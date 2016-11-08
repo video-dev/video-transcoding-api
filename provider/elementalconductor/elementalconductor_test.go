@@ -133,7 +133,7 @@ func TestElementalNewJob(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	newJob, err := presetProvider.newJob(&db.Job{ID: "job-1"}, transcodeProfile)
 	if err != nil {
@@ -285,7 +285,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
 		Outputs:     outputs,
-		StreamingParams: provider.StreamingParams{
+		StreamingParams: db.StreamingParams{
 			Protocol:         "hls",
 			SegmentDuration:  3,
 			PlaylistFileName: "hls/master.m3u8",
@@ -454,7 +454,7 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
 		Outputs:     outputs,
-		StreamingParams: provider.StreamingParams{
+		StreamingParams: db.StreamingParams{
 			Protocol:         "hls",
 			SegmentDuration:  3,
 			PlaylistFileName: "output_hls/index.m3u8",

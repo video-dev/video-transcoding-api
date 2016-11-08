@@ -174,7 +174,7 @@ func TestAWSTranscode(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
@@ -268,7 +268,7 @@ func TestAWSTranscodeAdaptiveStreaming(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
 		Outputs:     outputs,
-		StreamingParams: provider.StreamingParams{
+		StreamingParams: db.StreamingParams{
 			PlaylistFileName: "video.m3u8",
 			Protocol:         "asdf",
 			SegmentDuration:  3,
@@ -388,7 +388,7 @@ func TestAWSTranscodeAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
 		Outputs:     outputs,
-		StreamingParams: provider.StreamingParams{
+		StreamingParams: db.StreamingParams{
 			PlaylistFileName: "hls/video.m3u8",
 			Protocol:         "asdf",
 			SegmentDuration:  3,
@@ -486,7 +486,7 @@ func TestAWSTranscodeNormalizedSource(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-1"}, transcodeProfile)
 	if err != nil {
@@ -553,7 +553,7 @@ func TestAWSTranscodePresetNotFound(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != provider.ErrPresetMapNotFound {
@@ -580,7 +580,7 @@ func TestAWSTranscodeAWSFailureInAmazon(t *testing.T) {
 	source := "dir/file.mp4"
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if jobStatus != nil {
@@ -641,7 +641,7 @@ func TestAWSJobStatus(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia: source,
 		Outputs:     outputs,
-		StreamingParams: provider.StreamingParams{
+		StreamingParams: db.StreamingParams{
 			PlaylistFileName: "hls/index.m3u8",
 			SegmentDuration:  3,
 			Protocol:         "hls",
@@ -739,7 +739,7 @@ func TestAWSJobStatusNoDetectedProperties(t *testing.T) {
 	transcodeProfile := provider.TranscodeProfile{
 		SourceMedia:     source,
 		Outputs:         outputs,
-		StreamingParams: provider.StreamingParams{},
+		StreamingParams: db.StreamingParams{},
 	}
 	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
 	if err != nil {
