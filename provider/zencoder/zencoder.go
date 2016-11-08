@@ -40,8 +40,8 @@ func init() {
 	provider.Register(Name, zencoderFactory)
 }
 
-// Client is a interface that both
-// brandscreen/zencoder and fakeZencoder implements
+// Client is a interface that makes it easier to
+// create the fake client for tests
 type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
 	ListJobs() ([]*zencoder.JobDetails, error)
@@ -139,12 +139,12 @@ func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
 	return int32(width), int32(height)
 }
 
-func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string, streamingParams provider.StreamingParams) (zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename string, streamingParams provider.StreamingParams) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
-		Filename:   outputFileName,
+		Filename:   filename,
 	}
 	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
 	if err != nil {
@@ -237,11 +237,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 
 func (z *zencoderProvider) statusMap(zencoderStatus string) provider.Status {
 	switch zencoderStatus {
-	case "waiting":
-		return provider.StatusQueued
-	case "pending":
-		return provider.StatusQueued
-	case "assigning":
+	case "waiting", "pending", "assigning":
 		return provider.StatusQueued
 	case "processing":
 		return provider.StatusStarted
