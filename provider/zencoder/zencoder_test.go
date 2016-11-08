@@ -106,6 +106,10 @@ func TestZencoderCreatePreset(t *testing.T) {
 		},
 	}
 	provider, err := zencoderFactory(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	repo, err := redis.NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -136,6 +140,9 @@ func TestCreatePresetError(t *testing.T) {
 	}
 	preset := db.Preset{}
 	provider, err := zencoderFactory(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	_, err = provider.CreatePreset(preset)
 	if !reflect.DeepEqual(err, errors.New("preset name missing")) {
@@ -877,6 +884,10 @@ func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
 	err := deleteKeys("localpreset:*", client)
+	if err != nil {
+		return err
+	}
+
 	err = deleteKeys("localpresets", client)
 	return err
 }
