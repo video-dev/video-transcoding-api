@@ -87,7 +87,7 @@ func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.T
 			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
-		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName)
+		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName, transcodeProfile.StreamingParams)
 		if err != nil {
 			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
@@ -99,17 +99,17 @@ func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.T
 	if hlsOutputs > 0 {
 		outputsWithHLS := make([]*zencoder.OutputSettings, len(zencoderOutputs)+1)
 		copy(outputsWithHLS, zencoderOutputs)
-		hlsPlaylist := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs)
+		hlsPlaylist := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs, transcodeProfile.StreamingParams)
 		outputsWithHLS[len(zencoderOutputs)] = &hlsPlaylist
 		zencoderOutputs = outputsWithHLS
 	}
 	return zencoderOutputs, nil
 }
 
-func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int) zencoder.OutputSettings {
+func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int, streamingParams provider.StreamingParams) zencoder.OutputSettings {
 	output := zencoder.OutputSettings{
 		BaseUrl:  outputs[0].BaseUrl,
-		Filename: "master.m3u8",
+		Filename: streamingParams.PlaylistFileName,
 		Type:     "playlist",
 	}
 	streams := make([]*zencoder.StreamSettings, 0, hlsOutputs)
@@ -139,7 +139,7 @@ func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
 	return int32(width), int32(height)
 }
 
-func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string, streamingParams provider.StreamingParams) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
 		Label:      preset.Name,
 		VideoCodec: preset.Video.Codec,
@@ -184,8 +184,8 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFile
 	if preset.Container == "m3u8" {
 		zencoderOutput.Type = "segmented"
 		zencoderOutput.Format = "ts"
-		zencoderOutput.SegmentSeconds = int32(job.StreamingParams.SegmentDuration)
-		zencoderOutput.PrepareForSegmenting = job.StreamingParams.Protocol
+		zencoderOutput.SegmentSeconds = int32(streamingParams.SegmentDuration)
+		zencoderOutput.PrepareForSegmenting = streamingParams.Protocol
 		zencoderOutput.HLSOptimizedTS = true
 	} else {
 		zencoderOutput.Format = preset.Container

@@ -362,11 +362,8 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		{
 			"Test with multiple HLS presets",
 			&db.Job{
-				ID: "1234567890",
-				StreamingParams: db.StreamingParams{
-					SegmentDuration: 3,
-					Protocol:        "hls",
-				},
+				ID:              "1234567890",
+				StreamingParams: db.StreamingParams{},
 			},
 			[]db.Preset{
 				{
@@ -402,7 +399,11 @@ func TestZencoderBuildOutputs(t *testing.T) {
 						FileName: "output2.m3u8",
 					},
 				},
-				StreamingParams: provider.StreamingParams{},
+				StreamingParams: provider.StreamingParams{
+					SegmentDuration:  3,
+					Protocol:         "hls",
+					PlaylistFileName: "hls/playlist.m3u8",
+				},
 			},
 			[]map[string]interface{}{
 				{
@@ -449,7 +450,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				},
 				{
 					"base_url": "https://log:pass@s3.here.com/1234567890/",
-					"filename": "master.m3u8",
+					"filename": "hls/playlist.m3u8",
 					"type":     "playlist",
 					"streams": []interface{}{
 						map[string]interface{}{"source": "preset1", "path": "output1.m3u8"},
@@ -661,7 +662,8 @@ func TestZencoderBuildOutput(t *testing.T) {
 			ID: "abcdef",
 		}
 
-		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
+		streamingParams := provider.StreamingParams{}
+		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName, streamingParams)
 		if err != nil {
 			t.Fatal(err)
 		}
