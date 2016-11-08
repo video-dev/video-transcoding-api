@@ -69,3 +69,12 @@ notify:
     webhook_url: $$SLACK_WEBHOOK_URL
     username: $$SLACK_USERNAME
     channel: $$SLACK_CHANNEL
+    when:
+      branch: master
+      event: push
+  slack:
+    webhook_url: $$SLACK_WEBHOOK_URL
+    username: $$SLACK_USERNAME
+    channel: $$SLACK_CHANNEL
+    when:
+      event: tag
