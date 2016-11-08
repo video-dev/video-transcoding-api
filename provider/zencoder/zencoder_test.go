@@ -12,7 +12,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/brandscreen/zencoder"
+	"github.com/flavioribeiro/zencoder"
 	"github.com/kr/pretty"
 	redisDriver "gopkg.in/redis.v4"
 )
@@ -106,6 +106,10 @@ func TestZencoderCreatePreset(t *testing.T) {
 		},
 	}
 	provider, err := zencoderFactory(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	repo, err := redis.NewRepository(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -136,6 +140,9 @@ func TestCreatePresetError(t *testing.T) {
 	}
 	preset := db.Preset{}
 	provider, err := zencoderFactory(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	_, err = provider.CreatePreset(preset)
 	if !reflect.DeepEqual(err, errors.New("preset name missing")) {
@@ -290,6 +297,205 @@ func TestZencoderTranscode(t *testing.T) {
 	}
 }
 
+func TestZencoderBuildOutputs(t *testing.T) {
+	cleanLocalPresets()
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here", Destination: "https://log:pass@s3.here.com"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+
+	var tests = []struct {
+		Description      string
+		Job              *db.Job
+		Presets          []db.Preset
+		TranscodeProfile provider.TranscodeProfile
+		Expected         []map[string]interface{}
+	}{
+		{
+			"Test with a single mp4 preset",
+			&db.Job{ID: "1234567890"},
+			[]db.Preset{
+				{
+					Name:         "preset1",
+					Description:  "my nice preset",
+					Container:    "mp4",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					RateControl:  "VBR",
+					Audio:        db.AudioPreset{Bitrate: "128000", Codec: "aac"},
+					Video:        db.VideoPreset{Bitrate: "500000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
+				},
+			},
+			provider.TranscodeProfile{
+				SourceMedia: "http://nyt-bucket/source_here.mov",
+				Outputs: []provider.TranscodeOutput{
+					{
+						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
+						FileName: "output.mp4",
+					},
+				},
+				StreamingParams: provider.StreamingParams{},
+			},
+			[]map[string]interface{}{
+				{
+					"label":                   "preset1",
+					"video_codec":             "h264",
+					"h264_level":              "3.1",
+					"h264_profile":            "main",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"keyframe_interval":       float64(90),
+					"width":                   float64(720),
+					"height":                  float64(1080),
+					"video_bitrate":           float64(500),
+					"audio_bitrate":           float64(128),
+					"fixed_keyframe_interval": true,
+					"deinterlace":             "on",
+					"format":                  "mp4",
+					"audio_codec":             "aac",
+					"filename":                "output.mp4",
+				},
+			},
+		},
+		{
+			"Test with multiple HLS presets",
+			&db.Job{
+				ID:              "1234567890",
+				StreamingParams: db.StreamingParams{},
+			},
+			[]db.Preset{
+				{
+					Name:         "preset1",
+					Description:  "my nice preset",
+					Container:    "m3u8",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					RateControl:  "VBR",
+					Audio:        db.AudioPreset{Bitrate: "128000", Codec: "aac"},
+					Video:        db.VideoPreset{Bitrate: "500000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
+				},
+				{
+					Name:         "preset2",
+					Description:  "my second nice preset",
+					Container:    "m3u8",
+					Profile:      "Main",
+					ProfileLevel: "3.1",
+					RateControl:  "VBR",
+					Audio:        db.AudioPreset{Bitrate: "64000", Codec: "aac"},
+					Video:        db.VideoPreset{Bitrate: "1000000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
+				},
+			},
+			provider.TranscodeProfile{
+				SourceMedia: "http://nyt-bucket/source_here.mov",
+				Outputs: []provider.TranscodeOutput{
+					{
+						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
+						FileName: "output1.m3u8",
+					},
+					{
+						Preset:   db.PresetMap{Name: "preset2", ProviderMapping: map[string]string{"zencoder": "preset2"}},
+						FileName: "output2.m3u8",
+					},
+				},
+				StreamingParams: provider.StreamingParams{
+					SegmentDuration:  3,
+					Protocol:         "hls",
+					PlaylistFileName: "hls/playlist.m3u8",
+				},
+			},
+			[]map[string]interface{}{
+				{
+					"label":                   "preset1",
+					"video_codec":             "h264",
+					"h264_level":              "3.1",
+					"h264_profile":            "main",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"keyframe_interval":       float64(90),
+					"width":                   float64(720),
+					"height":                  float64(1080),
+					"video_bitrate":           float64(500),
+					"audio_bitrate":           float64(128),
+					"fixed_keyframe_interval": true,
+					"deinterlace":             "on",
+					"format":                  "ts",
+					"type":                    "segmented",
+					"audio_codec":             "aac",
+					"hls_optimized_ts":        true,
+					"filename":                "output1.m3u8",
+					"segment_seconds":         float64(3),
+					"prepare_for_segmenting":  "hls",
+				},
+				{
+					"label":                   "preset2",
+					"video_codec":             "h264",
+					"h264_level":              "3.1",
+					"h264_profile":            "main",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"keyframe_interval":       float64(90),
+					"width":                   float64(720),
+					"height":                  float64(1080),
+					"video_bitrate":           float64(1000),
+					"audio_bitrate":           float64(64),
+					"fixed_keyframe_interval": true,
+					"deinterlace":             "on",
+					"format":                  "ts",
+					"type":                    "segmented",
+					"audio_codec":             "aac",
+					"hls_optimized_ts":        true,
+					"filename":                "output2.m3u8",
+					"segment_seconds":         float64(3),
+					"prepare_for_segmenting":  "hls",
+				},
+				{
+					"base_url": "https://log:pass@s3.here.com/1234567890/",
+					"filename": "hls/playlist.m3u8",
+					"type":     "playlist",
+					"streams": []interface{}{
+						map[string]interface{}{"source": "preset1", "path": "output1.m3u8"},
+						map[string]interface{}{"source": "preset2", "path": "output2.m3u8"},
+					},
+				},
+			},
+		},
+	}
+
+	for _, test := range tests {
+		cleanLocalPresets()
+		for _, preset := range test.Presets {
+			_, err := prov.CreatePreset(preset)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+		res, err := prov.buildOutputs(test.Job, test.TranscodeProfile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		resultJSON, err := json.Marshal(res)
+		if err != nil {
+			t.Fatal(err)
+		}
+		result := make([]map[string]interface{}, len(res))
+		err = json.Unmarshal(resultJSON, &result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(result, test.Expected) {
+			pretty.Fdiff(os.Stderr, test.Expected, result)
+			t.Errorf("Failed to build outputs. Want:\n %#v\n Got\n %#v", test.Expected, result)
+		}
+	}
+}
+
 func TestZencoderBuildOutput(t *testing.T) {
 	prov := &zencoderProvider{}
 	var tests = []struct {
@@ -324,7 +530,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":                   "mp4_1080p:my nice preset",
+				"label":                   "mp4_1080p",
 				"format":                  "mp4",
 				"video_codec":             "h264",
 				"h264_profile":            "main",
@@ -340,6 +546,43 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"deinterlace":             "on",
 				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
 				"filename":                "test.mp4",
+			},
+		},
+		{
+			"Test with m3u8 container",
+			"test.m3u8",
+			"http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
+			db.Preset{
+				Name:        "hls_1080p",
+				Description: "my hls preset",
+				Container:   "m3u8",
+				Video: db.VideoPreset{
+					Bitrate: "3500000",
+					Codec:   "h264",
+					GopSize: "90",
+					Height:  "1080",
+					Width:   "1920",
+				},
+				Audio: db.AudioPreset{
+					Bitrate: "128000",
+					Codec:   "aac",
+				},
+			},
+			map[string]interface{}{
+				"label":             "hls_1080p",
+				"format":            "ts",
+				"video_codec":       "h264",
+				"audio_codec":       "aac",
+				"width":             float64(1920),
+				"height":            float64(1080),
+				"video_bitrate":     float64(3500),
+				"audio_bitrate":     float64(128),
+				"keyframe_interval": float64(90),
+				"deinterlace":       "on",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
+				"filename":          "test.m3u8",
+				"type":              "segmented",
+				"hls_optimized_ts":  true,
 			},
 		},
 		{
@@ -363,7 +606,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":             "webm_1080p:my vp8 preset",
+				"label":             "webm_1080p",
 				"format":            "webm",
 				"video_codec":       "vp8",
 				"audio_codec":       "aac",
@@ -398,7 +641,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				},
 			},
 			map[string]interface{}{
-				"label":             "webm_1080p:my vp8 preset",
+				"label":             "webm_1080p",
 				"format":            "webm",
 				"video_codec":       "vp8",
 				"audio_codec":       "aac",
@@ -426,7 +669,8 @@ func TestZencoderBuildOutput(t *testing.T) {
 			ID: "abcdef",
 		}
 
-		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
+		streamingParams := provider.StreamingParams{}
+		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName, streamingParams)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -640,6 +884,10 @@ func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
 	err := deleteKeys("localpreset:*", client)
+	if err != nil {
+		return err
+	}
+
 	err = deleteKeys("localpresets", client)
 	return err
 }

@@ -20,13 +20,14 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/brandscreen/zencoder"
+	"github.com/flavioribeiro/zencoder"
 )
 
 // Name is the name used for registering the Encoding.com provider in the
@@ -39,8 +40,8 @@ func init() {
 	provider.Register(Name, zencoderFactory)
 }
 
-// Client is a interface that both
-// brandscreen/zencoder and fakeZencoder implements
+// Client is a interface that makes it easier to
+// create the fake client for tests
 type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
 	ListJobs() ([]*zencoder.JobDetails, error)
@@ -79,19 +80,50 @@ func (z *zencoderProvider) Transcode(job *db.Job, transcodeProfile provider.Tran
 
 func (z *zencoderProvider) buildOutputs(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]*zencoder.OutputSettings, error) {
 	zencoderOutputs := make([]*zencoder.OutputSettings, 0, len(transcodeProfile.Outputs))
+	hlsOutputs := 0
 	for _, output := range transcodeProfile.Outputs {
 		localPresetOutput, err := z.GetPreset(output.Preset.Name)
 		if err != nil {
 			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
-		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName)
+		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName, transcodeProfile.StreamingParams)
 		if err != nil {
 			return nil, fmt.Errorf("Error building output: %s", err.Error())
 		}
+		if zencoderOutput.Format == "ts" {
+			hlsOutputs++
+		}
 		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
 	}
+	if hlsOutputs > 0 {
+		outputsWithHLS := make([]*zencoder.OutputSettings, len(zencoderOutputs)+1)
+		copy(outputsWithHLS, zencoderOutputs)
+		hlsPlaylist := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs, transcodeProfile.StreamingParams)
+		outputsWithHLS[len(zencoderOutputs)] = &hlsPlaylist
+		zencoderOutputs = outputsWithHLS
+	}
 	return zencoderOutputs, nil
+}
+
+func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int, streamingParams provider.StreamingParams) zencoder.OutputSettings {
+	output := zencoder.OutputSettings{
+		BaseUrl:  outputs[0].BaseUrl,
+		Filename: streamingParams.PlaylistFileName,
+		Type:     "playlist",
+	}
+	streams := make([]*zencoder.StreamSettings, 0, hlsOutputs)
+	for _, output := range outputs {
+		if output.Format == "ts" {
+			stream := zencoder.StreamSettings{
+				Path:   output.Filename,
+				Source: output.Label,
+			}
+			streams = append(streams, &stream)
+		}
+	}
+	output.Streams = streams
+	return output
 }
 
 func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
@@ -107,13 +139,12 @@ func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
 	return int32(width), int32(height)
 }
 
-func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFileName string) (zencoder.OutputSettings, error) {
+func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename string, streamingParams provider.StreamingParams) (zencoder.OutputSettings, error) {
 	zencoderOutput := zencoder.OutputSettings{
-		Label:      preset.Name + ":" + preset.Description,
-		Format:     preset.Container,
+		Label:      preset.Name,
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
-		Filename:   outputFileName,
+		Filename:   filename,
 	}
 	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
 	if err != nil {
@@ -144,12 +175,22 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, outputFile
 		zencoderOutput.FixedKeyframeInterval = true
 	}
 	if preset.Video.Codec == "h264" {
-		zencoderOutput.H264Profile = preset.Profile
-		zencoderOutput.H264Level = preset.ProfileLevel
+		zencoderOutput.H264Profile = strings.ToLower(preset.Profile)
+		zencoderOutput.H264Level = strings.ToLower(preset.ProfileLevel)
 	}
 	if preset.RateControl == "CBR" {
 		zencoderOutput.ConstantBitrate = true
 	}
+	if preset.Container == "m3u8" {
+		zencoderOutput.Type = "segmented"
+		zencoderOutput.Format = "ts"
+		zencoderOutput.SegmentSeconds = int32(streamingParams.SegmentDuration)
+		zencoderOutput.PrepareForSegmenting = streamingParams.Protocol
+		zencoderOutput.HLSOptimizedTS = true
+	} else {
+		zencoderOutput.Format = preset.Container
+	}
+
 	zencoderOutput.Deinterlace = "on"
 	return zencoderOutput, nil
 }
@@ -196,11 +237,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 
 func (z *zencoderProvider) statusMap(zencoderStatus string) provider.Status {
 	switch zencoderStatus {
-	case "waiting":
-		return provider.StatusQueued
-	case "pending":
-		return provider.StatusQueued
-	case "assigning":
+	case "waiting", "pending", "assigning":
 		return provider.StatusQueued
 	case "processing":
 		return provider.StatusStarted

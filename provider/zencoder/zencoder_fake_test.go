@@ -1,7 +1,7 @@
 package zencoder
 
 import (
-	zencoderClient "github.com/brandscreen/zencoder"
+	zencoderClient "github.com/flavioribeiro/zencoder"
 )
 
 type FakeZencoder struct {

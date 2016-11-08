@@ -18,7 +18,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	gcpCredsTestFileContents, _ := ioutil.ReadFile(gcpCredsTestFilePath)
 	setEnvs(map[string]string{
 		"SENTINEL_ADDRS":                           "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-		"SENTINEL_MASTER_NAME":                     "supermaster",
+		"SENTINEL_MASTER_NAME":                     "super-master",
 		"REDIS_ADDR":                               "localhost:6379",
 		"REDIS_PASSWORD":                           "super-secret",
 		"REDIS_POOL_SIZE":                          "100",
@@ -51,7 +51,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		DefaultSegmentDuration: 3,
 		Redis: &storage.Config{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-			SentinelMasterName: "supermaster",
+			SentinelMasterName: "super-master",
 			RedisAddr:          "localhost:6379",
 			Password:           "super-secret",
 			PoolSize:           100,
@@ -116,7 +116,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 	accessLog := "/var/log/transcoding-api-access.log"
 	setEnvs(map[string]string{
 		"SENTINEL_ADDRS":                           "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-		"SENTINEL_MASTER_NAME":                     "supermaster",
+		"SENTINEL_MASTER_NAME":                     "super-master",
 		"REDIS_PASSWORD":                           "super-secret",
 		"REDIS_POOL_SIZE":                          "100",
 		"REDIS_POOL_TIMEOUT_SECONDS":               "10",
@@ -146,7 +146,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 		DefaultSegmentDuration: 5,
 		Redis: &storage.Config{
 			SentinelAddrs:      "10.10.10.10:26379,10.10.10.11:26379,10.10.10.12:26379",
-			SentinelMasterName: "supermaster",
+			SentinelMasterName: "super-master",
 			RedisAddr:          "127.0.0.1:6379",
 			Password:           "super-secret",
 			PoolSize:           100,
