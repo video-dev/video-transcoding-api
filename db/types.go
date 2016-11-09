@@ -14,7 +14,7 @@ type Job struct {
 	// a new Job.
 	//
 	// unique: true
-	ID string `redis-hash:"-" json:"jobId"`
+	ID string `redis-hash:"jobID" json:"jobId"`
 
 	// name of the provider
 	//
@@ -45,7 +45,7 @@ type Job struct {
 	// Output list of the given job
 	//
 	// required: true
-	Outputs []TranscodeOutput `redis-hash:"outputs" json:"outputs"`
+	Outputs []TranscodeOutput `redis-hash:"-" json:"outputs"`
 }
 
 // TranscodeOutput represents a transcoding output. It's a combination of the
@@ -54,7 +54,7 @@ type TranscodeOutput struct {
 	// Presetmap for the output
 	//
 	// required: true
-	Preset PresetMap `redis-hash:"presetmap" json:"presetmap"`
+	Preset PresetMap `redis-hash:"presetmap,expand" json:"presetmap"`
 
 	// Filename for the output
 	//
@@ -138,7 +138,7 @@ type PresetMap struct {
 	//
 	// unique: true
 	// required: true
-	Name string `redis-hash:"-" json:"name"`
+	Name string `redis-hash:"presetmap_name" json:"name"`
 
 	// mapping of provider name to provider's internal preset id.
 	//
