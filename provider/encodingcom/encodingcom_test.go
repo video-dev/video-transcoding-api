@@ -134,7 +134,7 @@ func TestEncodingComTranscode(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "m3u8"},
 		},
 	}
-	outputs := make([]provider.TranscodeOutput, len(presets))
+	outputs := make([]db.TranscodeOutput, len(presets))
 	for i, preset := range presets {
 		_, err := prov.CreatePreset(db.Preset{
 			Name:      preset.ProviderMapping[Name],
@@ -147,13 +147,14 @@ func TestEncodingComTranscode(t *testing.T) {
 		if preset.OutputOpts.Extension == "m3u8" {
 			fileName = "output-" + preset.Name + "/video.m3u8"
 		}
-		outputs[i] = provider.TranscodeOutput{
+		outputs[i] = db.TranscodeOutput{
 			Preset:   preset,
 			FileName: fileName,
 		}
 	}
 
-	transcodeProfile := provider.TranscodeProfile{
+	jobStatus, err := prov.Transcode(&db.Job{
+		ID:          "job-123",
 		SourceMedia: source,
 		Outputs:     outputs,
 		StreamingParams: db.StreamingParams{
@@ -161,9 +162,7 @@ func TestEncodingComTranscode(t *testing.T) {
 			Protocol:         "hls",
 			SegmentDuration:  3,
 		},
-	}
-
-	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +216,16 @@ func TestEncodingComTranscode(t *testing.T) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
 	}
 
-	jobStatus, err = prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	jobStatus, err = prov.Transcode(&db.Job{
+		ID:          "job-123",
+		SourceMedia: source,
+		Outputs:     outputs,
+		StreamingParams: db.StreamingParams{
+			PlaylistFileName: "output_hls/video.m3u8",
+			Protocol:         "hls",
+			SegmentDuration:  3,
+		},
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -295,7 +303,7 @@ func TestEncodingComS3Input(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
-	outputs := make([]provider.TranscodeOutput, len(presets))
+	outputs := make([]db.TranscodeOutput, len(presets))
 	for i, preset := range presets {
 		_, err := prov.CreatePreset(db.Preset{
 			Name:      preset.ProviderMapping[Name],
@@ -304,17 +312,17 @@ func TestEncodingComS3Input(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		outputs[i] = provider.TranscodeOutput{
+		outputs[i] = db.TranscodeOutput{
 			Preset:   preset,
 			FileName: "best-video-ever." + preset.OutputOpts.Extension,
 		}
 	}
 
-	transcodeProfile := provider.TranscodeProfile{
+	jobStatus, err := prov.Transcode(&db.Job{
+		ID:          "job-123",
 		SourceMedia: source,
 		Outputs:     outputs,
-	}
-	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -367,7 +375,7 @@ func TestEncodingComS3InputWithNoCopy(t *testing.T) {
 			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
-	outputs := make([]provider.TranscodeOutput, len(presets))
+	outputs := make([]db.TranscodeOutput, len(presets))
 	for i, preset := range presets {
 		_, err := prov.CreatePreset(db.Preset{
 			Name:      preset.ProviderMapping[Name],
@@ -376,17 +384,17 @@ func TestEncodingComS3InputWithNoCopy(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		outputs[i] = provider.TranscodeOutput{
+		outputs[i] = db.TranscodeOutput{
 			Preset:   preset,
 			FileName: "best-video-ever." + preset.OutputOpts.Extension,
 		}
 	}
 
-	transcodeProfile := provider.TranscodeProfile{
+	jobStatus, err := prov.Transcode(&db.Job{
+		ID:          "job-123",
 		SourceMedia: source,
 		Outputs:     outputs,
-	}
-	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -428,7 +436,7 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 		},
 	}
 	source := "http://some.nice/video.mp4"
-	outputs := []provider.TranscodeOutput{
+	outputs := []db.TranscodeOutput{
 		{
 			Preset: db.PresetMap{
 				Name: "webm_720p",
@@ -449,14 +457,12 @@ func TestEncodingComTranscodePresetNotFound(t *testing.T) {
 			},
 		},
 	}
-
-	transcodeProfile := provider.TranscodeProfile{
+	jobStatus, err := prov.Transcode(&db.Job{
+		ID:              "job-2",
 		SourceMedia:     source,
 		Outputs:         outputs,
 		StreamingParams: db.StreamingParams{SegmentDuration: 3},
-	}
-
-	jobStatus, err := prov.Transcode(&db.Job{ID: "job-2"}, transcodeProfile)
+	})
 	expectedErrorString := "Error converting presets to formats on Transcode operation: Error getting preset info: Error returned by the Encoding.com API: {\"Errors\":[\"123455 preset not found\"]}"
 	if err.Error() != expectedErrorString {
 		t.Errorf("Wrong error\nWant %#v\nGot  %#v", expectedErrorString, err.Error())

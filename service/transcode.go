@@ -37,11 +37,11 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		}
 		return swagger.NewErrorResponse(formattedErr)
 	}
-	transcodeProfile := provider.TranscodeProfile{
+	job := db.Job{
 		SourceMedia:     input.Payload.Source,
 		StreamingParams: input.Payload.StreamingParams,
 	}
-	outputs := make([]provider.TranscodeOutput, len(input.Payload.Outputs))
+	outputs := make([]db.TranscodeOutput, len(input.Payload.Outputs))
 	for i, output := range input.Payload.Outputs {
 		presetMap, presetErr := s.db.GetPresetMap(output.Preset)
 		if presetErr != nil {
@@ -54,23 +54,22 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		if fileName == "" {
 			fileName = s.defaultFileName(input.Payload.Source, presetMap)
 		}
-		outputs[i] = provider.TranscodeOutput{FileName: fileName, Preset: *presetMap}
+		outputs[i] = db.TranscodeOutput{FileName: fileName, Preset: *presetMap}
 	}
-	transcodeProfile.Outputs = outputs
-	jobID, err := s.genID()
+	job.Outputs = outputs
+	job.ID, err = s.genID()
 	if err != nil {
 		return swagger.NewErrorResponse(err)
 	}
-	if transcodeProfile.StreamingParams.Protocol == "hls" {
-		if transcodeProfile.StreamingParams.PlaylistFileName == "" {
-			transcodeProfile.StreamingParams.PlaylistFileName = "hls/index.m3u8"
+	if job.StreamingParams.Protocol == "hls" {
+		if job.StreamingParams.PlaylistFileName == "" {
+			job.StreamingParams.PlaylistFileName = "hls/index.m3u8"
 		}
-		if transcodeProfile.StreamingParams.SegmentDuration == 0 {
-			transcodeProfile.StreamingParams.SegmentDuration = s.config.DefaultSegmentDuration
+		if job.StreamingParams.SegmentDuration == 0 {
+			job.StreamingParams.SegmentDuration = s.config.DefaultSegmentDuration
 		}
 	}
-	job := db.Job{ID: jobID}
-	jobStatus, err := providerObj.Transcode(&job, transcodeProfile)
+	jobStatus, err := providerObj.Transcode(&job)
 	if err == provider.ErrPresetMapNotFound {
 		return newInvalidJobResponse(err)
 	}
@@ -81,12 +80,6 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	jobStatus.ProviderName = input.Payload.Provider
 	job.ProviderName = jobStatus.ProviderName
 	job.ProviderJobID = jobStatus.ProviderJobID
-	if transcodeProfile.StreamingParams.Protocol != "" {
-		job.StreamingParams = db.StreamingParams{
-			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
-			Protocol:        transcodeProfile.StreamingParams.Protocol,
-		}
-	}
 	err = s.db.CreateJob(&job)
 	if err != nil {
 		return swagger.NewErrorResponse(err)

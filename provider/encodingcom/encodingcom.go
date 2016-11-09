@@ -52,12 +52,12 @@ type encodingComProvider struct {
 	client *encodingcom.Client
 }
 
-func (e *encodingComProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	formats, err := e.presetsToFormats(job, transcodeProfile)
+func (e *encodingComProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
+	formats, err := e.presetsToFormats(job)
 	if err != nil {
 		return nil, fmt.Errorf("Error converting presets to formats on Transcode operation: %s", err.Error())
 	}
-	resp, err := e.client.AddMedia([]string{e.sourceMedia(transcodeProfile.SourceMedia)}, formats, e.config.EncodingCom.Region)
+	resp, err := e.client.AddMedia([]string{e.sourceMedia(job.SourceMedia)}, formats, e.config.EncodingCom.Region)
 	if err != nil {
 		return nil, fmt.Errorf("Error making AddMedia request for Transcode operation: %s", err.Error())
 	}
@@ -171,10 +171,10 @@ func (e *encodingComProvider) buildDestination(baseDestination, jobID, fileName 
 	return outputPath + "/" + path.Join(jobID, fileName)
 }
 
-func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile provider.TranscodeProfile) ([]encodingcom.Format, error) {
+func (e *encodingComProvider) presetsToFormats(job *db.Job) ([]encodingcom.Format, error) {
 	streams := []encodingcom.Stream{}
-	formats := make([]encodingcom.Format, 0, len(transcodeProfile.Outputs))
-	for _, output := range transcodeProfile.Outputs {
+	formats := make([]encodingcom.Format, 0, len(job.Outputs))
+	for _, output := range job.Outputs {
 		presetName := output.Preset.Name
 		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
@@ -202,8 +202,8 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job, transcodeProfile pro
 		falseValue := encodingcom.YesNoBoolean(false)
 		format := encodingcom.Format{
 			Output:          []string{hlsOutput},
-			Destination:     e.getDestinations(job.ID, transcodeProfile.StreamingParams.PlaylistFileName),
-			SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
+			Destination:     e.getDestinations(job.ID, job.StreamingParams.PlaylistFileName),
+			SegmentDuration: job.StreamingParams.SegmentDuration,
 			Stream:          streams,
 			PackFiles:       &falseValue,
 		}

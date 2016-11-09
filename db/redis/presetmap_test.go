@@ -42,6 +42,7 @@ func TestCreatePresetMap(t *testing.T) {
 		"pmapping_elementalconductor": "abc123",
 		"pmapping_elastictranscoder":  "1281742-93939",
 		"output_extension":            "ts",
+		"presetmap_name":              "mypreset",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong presetmap hash returned from Redis. Want %#v. Got %#v", expectedItems, items)
@@ -104,6 +105,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		"pmapping_elemental":         "abc1234",
 		"pmapping_elastictranscoder": "def123",
 		"output_extension":           "mp4",
+		"presetmap_name":             "mypresetmap",
 	}
 	if !reflect.DeepEqual(items, expectedItems) {
 		t.Errorf("Wrong presetmap hash returned from Redis. Want %#v. Got %#v", expectedItems, items)

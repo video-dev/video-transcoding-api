@@ -28,8 +28,13 @@ func TestCreateJob(t *testing.T) {
 	}
 	job := db.Job{
 		ID:              "job1",
+		SourceMedia:     "http://nyt.net/source_here.mp4",
 		ProviderName:    "encoding.com",
 		StreamingParams: db.StreamingParams{SegmentDuration: 10, Protocol: "hls", PlaylistFileName: "hls/playlist.m3u8"},
+		Outputs: []db.TranscodeOutput{
+			{Preset: db.PresetMap{Name: "preset-1"}, FileName: "output1.m3u8"},
+			{Preset: db.PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
+		},
 	}
 	err = repo.CreateJob(&job)
 	if err != nil {
@@ -49,6 +54,8 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := map[string]string{
+		"source":                           "http://nyt.net/source_here.mp4",
+		"jobID":                            "job1",
 		"providerName":                     "encoding.com",
 		"providerJobID":                    "",
 		"streamingparams_segmentDuration":  "10",
@@ -58,7 +65,7 @@ func TestCreateJob(t *testing.T) {
 	}
 	if !reflect.DeepEqual(items, expected) {
 		pretty.Fdiff(os.Stderr, expected, items)
-		t.Errorf("Wrong job hash returned from Redis. Want %#v. Got %#v.", expected, items)
+		t.Errorf("Wrong job hash returned from Redis. Want\n %#v.\n Got\n %#v.", expected, items)
 	}
 	setEntries, err := client.ZRange(jobsSetKey, 0, -1).Result()
 	if err != nil {

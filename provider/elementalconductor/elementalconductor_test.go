@@ -103,7 +103,7 @@ func TestElementalNewJob(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	outputs := []provider.TranscodeOutput{
+	outputs := []db.TranscodeOutput{
 		{
 			FileName: "output_720p.webm",
 			Preset: db.PresetMap{
@@ -130,12 +130,12 @@ func TestElementalNewJob(t *testing.T) {
 		},
 	}
 
-	transcodeProfile := provider.TranscodeProfile{
+	newJob, err := presetProvider.newJob(&db.Job{
+		ID:              "job-1",
 		SourceMedia:     source,
 		Outputs:         outputs,
 		StreamingParams: db.StreamingParams{},
-	}
-	newJob, err := presetProvider.newJob(&db.Job{ID: "job-1"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Error(err)
 	}
@@ -248,7 +248,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	outputs := []provider.TranscodeOutput{
+	outputs := []db.TranscodeOutput{
 		{
 			FileName: "output_hls_360p/video.m3u8",
 			Preset: db.PresetMap{
@@ -282,7 +282,8 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 			},
 		},
 	}
-	transcodeProfile := provider.TranscodeProfile{
+	newJob, err := presetProvider.newJob(&db.Job{
+		ID:          "job-2",
 		SourceMedia: source,
 		Outputs:     outputs,
 		StreamingParams: db.StreamingParams{
@@ -290,8 +291,7 @@ func TestElementalNewJobAdaptiveStreaming(t *testing.T) {
 			SegmentDuration:  3,
 			PlaylistFileName: "hls/master.m3u8",
 		},
-	}
-	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Error(err)
 	}
@@ -393,7 +393,7 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	outputs := []provider.TranscodeOutput{
+	outputs := []db.TranscodeOutput{
 		{
 			FileName: "output_720p.webm",
 			Preset: db.PresetMap{
@@ -451,7 +451,8 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 			},
 		},
 	}
-	transcodeProfile := provider.TranscodeProfile{
+	newJob, err := presetProvider.newJob(&db.Job{
+		ID:          "job-3",
 		SourceMedia: source,
 		Outputs:     outputs,
 		StreamingParams: db.StreamingParams{
@@ -459,8 +460,7 @@ func TestElementalNewJobAdaptiveAndNonAdaptiveStreaming(t *testing.T) {
 			SegmentDuration:  3,
 			PlaylistFileName: "output_hls/index.m3u8",
 		},
-	}
-	newJob, err := presetProvider.newJob(&db.Job{ID: "job-3"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Error(err)
 	}
@@ -628,7 +628,7 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	source := "http://some.nice/video.mov"
-	outputs := []provider.TranscodeOutput{
+	outputs := []db.TranscodeOutput{
 		{
 			Preset: db.PresetMap{
 				Name:            "webm_720p",
@@ -637,8 +637,7 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 			},
 		},
 	}
-	transcodeProfile := provider.TranscodeProfile{SourceMedia: source, Outputs: outputs}
-	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2"}, transcodeProfile)
+	newJob, err := presetProvider.newJob(&db.Job{ID: "job-2", SourceMedia: source, Outputs: outputs})
 	if err != provider.ErrPresetMapNotFound {
 		t.Errorf("Wrong error returned. Want %#v. Got %#v", provider.ErrPresetMapNotFound, err)
 	}
