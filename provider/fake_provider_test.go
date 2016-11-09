@@ -10,7 +10,7 @@ type fakeProvider struct {
 	healthErr error
 }
 
-func (*fakeProvider) Transcode(*db.Job, TranscodeProfile) (*JobStatus, error) {
+func (*fakeProvider) Transcode(*db.Job) (*JobStatus, error) {
 	return nil, nil
 }
 

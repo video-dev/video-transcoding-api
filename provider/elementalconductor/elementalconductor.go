@@ -86,8 +86,8 @@ func (p *elementalConductorProvider) GetPreset(presetID string) (interface{}, er
 	return preset, err
 }
 
-func (p *elementalConductorProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	newJob, err := p.newJob(job, transcodeProfile)
+func (p *elementalConductorProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
+	newJob, err := p.newJob(job)
 	if err != nil {
 		return nil, err
 	}
@@ -196,13 +196,13 @@ func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) 
 	}
 }
 
-func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, transcodeProfile provider.TranscodeProfile) ([]elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
+func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, job db.Job) ([]elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
 	var streamingOutputList []elementalconductor.Output
 	var streamAssemblyList []elementalconductor.StreamAssembly
 	var outputGroupList []elementalconductor.OutputGroup
 	var outputGroupOrder int
 	var streamingGroupOrder int
-	for index, output := range transcodeProfile.Outputs {
+	for index, output := range job.Outputs {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
 		out := elementalconductor.Output{StreamAssemblyName: streamAssemblyName}
@@ -244,7 +244,7 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 		streamAssemblyList = append(streamAssemblyList, streamAssembly)
 	}
 	if len(streamingOutputList) > 0 {
-		playlistFileName := transcodeProfile.StreamingParams.PlaylistFileName
+		playlistFileName := job.StreamingParams.PlaylistFileName
 		location := outputLocation
 		location.URI += "/" + strings.TrimRight(playlistFileName, filepath.Ext(playlistFileName))
 		outputGroupOrder++
@@ -252,7 +252,7 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 			Order: outputGroupOrder,
 			AppleLiveGroupSettings: &elementalconductor.AppleLiveGroupSettings{
 				Destination:     &location,
-				SegmentDuration: transcodeProfile.StreamingParams.SegmentDuration,
+				SegmentDuration: job.StreamingParams.SegmentDuration,
 				EmitSingleFile:  true,
 			},
 			Type:   elementalconductor.AppleLiveOutputGroupType,
@@ -264,9 +264,9 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 }
 
 // newJob constructs a job spec from the given source and presets
-func (p *elementalConductorProvider) newJob(job *db.Job, transcodeProfile provider.TranscodeProfile) (*elementalconductor.Job, error) {
+func (p *elementalConductorProvider) newJob(job *db.Job) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
-		URI:      transcodeProfile.SourceMedia,
+		URI:      job.SourceMedia,
 		Username: p.client.GetAccessKeyID(),
 		Password: p.client.GetSecretAccessKey(),
 	}
@@ -276,7 +276,7 @@ func (p *elementalConductorProvider) newJob(job *db.Job, transcodeProfile provid
 		Username: p.client.GetAccessKeyID(),
 		Password: p.client.GetSecretAccessKey(),
 	}
-	outputGroup, streamAssemblyList, err := p.buildOutputGroupAndStreamAssemblies(outputLocation, transcodeProfile)
+	outputGroup, streamAssemblyList, err := p.buildOutputGroupAndStreamAssemblies(outputLocation, *job)
 	if err != nil {
 		return nil, err
 	}

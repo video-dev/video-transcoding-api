@@ -270,7 +270,7 @@ func TestZencoderTranscode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	outputs := []provider.TranscodeOutput{
+	outputs := []db.TranscodeOutput{
 		{
 			FileName: "output-720p.mp4",
 			Preset: db.PresetMap{
@@ -283,12 +283,12 @@ func TestZencoderTranscode(t *testing.T) {
 			},
 		},
 	}
-	transcodeProfile := provider.TranscodeProfile{
+	jobStatus, err := prov.Transcode(&db.Job{
+		ID:              "job-123",
 		SourceMedia:     "dir/file.mov",
 		Outputs:         outputs,
 		StreamingParams: db.StreamingParams{},
-	}
-	jobStatus, err := prov.Transcode(&db.Job{ID: "job-123"}, transcodeProfile)
+	})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -315,15 +315,22 @@ func TestZencoderBuildOutputs(t *testing.T) {
 	}
 
 	var tests = []struct {
-		Description      string
-		Job              *db.Job
-		Presets          []db.Preset
-		TranscodeProfile provider.TranscodeProfile
-		Expected         []map[string]interface{}
+		Description string
+		Job         *db.Job
+		Presets     []db.Preset
+		Expected    []map[string]interface{}
 	}{
 		{
 			"Test with a single mp4 preset",
-			&db.Job{ID: "1234567890"},
+			&db.Job{ID: "1234567890",
+				SourceMedia: "http://nyt-bucket/source_here.mov",
+				Outputs: []db.TranscodeOutput{
+					{
+						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
+						FileName: "output.mp4",
+					},
+				},
+			},
 			[]db.Preset{
 				{
 					Name:        "preset1",
@@ -333,16 +340,6 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					Audio:       db.AudioPreset{Bitrate: "128000", Codec: "aac"},
 					Video:       db.VideoPreset{Profile: "Main", ProfileLevel: "3.1", Bitrate: "500000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
 				},
-			},
-			provider.TranscodeProfile{
-				SourceMedia: "http://nyt-bucket/source_here.mov",
-				Outputs: []provider.TranscodeOutput{
-					{
-						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
-						FileName: "output.mp4",
-					},
-				},
-				StreamingParams: db.StreamingParams{},
 			},
 			[]map[string]interface{}{
 				{
@@ -367,8 +364,23 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		{
 			"Test with multiple HLS presets",
 			&db.Job{
-				ID:              "1234567890",
-				StreamingParams: db.StreamingParams{},
+				ID:          "1234567890",
+				SourceMedia: "http://nyt-bucket/source_here.mov",
+				Outputs: []db.TranscodeOutput{
+					{
+						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
+						FileName: "output1.m3u8",
+					},
+					{
+						Preset:   db.PresetMap{Name: "preset2", ProviderMapping: map[string]string{"zencoder": "preset2"}},
+						FileName: "output2.m3u8",
+					},
+				},
+				StreamingParams: db.StreamingParams{
+					SegmentDuration:  3,
+					Protocol:         "hls",
+					PlaylistFileName: "hls/playlist.m3u8",
+				},
 			},
 			[]db.Preset{
 				{
@@ -386,24 +398,6 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					RateControl: "VBR",
 					Audio:       db.AudioPreset{Bitrate: "64000", Codec: "aac"},
 					Video:       db.VideoPreset{Profile: "Main", ProfileLevel: "3.1", Bitrate: "1000000", Codec: "h264", GopMode: "fixed", GopSize: "90", Height: "1080", Width: "720"},
-				},
-			},
-			provider.TranscodeProfile{
-				SourceMedia: "http://nyt-bucket/source_here.mov",
-				Outputs: []provider.TranscodeOutput{
-					{
-						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
-						FileName: "output1.m3u8",
-					},
-					{
-						Preset:   db.PresetMap{Name: "preset2", ProviderMapping: map[string]string{"zencoder": "preset2"}},
-						FileName: "output2.m3u8",
-					},
-				},
-				StreamingParams: db.StreamingParams{
-					SegmentDuration:  3,
-					Protocol:         "hls",
-					PlaylistFileName: "hls/playlist.m3u8",
 				},
 			},
 			[]map[string]interface{}{
@@ -470,7 +464,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				t.Fatal(err)
 			}
 		}
-		res, err := prov.buildOutputs(test.Job, test.TranscodeProfile)
+		res, err := prov.buildOutputs(test.Job)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -658,13 +652,11 @@ func TestZencoderBuildOutput(t *testing.T) {
 				Destination: test.Destination,
 			},
 		}
-
 		job := db.Job{
-			ID: "abcdef",
+			ID:              "abcdef",
+			StreamingParams: db.StreamingParams{},
 		}
-
-		streamingParams := db.StreamingParams{}
-		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName, streamingParams)
+		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
 		if err != nil {
 			t.Fatal(err)
 		}

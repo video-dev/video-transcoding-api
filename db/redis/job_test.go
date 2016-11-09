@@ -49,6 +49,8 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	expected := map[string]string{
+		"source":                           "",
+		"outputs":                          "[]",
 		"providerName":                     "encoding.com",
 		"providerJobID":                    "",
 		"streamingparams_segmentDuration":  "10",

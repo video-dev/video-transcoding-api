@@ -36,6 +36,30 @@ type Job struct {
 	//
 	// required: true
 	CreationTime time.Time `redis-hash:"creationTime" json:"creationTime"`
+
+	// Source of the job
+	//
+	// required: true
+	SourceMedia string `redis-hash:"source" json:"source"`
+
+	// Output list of the given job
+	//
+	// required: true
+	Outputs []TranscodeOutput `redis-hash:"outputs" json:"outputs"`
+}
+
+// TranscodeOutput represents a transcoding output. It's a combination of the
+// preset and the output file name.
+type TranscodeOutput struct {
+	// Presetmap for the output
+	//
+	// required: true
+	Preset PresetMap `redis-hash:"presetmap" json:"presetmap"`
+
+	// Filename for the output
+	//
+	// required: true
+	FileName string `redis-hash:"filename" json:"filename"`
 }
 
 // StreamingParams represents the params necessary to create Adaptive Streaming jobs

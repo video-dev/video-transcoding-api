@@ -57,15 +57,15 @@ type awsProvider struct {
 	config *config.ElasticTranscoder
 }
 
-func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.TranscodeProfile) (*provider.JobStatus, error) {
-	var adaptiveStreamingOutputs []provider.TranscodeOutput
-	source := p.normalizeSource(transcodeProfile.SourceMedia)
+func (p *awsProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
+	var adaptiveStreamingOutputs []db.TranscodeOutput
+	source := p.normalizeSource(job.SourceMedia)
 	params := elastictranscoder.CreateJobInput{
 		PipelineId: aws.String(p.config.PipelineID),
 		Input:      &elastictranscoder.JobInput{Key: aws.String(source)},
 	}
-	params.Outputs = make([]*elastictranscoder.CreateJobOutput, len(transcodeProfile.Outputs))
-	for i, output := range transcodeProfile.Outputs {
+	params.Outputs = make([]*elastictranscoder.CreateJobOutput, len(job.Outputs))
+	for i, output := range job.Outputs {
 		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetMapNotFound
@@ -90,12 +90,12 @@ func (p *awsProvider) Transcode(job *db.Job, transcodeProfile provider.Transcode
 			Key:      p.outputKey(job, output.FileName, isAdaptiveStreamingPreset),
 		}
 		if isAdaptiveStreamingPreset {
-			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(transcodeProfile.StreamingParams.SegmentDuration)))
+			params.Outputs[i].SegmentDuration = aws.String(strconv.Itoa(int(job.StreamingParams.SegmentDuration)))
 		}
 	}
 
 	if len(adaptiveStreamingOutputs) > 0 {
-		playlistFileName := transcodeProfile.StreamingParams.PlaylistFileName
+		playlistFileName := job.StreamingParams.PlaylistFileName
 		playlistFileName = strings.TrimRight(playlistFileName, filepath.Ext(playlistFileName))
 		jobPlaylist := elastictranscoder.CreateJobPlaylist{
 			Format: aws.String(hlsPlayList),
