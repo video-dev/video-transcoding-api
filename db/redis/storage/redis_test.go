@@ -11,6 +11,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/NYTimes/video-transcoding-api/db"
 )
 
 func TestRedisClientRedisDefaultOptions(t *testing.T) {
@@ -226,6 +228,45 @@ func TestSaveErrors(t *testing.T) {
 		if err.Error() != test.errMsg {
 			t.Errorf("Got wrong error message. Want %q. Got %q", test.errMsg, err.Error())
 		}
+	}
+}
+
+func TestFieldMap(t *testing.T) {
+	storage, err := NewStorage(&Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	job := db.Job{
+		ID:            "job1",
+		ProviderJobID: "123abc",
+		SourceMedia:   "http://nyt.net/source_here.mp4",
+		ProviderName:  "encoding.com",
+		StreamingParams: db.StreamingParams{
+			SegmentDuration:  10,
+			Protocol:         "hls",
+			PlaylistFileName: "hls/playlist.m3u8",
+		},
+		Outputs: []db.TranscodeOutput{
+			{Preset: db.PresetMap{Name: "preset-1"}, FileName: "output1.m3u8"},
+			{Preset: db.PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
+		},
+	}
+	expected := map[string]string{
+		"source":                           "http://nyt.net/source_here.mp4",
+		"jobID":                            "job1",
+		"providerName":                     "encoding.com",
+		"providerJobID":                    "123abc",
+		"streamingparams_segmentDuration":  "10",
+		"streamingparams_protocol":         "hls",
+		"streamingparams_playlistFileName": "hls/playlist.m3u8",
+		"creationTime":                     "0001-01-01T00:00:00Z",
+	}
+	result, err := storage.FieldMap(job)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !reflect.DeepEqual(result, expected) {
+		t.Errorf("Wrong FieldMap. Want %#v. Got %#v.", result, expected)
 	}
 }
 
