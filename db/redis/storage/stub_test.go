@@ -52,10 +52,6 @@ type PresetMap struct {
 	Name string `redis-hash:"presetmap_name"`
 }
 
-type OutputOptions struct {
-	Extension string `redis-hash:"extension"`
-}
-
 type StreamingParams struct {
 	SegmentDuration  uint   `redis-hash:"segmentDuration"`
 	Protocol         string `redis-hash:"protocol"`
