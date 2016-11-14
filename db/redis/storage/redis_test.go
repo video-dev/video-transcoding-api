@@ -11,8 +11,6 @@ import (
 	"sync"
 	"testing"
 	"time"
-
-	"github.com/NYTimes/video-transcoding-api/db"
 )
 
 func TestRedisClientRedisDefaultOptions(t *testing.T) {
@@ -242,20 +240,20 @@ func TestFieldMap(t *testing.T) {
 		expected    map[string]string
 	}{
 		{
-			"db.Job",
-			db.Job{
+			"Job",
+			Job{
 				ID:            "job1",
 				ProviderJobID: "123abc",
 				SourceMedia:   "http://nyt.net/source_here.mp4",
 				ProviderName:  "encoding.com",
-				StreamingParams: db.StreamingParams{
+				StreamingParams: StreamingParams{
 					SegmentDuration:  10,
 					Protocol:         "hls",
 					PlaylistFileName: "hls/playlist.m3u8",
 				},
-				Outputs: []db.TranscodeOutput{
-					{Preset: db.PresetMap{Name: "preset-1"}, FileName: "output1.m3u8"},
-					{Preset: db.PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
+				Outputs: []TranscodeOutput{
+					{Preset: PresetMap{Name: "preset-1"}, FileName: "output1.m3u8"},
+					{Preset: PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
 				},
 			},
 			map[string]string{
@@ -270,15 +268,15 @@ func TestFieldMap(t *testing.T) {
 			},
 		},
 		{
-			"db.LocalPreset",
-			db.LocalPreset{
+			"LocalPreset",
+			LocalPreset{
 				Name: "this-is-a-localpreset",
-				Preset: db.Preset{
+				Preset: Preset{
 					Name:        "test",
 					Description: "test preset",
 					Container:   "mp4",
 					RateControl: "VBR",
-					Video: db.VideoPreset{
+					Video: VideoPreset{
 						Profile:       "main",
 						ProfileLevel:  "3.1",
 						Width:         "640",
@@ -289,7 +287,7 @@ func TestFieldMap(t *testing.T) {
 						GopMode:       "fixed",
 						InterlaceMode: "progressive",
 					},
-					Audio: db.AudioPreset{
+					Audio: AudioPreset{
 						Codec:   "aac",
 						Bitrate: "64000",
 					},
