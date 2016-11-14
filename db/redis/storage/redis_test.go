@@ -229,6 +229,101 @@ func TestSaveErrors(t *testing.T) {
 	}
 }
 
+func TestFieldMap(t *testing.T) {
+	storage, err := NewStorage(&Config{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var tests = []struct {
+		description string
+		hash        interface{}
+		expected    map[string]string
+	}{
+		{
+			"Job",
+			Job{
+				ID:            "job1",
+				ProviderJobID: "123abc",
+				SourceMedia:   "http://nyt.net/source_here.mp4",
+				ProviderName:  "encoding.com",
+				StreamingParams: StreamingParams{
+					SegmentDuration:  10,
+					Protocol:         "hls",
+					PlaylistFileName: "hls/playlist.m3u8",
+				},
+				Outputs: []TranscodeOutput{
+					{Preset: PresetMap{Name: "preset-1"}, FileName: "output1.m3u8"},
+					{Preset: PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
+				},
+			},
+			map[string]string{
+				"source":                           "http://nyt.net/source_here.mp4",
+				"jobID":                            "job1",
+				"providerName":                     "encoding.com",
+				"providerJobID":                    "123abc",
+				"streamingparams_segmentDuration":  "10",
+				"streamingparams_protocol":         "hls",
+				"streamingparams_playlistFileName": "hls/playlist.m3u8",
+				"creationTime":                     "0001-01-01T00:00:00Z",
+			},
+		},
+		{
+			"LocalPreset",
+			LocalPreset{
+				Name: "this-is-a-localpreset",
+				Preset: Preset{
+					Name:        "test",
+					Description: "test preset",
+					Container:   "mp4",
+					RateControl: "VBR",
+					Video: VideoPreset{
+						Profile:       "main",
+						ProfileLevel:  "3.1",
+						Width:         "640",
+						Height:        "360",
+						Codec:         "h264",
+						Bitrate:       "1000",
+						GopSize:       "90",
+						GopMode:       "fixed",
+						InterlaceMode: "progressive",
+					},
+					Audio: AudioPreset{
+						Codec:   "aac",
+						Bitrate: "64000",
+					},
+				},
+			},
+			map[string]string{
+				"preset_name":                "test",
+				"preset_description":         "test preset",
+				"preset_container":           "mp4",
+				"preset_ratecontrol":         "VBR",
+				"preset_video_profilelevel":  "3.1",
+				"preset_video_profile":       "main",
+				"preset_video_gopmode":       "fixed",
+				"preset_video_bitrate":       "1000",
+				"preset_video_interlacemode": "progressive",
+				"preset_video_codec":         "h264",
+				"preset_video_gopsize":       "90",
+				"preset_video_height":        "360",
+				"preset_video_width":         "640",
+				"preset_audio_bitrate":       "64000",
+				"preset_audio_codec":         "aac",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		result, err := storage.FieldMap(test.hash)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(result, test.expected) {
+			t.Errorf("Wrong FieldMap: %s: Want %#v. Got %#v.", test.description, result, test.expected)
+		}
+	}
+}
+
 func TestLoadStruct(t *testing.T) {
 	storage, err := NewStorage(&Config{})
 	if err != nil {
