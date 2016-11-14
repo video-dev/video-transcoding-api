@@ -99,31 +99,39 @@ func (z *zencoderProvider) buildOutputs(job *db.Job) ([]*zencoder.OutputSettings
 	if hlsOutputs > 0 {
 		outputsWithHLS := make([]*zencoder.OutputSettings, len(zencoderOutputs)+1)
 		copy(outputsWithHLS, zencoderOutputs)
-		hlsPlaylist := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs, job.StreamingParams)
+		hlsPlaylist, err := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs, job)
+		if err != nil {
+			return nil, fmt.Errorf("Error building hls master playlist: %s", err.Error())
+		}
 		outputsWithHLS[len(zencoderOutputs)] = &hlsPlaylist
 		zencoderOutputs = outputsWithHLS
 	}
 	return zencoderOutputs, nil
 }
 
-func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int, streamingParams db.StreamingParams) zencoder.OutputSettings {
+func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int, job *db.Job) (zencoder.OutputSettings, error) {
+	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
+	}
+	destinationURL.Path = path.Join(destinationURL.Path, job.ID)
 	output := zencoder.OutputSettings{
-		BaseUrl:  outputs[0].BaseUrl,
-		Filename: streamingParams.PlaylistFileName,
+		BaseUrl:  destinationURL.String(),
+		Filename: job.StreamingParams.PlaylistFileName,
 		Type:     "playlist",
 	}
 	streams := make([]*zencoder.StreamSettings, 0, hlsOutputs)
 	for _, output := range outputs {
 		if output.Format == "ts" {
 			stream := zencoder.StreamSettings{
-				Path:   output.Filename,
+				Path:   path.Join(output.Label, output.Filename),
 				Source: output.Label,
 			}
 			streams = append(streams, &stream)
 		}
 	}
 	output.Streams = streams
-	return output
+	return output, nil
 }
 
 func (z *zencoderProvider) getResolution(preset db.Preset) (int32, int32) {
@@ -146,12 +154,6 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 		AudioCodec: preset.Audio.Codec,
 		Filename:   filename,
 	}
-	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
-	if err != nil {
-		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
-	}
-	destinationURL.Path = path.Join(destinationURL.Path, job.ID) + "/"
-	zencoderOutput.BaseUrl = destinationURL.String()
 	zencoderOutput.Width, zencoderOutput.Height = z.getResolution(preset)
 	videoBitrate, err := strconv.ParseInt(preset.Video.Bitrate, 10, 32)
 	if err != nil {
@@ -181,16 +183,22 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 	if preset.RateControl == "CBR" {
 		zencoderOutput.ConstantBitrate = true
 	}
+	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
+	if err != nil {
+		return zencoder.OutputSettings{}, fmt.Errorf("error parsing destination (%q)", z.config.Zencoder.Destination)
+	}
+	destinationURL.Path = path.Join(destinationURL.Path, job.ID)
 	if preset.Container == "m3u8" {
 		zencoderOutput.Type = "segmented"
 		zencoderOutput.Format = "ts"
 		zencoderOutput.SegmentSeconds = int32(job.StreamingParams.SegmentDuration)
 		zencoderOutput.PrepareForSegmenting = job.StreamingParams.Protocol
 		zencoderOutput.HLSOptimizedTS = true
+		destinationURL.Path = path.Join(destinationURL.Path, "hls", zencoderOutput.Label)
 	} else {
 		zencoderOutput.Format = preset.Container
 	}
-
+	zencoderOutput.BaseUrl = destinationURL.String()
 	zencoderOutput.Deinterlace = "on"
 	return zencoderOutput, nil
 }
