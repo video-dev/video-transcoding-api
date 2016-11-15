@@ -347,7 +347,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
 					"h264_profile":            "main",
-					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"base_url":                "https://log:pass@s3.here.com/1234567890",
 					"keyframe_interval":       float64(90),
 					"width":                   float64(720),
 					"height":                  float64(1080),
@@ -406,7 +406,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
 					"h264_profile":            "main",
-					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/hls/preset1",
 					"keyframe_interval":       float64(90),
 					"width":                   float64(720),
 					"height":                  float64(1080),
@@ -427,7 +427,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
 					"h264_profile":            "main",
-					"base_url":                "https://log:pass@s3.here.com/1234567890/",
+					"base_url":                "https://log:pass@s3.here.com/1234567890/hls/preset2",
 					"keyframe_interval":       float64(90),
 					"width":                   float64(720),
 					"height":                  float64(1080),
@@ -444,12 +444,12 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"prepare_for_segmenting":  "hls",
 				},
 				{
-					"base_url": "https://log:pass@s3.here.com/1234567890/",
+					"base_url": "https://log:pass@s3.here.com/1234567890",
 					"filename": "hls/playlist.m3u8",
 					"type":     "playlist",
 					"streams": []interface{}{
-						map[string]interface{}{"source": "preset1", "path": "output1.m3u8"},
-						map[string]interface{}{"source": "preset2", "path": "output2.m3u8"},
+						map[string]interface{}{"source": "preset1", "path": "preset1/output1.m3u8"},
+						map[string]interface{}{"source": "preset2", "path": "preset2/output2.m3u8"},
 					},
 				},
 			},
@@ -479,7 +479,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		}
 		if !reflect.DeepEqual(result, test.Expected) {
 			pretty.Fdiff(os.Stderr, test.Expected, result)
-			t.Errorf("Failed to build outputs. Want:\n %#v\n Got\n %#v", test.Expected, result)
+			t.Errorf("Failed to build outputs on test: %s. Want:\n %#v\n Got\n %#v", test.Description, test.Expected, result)
 		}
 	}
 }
@@ -532,7 +532,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"fixed_keyframe_interval": true,
 				"constant_bitrate":        true,
 				"deinterlace":             "on",
-				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
+				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
 				"filename":                "test.mp4",
 			},
 		},
@@ -567,7 +567,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/hls/hls_1080p",
 				"filename":          "test.m3u8",
 				"type":              "segmented",
 				"hls_optimized_ts":  true,
@@ -604,7 +604,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
 				"filename":          "test.webm",
 			},
 		},
@@ -639,7 +639,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/",
+				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
 				"filename":          "test.webm",
 			},
 		},
