@@ -153,6 +153,7 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 		VideoCodec: preset.Video.Codec,
 		AudioCodec: preset.Audio.Codec,
 		Filename:   filename,
+		MakePublic: true,
 	}
 	zencoderOutput.Width, zencoderOutput.Height = z.getResolution(preset)
 	videoBitrate, err := strconv.ParseInt(preset.Video.Bitrate, 10, 32)

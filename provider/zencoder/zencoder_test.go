@@ -358,6 +358,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"format":                  "mp4",
 					"audio_codec":             "aac",
 					"filename":                "output.mp4",
+					"public":                  true,
 				},
 			},
 		},
@@ -421,6 +422,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"filename":                "output1.m3u8",
 					"segment_seconds":         float64(3),
 					"prepare_for_segmenting":  "hls",
+					"public":                  true,
 				},
 				{
 					"label":                   "preset2",
@@ -442,6 +444,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"filename":                "output2.m3u8",
 					"segment_seconds":         float64(3),
 					"prepare_for_segmenting":  "hls",
+					"public":                  true,
 				},
 				{
 					"base_url": "https://log:pass@s3.here.com/1234567890",
@@ -534,6 +537,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"deinterlace":             "on",
 				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
 				"filename":                "test.mp4",
+				"public":                  true,
 			},
 		},
 		{
@@ -571,6 +575,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"filename":          "test.m3u8",
 				"type":              "segmented",
 				"hls_optimized_ts":  true,
+				"public":            true,
 			},
 		},
 		{
@@ -606,6 +611,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"deinterlace":       "on",
 				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
 				"filename":          "test.webm",
+				"public":            true,
 			},
 		},
 		{
@@ -641,6 +647,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"deinterlace":       "on",
 				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
 				"filename":          "test.webm",
+				"public":            true,
 			},
 		},
 	}
