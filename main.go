@@ -1,8 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
-
+	"github.com/Gurpartap/logrus-stack"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/config"
 	_ "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
@@ -11,6 +10,7 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/knq/sdhook"
+	"github.com/marzagao/logrus-env"
 )
 
 func main() {
@@ -19,17 +19,17 @@ func main() {
 		cfg.Server.RouterType = "fast"
 	}
 	server.Init("video-transcoding-api", cfg.Server)
-	if cfg.GCPCredentials.String() != "" {
-		gcpLoggingHook, err := sdhook.New(
-			sdhook.GoogleServiceAccountCredentialsJSON([]byte(cfg.GCPCredentials.String())),
-		)
-		if err != nil {
-			server.Log.Fatal("unable to initialize GCP logging hook: ", err)
-		}
-		server.Log.Hooks.Add(gcpLoggingHook)
-		server.Log.Out = ioutil.Discard
+	server.Log.Hooks.Add(logrus_stack.StandardHook())
+	server.Log.Hooks.Add(logrus_env.NewHook([]string{"ENVIRONMENT"}))
+	gcpLoggingHook, err := sdhook.New(
+		sdhook.GoogleLoggingAgent(),
+		sdhook.ErrorReportingService("video-transcoding-api"),
+		sdhook.ErrorReportingLogName("error_log"),
+	)
+	if err != nil {
+		server.Log.Debug("unable to initialize GCP logging hook: ", err)
 	} else {
-		server.Log.Debug("GCP credentials were not set")
+		server.Log.Hooks.Add(gcpLoggingHook)
 	}
 	service, err := service.NewTranscodingService(cfg, server.Log)
 	if err != nil {
