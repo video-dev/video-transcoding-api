@@ -98,14 +98,14 @@ func (z *zencoderProvider) buildOutputs(job *db.Job) ([]*zencoder.OutputSettings
 		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
 	}
 	if hlsOutputs > 0 {
-		zencoderOutputs, err := z.optimizeOutputsForHLS(zencoderOutputs)
-		outputsWithHLSPlaylist := make([]*zencoder.OutputSettings, len(zencoderOutputs)+1)
-		copy(outputsWithHLSPlaylist, zencoderOutputs)
-		hlsPlaylist, err := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs, job)
+		optimizedOutputs, err := z.optimizeOutputsForHLS(zencoderOutputs)
+		outputsWithHLSPlaylist := make([]*zencoder.OutputSettings, len(optimizedOutputs)+1)
+		copy(outputsWithHLSPlaylist, optimizedOutputs)
+		hlsPlaylist, err := z.buildHLSPlaylist(optimizedOutputs, hlsOutputs, job)
 		if err != nil {
 			return nil, fmt.Errorf("Error building hls master playlist: %s", err.Error())
 		}
-		outputsWithHLSPlaylist[len(zencoderOutputs)] = &hlsPlaylist
+		outputsWithHLSPlaylist[len(optimizedOutputs)] = &hlsPlaylist
 		return outputsWithHLSPlaylist, nil
 	}
 	return zencoderOutputs, nil
