@@ -550,6 +550,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"audio_bitrate":           float64(64),
 					"fixed_keyframe_interval": true,
 					"deinterlace":             "on",
+					"prepare_for_segmenting":  "hls",
 					"format":                  "mp4",
 					"audio_codec":             "aac",
 					"filename":                "output.mp4",

@@ -131,6 +131,7 @@ func (z *zencoderProvider) optimizeOutputsForHLS(outputs []*zencoder.OutputSetti
 							Type:      "segmented",
 						}
 						outputs[i] = &newHlsOutput
+						mp4Output.PrepareForSegmenting = "hls"
 					}
 				}
 			}
