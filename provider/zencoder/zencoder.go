@@ -146,7 +146,7 @@ func (z *zencoderProvider) isOutputCompatible(hlsOutput, mp4Output *zencoder.Out
 	}
 	hls := localHlsPreset.(*db.LocalPreset)
 
-	localMp4Preset, _ := z.GetPreset(hlsOutput.Label)
+	localMp4Preset, _ := z.GetPreset(mp4Output.Label)
 	if err != nil {
 		return false, err
 	}
