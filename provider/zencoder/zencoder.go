@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"reflect"
 	"strconv"
 	"strings"
 	"time"
@@ -97,16 +98,66 @@ func (z *zencoderProvider) buildOutputs(job *db.Job) ([]*zencoder.OutputSettings
 		zencoderOutputs = append(zencoderOutputs, &zencoderOutput)
 	}
 	if hlsOutputs > 0 {
-		outputsWithHLS := make([]*zencoder.OutputSettings, len(zencoderOutputs)+1)
-		copy(outputsWithHLS, zencoderOutputs)
-		hlsPlaylist, err := z.buildHLSPlaylist(zencoderOutputs, hlsOutputs, job)
+		optimizedOutputs, err := z.optimizeOutputsForHLS(zencoderOutputs)
+		outputsWithHLSPlaylist := make([]*zencoder.OutputSettings, len(optimizedOutputs)+1)
+		copy(outputsWithHLSPlaylist, optimizedOutputs)
+		hlsPlaylist, err := z.buildHLSPlaylist(optimizedOutputs, hlsOutputs, job)
 		if err != nil {
 			return nil, fmt.Errorf("Error building hls master playlist: %s", err.Error())
 		}
-		outputsWithHLS[len(zencoderOutputs)] = &hlsPlaylist
-		zencoderOutputs = outputsWithHLS
+		outputsWithHLSPlaylist[len(optimizedOutputs)] = &hlsPlaylist
+		return outputsWithHLSPlaylist, nil
 	}
 	return zencoderOutputs, nil
+}
+
+func (z *zencoderProvider) optimizeOutputsForHLS(outputs []*zencoder.OutputSettings) ([]*zencoder.OutputSettings, error) {
+	for i, hlsOutput := range outputs {
+		if hlsOutput.Format == "ts" {
+			for _, mp4Output := range outputs {
+				if mp4Output.Format == "mp4" {
+					isCompatible, err := z.isOutputCompatible(hlsOutput, mp4Output)
+					if err != nil {
+						return nil, err
+					} else if isCompatible {
+						newHlsOutput := zencoder.OutputSettings{
+							Filename:  hlsOutput.Filename,
+							Label:     hlsOutput.Label,
+							BaseUrl:   hlsOutput.BaseUrl,
+							Format:    hlsOutput.Format,
+							Source:    mp4Output.Label,
+							CopyAudio: true,
+							CopyVideo: true,
+							Type:      "segmented",
+						}
+						outputs[i] = &newHlsOutput
+						mp4Output.PrepareForSegmenting = "hls"
+					}
+				}
+			}
+		}
+	}
+	return outputs, nil
+}
+
+func (z *zencoderProvider) isOutputCompatible(hlsOutput, mp4Output *zencoder.OutputSettings) (bool, error) {
+	localHlsPreset, err := z.GetPreset(hlsOutput.Label)
+	if err != nil {
+		return false, err
+	}
+	hls := localHlsPreset.(*db.LocalPreset)
+
+	localMp4Preset, _ := z.GetPreset(mp4Output.Label)
+	if err != nil {
+		return false, err
+	}
+	mp4 := localMp4Preset.(*db.LocalPreset)
+
+	isCompatible := reflect.DeepEqual(hls.Preset.Video, mp4.Preset.Video) &&
+		reflect.DeepEqual(hls.Preset.Audio, mp4.Preset.Audio) &&
+		hls.Preset.RateControl == mp4.Preset.RateControl
+
+	return isCompatible, nil
 }
 
 func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, hlsOutputs int, job *db.Job) (zencoder.OutputSettings, error) {
@@ -193,8 +244,6 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 		zencoderOutput.Type = "segmented"
 		zencoderOutput.Format = "ts"
 		zencoderOutput.SegmentSeconds = int32(job.StreamingParams.SegmentDuration)
-		zencoderOutput.PrepareForSegmenting = job.StreamingParams.Protocol
-		zencoderOutput.HLSOptimizedTS = true
 		destinationURL.Path = path.Join(destinationURL.Path, "hls", zencoderOutput.Label)
 	} else {
 		zencoderOutput.Format = preset.Container
