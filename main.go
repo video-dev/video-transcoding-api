@@ -9,11 +9,13 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
+	"github.com/google/gops/agent"
 	"github.com/knq/sdhook"
 	"github.com/marzagao/logrus-env"
 )
 
 func main() {
+	agent.Start()
 	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
 		cfg.Server.RouterType = "fast"
