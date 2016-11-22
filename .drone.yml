@@ -32,11 +32,13 @@ build:
       - AWS_ACCESS_KEY_ID=$$NP_AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=$$NP_AWS_SECRET_ACCESS_KEY
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
+      - ASG_TOPIC=$$NP_ASG_TOPIC
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - go get github.com/${NP_REPO}
       - np build transcoding-api:dev#$${COMMIT:0:7}
       - np deploy transcoding-api:dev#$${COMMIT:0:7}
+      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-dev-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
     when:
       branch: master
       event: push
@@ -57,11 +59,14 @@ build:
       - AWS_ACCESS_KEY_ID=$$NP_AWS_ACCESS_KEY_ID
       - AWS_SECRET_ACCESS_KEY=$$NP_AWS_SECRET_ACCESS_KEY
       - GITHUB_TOKEN=$$NP_GITHUB_TOKEN
+      - ASG_TOPIC=$$NP_ASG_TOPIC
     commands:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - go get github.com/${NP_REPO}
       - np deploy transcoding-api:stg#$${COMMIT:0:7}
+      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-stg-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
       - np deploy transcoding-api:prd#$${COMMIT:0:7}
+      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-prd-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
     when:
       event: tag
 notify:
