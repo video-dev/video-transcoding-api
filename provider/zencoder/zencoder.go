@@ -245,7 +245,7 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 		zencoderOutput.Type = "segmented"
 		zencoderOutput.Format = "ts"
 		zencoderOutput.SegmentSeconds = int32(job.StreamingParams.SegmentDuration)
-		destinationURL.Path = path.Join(destinationURL.Path, "hls", zencoderOutput.Label)
+		destinationURL.Path = path.Join(destinationURL.Path, zencoderOutput.Label)
 	} else {
 		zencoderOutput.Format = preset.Container
 	}
