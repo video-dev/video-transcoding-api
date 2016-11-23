@@ -820,7 +820,6 @@ func TestCreatePreset(t *testing.T) {
 		Gop:          "cgop",
 		Keyframe:     []string{"90"},
 		Size:         "0x1080",
-		Destination:  []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 	}
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		pretty.Fdiff(os.Stderr, fakePreset.Request.Format[0], expectedFormat)
@@ -859,9 +858,8 @@ func TestCreatePresetHLS(t *testing.T) {
 	fakePreset := server.presets[presetName]
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	expectedFormat := encodingcom.Format{
-		Output:      []string{hlsOutput},
-		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
-		PackFiles:   &falseYesNoBoolean,
+		Output:    []string{hlsOutput},
+		PackFiles: &falseYesNoBoolean,
 		Stream: []encodingcom.Stream{
 			{
 				AudioBitrate: "128k",
@@ -903,7 +901,6 @@ func TestPresetToFormat(t *testing.T) {
 			},
 			encodingcom.Format{
 				Output:               []string{"advanced_hls"},
-				Destination:          []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 				VideoCodecParameters: encodingcom.VideoCodecParameters{},
 				Stream: []encodingcom.Stream{
 					{
@@ -931,7 +928,6 @@ func TestPresetToFormat(t *testing.T) {
 			},
 			encodingcom.Format{
 				Output:      []string{"webm"},
-				Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 				AudioCodec:  "libvorbis",
 				AudioVolume: 100,
 				Gop:         "cgop",
@@ -954,7 +950,6 @@ func TestPresetToFormat(t *testing.T) {
 			},
 			encodingcom.Format{
 				Output:      []string{"webm"},
-				Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 				AudioCodec:  "libvorbis",
 				AudioVolume: 100,
 				Gop:         "cgop",
@@ -979,7 +974,6 @@ func TestPresetToFormat(t *testing.T) {
 			},
 			encodingcom.Format{
 				Output:      []string{"mp4"},
-				Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
 				AudioCodec:  "dolby_aac",
 				AudioVolume: 100,
 				Gop:         "cgop",
