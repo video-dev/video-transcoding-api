@@ -1,3 +1,7 @@
+## Version 1.0.0 (Release date: 2016-11-23)
+
+
+
 ## Version 0.1.6 (Release date: 2016-11-23)
 ([dbf6d29](https://github.com/nytimes/video-transcoding-api/commit/dbf6d29)) zencoder: fix hls path (close #157) 
 
