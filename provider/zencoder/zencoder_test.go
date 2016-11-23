@@ -378,12 +378,12 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				SourceMedia: "http://nyt-bucket/source_here.mov",
 				Outputs: []db.TranscodeOutput{
 					{
-						Preset:   db.PresetMap{Name: "preset1", ProviderMapping: map[string]string{"zencoder": "preset1"}},
-						FileName: "output1.m3u8",
+						Preset:   db.PresetMap{Name: "hls_1080p", ProviderMapping: map[string]string{"zencoder": "hls_1080p"}},
+						FileName: "hls/output1.m3u8",
 					},
 					{
-						Preset:   db.PresetMap{Name: "preset2", ProviderMapping: map[string]string{"zencoder": "preset2"}},
-						FileName: "output2.m3u8",
+						Preset:   db.PresetMap{Name: "hls_720p", ProviderMapping: map[string]string{"zencoder": "hls_720p"}},
+						FileName: "hls/output2.m3u8",
 					},
 				},
 				StreamingParams: db.StreamingParams{
@@ -394,7 +394,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 			},
 			[]db.Preset{
 				{
-					Name:        "preset1",
+					Name:        "hls_1080p",
 					Description: "my nice preset",
 					Container:   "m3u8",
 					RateControl: "VBR",
@@ -411,7 +411,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					},
 				},
 				{
-					Name:        "preset2",
+					Name:        "hls_720p",
 					Description: "my second nice preset",
 					Container:   "m3u8",
 					RateControl: "VBR",
@@ -430,11 +430,11 @@ func TestZencoderBuildOutputs(t *testing.T) {
 			},
 			[]map[string]interface{}{
 				{
-					"label":                   "preset1",
+					"label":                   "hls_1080p",
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
 					"h264_profile":            "main",
-					"base_url":                "https://log:pass@s3.here.com/1234567890/preset1",
+					"base_url":                "https://log:pass@s3.here.com/1234567890",
 					"keyframe_interval":       float64(90),
 					"width":                   float64(720),
 					"height":                  float64(1080),
@@ -445,16 +445,16 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"format":                  "ts",
 					"type":                    "segmented",
 					"audio_codec":             "aac",
-					"filename":                "output1.m3u8",
+					"filename":                "hls/hls_1080p/video.m3u8",
 					"segment_seconds":         float64(3),
 					"public":                  true,
 				},
 				{
-					"label":                   "preset2",
+					"label":                   "hls_720p",
 					"video_codec":             "h264",
 					"h264_level":              "3.1",
 					"h264_profile":            "main",
-					"base_url":                "https://log:pass@s3.here.com/1234567890/preset2",
+					"base_url":                "https://log:pass@s3.here.com/1234567890",
 					"keyframe_interval":       float64(90),
 					"width":                   float64(720),
 					"height":                  float64(1080),
@@ -465,7 +465,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"format":                  "ts",
 					"type":                    "segmented",
 					"audio_codec":             "aac",
-					"filename":                "output2.m3u8",
+					"filename":                "hls/hls_720p/video.m3u8",
 					"segment_seconds":         float64(3),
 					"public":                  true,
 				},
@@ -474,8 +474,8 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"filename": "hls/playlist.m3u8",
 					"type":     "playlist",
 					"streams": []interface{}{
-						map[string]interface{}{"source": "preset1", "path": "preset1/output1.m3u8"},
-						map[string]interface{}{"source": "preset2", "path": "preset2/output2.m3u8"},
+						map[string]interface{}{"source": "hls_1080p", "path": "hls_1080p/video.m3u8"},
+						map[string]interface{}{"source": "hls_720p", "path": "hls_720p/video.m3u8"},
 					},
 				},
 			},
@@ -491,7 +491,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					},
 					{
 						Preset:   db.PresetMap{Name: "preset_hls", ProviderMapping: map[string]string{"zencoder": "preset_hls"}},
-						FileName: "output.m3u8",
+						FileName: "hls/output.m3u8",
 					},
 				},
 				StreamingParams: db.StreamingParams{
@@ -559,8 +559,8 @@ func TestZencoderBuildOutputs(t *testing.T) {
 				{
 					"source":     "preset_mp4",
 					"label":      "preset_hls",
-					"base_url":   "https://log:pass@s3.here.com/1234567890/preset_hls",
-					"filename":   "output.m3u8",
+					"base_url":   "https://log:pass@s3.here.com/1234567890",
+					"filename":   "hls/preset_hls/video.m3u8",
 					"format":     "ts",
 					"copy_video": true,
 					"copy_audio": true,
@@ -571,7 +571,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"base_url": "https://log:pass@s3.here.com/1234567890",
 					"filename": "hls/playlist.m3u8",
 					"streams": []interface{}{
-						map[string]interface{}{"source": "preset_hls", "path": "preset_hls/output.m3u8"},
+						map[string]interface{}{"source": "preset_hls", "path": "preset_hls/video.m3u8"},
 					},
 				},
 			},
@@ -661,7 +661,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 		},
 		{
 			"Test with m3u8 container",
-			"test.m3u8",
+			"hls/test.m3u8",
 			"http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/",
 			db.Preset{
 				Name:        "hls_1080p",
@@ -690,8 +690,8 @@ func TestZencoderBuildOutput(t *testing.T) {
 				"audio_bitrate":     float64(128),
 				"keyframe_interval": float64(90),
 				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef/hls_1080p",
-				"filename":          "test.m3u8",
+				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
+				"filename":          "hls/hls_1080p/video.m3u8",
 				"type":              "segmented",
 				"public":            true,
 			},

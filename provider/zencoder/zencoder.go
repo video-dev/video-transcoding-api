@@ -176,7 +176,7 @@ func (z *zencoderProvider) buildHLSPlaylist(outputs []*zencoder.OutputSettings, 
 	for _, output := range outputs {
 		if output.Format == "ts" {
 			stream := zencoder.StreamSettings{
-				Path:   path.Join(output.Label, output.Filename),
+				Path:   output.Label + "/video.m3u8",
 				Source: output.Label,
 			}
 			streams = append(streams, &stream)
@@ -245,7 +245,9 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 		zencoderOutput.Type = "segmented"
 		zencoderOutput.Format = "ts"
 		zencoderOutput.SegmentSeconds = int32(job.StreamingParams.SegmentDuration)
-		destinationURL.Path = path.Join(destinationURL.Path, zencoderOutput.Label)
+		parts := strings.Split(filename, "/")
+		finalFilename := parts[0] + "/" + preset.Name + "/video.m3u8"
+		zencoderOutput.Filename = finalFilename
 	} else {
 		zencoderOutput.Format = preset.Container
 	}
