@@ -1,3 +1,14 @@
+## Version 0.1.3 (Release date: 2016-11-23)
+([4f55851](https://github.com/nytimes/video-transcoding-api/commit/4f55851)) zencoder: return s3:// outputs instead of http:// (fix #149) 
+
+
+([bfbad41](https://github.com/nytimes/video-transcoding-api/commit/bfbad41)) main: embed gops agent 
+
+([168c5f7](https://github.com/nytimes/video-transcoding-api/commit/168c5f7)) drone: setup asg notifications after deployment 
+
+
+
+
 ## Version 0.1.2 (Release date: 2016-11-21)
 
 ([f3e2435](https://github.com/nytimes/video-transcoding-api/commit/f3e2435)) zencoder: add PrepareForSegmenting: 'hls' for mp4's that matches with HLS 
