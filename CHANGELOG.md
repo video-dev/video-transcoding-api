@@ -1,3 +1,8 @@
+## Version 0.1.4 (Release date: 2016-11-23)
+
+
+
+
 ## Version 0.1.2 (Release date: 2016-11-21)
 
 ([f3e2435](https://github.com/nytimes/video-transcoding-api/commit/f3e2435)) zencoder: add PrepareForSegmenting: 'hls' for mp4's that matches with HLS 
