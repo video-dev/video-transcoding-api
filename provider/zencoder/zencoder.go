@@ -20,6 +20,7 @@ import (
 	"net/url"
 	"path"
 	"reflect"
+	"regexp"
 	"strconv"
 	"strings"
 	"time"
@@ -31,7 +32,7 @@ import (
 	"github.com/flavioribeiro/zencoder"
 )
 
-// Name is the name used for registering the Encoding.com provider in the
+// Name is the name used for registering the Zencoder provider in the
 // registry of providers.
 const Name = "zencoder"
 
@@ -308,11 +309,18 @@ func (z *zencoderProvider) statusMap(zencoderStatus string) provider.Status {
 	}
 }
 
+func (z *zencoderProvider) S3Url(input string) string {
+	var httpS3Regexp = regexp.MustCompile(`https?://([^/_.]+)\.s3\.amazonaws\.com/(.+)$`)
+	parts := httpS3Regexp.FindStringSubmatch(input)
+	fmt.Printf("-> %s -> %+v\n", input, parts)
+	return fmt.Sprintf("s3://%s/%s", parts[1], parts[2])
+}
+
 func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencoder.MediaFile) (provider.JobOutput, error) {
 	files := make([]provider.OutputFile, 0, len(outputMediaFiles))
 	for _, mediaFile := range outputMediaFiles {
 		file := provider.OutputFile{
-			Path:       mediaFile.Url,
+			Path:       z.S3Url(mediaFile.Url),
 			Container:  mediaFile.Format,
 			VideoCodec: mediaFile.VideoCodec,
 			Width:      int64(mediaFile.Width),

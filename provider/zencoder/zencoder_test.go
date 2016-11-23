@@ -897,7 +897,7 @@ func TestZencoderJobStatus(t *testing.T) {
 			"destination": "/",
 			"files": []interface{}{
 				map[string]interface{}{
-					"path":       "http://nyt.net/output1.mp4",
+					"path":       "s3://mybucket/destination-dir/output1.mp4",
 					"container":  "mp4",
 					"videoCodec": "h264",
 					"height":     float64(1080),
@@ -906,7 +906,7 @@ func TestZencoderJobStatus(t *testing.T) {
 				map[string]interface{}{
 					"height":     float64(720),
 					"width":      float64(1080),
-					"path":       "http://nyt.net/output2.webm",
+					"path":       "s3://mybucket/destination-dir/output2.webm",
 					"container":  "webm",
 					"videoCodec": "vp8",
 				},
