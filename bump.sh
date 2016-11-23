@@ -43,7 +43,7 @@ send_mail() {
 
   HEADER="<img src=http://flv.io/mf.png><h2>Changelog</h2>"
   BODY=$(cat .tmp_mail)
-  FOOTER="You can also see the full changelog on <a href=https://github.com/NYTimes/video-transcoding-api/blob/master/CHANGELOG.md>GitHub</a>.<br><br>Media Factory Team."
+  FOOTER="You can also see the full changelog on <a href=https://github.com/NYTimes/$PROJECT/blob/master/CHANGELOG.md>GitHub</a>.<br><br>Media Factory Team."
   MESSAGE="${HEADER}<br>${BODY}<br>${FOOTER}"
 
   SUBJECT="$TITLE\nFrom: Media Factory <mediafactory@nytimes.com>\nContent-Type: text/html\n"
