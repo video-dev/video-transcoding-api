@@ -45,7 +45,7 @@ func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, erro
 			SubmittedAt: "2016-11-05T05:02:57Z",
 			OutputMediaFiles: []*zencoderClient.MediaFile{
 				{
-					Url:          "http://nyt.net/output1.mp4",
+					Url:          "https://mybucket.s3.amazonaws.com/destination-dir/output1.mp4",
 					Format:       "mp4",
 					VideoCodec:   "h264",
 					Width:        1920,
@@ -53,7 +53,7 @@ func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, erro
 					DurationInMs: 10000,
 				},
 				{
-					Url:          "http://nyt.net/output2.webm",
+					Url:          "https://mybucket.s3.amazonaws.com/destination-dir/output2.webm",
 					Format:       "webm",
 					VideoCodec:   "vp8",
 					Width:        1080,
