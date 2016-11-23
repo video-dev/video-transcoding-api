@@ -1,3 +1,9 @@
+## Version 0.1.6 (Release date: 2016-11-23)
+([dbf6d29](https://github.com/nytimes/video-transcoding-api/commit/dbf6d29)) zencoder: fix hls path (close #157) 
+
+
+
+
 ## Version 0.1.5 (Release date: 2016-11-23)
 ([bf7521b](https://github.com/nytimes/video-transcoding-api/commit/bf7521b)) zencoder: avoid concatenating 'hls' path to hls output (refs #157) 
 
