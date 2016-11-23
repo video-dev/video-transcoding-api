@@ -58,6 +58,8 @@ if [ "$1" != "" ]; then
     last_version=$(git describe --tags $(git rev-list --tags --max-count=1))
     new_version=$(increment_version $last_version $1)
 
+    git checkout master
+    git pull --rebase
     update_changelog $last_version $new_version
     bump_version $new_version
     send_mail $last_version $new_version
