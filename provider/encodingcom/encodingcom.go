@@ -91,8 +91,7 @@ func (e *encodingComProvider) sourceMedia(original string) string {
 func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Format {
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	format := encodingcom.Format{
-		Output:      []string{preset.Container},
-		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+		Output: []string{preset.Container},
 	}
 	if preset.Container == "m3u8" {
 		format.Output = []string{hlsOutput}
