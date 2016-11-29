@@ -18,7 +18,11 @@ increment_version() {
     ((arr[2]++))
   fi
 
-  echo "${arr[0]}.${arr[1]}.${arr[2]}"
+  if [ "$2" == "major" ]; then
+    echo "${arr[0]}.${arr[1]}.${arr[2]}"
+  else
+    echo "${arr[0]}.${arr[1]}.${arr[2]}-rc"
+  fi
 }
 
 update_changelog() {

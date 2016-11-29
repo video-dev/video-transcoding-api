@@ -3,6 +3,7 @@
 HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
 LOG_LEVEL ?= debug
+TAG_SUFFIX  := $(shell git describe --tags $(shell git rev-list --tags --max-count=1) | tail -c 3)
 
 all: test
 
@@ -44,3 +45,13 @@ checkswagger:
 
 runswagger:
 	go run swagger-ui-server/main.go
+
+live:
+	git clone --depth=1 https://${GITHUB_TOKEN}@github.com/${INFRA_REPO}.git ${NP_PATH}
+	go get github.com/${NP_REPO}
+	np deploy transcoding-api:stg#${COMMIT}
+	aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-stg-${COMMIT}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+ifneq ($(TAG_SUFFIX),rc)
+	np deploy transcoding-api:prd#${COMMIT}
+	aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-prd-${COMMIT}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+endif
