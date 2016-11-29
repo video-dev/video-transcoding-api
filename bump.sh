@@ -18,7 +18,7 @@ increment_version() {
     ((arr[2]++))
   fi
 
-  if [ "$2" == "major" ]; then
+  if [ "$3" == "prd" ]; then
     echo "${arr[0]}.${arr[1]}.${arr[2]}"
   else
     echo "${arr[0]}.${arr[1]}.${arr[2]}-rc"
@@ -60,7 +60,7 @@ if [ "$1" != "" ]; then
   read -p "You're about to bump a new version and push to master. Is that what you intended? [y|n] " -n 1 -r < /dev/tty
   if echo $REPLY | grep -E '^[Yy]$' > /dev/null; then
     last_version=$(git describe --tags $(git rev-list --tags --max-count=1))
-    new_version=$(increment_version $last_version $1)
+    new_version=$(increment_version $last_version $1 $2)
 
     git checkout master
     git pull --rebase
@@ -71,6 +71,6 @@ if [ "$1" != "" ]; then
     echo " Bump aborted."
   fi
 else
-  echo "Usage: ./bump.sh [major|minor|bugfix]"
+  echo "Usage: ./bump.sh (major|minor|bugfix) [prd]"
 fi
 
