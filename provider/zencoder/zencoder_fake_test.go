@@ -1,37 +1,31 @@
 package zencoder
 
-import (
-	zencoderClient "github.com/flavioribeiro/zencoder"
-)
+import "github.com/flavioribeiro/zencoder"
 
 type FakeZencoder struct {
 }
 
-func (z *FakeZencoder) CreateJob(settings *zencoderClient.EncodingSettings) (*zencoderClient.CreateJobResponse, error) {
-	return &zencoderClient.CreateJobResponse{
+func (z *FakeZencoder) CreateJob(settings *zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error) {
+	return &zencoder.CreateJobResponse{
 		Id: 123,
 	}, nil
-}
-
-func (z *FakeZencoder) ListJobs() ([]*zencoderClient.JobDetails, error) {
-	return []*zencoderClient.JobDetails{}, nil
 }
 
 func (z *FakeZencoder) CancelJob(id int64) error {
 	return nil
 }
 
-func (z *FakeZencoder) GetJobProgress(id int64) (*zencoderClient.JobProgress, error) {
-	return &zencoderClient.JobProgress{
+func (z *FakeZencoder) GetJobProgress(id int64) (*zencoder.JobProgress, error) {
+	return &zencoder.JobProgress{
 		State:       "processing",
 		JobProgress: 10,
 	}, nil
 }
 
-func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, error) {
-	return &zencoderClient.JobDetails{
-		Job: &zencoderClient.Job{
-			InputMediaFile: &zencoderClient.MediaFile{
+func (z *FakeZencoder) GetJobDetails(id int64) (*zencoder.JobDetails, error) {
+	return &zencoder.JobDetails{
+		Job: &zencoder.Job{
+			InputMediaFile: &zencoder.MediaFile{
 				Url:          "http://nyt.net/input.mov",
 				Format:       "mov",
 				VideoCodec:   "ProRes422",
@@ -43,7 +37,7 @@ func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, erro
 			FinishedAt:  "2016-11-05T05:02:57Z",
 			UpdatedAt:   "2016-11-05T05:02:57Z",
 			SubmittedAt: "2016-11-05T05:02:57Z",
-			OutputMediaFiles: []*zencoderClient.MediaFile{
+			OutputMediaFiles: []*zencoder.MediaFile{
 				{
 					Url:          "https://mybucket.s3.amazonaws.com/destination-dir/output1.mp4",
 					Format:       "mp4",
@@ -63,4 +57,8 @@ func (z *FakeZencoder) GetJobDetails(id int64) (*zencoderClient.JobDetails, erro
 			},
 		},
 	}, nil
+}
+
+func (z *FakeZencoder) GetVodUsage(settings *zencoder.ReportSettings) (*zencoder.VodUsage, error) {
+	return &zencoder.VodUsage{}, nil
 }
