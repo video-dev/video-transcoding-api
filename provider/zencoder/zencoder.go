@@ -327,6 +327,9 @@ func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencod
 			Width:      int64(mediaFile.Width),
 			Height:     int64(mediaFile.Height),
 		}
+		if mediaFile.State == "finished" && mediaFile.Format == "" && strings.HasSuffix(mediaFile.Url, "m3u8") {
+			file.Container = "m3u8"
+		}
 		files = append(files, file)
 	}
 	destinationURL, err := url.Parse(z.config.Zencoder.Destination)
