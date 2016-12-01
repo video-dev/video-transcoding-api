@@ -46,10 +46,10 @@ func init() {
 // create the fake client for tests
 type Client interface {
 	CreateJob(*zencoder.EncodingSettings) (*zencoder.CreateJobResponse, error)
-	ListJobs() ([]*zencoder.JobDetails, error)
 	CancelJob(id int64) error
 	GetJobProgress(id int64) (*zencoder.JobProgress, error)
 	GetJobDetails(id int64) (*zencoder.JobDetails, error)
+	GetVodUsage(settings *zencoder.ReportSettings) (*zencoder.VodUsage, error)
 }
 
 type zencoderProvider struct {
@@ -350,7 +350,7 @@ func (z *zencoderProvider) CancelJob(id string) error {
 }
 
 func (z *zencoderProvider) Healthcheck() error {
-	_, err := z.client.ListJobs()
+	_, err := z.client.GetVodUsage(nil)
 	return err
 }
 
