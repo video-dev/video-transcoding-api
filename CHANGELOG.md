@@ -1,3 +1,22 @@
+## Version 1.0.1-rc (Release date: 2016-12-01)
+
+([a6112be](https://github.com/nytimes/video-transcoding-api/commit/a6112be)) zencoder: consider finished outputs with no format and m3u8 suffix as m3u8 container (refs #161) 
+
+
+([d68b5e2](https://github.com/nytimes/video-transcoding-api/commit/d68b5e2)) provider/zencoder: use GetVodUsage in Healthcheck 
+
+
+
+
+([58bd6e8](https://github.com/nytimes/video-transcoding-api/commit/58bd6e8)) makefile: fix variable replacement for makefile scheme 
+
+([766e434](https://github.com/nytimes/video-transcoding-api/commit/766e434)) build: detach stg and prod deployment by using 'rc' on tag name 
+
+([b3d1b63](https://github.com/nytimes/video-transcoding-api/commit/b3d1b63)) encodingcom: remove dead code when creating a encoding.com Format 
+
+
+
+
 ## Version 1.0.0 (Release date: 2016-11-23)
 
 
