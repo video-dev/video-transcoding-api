@@ -992,6 +992,50 @@ func TestZencoderGetResolution(t *testing.T) {
 	}
 }
 
+func TestGetJobOutputs(t *testing.T) {
+	cleanLocalPresets()
+	cfg := config.Config{
+		Zencoder: &config.Zencoder{APIKey: "api-key-here", Destination: "s3://login:pass@aws.com"},
+		Redis:    new(storage.Config),
+	}
+	fakeZencoder := &FakeZencoder{}
+	dbRepo, err := redis.NewRepository(&cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := &zencoderProvider{
+		config: &cfg,
+		client: fakeZencoder,
+		db:     dbRepo,
+	}
+	job := db.Job{ID: "123"}
+	outputMediaFiles := []*zencoder.MediaFile{
+		{Format: "mpeg-ts", Url: "http://bucket.s3.amazonaws.com/z/123/52833_slug__wg_hls/720p/video.m3u8", Height: 720, Width: 1080, VideoCodec: "h264", State: "finished"},
+		{Format: "mpeg-ts", Url: "http://bucket.s3.amazonaws.com/z/123/52833_slug__wg_hls/1080p/video.m3u8", Height: 1080, Width: 1920, VideoCodec: "h264", State: "finished"},
+		{Format: "mpeg4", Url: "http://bucket.s3.amazonaws.com/z/123/52833_slug_wg.mp4", Height: 1080, Width: 1920, VideoCodec: "h264", State: "finished"},
+		{Format: "", Url: "http://bucket.s3.amazonaws.com/z/123/52833_slug_wg_hls/video.m3u8", Height: 0, Width: 0, VideoCodec: "", State: "finished"},
+	}
+	res, err := prov.getJobOutputs(&job, outputMediaFiles)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	expected := provider.JobOutput{
+		Destination: "s3://login:pass@aws.com/123/",
+		Files: []provider.OutputFile{
+			{Path: "s3://bucket/z/123/52833_slug__wg_hls/720p/video.m3u8", Container: "mpeg-ts", VideoCodec: "h264", Height: 720, Width: 1080},
+			{Path: "s3://bucket/z/123/52833_slug__wg_hls/1080p/video.m3u8", Container: "mpeg-ts", VideoCodec: "h264", Height: 1080, Width: 1920},
+			{Path: "s3://bucket/z/123/52833_slug_wg.mp4", Container: "mpeg4", VideoCodec: "h264", Height: 1080, Width: 1920},
+			{Path: "s3://bucket/z/123/52833_slug_wg_hls/video.m3u8", Container: "m3u8", VideoCodec: "", Height: 0, Width: 0},
+		},
+	}
+
+	if !reflect.DeepEqual(res, expected) {
+		pretty.Fdiff(os.Stderr, expected, res)
+		t.Errorf("Factory: wrong JobOutput returned. Want %#v. Got %#v.", expected, res)
+	}
+}
+
 func cleanLocalPresets() error {
 	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
 	defer client.Close()
