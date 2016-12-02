@@ -1,3 +1,15 @@
+## Version 1.0.3 (Release date: 2016-12-02)
+
+([db75994](https://github.com/nytimes/video-transcoding-api/commit/db75994)) Protect against possible stray colon in error message 
+
+([a56d8da](https://github.com/nytimes/video-transcoding-api/commit/a56d8da)) Revert "Populate status message" 
+
+
+([4df203f](https://github.com/nytimes/video-transcoding-api/commit/4df203f)) Populate job status with detailed status message 
+
+
+
+
 ## Version 1.0.2-rc (Release date: 2016-12-01)
 ([98d5b5a](https://github.com/nytimes/video-transcoding-api/commit/98d5b5a)) Makefile: use CI_TAG in `make live` when available 
 
