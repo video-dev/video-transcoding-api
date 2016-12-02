@@ -227,10 +227,16 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 			return nil, err
 		}
 	}
+	formatStatus := e.getFormatStatus(resp)
+	statusMessage := ""
+	if len(formatStatus) > 0 {
+		statusMessage = formatStatus[0]
+	}
 	return &provider.JobStatus{
 		ProviderJobID: job.ProviderJobID,
 		ProviderName:  "encoding.com",
 		Status:        status,
+		StatusMessage: statusMessage,
 		Progress:      resp[0].Progress,
 		ProviderStatus: map[string]interface{}{
 			"sourcefile":   resp[0].SourceFile,
@@ -238,7 +244,7 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 			"created":      resp[0].CreateDate,
 			"started":      resp[0].StartDate,
 			"finished":     resp[0].FinishDate,
-			"formatStatus": e.getFormatStatus(resp),
+			"formatStatus": formatStatus,
 		},
 		Output: provider.JobOutput{
 			Destination: e.getOutputDestination(job),
@@ -280,7 +286,11 @@ func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusRespons
 	formatStatusList := []string{}
 	formats := status[0].Formats
 	for _, formatStatus := range formats {
-		formatStatusList = append(formatStatusList, formatStatus.Status)
+		statusMessage := formatStatus.Status
+		if statusMessage == "Error" {
+			statusMessage = statusMessage + ": " + formatStatus.Description
+		}
+		formatStatusList = append(formatStatusList, statusMessage)
 	}
 	return formatStatusList
 }
