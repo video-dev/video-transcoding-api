@@ -3,7 +3,8 @@
 HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
 LOG_LEVEL ?= debug
-TAG_SUFFIX  := $(shell git describe --tags $(shell git rev-list --tags --max-count=1) | tail -c 3)
+CI_TAG ?= $(shell git describe --tags $(shell git rev-list --tags --max-count=1))
+TAG_SUFFIX  := $(shell echo $(CI_TAG) | tail -c 3)
 
 all: test
 
