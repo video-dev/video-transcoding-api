@@ -127,11 +127,16 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 	if resp.ContentDuration != nil {
 		duration = time.Duration(resp.ContentDuration.InputDuration) * time.Second
 	}
+	statusMessage := ""
+	if len(resp.ErrorMessages) > 0 {
+		statusMessage = resp.ErrorMessages[0].Message
+	}
 	return &provider.JobStatus{
 		ProviderName:   Name,
 		ProviderJobID:  job.ProviderJobID,
 		Progress:       float64(resp.PercentComplete),
 		Status:         p.statusMap(resp.Status),
+		StatusMessage:  statusMessage,
 		ProviderStatus: providerStatus,
 		SourceInfo: provider.SourceInfo{
 			Duration:   duration,

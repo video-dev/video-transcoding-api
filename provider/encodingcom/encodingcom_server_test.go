@@ -41,12 +41,13 @@ type fakePreset struct {
 }
 
 type fakeMedia struct {
-	ID       string
-	Request  request
-	Created  time.Time
-	Started  time.Time
-	Finished time.Time
-	Status   string
+	ID          string
+	Request     request
+	Created     time.Time
+	Started     time.Time
+	Finished    time.Time
+	Status      string
+	Description string
 }
 
 // encodingComFakeServer is a fake version of the Encoding.com API.
@@ -189,6 +190,8 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 			"finished":   media.Finished.Format(encodingComDateFormat),
 			"output":     hlsOutput,
 			"format": map[string]interface{}{
+				"status":      status,
+				"description": media.Description,
 				"destination": []string{
 					"https://mybucket.s3.amazonaws.com/dir/job-123/some_hls_preset/video-0.m3u8",
 					"https://mybucket.s3.amazonaws.com/dir/job-123/video.m3u8",
