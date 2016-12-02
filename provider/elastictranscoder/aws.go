@@ -289,8 +289,8 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if len(resp.Job.Outputs) > 0 {
 		statusMessage = aws.StringValue(resp.Job.Outputs[0].StatusDetail)
 		if strings.Contains(statusMessage, ":") {
-			errorMessage := strings.Split(statusMessage, ":")[1]
-			statusMessage = strings.Trim(errorMessage, " ")
+			errorMessage := strings.SplitN(statusMessage, ":", 2)[1]
+			statusMessage = strings.TrimSpace(errorMessage)
 		}
 	}
 	return &provider.JobStatus{

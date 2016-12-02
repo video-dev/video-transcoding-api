@@ -512,7 +512,7 @@ func TestJobStatus(t *testing.T) {
 		ProviderJobID: "mymedia",
 		ProviderName:  "encoding.com",
 		Status:        provider.StatusFinished,
-		StatusMessage: "Finished",
+		StatusMessage: "",
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"sourcefile":   "http://some.source.file",
@@ -520,7 +520,7 @@ func TestJobStatus(t *testing.T) {
 			"created":      media.Created,
 			"started":      media.Started,
 			"finished":     media.Finished,
-			"formatStatus": []string{"Finished"},
+			"formatStatus": []string{""},
 		},
 		SourceInfo: provider.SourceInfo{
 			Duration:   183e9,
@@ -592,7 +592,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 		ProviderJobID: "mymedia",
 		ProviderName:  "encoding.com",
 		Status:        provider.StatusStarted,
-		StatusMessage: "Saving",
+		StatusMessage: "",
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"sourcefile":   "http://some.source.file",
@@ -600,7 +600,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 			"created":      media.Created,
 			"started":      media.Started,
 			"finished":     media.Finished,
-			"formatStatus": []string{"Saving"},
+			"formatStatus": []string{""},
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://mybucket/dir/job-123/",
@@ -682,58 +682,30 @@ func TestJobStatusInvalidSourceInfo(t *testing.T) {
 		Finished: now.Add(time.Hour),
 	}
 	server.medias["media3"] = &media3
-	media4 := fakeMedia{
-		ID: "media4",
-		Request: request{
-			Format: []encodingcom.Format{
-				{
-					VideoCodec: "VP9",
-					Output:     []string{"webm"},
-				},
-			},
-		},
-		Status:      "Error",
-		Description: "Something",
-		Created:     now,
-		Started:     now.Add(time.Minute),
-		Finished:    now.Add(time.Hour),
-	}
-	server.medias["media4"] = &media4
 	var tests = []struct {
-		testCase                   string
-		mediaID                    string
-		errMsg                     string
-		resultingStatusShouldBeNil bool
+		testCase string
+		mediaID  string
+		errMsg   string
 	}{
 		{
 			"invalid media ID",
 			"something",
 			`Error returned by the Encoding.com API: {"Errors":["media not found"]}`,
-			true,
 		},
 		{
 			"invalid height",
 			"media1",
 			`invalid size returned by the Encoding.com API ("1920x1080x900"): strconv.ParseInt: parsing "1080x900": invalid syntax`,
-			true,
 		},
 		{
 			"invalid width",
 			"media2",
 			`invalid size returned by the Encoding.com API ("πx1080"): strconv.ParseInt: parsing "π": invalid syntax`,
-			true,
 		},
 		{
 			"invalid size",
 			"media3",
 			`invalid size returned by the Encoding.com API: "π"`,
-			true,
-		},
-		{
-			"error status",
-			"media4",
-			`Error: Something`,
-			false,
 		},
 	}
 	client, err := encodingcom.NewClient(server.URL, "myuser", "secret")
@@ -748,18 +720,15 @@ func TestJobStatusInvalidSourceInfo(t *testing.T) {
 	}
 	for _, test := range tests {
 		jobStatus, err := prov.JobStatus(&db.Job{ProviderJobID: test.mediaID})
-		if test.resultingStatusShouldBeNil && jobStatus != nil {
+		if jobStatus != nil {
 			t.Errorf("%s: got unexpected non-nil status: %#v", test.testCase, jobStatus)
 		}
-		if test.resultingStatusShouldBeNil && err == nil {
+		if err == nil {
 			t.Errorf("%s: got unexpected <nil> error", test.testCase)
 			continue
 		}
-		if test.resultingStatusShouldBeNil && err.Error() != test.errMsg {
+		if err.Error() != test.errMsg {
 			t.Errorf("%s: wrong error message\nwant %q\ngot  %q", test.testCase, test.errMsg, err.Error())
-		}
-		if !test.resultingStatusShouldBeNil && test.errMsg != jobStatus.StatusMessage {
-			t.Errorf("%s: wrong error message\nwant %q\ngot  %q", test.testCase, test.errMsg, jobStatus.StatusMessage)
 		}
 	}
 }

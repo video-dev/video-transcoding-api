@@ -2,7 +2,6 @@ package elementalconductor
 
 import (
 	"encoding/xml"
-	"os"
 	"reflect"
 	"testing"
 	"time"
@@ -11,7 +10,6 @@ import (
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/kr/pretty"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {
@@ -736,11 +734,6 @@ func TestJobStatus(t *testing.T) {
 	client := newFakeElementalConductorClient(&elementalConductorConfig)
 	client.jobs["job-1"] = elementalconductor.Job{
 		Href: "whatever",
-		ErrorMessages: []elementalconductor.JobError{
-			{
-				Message: "This is some error.",
-			},
-		},
 		Input: elementalconductor.Input{
 			InputInfo: &elementalconductor.InputInfo{
 				Video: elementalconductor.VideoInputInfo{
@@ -865,7 +858,6 @@ func TestJobStatus(t *testing.T) {
 		ProviderJobID: "job-1",
 		Progress:      89.,
 		Status:        provider.StatusStarted,
-		StatusMessage: "This is some error.",
 		Output: provider.JobOutput{
 			Destination: "s3://destination/super-job-1",
 			Files: []provider.OutputFile{
@@ -898,15 +890,9 @@ func TestJobStatus(t *testing.T) {
 		ProviderStatus: map[string]interface{}{
 			"status":    "running",
 			"submitted": submitted,
-			"error_messages": []elementalconductor.JobError{
-				{
-					Message: "This is some error.",
-				},
-			},
 		},
 	}
 	if !reflect.DeepEqual(*jobStatus, expectedJobStatus) {
-		pretty.Fdiff(os.Stderr, expectedJobStatus, *jobStatus)
 		t.Errorf("wrong job stats\nwant %#v\ngot  %#v", expectedJobStatus, *jobStatus)
 	}
 }
