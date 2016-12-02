@@ -1,3 +1,11 @@
+## Version 1.0.2-rc (Release date: 2016-12-01)
+([98d5b5a](https://github.com/nytimes/video-transcoding-api/commit/98d5b5a)) Makefile: use CI_TAG in `make live` when available 
+
+([d0c5e27](https://github.com/nytimes/video-transcoding-api/commit/d0c5e27)) travis: update Go 
+
+
+
+
 ## Version 1.0.1-rc (Release date: 2016-12-01)
 
 ([a6112be](https://github.com/nytimes/video-transcoding-api/commit/a6112be)) zencoder: consider finished outputs with no format and m3u8 suffix as m3u8 container (refs #161) 
