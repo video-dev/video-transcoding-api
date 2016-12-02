@@ -860,80 +860,62 @@ func TestZencoderJobStatus(t *testing.T) {
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
-	var tests = []struct {
-		jobID         string
-		expectedError string
-	}{
-		{
-			"12345",
-			"",
-		},
-		{
-			"11111",
-			"Some error happened.",
-		},
+	jobStatus, err := prov.JobStatus(&db.Job{
+		ProviderJobID: "1234567890",
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
-	for _, test := range tests {
-		jobStatus, err := prov.JobStatus(&db.Job{
-			ProviderJobID: test.jobID,
-		})
-		if err != nil {
-			t.Fatal(err)
-		}
-		resultJSON, err := json.Marshal(jobStatus)
-		if err != nil {
-			t.Fatal(err)
-		}
-		result := make(map[string]interface{})
-		err = json.Unmarshal(resultJSON, &result)
-		if err != nil {
-			t.Fatal(err)
-		}
-		expected := map[string]interface{}{
-			"providerName":  "zencoder",
-			"providerJobId": test.jobID,
-			"status":        "started",
-			"progress":      float64(10),
-			"sourceInfo": map[string]interface{}{
-				"duration":   float64(10000000),
-				"height":     float64(1080),
-				"width":      float64(1920),
-				"videoCodec": "ProRes422",
-			},
-			"providerStatus": map[string]interface{}{
-				"sourcefile": "http://nyt.net/input.mov",
-				"created":    "2016-11-05T05:02:57Z",
-				"finished":   "2016-11-05T05:02:57Z",
-				"updated":    "2016-11-05T05:02:57Z",
-				"started":    "2016-11-05T05:02:57Z",
-			},
-			"output": map[string]interface{}{
-				"destination": "/",
-				"files": []interface{}{
-					map[string]interface{}{
-						"path":       "s3://mybucket/destination-dir/output1.mp4",
-						"container":  "mp4",
-						"videoCodec": "h264",
-						"height":     float64(1080),
-						"width":      float64(1920),
-					},
-					map[string]interface{}{
-						"height":     float64(720),
-						"width":      float64(1080),
-						"path":       "s3://mybucket/destination-dir/output2.webm",
-						"container":  "webm",
-						"videoCodec": "vp8",
-					},
+	resultJSON, err := json.Marshal(jobStatus)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := make(map[string]interface{})
+	err = json.Unmarshal(resultJSON, &result)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := map[string]interface{}{
+		"providerName":  "zencoder",
+		"providerJobId": "1234567890",
+		"status":        "started",
+		"progress":      float64(10),
+		"sourceInfo": map[string]interface{}{
+			"duration":   float64(10000000),
+			"height":     float64(1080),
+			"width":      float64(1920),
+			"videoCodec": "ProRes422",
+		},
+		"providerStatus": map[string]interface{}{
+			"sourcefile": "http://nyt.net/input.mov",
+			"created":    "2016-11-05T05:02:57Z",
+			"finished":   "2016-11-05T05:02:57Z",
+			"updated":    "2016-11-05T05:02:57Z",
+			"started":    "2016-11-05T05:02:57Z",
+		},
+		"output": map[string]interface{}{
+			"destination": "/",
+			"files": []interface{}{
+				map[string]interface{}{
+					"path":       "s3://mybucket/destination-dir/output1.mp4",
+					"container":  "mp4",
+					"videoCodec": "h264",
+					"height":     float64(1080),
+					"width":      float64(1920),
+				},
+				map[string]interface{}{
+					"height":     float64(720),
+					"width":      float64(1080),
+					"path":       "s3://mybucket/destination-dir/output2.webm",
+					"container":  "webm",
+					"videoCodec": "vp8",
 				},
 			},
-		}
-		if test.expectedError != "" {
-			expected["statusMessage"] = test.expectedError
-		}
-		if !reflect.DeepEqual(result, expected) {
-			pretty.Fdiff(os.Stderr, expected, result)
-			t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", expected, result)
-		}
+		},
+	}
+	if !reflect.DeepEqual(result, expected) {
+		pretty.Fdiff(os.Stderr, expected, result)
+		t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", expected, result)
 	}
 }
 

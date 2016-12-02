@@ -274,15 +274,10 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
 	inputMediaFile := jobDetails.Job.InputMediaFile
-	statusMessage := ""
-	if inputMediaFile.ErrorMessage != nil {
-		statusMessage = *inputMediaFile.ErrorMessage
-	}
 	return &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: job.ProviderJobID,
 		Status:        z.statusMap(progress.State),
-		StatusMessage: statusMessage,
 		Progress:      progress.JobProgress,
 		Output:        jobOutputs,
 		SourceInfo: provider.SourceInfo{

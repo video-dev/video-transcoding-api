@@ -658,7 +658,6 @@ func TestAWSJobStatus(t *testing.T) {
 	expectedJobStatus := provider.JobStatus{
 		ProviderJobID: jobStatus.ProviderJobID,
 		Status:        provider.StatusFinished,
-		StatusMessage: "it's finished!",
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"outputs": map[string]interface{}{
@@ -753,7 +752,6 @@ func TestAWSJobStatusNoDetectedProperties(t *testing.T) {
 	expectedJobStatus := provider.JobStatus{
 		ProviderJobID: jobStatus.ProviderJobID,
 		Status:        provider.StatusFinished,
-		StatusMessage: "it's finished!",
 		Progress:      100,
 		ProviderStatus: map[string]interface{}{
 			"outputs": map[string]interface{}{

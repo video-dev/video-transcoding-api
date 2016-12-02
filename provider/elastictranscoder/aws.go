@@ -285,18 +285,9 @@ func (p *awsProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			Width:    aws.Int64Value(resp.Job.Input.DetectedProperties.Width),
 		}
 	}
-	statusMessage := ""
-	if len(resp.Job.Outputs) > 0 {
-		statusMessage = aws.StringValue(resp.Job.Outputs[0].StatusDetail)
-		if strings.Contains(statusMessage, ":") {
-			errorMessage := strings.Split(statusMessage, ":")[1]
-			statusMessage = strings.Trim(errorMessage, " ")
-		}
-	}
 	return &provider.JobStatus{
 		ProviderJobID:  aws.StringValue(resp.Job.Id),
 		Status:         p.statusMap(aws.StringValue(resp.Job.Status)),
-		StatusMessage:  statusMessage,
 		Progress:       completedJobs / float64(totalJobs) * 100,
 		ProviderStatus: map[string]interface{}{"outputs": outputs},
 		SourceInfo:     sourceInfo,
