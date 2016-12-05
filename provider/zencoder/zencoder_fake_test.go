@@ -16,10 +16,10 @@ func (z *FakeZencoder) CancelJob(id int64) error {
 }
 
 func (z *FakeZencoder) GetJobProgress(id int64) (*zencoder.JobProgress, error) {
-	return &zencoder.JobProgress{
-		State:       "processing",
-		JobProgress: 10,
-	}, nil
+	if id == 1234567890 {
+		return &zencoder.JobProgress{State: "processing", JobProgress: 10}, nil
+	}
+	return &zencoder.JobProgress{State: "finished", JobProgress: 0}, nil
 }
 
 func (z *FakeZencoder) GetJobDetails(id int64) (*zencoder.JobDetails, error) {

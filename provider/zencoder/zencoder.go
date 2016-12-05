@@ -273,6 +273,9 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
+	if progress.State == "finished" {
+		progress.JobProgress = 100
+	}
 	inputMediaFile := jobDetails.Job.InputMediaFile
 	return &provider.JobStatus{
 		ProviderName:  Name,
