@@ -881,7 +881,7 @@ func TestZencoderJobStatus(t *testing.T) {
 		"status":        "started",
 		"progress":      float64(10),
 		"sourceInfo": map[string]interface{}{
-			"duration":   float64(10000000),
+			"duration":   float64(50000000000),
 			"height":     float64(1080),
 			"width":      float64(1920),
 			"videoCodec": "ProRes422",

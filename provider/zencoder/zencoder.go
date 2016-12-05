@@ -281,7 +281,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		Progress:      progress.JobProgress,
 		Output:        jobOutputs,
 		SourceInfo: provider.SourceInfo{
-			Duration:   time.Duration(inputMediaFile.DurationInMs * 1000),
+			Duration:   time.Duration(inputMediaFile.DurationInMs) * time.Millisecond,
 			Height:     int64(inputMediaFile.Height),
 			Width:      int64(inputMediaFile.Width),
 			VideoCodec: inputMediaFile.VideoCodec,
