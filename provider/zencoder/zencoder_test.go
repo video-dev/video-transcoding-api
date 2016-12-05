@@ -984,17 +984,16 @@ func TestZencoderStatusMap(t *testing.T) {
 		db:     dbRepo,
 	}
 	var tests = []struct {
-		Input    string
+		Input    zencoder.JobState
 		Expected provider.Status
 	}{
-		{"waiting", provider.StatusQueued},
-		{"pending", provider.StatusQueued},
-		{"assigning", provider.StatusQueued},
-		{"processing", provider.StatusStarted},
-		{"finished", provider.StatusFinished},
-		{"cancelled", provider.StatusCanceled},
-		{"failed", provider.StatusFailed},
-		{"unknown", provider.StatusFailed},
+		{zencoder.JobStateWaiting, provider.StatusQueued},
+		{zencoder.JobStatePending, provider.StatusQueued},
+		{zencoder.JobStateAssigning, provider.StatusQueued},
+		{zencoder.JobStateProcessing, provider.StatusStarted},
+		{zencoder.JobStateFinished, provider.StatusFinished},
+		{zencoder.JobStateCancelled, provider.StatusCanceled},
+		{zencoder.JobStateFailed, provider.StatusFailed},
 	}
 	for _, test := range tests {
 		if prov.statusMap(test.Input) != test.Expected {

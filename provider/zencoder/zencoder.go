@@ -273,7 +273,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error getting job progress: %s", err)
 	}
-	if progress.State == "finished" {
+	if progress.State == zencoder.JobStateFinished {
 		progress.JobProgress = 100
 	}
 	inputMediaFile := jobDetails.Job.InputMediaFile
@@ -299,15 +299,15 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (z *zencoderProvider) statusMap(zencoderStatus string) provider.Status {
-	switch zencoderStatus {
-	case "waiting", "assigning", "pending":
+func (z *zencoderProvider) statusMap(zencoderState zencoder.JobState) provider.Status {
+	switch zencoderState {
+	case zencoder.JobStateWaiting, zencoder.JobStateAssigning, zencoder.JobStatePending:
 		return provider.StatusQueued
-	case "processing":
+	case zencoder.JobStateProcessing:
 		return provider.StatusStarted
-	case "finished":
+	case zencoder.JobStateFinished:
 		return provider.StatusFinished
-	case "cancelled":
+	case zencoder.JobStateCancelled:
 		return provider.StatusCanceled
 	default:
 		return provider.StatusFailed
