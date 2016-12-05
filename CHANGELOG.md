@@ -1,3 +1,13 @@
+## Version 1.0.4 (Release date: 2016-12-05)
+
+([b220d80](https://github.com/nytimes/video-transcoding-api/commit/b220d80)) zencoder: bugfix on duration being reported 
+
+
+([4566b29](https://github.com/nytimes/video-transcoding-api/commit/4566b29)) Revert "encodingcom: remove dead code when creating a encoding.com Format" 
+
+
+
+
 ## Version 1.0.3 (Release date: 2016-12-02)
 
 ([db75994](https://github.com/nytimes/video-transcoding-api/commit/db75994)) Protect against possible stray colon in error message 
