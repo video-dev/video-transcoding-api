@@ -860,62 +860,111 @@ func TestZencoderJobStatus(t *testing.T) {
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
-	jobStatus, err := prov.JobStatus(&db.Job{
-		ProviderJobID: "1234567890",
-	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	resultJSON, err := json.Marshal(jobStatus)
-	if err != nil {
-		t.Fatal(err)
-	}
-	result := make(map[string]interface{})
-	err = json.Unmarshal(resultJSON, &result)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expected := map[string]interface{}{
-		"providerName":  "zencoder",
-		"providerJobId": "1234567890",
-		"status":        "started",
-		"progress":      float64(10),
-		"sourceInfo": map[string]interface{}{
-			"duration":   float64(50000000000),
-			"height":     float64(1080),
-			"width":      float64(1920),
-			"videoCodec": "ProRes422",
-		},
-		"providerStatus": map[string]interface{}{
-			"sourcefile": "http://nyt.net/input.mov",
-			"created":    "2016-11-05T05:02:57Z",
-			"finished":   "2016-11-05T05:02:57Z",
-			"updated":    "2016-11-05T05:02:57Z",
-			"started":    "2016-11-05T05:02:57Z",
-		},
-		"output": map[string]interface{}{
-			"destination": "/",
-			"files": []interface{}{
-				map[string]interface{}{
-					"path":       "s3://mybucket/destination-dir/output1.mp4",
-					"container":  "mp4",
-					"videoCodec": "h264",
+	var tests = []struct {
+		ProviderJobID string
+		Expected      map[string]interface{}
+	}{
+		{
+			"1234567890",
+			map[string]interface{}{
+				"providerName":  "zencoder",
+				"providerJobId": "1234567890",
+				"status":        "started",
+				"progress":      float64(10),
+				"sourceInfo": map[string]interface{}{
+					"duration":   float64(50000000000),
 					"height":     float64(1080),
 					"width":      float64(1920),
+					"videoCodec": "ProRes422",
 				},
-				map[string]interface{}{
-					"height":     float64(720),
-					"width":      float64(1080),
-					"path":       "s3://mybucket/destination-dir/output2.webm",
-					"container":  "webm",
-					"videoCodec": "vp8",
+				"providerStatus": map[string]interface{}{
+					"sourcefile": "http://nyt.net/input.mov",
+					"created":    "2016-11-05T05:02:57Z",
+					"finished":   "2016-11-05T05:02:57Z",
+					"updated":    "2016-11-05T05:02:57Z",
+					"started":    "2016-11-05T05:02:57Z",
+				},
+				"output": map[string]interface{}{
+					"destination": "/",
+					"files": []interface{}{
+						map[string]interface{}{
+							"path":       "s3://mybucket/destination-dir/output1.mp4",
+							"container":  "mp4",
+							"videoCodec": "h264",
+							"height":     float64(1080),
+							"width":      float64(1920),
+						},
+						map[string]interface{}{
+							"height":     float64(720),
+							"width":      float64(1080),
+							"path":       "s3://mybucket/destination-dir/output2.webm",
+							"container":  "webm",
+							"videoCodec": "vp8",
+						},
+					},
+				},
+			},
+		},
+		{
+			"54321",
+			map[string]interface{}{
+				"providerName":  "zencoder",
+				"providerJobId": "54321",
+				"status":        "finished",
+				"progress":      float64(100),
+				"sourceInfo": map[string]interface{}{
+					"duration":   float64(50000000000),
+					"height":     float64(1080),
+					"width":      float64(1920),
+					"videoCodec": "ProRes422",
+				},
+				"providerStatus": map[string]interface{}{
+					"sourcefile": "http://nyt.net/input.mov",
+					"created":    "2016-11-05T05:02:57Z",
+					"finished":   "2016-11-05T05:02:57Z",
+					"updated":    "2016-11-05T05:02:57Z",
+					"started":    "2016-11-05T05:02:57Z",
+				},
+				"output": map[string]interface{}{
+					"destination": "/",
+					"files": []interface{}{
+						map[string]interface{}{
+							"path":       "s3://mybucket/destination-dir/output1.mp4",
+							"container":  "mp4",
+							"videoCodec": "h264",
+							"height":     float64(1080),
+							"width":      float64(1920),
+						},
+						map[string]interface{}{
+							"height":     float64(720),
+							"width":      float64(1080),
+							"path":       "s3://mybucket/destination-dir/output2.webm",
+							"container":  "webm",
+							"videoCodec": "vp8",
+						},
+					},
 				},
 			},
 		},
 	}
-	if !reflect.DeepEqual(result, expected) {
-		pretty.Fdiff(os.Stderr, expected, result)
-		t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", expected, result)
+	for _, test := range tests {
+		jobStatus, err := prov.JobStatus(&db.Job{ProviderJobID: test.ProviderJobID})
+		if err != nil {
+			t.Fatal(err)
+		}
+		resultJSON, err := json.Marshal(jobStatus)
+		if err != nil {
+			t.Fatal(err)
+		}
+		result := make(map[string]interface{})
+		err = json.Unmarshal(resultJSON, &result)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(result, test.Expected) {
+			pretty.Fdiff(os.Stderr, test.Expected, result)
+			t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", test.Expected, result)
+		}
 	}
 }
 
@@ -935,17 +984,16 @@ func TestZencoderStatusMap(t *testing.T) {
 		db:     dbRepo,
 	}
 	var tests = []struct {
-		Input    string
+		Input    zencoder.JobState
 		Expected provider.Status
 	}{
-		{"waiting", provider.StatusQueued},
-		{"pending", provider.StatusQueued},
-		{"assigning", provider.StatusQueued},
-		{"processing", provider.StatusStarted},
-		{"finished", provider.StatusFinished},
-		{"cancelled", provider.StatusCanceled},
-		{"failed", provider.StatusFailed},
-		{"unknown", provider.StatusFailed},
+		{zencoder.JobStateWaiting, provider.StatusQueued},
+		{zencoder.JobStatePending, provider.StatusQueued},
+		{zencoder.JobStateAssigning, provider.StatusQueued},
+		{zencoder.JobStateProcessing, provider.StatusStarted},
+		{zencoder.JobStateFinished, provider.StatusFinished},
+		{zencoder.JobStateCancelled, provider.StatusCanceled},
+		{zencoder.JobStateFailed, provider.StatusFailed},
 	}
 	for _, test := range tests {
 		if prov.statusMap(test.Input) != test.Expected {
