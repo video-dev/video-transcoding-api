@@ -31,7 +31,7 @@ func (z *FakeZencoder) GetJobDetails(id int64) (*zencoder.JobDetails, error) {
 				VideoCodec:   "ProRes422",
 				Width:        1920,
 				Height:       1080,
-				DurationInMs: 10000,
+				DurationInMs: 50000,
 			},
 			CreatedAt:   "2016-11-05T05:02:57Z",
 			FinishedAt:  "2016-11-05T05:02:57Z",
