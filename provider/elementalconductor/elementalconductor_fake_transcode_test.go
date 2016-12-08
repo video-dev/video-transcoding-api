@@ -14,31 +14,19 @@ type fakeElementalConductorClient struct {
 	canceledJobs []string
 }
 
-func newFakeElementalConductorClient(cfg *config.Config) *fakeElementalConductorClient {
+func newFakeElementalConductorClient(cfg *config.ElementalConductor) *fakeElementalConductorClient {
 	return &fakeElementalConductorClient{
 		jobs: make(map[string]elementalconductor.Job),
 		Client: &elementalconductor.Client{
-			Host:            cfg.ElementalConductor.Host,
-			UserLogin:       cfg.ElementalConductor.UserLogin,
-			APIKey:          cfg.ElementalConductor.APIKey,
-			AuthExpires:     cfg.ElementalConductor.AuthExpires,
-			AccessKeyID:     cfg.ElementalConductor.AccessKeyID,
-			SecretAccessKey: cfg.ElementalConductor.SecretAccessKey,
-			Destination:     cfg.ElementalConductor.Destination,
+			Host:            cfg.Host,
+			UserLogin:       cfg.UserLogin,
+			APIKey:          cfg.APIKey,
+			AuthExpires:     cfg.AuthExpires,
+			AccessKeyID:     cfg.AccessKeyID,
+			SecretAccessKey: cfg.SecretAccessKey,
+			Destination:     cfg.Destination,
 		},
 	}
-}
-
-func (c *fakeElementalConductorClient) GetAccessKeyID() string {
-	return c.AccessKeyID
-}
-
-func (c *fakeElementalConductorClient) GetSecretAccessKey() string {
-	return c.SecretAccessKey
-}
-
-func (c *fakeElementalConductorClient) GetDestination() string {
-	return c.Destination
 }
 
 func (c *fakeElementalConductorClient) GetPreset(presetID string) (*elementalconductor.Preset, error) {
@@ -73,6 +61,6 @@ func fakeElementalConductorFactory(cfg *config.Config) (provider.TranscodingProv
 		cfg.ElementalConductor.APIKey == "" || cfg.ElementalConductor.AuthExpires == 0 {
 		return nil, errElementalConductorInvalidConfig
 	}
-	client := newFakeElementalConductorClient(cfg)
-	return &elementalConductorProvider{client: client, config: cfg}, nil
+	client := newFakeElementalConductorClient(cfg.ElementalConductor)
+	return &elementalConductorProvider{client: client, config: cfg.ElementalConductor}, nil
 }

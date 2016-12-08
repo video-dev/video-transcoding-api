@@ -45,8 +45,8 @@ func TestElementalConductorFactory(t *testing.T) {
 	if !reflect.DeepEqual(econductorProvider.client, expected) {
 		t.Errorf("Factory: wrong client returned. Want %#v. Got %#v.", expected, econductorProvider.client)
 	}
-	if !reflect.DeepEqual(*econductorProvider.config, cfg) {
-		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", cfg, *econductorProvider.config)
+	if !reflect.DeepEqual(*econductorProvider.config, *cfg.ElementalConductor) {
+		t.Errorf("Factory: wrong config returned. Want %#v. Got %#v.", *cfg.ElementalConductor, *econductorProvider.config)
 	}
 }
 
@@ -686,7 +686,7 @@ func TestJobStatusOutputDestination(t *testing.T) {
 		t.Fatal("Could not type assert test provider to elementalConductorProvider")
 	}
 	for _, test := range tests {
-		provider.config.ElementalConductor.Destination = test.destinationCfg
+		provider.config.Destination = test.destinationCfg
 		got := provider.getOutputDestination(&test.job)
 		if got != test.expected {
 			t.Errorf("Wrong output destination. Want %q. Got %q", test.expected, got)
@@ -719,16 +719,14 @@ func TestJobStatusMap(t *testing.T) {
 }
 
 func TestJobStatus(t *testing.T) {
-	elementalConductorConfig := config.Config{
-		ElementalConductor: &config.ElementalConductor{
-			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
-			UserLogin:       "myuser",
-			APIKey:          "elemental-api-key",
-			AuthExpires:     30,
-			AccessKeyID:     "aws-access-key",
-			SecretAccessKey: "aws-secret-key",
-			Destination:     "s3://destination",
-		},
+	elementalConductorConfig := config.ElementalConductor{
+		Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+		UserLogin:       "myuser",
+		APIKey:          "elemental-api-key",
+		AuthExpires:     30,
+		AccessKeyID:     "aws-access-key",
+		SecretAccessKey: "aws-secret-key",
+		Destination:     "s3://destination",
 	}
 	submitted := elementalconductor.DateTime{Time: time.Now().UTC()}
 	client := newFakeElementalConductorClient(&elementalConductorConfig)
@@ -898,16 +896,14 @@ func TestJobStatus(t *testing.T) {
 }
 
 func TestJobStatusNoDuration(t *testing.T) {
-	elementalConductorConfig := config.Config{
-		ElementalConductor: &config.ElementalConductor{
-			Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
-			UserLogin:       "myuser",
-			APIKey:          "elemental-api-key",
-			AuthExpires:     30,
-			AccessKeyID:     "aws-access-key",
-			SecretAccessKey: "aws-secret-key",
-			Destination:     "s3://destination",
-		},
+	elementalConductorConfig := config.ElementalConductor{
+		Host:            "https://mybucket.s3.amazonaws.com/destination-dir/",
+		UserLogin:       "myuser",
+		APIKey:          "elemental-api-key",
+		AuthExpires:     30,
+		AccessKeyID:     "aws-access-key",
+		SecretAccessKey: "aws-secret-key",
+		Destination:     "s3://destination",
 	}
 	submitted := elementalconductor.DateTime{Time: time.Now().UTC()}
 	client := newFakeElementalConductorClient(&elementalConductorConfig)

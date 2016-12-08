@@ -11,7 +11,4 @@ type clientInterface interface {
 	CancelJob(jobID string) (*elementalconductor.Job, error)
 	GetNodes() ([]elementalconductor.Node, error)
 	GetCloudConfig() (*elementalconductor.CloudConfig, error)
-	GetAccessKeyID() string
-	GetSecretAccessKey() string
-	GetDestination() string
 }

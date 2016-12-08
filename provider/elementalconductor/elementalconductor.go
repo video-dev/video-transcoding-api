@@ -42,7 +42,7 @@ func init() {
 }
 
 type elementalConductorProvider struct {
-	config *config.Config
+	config *config.ElementalConductor
 	client clientInterface
 }
 
@@ -147,7 +147,7 @@ func (p *elementalConductorProvider) JobStatus(job *db.Job) (*provider.JobStatus
 }
 
 func (p *elementalConductorProvider) getOutputDestination(job *db.Job) string {
-	return strings.TrimRight(p.config.ElementalConductor.Destination, "/") + "/" + job.ID
+	return strings.TrimRight(p.config.Destination, "/") + "/" + job.ID
 }
 
 func (p *elementalConductorProvider) getOutputFiles(job *elementalconductor.Job) []provider.OutputFile {
@@ -267,14 +267,14 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 func (p *elementalConductorProvider) newJob(job *db.Job) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
 		URI:      job.SourceMedia,
-		Username: p.client.GetAccessKeyID(),
-		Password: p.client.GetSecretAccessKey(),
+		Username: p.config.AccessKeyID,
+		Password: p.config.SecretAccessKey,
 	}
-	baseLocation := strings.TrimRight(p.config.ElementalConductor.Destination, "/")
+	baseLocation := strings.TrimRight(p.config.Destination, "/")
 	outputLocation := elementalconductor.Location{
 		URI:      baseLocation + "/" + job.ID,
-		Username: p.client.GetAccessKeyID(),
-		Password: p.client.GetSecretAccessKey(),
+		Username: p.config.AccessKeyID,
+		Password: p.config.SecretAccessKey,
 	}
 	outputGroup, streamAssemblyList, err := p.buildOutputGroupAndStreamAssemblies(outputLocation, *job)
 	if err != nil {
@@ -342,5 +342,5 @@ func elementalConductorFactory(cfg *config.Config) (provider.TranscodingProvider
 		cfg.ElementalConductor.SecretAccessKey,
 		cfg.ElementalConductor.Destination,
 	)
-	return &elementalConductorProvider{client: client, config: cfg}, nil
+	return &elementalConductorProvider{client: client, config: cfg.ElementalConductor}, nil
 }
