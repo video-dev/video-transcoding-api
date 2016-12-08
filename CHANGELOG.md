@@ -1,3 +1,18 @@
+## Version 1.0.5 (Release date: 2016-12-08)
+([c53ea3d](https://github.com/nytimes/video-transcoding-api/commit/c53ea3d)) provider/elementalconductor: fix compatibility with encoding-wrapper 
+
+([6e951cc](https://github.com/nytimes/video-transcoding-api/commit/6e951cc)) travis: add Go 1.8beta1 
+
+([0295924](https://github.com/nytimes/video-transcoding-api/commit/0295924)) swagger: add test to increase package coverage 
+
+
+([c60a8f3](https://github.com/nytimes/video-transcoding-api/commit/c60a8f3)) zencoder: use constants for Job State 
+
+([44e3bd5](https://github.com/nytimes/video-transcoding-api/commit/44e3bd5)) zencoder: set progress to 100 when job status is finished (fixes #170) 
+
+
+
+
 ## Version 1.0.4 (Release date: 2016-12-05)
 
 ([b220d80](https://github.com/nytimes/video-transcoding-api/commit/b220d80)) zencoder: bugfix on duration being reported 
