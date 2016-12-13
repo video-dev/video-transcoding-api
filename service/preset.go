@@ -90,8 +90,8 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 
 	output.Results = make(map[string]newPresetOutput)
 
-	// sometimes we try to create a new preset in a new provider but we already
-	// have the presetmap stored. We want to update the PresetMap in such cases.
+	// Sometimes we try to create a new preset in a new provider but we already
+	// have the PresetMap stored. We want to update the PresetMap in such cases.
 	presetMap, err = s.db.GetPresetMap(input.Preset.Name)
 	if err == db.ErrPresetMapNotFound {
 		presetMap = &db.PresetMap{Name: input.Preset.Name}
@@ -107,7 +107,7 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		}
 		providers = input.Providers
 	} else if err == nil {
-		// if we already have a PresetMap for this preset, we just need to create the
+		// If we already have a PresetMap for this preset, we just need to create the
 		// preset on the providers that are not mapped yet.
 		providers = s.getMissingProviders(input.Providers, presetMap.ProviderMapping)
 
@@ -135,7 +135,6 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		}
 		presetMap.ProviderMapping[p] = presetID
 		output.Results[p] = newPresetOutput{PresetID: presetID, Error: ""}
-		fmt.Printf("KREATED PRESET FOR %s and %#v\n", p, presetMap)
 	}
 
 	status := http.StatusOK
