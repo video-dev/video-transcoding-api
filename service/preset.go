@@ -115,6 +115,8 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		for provider, presetID := range presetMap.ProviderMapping {
 			output.Results[provider] = newPresetOutput{PresetID: presetID, Error: ""}
 		}
+	} else if err != nil {
+		return swagger.NewErrorResponse(err)
 	}
 
 	for _, p := range providers {
