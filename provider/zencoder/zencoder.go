@@ -329,6 +329,7 @@ func (z *zencoderProvider) getJobOutputs(job *db.Job, outputMediaFiles []*zencod
 			VideoCodec: mediaFile.VideoCodec,
 			Width:      int64(mediaFile.Width),
 			Height:     int64(mediaFile.Height),
+			FileSize:   mediaFile.FileSizeInBytes,
 		}
 		if mediaFile.State == "finished" && mediaFile.Format == "" && strings.HasSuffix(mediaFile.Url, "m3u8") {
 			file.Container = "m3u8"

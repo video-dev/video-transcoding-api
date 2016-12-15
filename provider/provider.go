@@ -94,6 +94,7 @@ type OutputFile struct {
 	VideoCodec string `json:"videoCodec"`
 	Height     int64  `json:"height"`
 	Width      int64  `json:"width"`
+	FileSize   int64  `json:"fileSize"`
 }
 
 // SourceInfo contains information about media transcoded using the Transcoding
