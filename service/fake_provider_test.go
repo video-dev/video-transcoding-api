@@ -8,6 +8,7 @@ import (
 
 func init() {
 	provider.Register("fake", fakeProviderFactory)
+	provider.Register("zencoder", fakeProviderFactory)
 }
 
 type fakeProvider struct {

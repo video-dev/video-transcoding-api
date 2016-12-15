@@ -153,6 +153,82 @@ func TestNewPreset(t *testing.T) {
 	}
 }
 
+func TestNewPresetWithExistentPresetMap(t *testing.T) {
+	data := map[string]interface{}{
+		"providers":     []string{"zencoder"},
+		"outputOptions": map[string]interface{}{},
+		"preset": map[string]interface{}{
+			"name":         "presetID_here",
+			"description":  "testing creation from api",
+			"container":    "mp4",
+			"profile":      "Main",
+			"profileLevel": "3.1",
+			"rateControl":  "VBR",
+			"video": map[string]string{
+				"height":        "720",
+				"codec":         "h264",
+				"bitrate":       "1000",
+				"gopSize":       "90",
+				"gopMode":       "fixed",
+				"interlaceMode": "progressive",
+			},
+			"audio": map[string]string{
+				"codec":   "aac",
+				"bitrate": "64000",
+			},
+		},
+	}
+
+	presetMap := db.PresetMap{
+		Name: "presetID_here",
+		ProviderMapping: map[string]string{
+			"fake": "presetID_here",
+		},
+		OutputOpts: db.OutputOptions{},
+	}
+
+	fakeDB := dbtest.NewFakeRepository(false)
+	err := fakeDB.CreatePresetMap(&presetMap)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+	service, err := NewTranscodingService(&config.Config{}, logrus.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	service.db = fakeDB
+	srvr.Register(service)
+	body, _ := json.Marshal(data)
+	r, _ := http.NewRequest("POST", "/presets", bytes.NewReader(body))
+	r.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+	srvr.ServeHTTP(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Errorf("wrong response code. Want %d. Got %d", http.StatusOK, w.Code)
+	}
+
+	var got map[string]interface{}
+	err = json.NewDecoder(w.Body).Decode(&got)
+	if err != nil {
+		t.Errorf("%s: unable to JSON decode response body: %s", w.Body, err)
+	}
+
+	expectedBody := map[string]interface{}{
+		"Results": map[string]interface{}{
+			"fake":     map[string]interface{}{"PresetID": "presetID_here", "Error": ""},
+			"zencoder": map[string]interface{}{"PresetID": "presetID_here", "Error": ""},
+		},
+		"PresetMap": "presetID_here",
+	}
+
+	if !reflect.DeepEqual(got, expectedBody) {
+		t.Errorf("expected response body of\n%#v;\ngot\n%#v", expectedBody, got)
+	}
+}
+
 func TestDeletePreset(t *testing.T) {
 	tests := []struct {
 		givenTestCase string

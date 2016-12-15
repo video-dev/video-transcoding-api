@@ -30,7 +30,7 @@ func TestListProviders(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := []string{"fake"}
+	expected := []string{"fake", "zencoder"}
 	if !reflect.DeepEqual(providers, expected) {
 		t.Errorf("listProviders: wrong body. Want %#v. Got %#v", expected, providers)
 	}
