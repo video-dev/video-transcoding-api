@@ -1,3 +1,7 @@
+## Version 1.0.7 (Release date: 2016-12-16)
+
+
+
 ## Version 1.0.6-rc (Release date: 2016-12-16)
 
 ([d863498](https://github.com/nytimes//commit/d863498)) Add filesize rendition info to Zencoder 
