@@ -1,3 +1,17 @@
+## Version 1.0.6-rc (Release date: 2016-12-16)
+
+([d863498](https://github.com/nytimes//commit/d863498)) Add filesize rendition info to Zencoder 
+
+
+([6de4a74](https://github.com/nytimes//commit/6de4a74)) preset: bubble up the error when creating a preset 
+
+([39c0992](https://github.com/nytimes//commit/39c0992)) service/preset: remove logging and fix comments 
+
+([90d24dc](https://github.com/nytimes//commit/90d24dc)) service/presetmap: create or update existent presetmap when creating new presets 
+
+
+
+
 ## Version 1.0.5 (Release date: 2016-12-08)
 ([c53ea3d](https://github.com/nytimes/video-transcoding-api/commit/c53ea3d)) provider/elementalconductor: fix compatibility with encoding-wrapper 
 
