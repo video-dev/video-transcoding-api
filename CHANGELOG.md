@@ -1,3 +1,12 @@
+## Version 1.0.8-rc (Release date: 2016-12-19)
+
+([071a2d8](https://github.com/nytimes/video-transcoding-api/commit/071a2d8)) preset: avoid creating PresetMap when ProviderMapping is empty 
+
+([314930b](https://github.com/nytimes/video-transcoding-api/commit/314930b)) preset: improve if statement 
+
+
+
+
 ## Version 1.0.7 (Release date: 2016-12-16)
 
 
