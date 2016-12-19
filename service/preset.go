@@ -77,6 +77,7 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 	var output newPresetOutputs
 	var presetMap *db.PresetMap
 	var providers []string
+	var shouldCreatePresetMap bool
 
 	respData, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -101,12 +102,11 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		if err = presetMap.OutputOpts.Validate(); err != nil {
 			return newInvalidPresetResponse(fmt.Errorf("invalid outputOptions: %s", err))
 		}
-		err = s.db.CreatePresetMap(presetMap)
-		if err != nil {
-			return newInvalidPresetResponse(fmt.Errorf("failed creating presetmap: %s", err))
-		}
+		shouldCreatePresetMap = true
 		providers = input.Providers
-	} else if err == nil {
+	} else if err != nil {
+		return swagger.NewErrorResponse(err)
+	} else {
 		// If we already have a PresetMap for this preset, we just need to create the
 		// preset on the providers that are not mapped yet.
 		providers = s.getMissingProviders(input.Providers, presetMap.ProviderMapping)
@@ -115,8 +115,6 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 		for provider, presetID := range presetMap.ProviderMapping {
 			output.Results[provider] = newPresetOutput{PresetID: presetID, Error: ""}
 		}
-	} else if err != nil {
-		return swagger.NewErrorResponse(err)
 	}
 
 	for _, p := range providers {
@@ -141,18 +139,16 @@ func (s *TranscodingService) newPreset(r *http.Request) swagger.GizmoJSONRespons
 
 	status := http.StatusOK
 	if len(presetMap.ProviderMapping) > 0 {
-		err = s.db.UpdatePresetMap(presetMap)
+		if shouldCreatePresetMap {
+			err = s.db.CreatePresetMap(presetMap)
+		} else {
+			err = s.db.UpdatePresetMap(presetMap)
+		}
 		if err != nil {
-			return newInvalidPresetResponse(fmt.Errorf("failed updating presetmap after creating presets: %s", err))
+			return newInvalidPresetResponse(fmt.Errorf("failed creating/updating presetmap after creating presets: %s", err))
 		}
 		output.PresetMap = presetMap.Name
 	} else {
-		// if none valid preset was created we want to destroy the PresetMap
-		// and return StatusInternalServerError.
-		err = s.db.DeletePresetMap(presetMap)
-		if err != nil {
-			return newInvalidPresetResponse(fmt.Errorf("failed deleting presetmap after trying to create presets: %s", err))
-		}
 		status = http.StatusInternalServerError
 	}
 
