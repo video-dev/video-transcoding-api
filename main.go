@@ -15,7 +15,8 @@ import (
 )
 
 func main() {
-	agent.Start()
+	agent.Listen(&agent.Options{NoShutdownCleanup: true})
+	defer agent.Close()
 	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
 		cfg.Server.RouterType = "fast"
