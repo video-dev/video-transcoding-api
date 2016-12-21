@@ -537,6 +537,7 @@ func TestJobStatus(t *testing.T) {
 					Width:      1920,
 					Height:     1080,
 					Container:  "m3u8",
+					FileSize:   45674,
 				},
 				{
 					Path:       "s3://mybucket/dir/job-123/video.m3u8",
@@ -544,6 +545,7 @@ func TestJobStatus(t *testing.T) {
 					Width:      1920,
 					Height:     1080,
 					Container:  "m3u8",
+					FileSize:   45674,
 				},
 			},
 		},
@@ -611,6 +613,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 					Height:     1080,
 					VideoCodec: "VP9",
 					Container:  "m3u8",
+					FileSize:   45674,
 				},
 				{
 					Path:       "s3://mybucket/dir/job-123/video.m3u8",
@@ -618,6 +621,7 @@ func TestJobStatusNotFinished(t *testing.T) {
 					Height:     1080,
 					VideoCodec: "VP9",
 					Container:  "m3u8",
+					FileSize:   45674,
 				},
 			},
 		},

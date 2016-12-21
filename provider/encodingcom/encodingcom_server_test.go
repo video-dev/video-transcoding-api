@@ -194,6 +194,7 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 					"https://mybucket.s3.amazonaws.com/dir/job-123/video.m3u8",
 				},
 				"destination_status": []string{"Saved", "Saved"},
+				"convertedsize":      "45674",
 				"size":               media.Request.Format[0].Size,
 				"bitrate":            media.Request.Format[0].Bitrate,
 				"output":             media.Request.Format[0].Output[0],
