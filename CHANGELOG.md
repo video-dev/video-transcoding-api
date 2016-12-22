@@ -1,3 +1,15 @@
+## Version 1.1.0 (Release date: 2016-12-22)
+
+([ec42742](https://github.com/nytimes/video-transcoding-api/commit/ec42742)) encodingcom: Returns converted file size 
+
+([12b0a6d](https://github.com/nytimes/video-transcoding-api/commit/12b0a6d)) Update gops 
+
+([0c1152c](https://github.com/nytimes/video-transcoding-api/commit/0c1152c)) encodingcom: Returns converted file size 
+
+
+
+
+
 ## Version 1.0.9 (Release date: 2016-12-19)
 
 
