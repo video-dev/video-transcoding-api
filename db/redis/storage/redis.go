@@ -272,6 +272,12 @@ func (s *Storage) loadStruct(in map[string]string, out reflect.Value, prefixes .
 						return err
 					}
 					fieldValue.SetBool(boolValue)
+				case reflect.Float64:
+					floatValue, err := strconv.ParseFloat(value, 64)
+					if err != nil {
+						return err
+					}
+					fieldValue.SetFloat(floatValue)
 				case reflect.Int:
 					intValue, err := strconv.ParseInt(value, 10, 64)
 					if err != nil {
