@@ -35,6 +35,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
 		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY": "secret-key",
 		"ELEMENTALCONDUCTOR_DESTINATION":           "https://safe-stuff",
+		"BITMOVIN_API_KEY":                         "secret-key",
 		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
@@ -74,6 +75,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			SecretAccessKey: "secret-key",
 			Destination:     "https://safe-stuff",
 		},
+		Bitmovin: &Bitmovin{
+			APIKey: "secret-key",
+		},
 		Server: &server.Config{
 			HTTPPort:      8080,
 			HTTPAccessLog: &accessLog,
@@ -93,6 +97,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 	if !reflect.DeepEqual(*cfg.ElasticTranscoder, *expectedCfg.ElasticTranscoder) {
 		t.Errorf("LoadConfig(): wrong ElasticTranscoder config returned. Want %#v. Got %#v.", *expectedCfg.ElasticTranscoder, *cfg.ElasticTranscoder)
+	}
+	if !reflect.DeepEqual(*cfg.Bitmovin, *expectedCfg.Bitmovin) {
+		t.Errorf("LoadConfig(): wrong Bitmovin config returned. Want %#v. Got %#v.", *expectedCfg.Bitmovin, *cfg.Bitmovin)
 	}
 	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
 		t.Errorf("LoadConfig(): wrong Elemental Conductor config returned. Want %#v. Got %#v.", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
@@ -124,6 +131,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 		"ELEMENTALCONDUCTOR_AWS_ACCESS_KEY_ID":     "AKIANOTREALLY",
 		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY": "secret-key",
 		"ELEMENTALCONDUCTOR_DESTINATION":           "https://safe-stuff",
+		"BITMOVIN_API_KEY":                         "secret-key",
 		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
@@ -163,6 +171,9 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 			SecretAccessKey: "secret-key",
 			Destination:     "https://safe-stuff",
 		},
+		Bitmovin: &Bitmovin{
+			APIKey: "secret-key",
+		},
 		Server: &server.Config{
 			HTTPPort:      8080,
 			HTTPAccessLog: &accessLog,
@@ -185,6 +196,9 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 	}
 	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
 		t.Errorf("LoadConfig(): wrong Elemental Conductor config returned. Want %#v. Got %#v.", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
+	}
+	if !reflect.DeepEqual(*cfg.Bitmovin, *expectedCfg.Bitmovin) {
+		t.Errorf("LoadConfig(): wrong Bitmovin config returned. Want %#v. Got %#v.", *expectedCfg.Bitmovin, *cfg.Bitmovin)
 	}
 	if !reflect.DeepEqual(*cfg.Server, *expectedCfg.Server) {
 		t.Errorf("LoadConfig(): wrong Server config returned. Want %#v. Got %#v.", *expectedCfg.Server, *cfg.Server)
