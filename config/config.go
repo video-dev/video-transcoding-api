@@ -61,7 +61,9 @@ type ElementalConductor struct {
 // Bitmovin represents the set of configurations for the Bitmovin
 // provider.
 type Bitmovin struct {
-	APIKey string `envconfig:"BITMOVIN_API_KEY"`
+	APIKey   string `envconfig:"BITMOVIN_API_KEY"`
+	Endpoint string `envconfig:"BITMOVIN_ENDPOINT" default:"https://api.bitmovin.com/v1/"`
+	Timeout  uint   `envconfig:"BITMOVIN_TIMEOUT" default:"5"`
 }
 
 // LoadConfig loads the configuration of the API using environment variables.

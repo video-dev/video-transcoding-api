@@ -36,6 +36,8 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"ELEMENTALCONDUCTOR_AWS_SECRET_ACCESS_KEY": "secret-key",
 		"ELEMENTALCONDUCTOR_DESTINATION":           "https://safe-stuff",
 		"BITMOVIN_API_KEY":                         "secret-key",
+		"BITMOVIN_ENDPOINT":                        "bitmovin",
+		"BITMOVIN_TIMEOUT":                         "3",
 		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
@@ -76,7 +78,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			Destination:     "https://safe-stuff",
 		},
 		Bitmovin: &Bitmovin{
-			APIKey: "secret-key",
+			APIKey:   "secret-key",
+			Endpoint: "bitmovin",
+			Timeout:  3,
 		},
 		Server: &server.Config{
 			HTTPPort:      8080,
@@ -172,7 +176,9 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 			Destination:     "https://safe-stuff",
 		},
 		Bitmovin: &Bitmovin{
-			APIKey: "secret-key",
+			APIKey:   "secret-key",
+			Endpoint: "https://api.bitmovin.com/v1/",
+			Timeout:  5,
 		},
 		Server: &server.Config{
 			HTTPPort:      8080,
