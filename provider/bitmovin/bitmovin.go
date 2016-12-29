@@ -45,6 +45,11 @@ type bitmovinProvider struct {
 	config *config.Bitmovin
 }
 
+type bitmovinPreset struct {
+	Video models.H264CodecConfiguration
+	Audio models.AACCodecConfiguration
+}
+
 func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	//Find a corresponding audio configuration that lines up, otherwise create it
 	if strings.ToLower(preset.Audio.Codec) != "aac" {
@@ -163,19 +168,63 @@ func (p *bitmovinProvider) createVideoPreset(preset db.Preset) (*models.H264Code
 		return nil, err
 	}
 	h264.Bitrate = intToPtr(int64(bitrate))
+	if preset.Video.GopSize != "" {
+		gopSize, err := strconv.Atoi(preset.Video.GopSize)
+		if err != nil {
+			return nil, err
+		}
+		h264.MaxGOP = intToPtr(int64(gopSize))
+	}
 
 	return h264, nil
 }
 
 func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	// Only delete the video preset, leave the audio preset.
-	return errors.New("Not implemented")
+	h264 := services.NewH264CodecConfigurationService(p.client)
+	response, err := h264.Delete(presetID)
+	if err != nil {
+		return err
+	}
+	if response.Status == "ERROR" {
+		return errors.New("")
+	}
+	return nil
 }
 
 func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	// Return a custom struct with the H264 and AAC config?
-
-	return nil, errors.New("Not implemented")
+	h264 := services.NewH264CodecConfigurationService(p.client)
+	response, err := h264.Retrieve(presetID)
+	if err != nil {
+		return nil, err
+	}
+	if response.Status == "ERROR" {
+		return nil, errors.New("")
+	}
+	h264Config := response.Data.Result
+	i, ok := h264Config.CustomData["audio"]
+	if !ok {
+		return nil, errors.New("No Audio configuration found for Video Preset")
+	}
+	s, ok := i.(string)
+	if !ok {
+		return nil, errors.New("Audio Configuration somehow not a string")
+	}
+	aac := services.NewAACCodecConfigurationService(p.client)
+	audioResponse, err := aac.Retrieve(s)
+	if err != nil {
+		return nil, err
+	}
+	if audioResponse.Status == "ERROR" {
+		return nil, errors.New("")
+	}
+	aacConfig := audioResponse.Data.Result
+	preset := bitmovinPreset{
+		Video: h264Config,
+		Audio: aacConfig,
+	}
+	return preset, errors.New("Not implemented")
 }
 
 func (p *bitmovinProvider) Transcode(*db.Job) (*provider.JobStatus, error) {
