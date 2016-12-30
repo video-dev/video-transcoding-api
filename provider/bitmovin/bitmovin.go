@@ -3,6 +3,7 @@ package bitmovin
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -39,6 +40,35 @@ var h264Levels = []bitmovintypes.H264Level{
 	bitmovintypes.H264Level5_2}
 
 var errBitmovinInvalidConfig = provider.InvalidConfigError("missing Bitmovin api key. Please define the environment variable BITMOVIN_API_KEY set this value in the configuration file")
+
+var s3UrlCloudRegionMap = map[string]bitmovintypes.AWSCloudRegion{
+	"s3.amazonaws.com":                          bitmovintypes.AWSCloudRegionUSEast1,
+	"s3-external-1.amazonaws.com":               bitmovintypes.AWSCloudRegionUSEast1,
+	"s3.dualstack.us-east-1.amazonaws.com":      bitmovintypes.AWSCloudRegionUSEast1,
+	"s3-us-west-1.amazonaws.com":                bitmovintypes.AWSCloudRegionUSWest1,
+	"s3.dualstack.us-west-1.amazonaws.com":      bitmovintypes.AWSCloudRegionUSWest1,
+	"s3-us-west-2.amazonaws.com":                bitmovintypes.AWSCloudRegionUSWest2,
+	"s3.dualstack.us-west-2.amazonaws.com":      bitmovintypes.AWSCloudRegionUSWest2,
+	"s3.ap-south-1.amazonaws.com":               bitmovintypes.AWSCloudRegionAPSouth1,
+	"s3-ap-south-1.amazonaws.com":               bitmovintypes.AWSCloudRegionAPSouth1,
+	"s3.dualstack.ap-south-1.amazonaws.com":     bitmovintypes.AWSCloudRegionAPSouth1,
+	"s3.ap-northeast-2.amazonaws.com":           bitmovintypes.AWSCloudRegionAPNortheast2,
+	"s3-ap-northeast-2.amazonaws.com":           bitmovintypes.AWSCloudRegionAPNortheast2,
+	"s3.dualstack.ap-northeast-2.amazonaws.com": bitmovintypes.AWSCloudRegionAPNortheast2,
+	"s3-ap-southeast-1.amazonaws.com":           bitmovintypes.AWSCloudRegionAPSoutheast1,
+	"s3.dualstack.ap-southeast-1.amazonaws.com": bitmovintypes.AWSCloudRegionAPSoutheast1,
+	"s3-ap-southeast-2.amazonaws.com":           bitmovintypes.AWSCloudRegionAPSoutheast2,
+	"s3.dualstack.ap-southeast-2.amazonaws.com": bitmovintypes.AWSCloudRegionAPSoutheast2,
+	"s3-ap-northeast-1.amazonaws.com":           bitmovintypes.AWSCloudRegionAPNortheast1,
+	"s3.dualstack.ap-northeast-1.amazonaws.com": bitmovintypes.AWSCloudRegionAPNortheast1,
+	"s3.eu-central-1.amazonaws.com":             bitmovintypes.AWSCloudRegionEUCentral1,
+	"s3-eu-central-1.amazonaws.com":             bitmovintypes.AWSCloudRegionEUCentral1,
+	"s3.dualstack.eu-central-1.amazonaws.com":   bitmovintypes.AWSCloudRegionEUCentral1,
+	"s3-eu-west-1.amazonaws.com":                bitmovintypes.AWSCloudRegionEUWest1,
+	"s3.dualstack.eu-west-1.amazonaws.com":      bitmovintypes.AWSCloudRegionEUWest1,
+	"s3-sa-east-1.amazonaws.com":                bitmovintypes.AWSCloudRegionSAEast1,
+	"s3.dualstack.sa-east-1.amazonaws.com":      bitmovintypes.AWSCloudRegionSAEast1,
+}
 
 type bitmovinProvider struct {
 	client *bitmovin.Bitmovin
@@ -228,6 +258,9 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 }
 
 func (p *bitmovinProvider) Transcode(*db.Job) (*provider.JobStatus, error) {
+	//Parse the input and set it up
+	//It will be an s3 url so need to parse out the region and the bucket name
+
 	// Setup the streams and start transcoding
 	return nil, errors.New("Not implemented")
 }
@@ -262,6 +295,22 @@ func bitmovinFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	}
 	client := bitmovin.NewBitmovin(cfg.Bitmovin.APIKey, cfg.Bitmovin.Endpoint, int64(cfg.Bitmovin.Timeout))
 	return &bitmovinProvider{client: client, config: cfg.Bitmovin}, nil
+}
+
+func parseS3URL(input string) (fileName string, bucketName string, cloudRegion bitmovintypes.AWSCloudRegion, err error) {
+	u, err := url.Parse(input)
+	if err != nil {
+		return "", "", bitmovintypes.AWSCloudRegion(""), err
+	}
+	s := strings.Split(u.Path, "/")
+	fileName = s[len(s)-1]
+	bucketName = strings.TrimSuffix(u.Path, "/"+fileName)
+	bucketName = strings.TrimPrefix(bucketName, "/")
+	cloudRegion, ok := s3UrlCloudRegionMap[u.Host]
+	if !ok {
+		return "", "", bitmovintypes.AWSCloudRegion(""), fmt.Errorf("Unable to determine AWS Region from Host: %v", u.Host)
+	}
+	return
 }
 
 func stringToPtr(s string) *string {
