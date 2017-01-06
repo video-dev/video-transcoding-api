@@ -1,3 +1,12 @@
+## Version 1.1.1 (Release date: 2017-01-06)
+
+([98ba09f](https://github.com/nytimes/video-transcoding-api/commit/98ba09f)) travis: use .x syntax to ensure latest 1.7 
+
+([24d9528](https://github.com/nytimes/video-transcoding-api/commit/24d9528)) db/redis/storage: support float64 
+
+
+
+
 ## Version 1.1.0 (Release date: 2016-12-22)
 
 ([ec42742](https://github.com/nytimes/video-transcoding-api/commit/ec42742)) encodingcom: Returns converted file size 
