@@ -57,11 +57,10 @@ send_mail() {
 }
 
 if [ "$1" != "" ]; then
-  read -p "You're about to bump a new version and push to master. Is that what you intended? [y|n] " -n 1 -r < /dev/tty
+  last_version=$(git describe --tags $(git rev-list --tags --max-count=1))
+  new_version=$(increment_version $last_version $1 $2)
+  read -p "You're about to bump a new version (${new_version}) and push it to master. Is that what you intended? [y|n] " -n 1 -r < /dev/tty
   if echo $REPLY | grep -E '^[Yy]$' > /dev/null; then
-    last_version=$(git describe --tags $(git rev-list --tags --max-count=1))
-    new_version=$(increment_version $last_version $1 $2)
-
     git checkout master
     git pull --rebase
     update_changelog $last_version $new_version
