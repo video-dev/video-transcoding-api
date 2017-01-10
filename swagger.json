@@ -10,7 +10,7 @@
   ],
   "swagger": "2.0",
   "info": {
-    "description": "HTTP API for transcoding media files into different formats using pluggable\nproviders.\n\n## Currently supported providers\n\n+ [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)\n+ [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)\n+ [Encoding.com](http://api.encoding.com)",
+    "description": "HTTP API for transcoding media files into different formats using pluggable\nproviders.\n\n## Currently supported providers\n\n+ [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)\n+ [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)\n+ [Encoding.com](http://api.encoding.com)\n+ [Zencoder](http://zencoder.com)",
     "title": "video-transcoding-api",
     "license": {
       "name": "Apache 2.0",
@@ -199,19 +199,19 @@
         "operationId": "updatePreset",
         "parameters": [
           {
+            "type": "string",
+            "x-go-name": "Name",
+            "name": "name",
+            "in": "path",
+            "required": true
+          },
+          {
             "name": "Payload",
             "in": "body",
             "required": true,
             "schema": {
               "$ref": "#/definitions/PresetMap"
             }
-          },
-          {
-            "type": "string",
-            "x-go-name": "Name",
-            "name": "name",
-            "in": "path",
-            "required": true
           }
         ],
         "responses": {
@@ -461,10 +461,6 @@
       "description": "JobStatus is the representation of the status as the provide sees it. The\nprovider is able to add customized information in the ProviderStatus field.",
       "type": "object",
       "properties": {
-        "mediaInfo": {
-          "x-go-name": "SourceInfo",
-          "$ref": "#/definitions/SourceInfo"
-        },
         "output": {
           "x-go-name": "Output",
           "$ref": "#/definitions/JobOutput"
@@ -489,6 +485,10 @@
           },
           "x-go-name": "ProviderStatus"
         },
+        "sourceInfo": {
+          "x-go-name": "SourceInfo",
+          "$ref": "#/definitions/SourceInfo"
+        },
         "status": {
           "x-go-name": "Status",
           "$ref": "#/definitions/Status"
@@ -496,34 +496,6 @@
         "statusMessage": {
           "type": "string",
           "x-go-name": "StatusMessage"
-        }
-      },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
-    },
-    "SourceInfo": {
-      "description": "SourceInfo contains information about media transcoded using the Transcoding\nAPI.",
-      "type": "object",
-      "properties": {
-        "duration": {
-          "description": "Duration of the media",
-          "x-go-name": "Duration",
-          "$ref": "#/definitions/Duration"
-        },
-        "height": {
-          "description": "Dimension of the media, in pixels",
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "Height"
-        },
-        "videoCodec": {
-          "description": "Codec used for video medias",
-          "type": "string",
-          "x-go-name": "VideoCodec"
-        },
-        "width": {
-          "type": "integer",
-          "format": "int64",
-          "x-go-name": "Width"
         }
       },
       "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
@@ -575,6 +547,11 @@
         "container": {
           "type": "string",
           "x-go-name": "Container"
+        },
+        "fileSize": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "FileSize"
         },
         "height": {
           "type": "integer",
@@ -637,7 +614,7 @@
       ],
       "properties": {
         "name": {
-          "description": "name of the preset",
+          "description": "name of the presetmap",
           "type": "string",
           "uniqueItems": true,
           "x-go-name": "Name"
@@ -658,30 +635,66 @@
       },
       "x-go-package": "github.com/NYTimes/video-transcoding-api/db"
     },
+    "SourceInfo": {
+      "description": "SourceInfo contains information about media transcoded using the Transcoding\nAPI.",
+      "type": "object",
+      "properties": {
+        "duration": {
+          "description": "Duration of the media",
+          "x-go-name": "Duration",
+          "$ref": "#/definitions/Duration"
+        },
+        "height": {
+          "description": "Dimension of the media, in pixels",
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Height"
+        },
+        "videoCodec": {
+          "description": "Codec used for video medias",
+          "type": "string",
+          "x-go-name": "VideoCodec"
+        },
+        "width": {
+          "type": "integer",
+          "format": "int64",
+          "x-go-name": "Width"
+        }
+      },
+      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+    },
     "Status": {
       "type": "string",
       "title": "Status is the status of a transcoding job.",
       "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
     },
     "StreamingParams": {
+      "description": "StreamingParams represents the params necessary to create Adaptive Streaming jobs",
       "type": "object",
-      "title": "StreamingParams contains all parameters related to the streaming protocol used.",
+      "required": [
+        "segmentDuration",
+        "protocol",
+        "playlistFileName"
+      ],
       "properties": {
         "playlistFileName": {
+          "description": "the playlist file name",
           "type": "string",
           "x-go-name": "PlaylistFileName"
         },
         "protocol": {
+          "description": "the protocol name (hls or dash)",
           "type": "string",
           "x-go-name": "Protocol"
         },
         "segmentDuration": {
+          "description": "duration of the segment",
           "type": "integer",
           "format": "uint64",
           "x-go-name": "SegmentDuration"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/NYTimes/video-transcoding-api/db"
     },
     "deletePresetOutput": {
       "type": "object",
