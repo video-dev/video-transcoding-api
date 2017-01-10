@@ -8,6 +8,7 @@
 // + [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
 // + [Elemental Conductor](https://www.elementaltechnologies.com/products/elemental-conductor)
 // + [Encoding.com](http://api.encoding.com)
+// + [Zencoder](http://zencoder.com)
 //
 // Schemes: http
 // BasePath: /
