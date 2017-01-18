@@ -113,32 +113,32 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 		return "", errors.New("")
 	}
 	var audioConfigID string
-	audioConfigs := response.Data.Result.Items
+	// audioConfigs := response.Data.Result.Items
 	bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
+	// if err != nil {
+	// 	return "", err
+	// }
+	// for _, c := range audioConfigs {
+	// 	if *c.Bitrate == int64(bitrate) {
+	// 		audioConfigID = *c.ID
+	// 		break
+	// 	}
+	// }
+	// if audioConfigID == "" {
+	temp := int64(bitrate)
+	audioConfig := &models.AACCodecConfiguration{
+		Bitrate:      &temp,
+		SamplingRate: floatToPtr(48000.0),
+	}
+	resp, err := aac.Create(audioConfig)
 	if err != nil {
 		return "", err
 	}
-	for _, c := range audioConfigs {
-		if *c.Bitrate == int64(bitrate) {
-			audioConfigID = *c.ID
-			break
-		}
+	if resp.Status == "ERROR" {
+		return "", errors.New("")
 	}
-	if audioConfigID == "" {
-		temp := int64(bitrate)
-		audioConfig := &models.AACCodecConfiguration{
-			Bitrate:      &temp,
-			SamplingRate: floatToPtr(48000.0),
-		}
-		resp, err := aac.Create(audioConfig)
-		if err != nil {
-			return "", err
-		}
-		if resp.Status == "ERROR" {
-			return "", errors.New("")
-		}
-		audioConfigID = *resp.Data.Result.ID
-	}
+	audioConfigID = *resp.Data.Result.ID
+	// }
 	//Create Video and add Custom Data element to point to the
 	customData := make(map[string]interface{})
 	customData["audio"] = audioConfigID
@@ -217,13 +217,44 @@ func (p *bitmovinProvider) createVideoPreset(preset db.Preset) (*models.H264Code
 }
 
 func (p *bitmovinProvider) DeletePreset(presetID string) error {
-	// Only delete the video preset, leave the audio preset.
+	// Delete both the audio and video preset
 	h264 := services.NewH264CodecConfigurationService(p.client)
-	response, err := h264.Delete(presetID)
+	cdResp, err := h264.RetrieveCustomData(presetID)
 	if err != nil {
 		return err
 	}
-	if response.Status == "ERROR" {
+	if cdResp.Status == "ERROR" {
+		return errors.New("")
+	}
+	var audioPresetID string
+	if cdResp.Data.Result.CustomData != nil {
+		cd := cdResp.Data.Result.CustomData
+		i, ok := cd["audio"]
+		if !ok {
+			return errors.New("No Audio configuration found for Video Preset")
+		}
+		audioPresetID, ok = i.(string)
+		if !ok {
+			return errors.New("Audio Configuration somehow not a string")
+		}
+	} else {
+		return errors.New("No Audio configuration found for Video Preset")
+	}
+
+	aac := services.NewAACCodecConfigurationService(p.client)
+	audioDeleteResp, err := aac.Delete(audioPresetID)
+	if err != nil {
+		return err
+	}
+	if audioDeleteResp.Status == "ERROR" {
+		return errors.New("")
+	}
+
+	videoDeleteResp, err := h264.Delete(presetID)
+	if err != nil {
+		return err
+	}
+	if videoDeleteResp.Status == "ERROR" {
 		return errors.New("")
 	}
 	return nil
@@ -244,32 +275,38 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if response.Status == "ERROR" {
+	if cd.Status == "ERROR" {
 		return nil, errors.New("")
 	}
-	h264Config.CustomData = cd.Data.Result.CustomData
-	i, ok := h264Config.CustomData["audio"]
-	if !ok {
-		return nil, errors.New("No Audio configuration found for Video Preset")
+	// var aacConfigID string
+	if cd.Data.Result.CustomData != nil {
+		h264Config.CustomData = cd.Data.Result.CustomData
+		i, ok := h264Config.CustomData["audio"]
+		if !ok {
+			return nil, errors.New("No Audio configuration found for Video Preset")
+		}
+		s, ok := i.(string)
+		if !ok {
+			return nil, errors.New("Audio Configuration somehow not a string")
+		}
+		aac := services.NewAACCodecConfigurationService(p.client)
+		audioResponse, err := aac.Retrieve(s)
+		if err != nil {
+			return nil, err
+		}
+		if audioResponse.Status == "ERROR" {
+			return nil, errors.New("")
+		}
+		aacConfig := audioResponse.Data.Result
+		preset := bitmovinPreset{
+			Video: h264Config,
+			Audio: aacConfig,
+		}
+		return preset, nil
 	}
-	s, ok := i.(string)
-	if !ok {
-		return nil, errors.New("Audio Configuration somehow not a string")
-	}
-	aac := services.NewAACCodecConfigurationService(p.client)
-	audioResponse, err := aac.Retrieve(s)
-	if err != nil {
-		return nil, err
-	}
-	if audioResponse.Status == "ERROR" {
-		return nil, errors.New("")
-	}
-	aacConfig := audioResponse.Data.Result
-	preset := bitmovinPreset{
-		Video: h264Config,
-		Audio: aacConfig,
-	}
-	return preset, errors.New("Not implemented")
+	return nil, errors.New("No Audio configuration found for Video Preset")
+
+	// return preset, errors.New("Not implemented")
 }
 
 func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
@@ -388,13 +425,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 	if outputtingHLS {
 		masterManifestPath = filepath.Dir(job.StreamingParams.PlaylistFileName)
-		if masterManifestPath == "." {
-			masterManifestPath = ""
-		}
 		masterManifestFile = filepath.Base(job.StreamingParams.PlaylistFileName)
 		manifestOutput := models.Output{
 			OutputID:   s3OSResponse.Data.Result.ID,
-			OutputPath: stringToPtr(path + "/" + masterManifestPath),
+			OutputPath: stringToPtr(filepath.Join(path, masterManifestPath)),
 			ACL:        acl,
 		}
 		hlsMasterManifest := &models.HLSManifest{
@@ -434,17 +468,14 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("")
 	}
 
-	audioPresetIDToAudioStreamID := make(map[string]string)
-	audioPresetIDToCreatedTSMuxingID := make(map[string]string)
+	// audioPresetIDToAudioStreamID := make(map[string]string)
+	// audioPresetIDToCreatedTSMuxingID := make(map[string]string)
 
 	// Order of operations
-	// Check if the audio encoding has been created.  If not, create it, and add it to a map.
-	// If the container is m3u8, check if the TSMuxing has been created. If not, create it and add it to the map.
-	// Consequently add the audioMediaInfo to the Manifest
-	// The Group name will be determined by the bitrate
-	// which is the unique signifier for the audio encodings
+	// If HLS is needed, add MediaInfo for the Audio and StreamInfo for the Video.
+	// Add the TS Muxings
 
-	//
+	// If it is MP4, then simply mux the streams together into one MP4 file
 	for _, output := range job.Outputs {
 		videoPresetID := output.Preset.ProviderMapping[Name]
 		videoResponse, err := h264S.Retrieve(videoPresetID)
@@ -470,22 +501,38 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("")
 		}
 
-		var audioStreamID string
-		audioStreamID, ok = audioPresetIDToAudioStreamID[audioPresetID]
-		if !ok {
-			audioStream := &models.Stream{
-				CodecConfigurationID: &audioPresetID,
-				InputStreams:         aiss,
-			}
-			audioStreamResp, err := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
-			if err != nil {
-				return nil, err
-			}
-			if audioStreamResp.Status == "ERROR" {
-				return nil, errors.New("")
-			}
-			audioStreamID = *audioStreamResp.Data.Result.ID
-			audioPresetIDToAudioStreamID[audioPresetID] = audioStreamID
+		var audioStreamID, videoStreamID string
+		audioStream := &models.Stream{
+			CodecConfigurationID: &audioPresetID,
+			InputStreams:         aiss,
+		}
+		audioStreamResp, err := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
+		if err != nil {
+			return nil, err
+		}
+		if audioStreamResp.Status == "ERROR" {
+			return nil, errors.New("")
+		}
+		audioStreamID = *audioStreamResp.Data.Result.ID
+
+		videoStream := &models.Stream{
+			CodecConfigurationID: &videoPresetID,
+			InputStreams:         viss,
+		}
+		videoStreamResp, err := encodingS.AddStream(*encodingResp.Data.Result.ID, videoStream)
+		if err != nil {
+			return nil, err
+		}
+		if videoStreamResp.Status == "ERROR" {
+			return nil, errors.New("")
+		}
+		videoStreamID = *videoStreamResp.Data.Result.ID
+
+		audioMuxingStream := models.StreamItem{
+			StreamID: &audioStreamID,
+		}
+		videoMuxingStream := models.StreamItem{
+			StreamID: &videoStreamID,
 		}
 
 		containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
@@ -497,44 +544,81 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("")
 		}
 		if container == "m3u8" {
-			_, ok := audioPresetIDToCreatedTSMuxingID[audioPresetID]
-			if !ok {
-				streamID := audioPresetIDToAudioStreamID[audioPresetID]
-				audioMuxingStream := models.StreamItem{
-					StreamID: &streamID,
-				}
-				audioMuxingOutput := models.Output{
-					OutputID:   s3OSResponse.Data.Result.ID,
-					OutputPath: stringToPtr(masterManifestPath + "/" + audioPresetID),
-					ACL:        acl,
-				}
-				audioMuxing := &models.TSMuxing{
-					SegmentLength: floatToPtr(float64(job.StreamingParams.SegmentDuration)),
-					SegmentNaming: stringToPtr("seg_%number%.ts"),
-					Streams:       []models.StreamItem{audioMuxingStream},
-					Outputs:       []models.Output{audioMuxingOutput},
-				}
-				audioMuxingResp, err := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
-				if err != nil {
-					return nil, err
-				}
-				if audioMuxingResp.Status == "ERROR" {
-					return nil, errors.New("")
-				}
-				audioPresetIDToCreatedTSMuxingID[audioPresetID] = *audioMuxingResp.Data.Result.ID
+			audioMuxingStream := models.StreamItem{
+				StreamID: &audioStreamID,
+			}
+			audioMuxingOutput := models.Output{
+				OutputID:   s3OSResponse.Data.Result.ID,
+				OutputPath: stringToPtr(filepath.Join(masterManifestPath, audioPresetID)),
+				ACL:        acl,
+			}
+			audioMuxing := &models.TSMuxing{
+				SegmentLength: floatToPtr(float64(job.StreamingParams.SegmentDuration)),
+				SegmentNaming: stringToPtr("seg_%number%.ts"),
+				Streams:       []models.StreamItem{audioMuxingStream},
+				Outputs:       []models.Output{audioMuxingOutput},
+			}
+			audioMuxingResp, err := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
+			if err != nil {
+				return nil, err
+			}
+			if audioMuxingResp.Status == "ERROR" {
+				return nil, errors.New("")
+			}
+			// audioPresetIDToCreatedTSMuxingID[audioPresetID] = *audioMuxingResp.Data.Result.ID
 
-				// create the MediaInfo
-				audioMediaInfo := &models.MediaInfo{
-					Type: bitmovintypes.MediaTypeAudio,
-					URI: stringToPtr(audioPresetID + ".m3u8")
-					GroupID: stringToPtr(audioPresetID)
-					Language: stringToPtr("en")
-					// GOT TO HERE
-				}
+			// create the MediaInfo
+			audioMediaInfo := &models.MediaInfo{
+				Type:            bitmovintypes.MediaTypeAudio,
+				URI:             stringToPtr(audioPresetID + ".m3u8"),
+				GroupID:         stringToPtr(audioPresetID),
+				Language:        stringToPtr("en"),
+				Name:            stringToPtr(audioPresetID),
+				IsDefault:       boolToPtr(false),
+				Autoselect:      boolToPtr(false),
+				Forced:          boolToPtr(false),
+				Characteristics: []string{"public.accessibility.describes-video"},
+				EncodingID:      encodingResp.Data.Result.ID,
+				StreamID:        audioStreamResp.Data.Result.ID,
+				MuxingID:        audioMuxingResp.Data.Result.ID,
 			}
 
-		} else if container == "mp4" {
+			// Add to Master manifest, we will set the m3u8 and segments relative to the master
 
+			audioMediaInfoResp, err := hlsService.AddMediaInfo(manifestID, audioMediaInfo)
+			if err != nil {
+				return nil, err
+			}
+			if audioMediaInfoResp.Status == "ERROR" {
+				return nil, errors.New("")
+			}
+
+			// create the video ts muxing
+
+			videoMuxingStream := models.StreamItem{
+				StreamID: &videoStreamID,
+			}
+
+			// create the StreamInfo keeping in mind where all the paths are
+
+		} else if container == "mp4" {
+			videoMuxingOutput := models.Output{
+				OutputID:   s3OSResponse.Data.Result.ID,
+				ACL:        acl,
+				OutputPath: stringToPtr(filepath.Join(path, filepath.Dir(output.FileName))),
+			}
+			videoMuxing := &models.MP4Muxing{
+				Filename: stringToPtr(filepath.Base(output.FileName)),
+				Outputs:  []models.Output{videoMuxingOutput},
+				Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
+			}
+			videoMuxingResp, err := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
+			if err != nil {
+				return nil, err
+			}
+			if videoMuxingResp.Status == "ERROR" {
+				return nil, errors.New("")
+			}
 		}
 	}
 
@@ -544,10 +628,33 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	return nil, errors.New("Not implemented")
 }
 
-func (p *bitmovinProvider) JobStatus(*db.Job) (*provider.JobStatus, error) {
+func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	// If the transcoding is finished, start manifest generation, wait (because it is fast),
 	// and then return done, otherwise send the status of the transcoding
-	return nil, errors.New("Not implemented")
+
+	// Do we need to analyze the input file here???
+
+	encodingS := services.NewEncodingService(p.client)
+	statusResp, err := encodingS.RetrieveStatus(job.ProviderJobID)
+	status := provider.JobStatus{}
+	if err != nil {
+		return nil, err
+	}
+	if *statusResp.Data.Result.Status == "FINISHED" {
+		// see if manifest generation needs to happen
+		cdResp, err := encodingS.RetrieveCustomData(job.ProviderJobID)
+		if err != nil {
+			// need to check this
+			return nil, err
+		}
+		if cdResp.Status == "ERROR" {
+			// FIXME
+			return nil, err
+		}
+
+	}
+	//FIXME
+	return &status, errors.New("Not implemented")
 }
 
 func (p *bitmovinProvider) CancelJob(jobID string) error {
