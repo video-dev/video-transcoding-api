@@ -7,6 +7,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
@@ -577,6 +578,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				IsDefault:       boolToPtr(false),
 				Autoselect:      boolToPtr(false),
 				Forced:          boolToPtr(false),
+				SegmentPath:     stringToPtr(audioPresetID),
 				Characteristics: []string{"public.accessibility.describes-video"},
 				EncodingID:      encodingResp.Data.Result.ID,
 				StreamID:        audioStreamResp.Data.Result.ID,
@@ -597,6 +599,51 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 			videoMuxingStream := models.StreamItem{
 				StreamID: &videoStreamID,
+			}
+			//GOT TO here
+			// this needs to be handled correctly,
+			// the video m3u8 MUST exist at the fileName specified.  Figure out the path using filepath
+			// to the master manifest so that the relative URI's will all work.  set the segment output to be
+			// in the same directory as the m3u8 file for simplicity.
+			// relativePath, err := filepath.Rel(masterManifestPath, filepath.Dir(output.FileName))
+			if err != nil {
+				return nil, err
+			}
+			videoMuxingOutput := models.Output{
+				OutputID: s3OSResponse.Data.Result.ID,
+				//This path is only relative to the input file.
+				OutputPath: stringToPtr(filepath.Join(masterManifestPath, videoPresetID)),
+				ACL:        acl,
+			}
+			videoMuxing := &models.TSMuxing{
+				SegmentLength: floatToPtr(float64(job.StreamingParams.SegmentDuration)),
+				SegmentNaming: stringToPtr("seg_%number%.ts"),
+				Streams:       []models.StreamItem{videoMuxingStream},
+				Outputs:       []models.Output{videoMuxingOutput},
+			}
+			videoMuxingResp, err := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, videoMuxing)
+			if err != nil {
+				return nil, err
+			}
+			if videoMuxingResp.Status == "ERROR" {
+				return nil, errors.New("")
+			}
+
+			videoStreamInfo := &models.StreamInfo{
+				Audio:       stringToPtr(audioPresetID),
+				SegmentPath: stringToPtr(videoPresetID),
+				URI:         stringToPtr(filepath.Base(output.FileName)),
+				EncodingID:  encodingResp.Data.Result.ID,
+				StreamID:    videoStreamResp.Data.Result.ID,
+				MuxingID:    videoMuxingResp.Data.Result.ID,
+			}
+
+			videoStreamInfoResp, err := hlsService.AddStreamInfo(manifestID, videoStreamInfo)
+			if err != nil {
+				return nil, err
+			}
+			if videoStreamInfoResp.Status == "ERROR" {
+				return nil, errors.New("")
 			}
 
 			// create the StreamInfo keeping in mind where all the paths are
@@ -622,10 +669,19 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		}
 	}
 
-	// create streams
-	// create muxings, check for dash vs hls
+	startResp, err := encodingS.Start(*encodingResp.Data.Result.ID)
+	if err != nil {
+		return nil, err
+	}
+	if startResp.Status == "ERROR" {
+		return nil, errors.New("")
+	}
 
-	return nil, errors.New("Not implemented")
+	return &provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: *encodingResp.Data.Result.ID,
+		Status:        provider.StatusQueued,
+	}, nil
 }
 
 func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
@@ -633,10 +689,11 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	// and then return done, otherwise send the status of the transcoding
 
 	// Do we need to analyze the input file here???
+	// Not for now, add it later.
 
 	encodingS := services.NewEncodingService(p.client)
 	statusResp, err := encodingS.RetrieveStatus(job.ProviderJobID)
-	status := provider.JobStatus{}
+	// status := provider.JobStatus{}
 	if err != nil {
 		return nil, err
 	}
@@ -649,22 +706,91 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		}
 		if cdResp.Status == "ERROR" {
 			// FIXME
-			return nil, err
+			return nil, errors.New("")
 		}
-
+		cd := cdResp.Data.Result.CustomData
+		i, ok := cd["audio"]
+		if !ok {
+			// return done
+			return &provider.JobStatus{
+				ProviderName:  Name,
+				ProviderJobID: job.ProviderJobID,
+				Status:        provider.StatusFinished,
+			}, nil
+		}
+		manifestID, ok := i.(string)
+		if !ok {
+			return nil, errors.New("Audio Configuration somehow not a string")
+		}
+		manifestS := services.NewHLSManifestService(p.client)
+		startResp, err := manifestS.Start(manifestID)
+		if err != nil {
+			return nil, err
+		} else if startResp.Status == "ERROR" {
+			return nil, errors.New("")
+		}
+		status := ""
+		for status != "FINISHED" {
+			statusResp, err := manifestS.RetrieveStatus(manifestID)
+			if err != nil {
+				return nil, err
+			}
+			status = *statusResp.Data.Result.Status
+			if status == "ERROR" {
+				return nil, errors.New("")
+			}
+			time.Sleep(500 * time.Millisecond)
+		}
+		return &provider.JobStatus{
+			ProviderName:  Name,
+			ProviderJobID: job.ProviderJobID,
+			Status:        provider.StatusFinished,
+		}, nil
+	} else if *statusResp.Data.Result.Status == "CREATED" || *statusResp.Data.Result.Status == "QUEUED" {
+		return &provider.JobStatus{
+			ProviderName:  Name,
+			ProviderJobID: job.ProviderJobID,
+			Status:        provider.StatusQueued,
+		}, nil
+	} else if *statusResp.Data.Result.Status == "RUNNING" {
+		return &provider.JobStatus{
+			ProviderName:  Name,
+			ProviderJobID: job.ProviderJobID,
+			Status:        provider.StatusStarted,
+		}, nil
 	}
-	//FIXME
-	return &status, errors.New("Not implemented")
+
+	return &provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: job.ProviderJobID,
+		Status:        provider.StatusFailed,
+	}, nil
 }
 
 func (p *bitmovinProvider) CancelJob(jobID string) error {
 	// stop the job
-	return errors.New("Not implemented")
+	encodingS := services.NewEncodingService(p.client)
+	resp, err := encodingS.Stop(jobID)
+	if err != nil {
+		return err
+	}
+	if resp.Status == "ERROR" {
+		return errors.New("")
+	}
+	return nil
 }
 
 func (p *bitmovinProvider) Healthcheck() error {
-	// unknown
-	return errors.New("Not implemented")
+	// Just going to call list encodings, and if it errors, then clearly it is unhealthy
+	encodingS := services.NewEncodingService(p.client)
+	resp, err := encodingS.List(int64(0), int64(1))
+	if err != nil {
+		return err
+	}
+	if resp.Status == "ERROR" {
+		return errors.New("")
+	}
+	return nil
 }
 
 func (p *bitmovinProvider) Capabilities() provider.Capabilities {
