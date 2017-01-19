@@ -9,6 +9,7 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
+	_ "github.com/bitmovin/video-transcoding-api/provider/bitmovin"
 	"github.com/google/gops/agent"
 	"github.com/knq/sdhook"
 	"github.com/marzagao/logrus-env"

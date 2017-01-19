@@ -9,18 +9,25 @@ import (
 	"strings"
 	"time"
 
+	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/bitmovin/bitmovin-go/bitmovin"
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"
 	"github.com/bitmovin/bitmovin-go/services"
-	"github.com/bitmovin/video-transcoding-api/config"
 )
 
 // Name is the name used for registering the bitmovin provider in the
 // registry of providers.
 const Name = "bitmovin"
+
+// Just to double check the interface is properly implemented
+var _ provider.TranscodingProvider = (*bitmovinProvider)(nil)
+
+func init() {
+	provider.Register(Name, bitmovinConductorFactory)
+}
 
 var h264Levels = []bitmovintypes.H264Level{
 	bitmovintypes.H264Level1,
@@ -821,6 +828,15 @@ func parseS3URL(input string) (bucketName string, path string, fileName string, 
 		return
 	}
 	return "", "", "", bitmovintypes.AWSCloudRegion(""), errors.New("")
+}
+
+func bitmovinConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
+	if cfg.Bitmovin.APIKey == "" || cfg.Bitmovin.AccessKeyID == "" || cfg.Bitmovin.SecretAccessKey == "" {
+		return nil, errors.New("")
+	}
+	client := bitmovin.NewBitmovin(cfg.Bitmovin.APIKey, cfg.Bitmovin.Endpoint, int64(cfg.Bitmovin.Timeout))
+
+	return &bitmovinProvider{client: client, config: cfg.Bitmovin}, nil
 }
 
 func stringToPtr(s string) *string {
