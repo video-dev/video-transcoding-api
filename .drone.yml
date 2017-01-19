@@ -79,3 +79,22 @@ notify:
     channel: $$SLACK_CHANNEL
     when:
       event: tag
+  downstream_dev:
+    image: plugins/drone-downstream
+    server: $$INTERNAL_DRONE_ENDPOINT
+    token: $$DRONE_TOKEN
+    repositories:
+      - $$INTEGRATION_TESTS_REPO@dev
+    fork: true
+    when:
+      branch: master
+  downstream_stg_prd:
+    image: plugins/drone-downstream
+    server: $$INTERNAL_DRONE_ENDPOINT
+    token: $$DRONE_TOKEN
+    repositories:
+      - $$INTEGRATION_TESTS_REPO@stg
+      - $$INTEGRATION_TESTS_REPO@prd
+    fork: true
+    when:
+      event: tag
