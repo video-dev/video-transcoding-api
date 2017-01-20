@@ -9,7 +9,7 @@ addons:
     - redis-server
 go:
 - 1.7.x
-- 1.8rc1
+- 1.8rc2
 - tip
 services:
 - redis-server
