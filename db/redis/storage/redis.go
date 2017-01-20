@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/redis.v4"
+	"gopkg.in/redis.v5"
 )
 
 // ErrNotFound is the error returned when the given key is not found.

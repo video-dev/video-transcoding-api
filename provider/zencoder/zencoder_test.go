@@ -14,7 +14,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/flavioribeiro/zencoder"
 	"github.com/kr/pretty"
-	redisDriver "gopkg.in/redis.v4"
+	redisDriver "gopkg.in/redis.v5"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {
