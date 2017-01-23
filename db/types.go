@@ -78,7 +78,7 @@ type StreamingParams struct {
 
 	// the playlist file name
 	// required: true
-	PlaylistFileName string `redis-hash:"playlistFileName" json:"playlistFileName,omitempty"`
+	PlaylistFileName string `redis-hash:"playlistFileName" json:"playlistFileName"`
 }
 
 // LocalPreset is a struct to persist encoding configurations. Some providers don't have
