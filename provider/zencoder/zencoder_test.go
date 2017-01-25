@@ -950,6 +950,49 @@ func TestZencoderJobStatus(t *testing.T) {
 				},
 			},
 		},
+		{
+			"837958345",
+			map[string]interface{}{
+				"providerName":  "zencoder",
+				"providerJobId": "837958345",
+				"status":        "started",
+				"progress":      float64(100),
+				"sourceInfo": map[string]interface{}{
+					"duration":   float64(50000000000),
+					"height":     float64(1080),
+					"width":      float64(1920),
+					"videoCodec": "ProRes422",
+				},
+				"providerStatus": map[string]interface{}{
+					"sourcefile": "http://nyt.net/input.mov",
+					"created":    "2016-11-05T05:02:57Z",
+					"finished":   "2016-11-05T05:02:57Z",
+					"updated":    "2016-11-05T05:02:57Z",
+					"started":    "2016-11-05T05:02:57Z",
+				},
+				"output": map[string]interface{}{
+					"destination": "/",
+					"files": []interface{}{
+						map[string]interface{}{
+							"path":       "s3://mybucket/destination-dir/output1.mp4",
+							"container":  "mp4",
+							"videoCodec": "h264",
+							"height":     float64(1080),
+							"width":      float64(1920),
+							"fileSize":   float64(66885256),
+						},
+						map[string]interface{}{
+							"height":     float64(720),
+							"width":      float64(1080),
+							"fileSize":   float64(92140022),
+							"path":       "s3://mybucket/destination-dir/output2.webm",
+							"container":  "webm",
+							"videoCodec": "vp8",
+						},
+					},
+				},
+			},
+		},
 	}
 	for _, test := range tests {
 		jobStatus, err := prov.JobStatus(&db.Job{ProviderJobID: test.ProviderJobID})
@@ -967,7 +1010,7 @@ func TestZencoderJobStatus(t *testing.T) {
 		}
 		if !reflect.DeepEqual(result, test.Expected) {
 			pretty.Fdiff(os.Stderr, test.Expected, result)
-			t.Errorf("Wrong JobStatus returned. Want %#v. Got %#v.", test.Expected, result)
+			t.Errorf("Wrong JobStatus returned. \nWant %#v.\n Got %#v.", test.Expected, result)
 		}
 	}
 }

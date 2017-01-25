@@ -23,8 +23,13 @@ func (z *FakeZencoder) GetJobProgress(id int64) (*zencoder.JobProgress, error) {
 }
 
 func (z *FakeZencoder) GetJobDetails(id int64) (*zencoder.JobDetails, error) {
+	state := "finished"
+	if id == 1234567890 || id == 837958345 {
+		state = "processing"
+	}
 	return &zencoder.JobDetails{
 		Job: &zencoder.Job{
+			State: state,
 			InputMediaFile: &zencoder.MediaFile{
 				Url:          "http://nyt.net/input.mov",
 				Format:       "mov",
