@@ -16,6 +16,7 @@ import (
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"
 	"github.com/bitmovin/bitmovin-go/services"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // Name is the name used for registering the bitmovin provider in the
@@ -55,35 +56,6 @@ var s3Pattern = regexp.MustCompile(`^s3://`)
 var httpPattern = regexp.MustCompile(`^http://`)
 var httpsPattern = regexp.MustCompile(`^https://`)
 
-// var s3UrlCloudRegionMap = map[string]bitmovintypes.AWSCloudRegion{
-// 	"s3.amazonaws.com":                          bitmovintypes.AWSCloudRegionUSEast1,
-// 	"s3-external-1.amazonaws.com":               bitmovintypes.AWSCloudRegionUSEast1,
-// 	"s3.dualstack.us-east-1.amazonaws.com":      bitmovintypes.AWSCloudRegionUSEast1,
-// 	"s3-us-west-1.amazonaws.com":                bitmovintypes.AWSCloudRegionUSWest1,
-// 	"s3.dualstack.us-west-1.amazonaws.com":      bitmovintypes.AWSCloudRegionUSWest1,
-// 	"s3-us-west-2.amazonaws.com":                bitmovintypes.AWSCloudRegionUSWest2,
-// 	"s3.dualstack.us-west-2.amazonaws.com":      bitmovintypes.AWSCloudRegionUSWest2,
-// 	"s3.ap-south-1.amazonaws.com":               bitmovintypes.AWSCloudRegionAPSouth1,
-// 	"s3-ap-south-1.amazonaws.com":               bitmovintypes.AWSCloudRegionAPSouth1,
-// 	"s3.dualstack.ap-south-1.amazonaws.com":     bitmovintypes.AWSCloudRegionAPSouth1,
-// 	"s3.ap-northeast-2.amazonaws.com":           bitmovintypes.AWSCloudRegionAPNortheast2,
-// 	"s3-ap-northeast-2.amazonaws.com":           bitmovintypes.AWSCloudRegionAPNortheast2,
-// 	"s3.dualstack.ap-northeast-2.amazonaws.com": bitmovintypes.AWSCloudRegionAPNortheast2,
-// 	"s3-ap-southeast-1.amazonaws.com":           bitmovintypes.AWSCloudRegionAPSoutheast1,
-// 	"s3.dualstack.ap-southeast-1.amazonaws.com": bitmovintypes.AWSCloudRegionAPSoutheast1,
-// 	"s3-ap-southeast-2.amazonaws.com":           bitmovintypes.AWSCloudRegionAPSoutheast2,
-// 	"s3.dualstack.ap-southeast-2.amazonaws.com": bitmovintypes.AWSCloudRegionAPSoutheast2,
-// 	"s3-ap-northeast-1.amazonaws.com":           bitmovintypes.AWSCloudRegionAPNortheast1,
-// 	"s3.dualstack.ap-northeast-1.amazonaws.com": bitmovintypes.AWSCloudRegionAPNortheast1,
-// 	"s3.eu-central-1.amazonaws.com":             bitmovintypes.AWSCloudRegionEUCentral1,
-// 	"s3-eu-central-1.amazonaws.com":             bitmovintypes.AWSCloudRegionEUCentral1,
-// 	"s3.dualstack.eu-central-1.amazonaws.com":   bitmovintypes.AWSCloudRegionEUCentral1,
-// 	"s3-eu-west-1.amazonaws.com":                bitmovintypes.AWSCloudRegionEUWest1,
-// 	"s3.dualstack.eu-west-1.amazonaws.com":      bitmovintypes.AWSCloudRegionEUWest1,
-// 	"s3-sa-east-1.amazonaws.com":                bitmovintypes.AWSCloudRegionSAEast1,
-// 	"s3.dualstack.sa-east-1.amazonaws.com":      bitmovintypes.AWSCloudRegionSAEast1,
-// }
-
 type bitmovinProvider struct {
 	client *bitmovin.Bitmovin
 	config *config.Bitmovin
@@ -105,36 +77,12 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	}
 
 	aac := services.NewAACCodecConfigurationService(p.client)
-	response, err := aac.List(0, 1)
-	if err != nil {
-		return "", err
-	}
-	if response.Status == "ERROR" {
-		return "", errors.New("")
-	}
-	totalCount := *response.Data.Result.TotalCount
-	response, err = aac.List(0, totalCount-1)
-	if err != nil {
-		return "", err
-	}
-	if response.Status == "ERROR" {
-		return "", errors.New("")
-	}
 	var audioConfigID string
-	// audioConfigs := response.Data.Result.Items
 	bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
-	// if err != nil {
-	// 	return "", err
-	// }
-	// for _, c := range audioConfigs {
-	// 	if *c.Bitrate == int64(bitrate) {
-	// 		audioConfigID = *c.ID
-	// 		break
-	// 	}
-	// }
-	// if audioConfigID == "" {
 	temp := int64(bitrate)
+	fmt.Println(temp)
 	audioConfig := &models.AACCodecConfiguration{
+		Name:         stringToPtr(preset.Name),
 		Bitrate:      &temp,
 		SamplingRate: floatToPtr(48000.0),
 	}
@@ -145,14 +93,14 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	if resp.Status == "ERROR" {
 		return "", errors.New("")
 	}
+
 	audioConfigID = *resp.Data.Result.ID
-	// }
-	//Create Video and add Custom Data element to point to the
+
 	customData := make(map[string]interface{})
 	customData["audio"] = audioConfigID
 	customData["container"] = preset.Container
-	h264Config, err := p.createVideoPreset(preset)
-	h264Config.CustomData = customData
+	h264Config, err := p.createVideoPreset(preset, customData)
+
 	h264 := services.NewH264CodecConfigurationService(p.client)
 	respo, err := h264.Create(h264Config)
 	if err != nil {
@@ -164,9 +112,12 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	return *respo.Data.Result.ID, nil
 }
 
-func (p *bitmovinProvider) createVideoPreset(preset db.Preset) (*models.H264CodecConfiguration, error) {
-	h264 := &models.H264CodecConfiguration{}
+func (p *bitmovinProvider) createVideoPreset(preset db.Preset, customData map[string]interface{}) (*models.H264CodecConfiguration, error) {
+	h264 := &models.H264CodecConfiguration{
+		CustomData: customData,
+	}
 	profile := strings.ToLower(preset.Video.Profile)
+	h264.Name = stringToPtr(preset.Name)
 	switch profile {
 	case "high":
 		h264.Profile = bitmovintypes.H264ProfileHigh
@@ -188,7 +139,9 @@ func (p *bitmovinProvider) createVideoPreset(preset db.Preset) (*models.H264Code
 		}
 	}
 	if !foundLevel {
-		return nil, fmt.Errorf("Unrecognized H264 Level: %v", preset.Video.ProfileLevel)
+		// Just set it to the highest Level
+		h264.Level = bitmovintypes.H264Level5_2
+		// return nil, fmt.Errorf("Unrecognized H264 Level: %v", preset.Video.ProfileLevel)
 	}
 	if preset.Video.Width != "" {
 		width, err := strconv.Atoi(preset.Video.Width)
@@ -329,11 +282,12 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 	//Parse the input and set it up
 	//It will be an s3 url so need to parse out the region and the bucket name
+
 	bucketName, path, fileName, cloudRegion, err := parseS3URL(job.SourceMedia)
 	if err != nil {
 		return nil, err
 	}
-
+	// fmt.Println("HERE2")
 	aclEntry := models.ACLItem{
 		Permission: bitmovintypes.ACLPermissionPublicRead,
 	}
@@ -346,6 +300,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		SecretKey:   stringToPtr(p.config.SecretAccessKey),
 		CloudRegion: cloudRegion,
 	}
+	// spew.Dump(s3Input)
 	s3ISResponse, err := s3IS.Create(s3Input)
 	if err != nil {
 		fmt.Println("error in setting up s3 Input")
@@ -356,6 +311,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		fmt.Printf("%+v\n", s3ISResponse)
 		return nil, errors.New("")
 	}
+	// fmt.Println("HERE3")
 
 	s3OS := services.NewS3OutputService(p.client)
 	s3Output := &models.S3Output{
@@ -364,6 +320,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		SecretKey:   stringToPtr(p.config.SecretAccessKey),
 		CloudRegion: cloudRegion,
 	}
+	// spew.Dump(s3Output)
 	s3OSResponse, err := s3OS.Create(s3Output)
 	if err != nil {
 		fmt.Println("error in setting up s3 Output")
@@ -379,7 +336,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	if path == "" {
 		inputPath = fileName
 	} else {
-		inputPath = path + "/" + fileName
+		inputPath = path + fileName
 	}
 
 	videoInputStream := models.InputStream{
@@ -409,13 +366,14 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	for _, output := range job.Outputs {
 		videoPresetID := output.Preset.ProviderMapping[Name]
 		customDataResp, err := h264S.RetrieveCustomData(videoPresetID)
+		// spew.Dump(customDataResp)
 		if err != nil {
 			return nil, err
 		}
 		if customDataResp.Status == "ERROR" {
 			return nil, errors.New("")
 		}
-		containerInterface, ok := customDataResp.Data.Result.CustomData["audio"]
+		containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
 		if !ok {
 			return nil, errors.New("")
 		}
@@ -424,6 +382,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("")
 		}
 		if container == "m3u8" {
+			// fmt.Println("HERE4")
 			outputtingHLS = true
 			break
 		}
@@ -432,6 +391,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	hlsService := services.NewHLSManifestService(p.client)
 
 	if outputtingHLS {
+		// fmt.Println("HERE5")
 		masterManifestPath = filepath.Dir(job.StreamingParams.PlaylistFileName)
 		masterManifestFile = filepath.Base(job.StreamingParams.PlaylistFileName)
 		manifestOutput := models.Output{
@@ -457,22 +417,38 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	}
 
 	encodingS := services.NewEncodingService(p.client)
-	encoding := &models.Encoding{
-		CloudRegion: bitmovintypes.CloudRegionGoogleUSEast1,
-	}
+	// encoding := &models.Encoding{
+	// 	CloudRegion: bitmovintypes.CloudRegionGoogleUSEast1,
+	// }
+	customData := make(map[string]interface{})
 	if outputtingHLS {
-		customData := make(map[string]interface{})
+		// customData := make(map[string]interface{})
 		customData["manifest"] = manifestID
-		encoding.CustomData = customData
+		// encoding = &models.Encoding{
+		// 	CustomData:  customData,
+		// 	CloudRegion: bitmovintypes.CloudRegionGoogleUSEast1,
+		// }
+		// spew.Dump(encoding)
 	}
+	encoding := &models.Encoding{
+		Name:        stringToPtr("encoding"),
+		CustomData:  customData,
+		CloudRegion: bitmovintypes.CloudRegionGoogleEuropeWest1,
+	}
+	// fmt.Println("second spew")
+	// fmt.Println("first dump")
+	// spew.Dump(encoding)
+
 	encodingResp, err := encodingS.Create(encoding)
+	// spew.Dump(encodingResp)
 	if err != nil {
 		fmt.Println("error in Encoding creation")
 		fmt.Println(err)
 		return nil, err
 	} else if encodingResp.Status == "ERROR" {
 		fmt.Println("error in Encoding creation")
-		fmt.Printf("%+v\n", *encodingResp)
+		// fmt.Printf("%+v\n", *encodingResp)
+		spew.Dump(encodingResp)
 		return nil, errors.New("")
 	}
 
@@ -557,7 +533,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			}
 			audioMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
-				OutputPath: stringToPtr(filepath.Join(masterManifestPath, audioPresetID)),
+				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, audioPresetID)),
 				ACL:        acl,
 			}
 			audioMuxing := &models.TSMuxing{
@@ -619,7 +595,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			videoMuxingOutput := models.Output{
 				OutputID: s3OSResponse.Data.Result.ID,
 				//This path is only relative to the input file.
-				OutputPath: stringToPtr(filepath.Join(masterManifestPath, videoPresetID)),
+				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, videoPresetID)),
 				ACL:        acl,
 			}
 			videoMuxing := &models.TSMuxing{
@@ -677,6 +653,8 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	}
 
 	startResp, err := encodingS.Start(*encodingResp.Data.Result.ID)
+	// fmt.Println("HEREHEREHEREHEREHEREHEREHEREHEREHERE")
+	// spew.Dump(startResp)
 	if err != nil {
 		return nil, err
 	}
@@ -684,11 +662,21 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("")
 	}
 
-	return &provider.JobStatus{
+	jobStatus := &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: *encodingResp.Data.Result.ID,
 		Status:        provider.StatusQueued,
-	}, nil
+	}
+
+	spew.Dump(jobStatus)
+
+	return jobStatus, nil
+
+	// return &provider.JobStatus{
+	// 	ProviderName:  Name,
+	// 	ProviderJobID: *encodingResp.Data.Result.ID,
+	// 	Status:        provider.StatusQueued,
+	// }, nil
 }
 
 func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
@@ -698,6 +686,8 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	// Do we need to analyze the input file here???
 	// Not for now, add it later.
 
+	fmt.Println("in JobStatus")
+
 	encodingS := services.NewEncodingService(p.client)
 	statusResp, err := encodingS.RetrieveStatus(job.ProviderJobID)
 	// status := provider.JobStatus{}
@@ -705,8 +695,10 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		return nil, err
 	}
 	if *statusResp.Data.Result.Status == "FINISHED" {
+		fmt.Println("should be generating manifest, dumping custom data response ")
 		// see if manifest generation needs to happen
 		cdResp, err := encodingS.RetrieveCustomData(job.ProviderJobID)
+		spew.Dump(cdResp)
 		if err != nil {
 			// need to check this
 			return nil, err
@@ -716,7 +708,7 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("")
 		}
 		cd := cdResp.Data.Result.CustomData
-		i, ok := cd["audio"]
+		i, ok := cd["manifest"]
 		if !ok {
 			// return done
 			return &provider.JobStatus{
@@ -734,16 +726,19 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		if err != nil {
 			return nil, err
 		} else if startResp.Status == "ERROR" {
+			spew.Dump(startResp)
 			return nil, errors.New("")
 		}
 		status := ""
 		for status != "FINISHED" {
 			statusResp, err := manifestS.RetrieveStatus(manifestID)
 			if err != nil {
+				fmt.Println("trying to retrieve status failed")
 				return nil, err
 			}
 			status = *statusResp.Data.Result.Status
 			if status == "ERROR" {
+				spew.Dump(statusResp)
 				return nil, errors.New("")
 			}
 			time.Sleep(500 * time.Millisecond)
@@ -824,7 +819,7 @@ func parseS3URL(input string) (bucketName string, path string, fileName string, 
 		fileName = splitTruncatedInput[len(splitTruncatedInput)-1]
 		truncatedInput = strings.TrimPrefix(truncatedInput, bucketName+"/")
 		path = strings.TrimSuffix(truncatedInput, fileName)
-		cloudRegion = bitmovintypes.AWSCloudRegionUSEast1
+		cloudRegion = bitmovintypes.AWSCloudRegionEUWest1
 		return
 	}
 	return "", "", "", bitmovintypes.AWSCloudRegion(""), errors.New("")
