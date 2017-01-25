@@ -433,7 +433,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	encoding := &models.Encoding{
 		Name:        stringToPtr("encoding"),
 		CustomData:  customData,
-		CloudRegion: bitmovintypes.CloudRegionGoogleEuropeWest1,
+		CloudRegion: bitmovintypes.CloudRegionGoogleUSEast1,
 	}
 	// fmt.Println("second spew")
 	// fmt.Println("first dump")
@@ -819,7 +819,7 @@ func parseS3URL(input string) (bucketName string, path string, fileName string, 
 		fileName = splitTruncatedInput[len(splitTruncatedInput)-1]
 		truncatedInput = strings.TrimPrefix(truncatedInput, bucketName+"/")
 		path = strings.TrimSuffix(truncatedInput, fileName)
-		cloudRegion = bitmovintypes.AWSCloudRegionEUWest1
+		cloudRegion = bitmovintypes.AWSCloudRegionUSEast1
 		return
 	}
 	return "", "", "", bitmovintypes.AWSCloudRegion(""), errors.New("")
