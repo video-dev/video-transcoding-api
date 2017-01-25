@@ -1,3 +1,24 @@
+## Version 1.1.2 (Release date: 2017-01-25)
+
+([f32e347](https://github.com/nytimes/video-transcoding-api/commit/f32e347)) Changes the Zencoder wrapper to use the job status found in the jobDetails for the JobState 
+
+([58b5e83](https://github.com/nytimes/video-transcoding-api/commit/58b5e83)) travis: update go 1.8 to rc2 
+
+([9357eaa](https://github.com/nytimes/video-transcoding-api/commit/9357eaa)) db/redis: update go-redis 
+
+([17730c0](https://github.com/nytimes/video-transcoding-api/commit/17730c0)) drone: run integration tests after deploying 
+
+([fa7488e](https://github.com/nytimes/video-transcoding-api/commit/fa7488e)) travis: update Go 1.8 to rc1 
+
+([ba8e873](https://github.com/nytimes/video-transcoding-api/commit/ba8e873)) readme: don't use an actual IP address in example 
+
+([43e243e](https://github.com/nytimes/video-transcoding-api/commit/43e243e)) Update swagger.json 
+
+([f4bd0eb](https://github.com/nytimes/video-transcoding-api/commit/f4bd0eb)) doc: include zencoder 
+
+
+
+
 ## Version 1.1.1 (Release date: 2017-01-06)
 
 ([98ba09f](https://github.com/nytimes/video-transcoding-api/commit/98ba09f)) travis: use .x syntax to ensure latest 1.7 
