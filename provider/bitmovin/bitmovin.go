@@ -65,7 +65,6 @@ type bitmovinPreset struct {
 }
 
 func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
-	//Find a corresponding audio configuration that lines up, otherwise create it
 	if strings.ToLower(preset.Audio.Codec) != "aac" {
 		return "", fmt.Errorf("Unsupported Audio codec: %v", preset.Audio.Codec)
 	}
@@ -218,7 +217,6 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 }
 
 func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
-	// Return a custom struct with the H264 and AAC config?
 	h264 := services.NewH264CodecConfigurationService(p.client)
 	response, err := h264.Retrieve(presetID)
 	if err != nil {
@@ -235,7 +233,6 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	if cd.Status == "ERROR" {
 		return nil, errors.New("")
 	}
-	// var aacConfigID string
 	if cd.Data.Result.CustomData != nil {
 		h264Config.CustomData = cd.Data.Result.CustomData
 		i, ok := h264Config.CustomData["audio"]
@@ -262,23 +259,9 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 		return preset, nil
 	}
 	return nil, errors.New("No Audio configuration found for Video Preset")
-
-	// return preset, errors.New("Not implemented")
 }
 
 func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
-
-	// Parse the input, it will have a s3:// structure.  Grab the bucket and information, this will
-	// be used on the output as well!
-
-	// Scan through the outputs and see if hls is needed.  if so then a manifest generation will need to happen.
-	// This will be a custom data on the encoding entry.
-
-	// Scan through again and everything should be straight forward.  I will need the MP4 Muxing on the go client
-
-	//Parse the input and set it up
-	//It will be an s3 url so need to parse out the region and the bucket name
-
 	bucketName, path, fileName, cloudRegion, err := parseS3URL(job.SourceMedia)
 	if err != nil {
 		return nil, err
@@ -414,11 +397,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("Error in Encoding Creation")
 	}
 
-	// Order of operations
-	// If HLS is needed, add MediaInfo for the Audio and StreamInfo for the Video.
-	// Add the TS Muxings
-
-	// If it is MP4, then simply mux the streams together into one MP4 file
 	for _, output := range job.Outputs {
 		videoPresetID := output.Preset.ProviderMapping[Name]
 		videoResponse, err := h264S.Retrieve(videoPresetID)
@@ -508,7 +486,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			if audioMuxingResp.Status == "ERROR" {
 				return nil, errors.New("Error in adding TS Muxing for audio")
 			}
-			// audioPresetIDToCreatedTSMuxingID[audioPresetID] = *audioMuxingResp.Data.Result.ID
 
 			// create the MediaInfo
 			audioMediaInfo := &models.MediaInfo{
@@ -543,17 +520,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				StreamID: &videoStreamID,
 			}
 
-			// this needs to be handled correctly,
-			// the video m3u8 MUST exist at the fileName specified.  Figure out the path using filepath
-			// to the master manifest so that the relative URI's will all work.  set the segment output to be
-			// in the same directory as the m3u8 file for simplicity.
-			// relativePath, err := filepath.Rel(masterManifestPath, filepath.Dir(output.FileName))
 			if err != nil {
 				return nil, err
 			}
 			videoMuxingOutput := models.Output{
-				OutputID: s3OSResponse.Data.Result.ID,
-				//This path is only relative to the input file.
+				OutputID:   s3OSResponse.Data.Result.ID,
 				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, videoPresetID)),
 				ACL:        acl,
 			}
@@ -587,9 +558,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			if videoStreamInfoResp.Status == "ERROR" {
 				return nil, errors.New("Error in adding EXT-X-STREAM-INF")
 			}
-
-			// create the StreamInfo keeping in mind where all the paths are
-
 		} else if container == "mp4" {
 			videoMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
@@ -629,15 +597,9 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 }
 
 func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
-	// If the transcoding is finished, start manifest generation, wait (because it is fast),
-	// and then return done, otherwise send the status of the transcoding
-
-	// Do we need to analyze the input file here???
-	// Not for now, add it later.
-
 	encodingS := services.NewEncodingService(p.client)
 	statusResp, err := encodingS.RetrieveStatus(job.ProviderJobID)
-	// status := provider.JobStatus{}
+
 	if err != nil {
 		return nil, err
 	}
@@ -651,19 +613,16 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if *statusResp.Data.Result.Status == "FINISHED" {
 		// see if manifest generation needs to happen
 		cdResp, err := encodingS.RetrieveCustomData(job.ProviderJobID)
-		// spew.Dump(cdResp)
 		if err != nil {
-			// need to check this
 			return nil, err
 		}
 		if cdResp.Status == "ERROR" {
-			// FIXME
 			return nil, errors.New("No Custom Data on Encoding, there should at least be container information here")
 		}
 		cd := cdResp.Data.Result.CustomData
 		i, ok := cd["manifest"]
 		if !ok {
-			// return done
+			// No manifest generation needed, we are finished
 			return &provider.JobStatus{
 				ProviderName:  Name,
 				ProviderJobID: job.ProviderJobID,
@@ -675,8 +634,6 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("Audio Configuration somehow not a string")
 		}
 		manifestS := services.NewHLSManifestService(p.client)
-		// TODO:
-		// Query manifest service, and do whatever needs to be done
 		manifestStatusResp, err := manifestS.RetrieveStatus(manifestID)
 		if err != nil {
 			return nil, err
