@@ -3,6 +3,7 @@ package bitmovin
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -18,25 +19,7 @@ import (
 
 func TestCreatePreset(t *testing.T) {
 	testPresetName := "this_is_an_audio_config_uuid"
-	preset := db.Preset{
-		Audio: db.AudioPreset{
-			Bitrate: "128000",
-			Codec:   "aac",
-		},
-		Container:   "mp4",
-		Description: "my nice preset",
-		Name:        "mp4_1080p",
-		RateControl: "VBR",
-		Video: db.VideoPreset{
-			Profile:      "main",
-			ProfileLevel: "3.1",
-			Bitrate:      "3500000",
-			Codec:        "h264",
-			GopMode:      "fixed",
-			GopSize:      "90",
-			Height:       "1080",
-		},
-	}
+	preset := getPreset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -71,6 +54,45 @@ func TestCreatePreset(t *testing.T) {
 	}
 	if presetName != testPresetName {
 		t.Error("expected ", testPresetName, "got ", presetName)
+	}
+}
+
+func TestCreatePresetFailsOnAPIError(t *testing.T) {
+	preset := getPreset()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/audio/aac":
+			resp := models.AACCodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	_, err := prov.CreatePreset(preset)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
+func TestCreatePresetFailsOnGenericError(t *testing.T) {
+	preset := getPreset()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/audio/aac":
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	_, err := prov.CreatePreset(preset)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
 	}
 }
 
@@ -113,6 +135,45 @@ func TestDeletePreset(t *testing.T) {
 	}
 }
 
+func TestDeletePresetFailsOnAPIError(t *testing.T) {
+	testPresetID := "i_want_to_delete_this"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.DeletePreset(testPresetID)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
+func TestDeletePresetFailsOnGenericError(t *testing.T) {
+	testPresetID := "i_want_to_delete_this"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.DeletePreset(testPresetID)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
 func TestGetPreset(t *testing.T) {
 	testPresetID := "this_is_a_video_preset_id"
 	audioPresetID := "this_is_a_audio_preset_id"
@@ -122,6 +183,7 @@ func TestGetPreset(t *testing.T) {
 		switch r.URL.Path {
 		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
 			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.H264CodecConfigurationData{
 					Result: models.H264CodecConfiguration{
 						CustomData: customData,
@@ -158,56 +220,56 @@ func TestGetPreset(t *testing.T) {
 	}
 }
 
+func TestGetPresetFailsOnAPIError(t *testing.T) {
+	testPresetID := "this_is_a_video_preset_id"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/video/h264/" + testPresetID:
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	i, err := prov.GetPreset(testPresetID)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if i != nil {
+		t.Errorf("GetPreset: got unexpected non-nil result: %#v", i)
+	}
+}
+
+func TestGetPresetFailsOnGenericError(t *testing.T) {
+	testPresetID := "this_is_a_video_preset_id"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/video/h264/" + testPresetID:
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	i, err := prov.GetPreset(testPresetID)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if i != nil {
+		t.Errorf("GetPreset: got unexpected non-nil result: %#v", i)
+	}
+}
+
 func TestTranscode(t *testing.T) {
 	s3InputID := "this_is_the_s3_input_id"
 	s3OutputID := "this_is_the_s3_output_id"
 	encodingID := "this_is_the_master_encoding_id"
 	manifestID := "this_is_the_master_manifest_id"
-	presets := []db.PresetMap{
-		{
-			Name: "mp4_1080p",
-			ProviderMapping: map[string]string{
-				Name: "videoID1",
-			},
-			OutputOpts: db.OutputOptions{Extension: "mp4"},
-		},
-		{
-			Name: "hls_360p",
-			ProviderMapping: map[string]string{
-				Name: "videoID2",
-			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8"},
-		},
-		{
-			Name: "hls_480p",
-			ProviderMapping: map[string]string{
-				Name: "videoID3",
-			},
-			OutputOpts: db.OutputOptions{Extension: "m3u8"},
-		},
-	}
-	outputs := make([]db.TranscodeOutput, len(presets))
-	for i, preset := range presets {
-		fileName := "output-" + preset.Name + "." + preset.OutputOpts.Extension
-		if preset.OutputOpts.Extension == "m3u8" {
-			fileName = "hls/output-" + preset.Name + ".m3u8"
-		}
-		outputs[i] = db.TranscodeOutput{
-			Preset:   preset,
-			FileName: fileName,
-		}
-	}
-	job := &db.Job{
-		ProviderName: Name,
-		SourceMedia:  "s3://bucket/folder/filename.mp4",
-		StreamingParams: db.StreamingParams{
-			SegmentDuration:  uint(4),
-			PlaylistFileName: "hls/master_playlist.m3u8",
-		},
-		Outputs: outputs,
-	}
-	// testJobID := "this_is_a_job_id"
-	// manifestID := "this_is_the_underlying_manifest_id"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/inputs/s3":
@@ -342,7 +404,7 @@ func TestTranscode(t *testing.T) {
 	}))
 	defer ts.Close()
 	prov := getBitmovinProvider(ts.URL)
-	jobStatus, err := prov.Transcode(job)
+	jobStatus, err := prov.Transcode(getJob())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -353,6 +415,49 @@ func TestTranscode(t *testing.T) {
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+	}
+}
+
+func TestTranscodeFailsOnAPIError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/inputs/s3":
+			resp := models.S3InputResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit " + r.URL.Path))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.Transcode(getJob())
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Transcode: got unexpected non-nil result: %#v", jobStatus)
+	}
+}
+
+func TestTranscodeFailsOnGenericError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/inputs/s3":
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit " + r.URL.Path))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.Transcode(getJob())
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Transcode: got unexpected non-nil result: %#v", jobStatus)
 	}
 }
 
@@ -412,6 +517,62 @@ func TestJobStatus(t *testing.T) {
 	}
 }
 
+func TestJobStatusReturnsFailureOnAPIError(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	manifestID := "this_is_the_underlying_manifest_id"
+	customData := make(map[string]interface{})
+	customData["manifest"] = manifestID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: testJobID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expectedJobStatus := &provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: testJobID,
+		Status:        provider.StatusFailed,
+	}
+	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
+		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+	}
+}
+
+func TestJobStatusReturnsErrorOnGenericError(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	manifestID := "this_is_the_underlying_manifest_id"
+	customData := make(map[string]interface{})
+	customData["manifest"] = manifestID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/status":
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: testJobID})
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
+	}
+}
+
 func TestCancelJob(t *testing.T) {
 	testJobID := "this_is_a_job_id"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -434,6 +595,45 @@ func TestCancelJob(t *testing.T) {
 
 }
 
+func TestCancelJobFailsOnAPIError(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/stop":
+			resp := models.StartStopResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.CancelJob(testJobID)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
+func TestCancelJobFailsOnGenericError(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/stop":
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.CancelJob(testJobID)
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
 func TestHealthCheck(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -451,6 +651,43 @@ func TestHealthCheck(t *testing.T) {
 	err := prov.Healthcheck()
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestHealthCheckFailsOnAPIError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings":
+			resp := models.EncodingListResponse{
+				Status: bitmovintypes.ResponseStatusError,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.Healthcheck()
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+}
+
+func TestHealthCheckFailsOnGenericError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings":
+			fmt.Fprintln(w, "Not proper json")
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.Healthcheck()
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
 	}
 }
 
@@ -479,4 +716,73 @@ func getBitmovinProvider(url string) bitmovinProvider {
 			SecretAccessKey: "secretaccesskey",
 		},
 	}
+}
+
+func getPreset() db.Preset {
+	return db.Preset{
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "aac",
+		},
+		Container:   "mp4",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
+		Video: db.VideoPreset{
+			Profile:      "main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Height:       "1080",
+		},
+	}
+}
+
+func getJob() *db.Job {
+	presets := []db.PresetMap{
+		{
+			Name: "mp4_1080p",
+			ProviderMapping: map[string]string{
+				Name: "videoID1",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mp4"},
+		},
+		{
+			Name: "hls_360p",
+			ProviderMapping: map[string]string{
+				Name: "videoID2",
+			},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
+		},
+		{
+			Name: "hls_480p",
+			ProviderMapping: map[string]string{
+				Name: "videoID3",
+			},
+			OutputOpts: db.OutputOptions{Extension: "m3u8"},
+		},
+	}
+	outputs := make([]db.TranscodeOutput, len(presets))
+	for i, preset := range presets {
+		fileName := "output-" + preset.Name + "." + preset.OutputOpts.Extension
+		if preset.OutputOpts.Extension == "m3u8" {
+			fileName = "hls/output-" + preset.Name + ".m3u8"
+		}
+		outputs[i] = db.TranscodeOutput{
+			Preset:   preset,
+			FileName: fileName,
+		}
+	}
+	job := &db.Job{
+		ProviderName: Name,
+		SourceMedia:  "s3://bucket/folder/filename.mp4",
+		StreamingParams: db.StreamingParams{
+			SegmentDuration:  uint(4),
+			PlaylistFileName: "hls/master_playlist.m3u8",
+		},
+		Outputs: outputs,
+	}
+	return job
 }

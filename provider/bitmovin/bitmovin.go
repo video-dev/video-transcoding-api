@@ -78,7 +78,6 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	var audioConfigID string
 	bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
 	temp := int64(bitrate)
-	fmt.Println(temp)
 	audioConfig := &models.AACCodecConfiguration{
 		Name:         stringToPtr(preset.Name),
 		Bitrate:      &temp,
@@ -139,7 +138,6 @@ func (p *bitmovinProvider) createVideoPreset(preset db.Preset, customData map[st
 	if !foundLevel {
 		// Just set it to the highest Level
 		h264.Level = bitmovintypes.H264Level5_2
-		// return nil, fmt.Errorf("Unrecognized H264 Level: %v", preset.Video.ProfileLevel)
 	}
 	if preset.Video.Width != "" {
 		width, err := strconv.Atoi(preset.Video.Width)
@@ -183,7 +181,7 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 		return err
 	}
 	if cdResp.Status == "ERROR" {
-		return errors.New("")
+		return errors.New("Video Preset must contain custom data to hold audio and container information")
 	}
 	var audioPresetID string
 	if cdResp.Data.Result.CustomData != nil {
@@ -316,7 +314,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 	s3OSResponse, err := s3OS.Create(s3Output)
 	if err != nil {
-		fmt.Println(err)
 		return nil, err
 	} else if s3ISResponse.Status == "ERROR" {
 		return nil, errors.New("Error in setting up S3 input")
@@ -392,7 +389,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		}
 		hlsMasterManifestResp, err := hlsService.Create(hlsMasterManifest)
 		if err != nil {
-			fmt.Println(err)
 			return nil, err
 		} else if hlsMasterManifestResp.Status == "ERROR" {
 			return nil, errors.New("Error in HLS Master Manifest creation")
@@ -639,8 +635,6 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	// Do we need to analyze the input file here???
 	// Not for now, add it later.
 
-	fmt.Println("in JobStatus")
-
 	encodingS := services.NewEncodingService(p.client)
 	statusResp, err := encodingS.RetrieveStatus(job.ProviderJobID)
 	// status := provider.JobStatus{}
@@ -655,7 +649,6 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		}, nil
 	}
 	if *statusResp.Data.Result.Status == "FINISHED" {
-		fmt.Println("should be generating manifest, dumping custom data response ")
 		// see if manifest generation needs to happen
 		cdResp, err := encodingS.RetrieveCustomData(job.ProviderJobID)
 		// spew.Dump(cdResp)
@@ -698,20 +691,16 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 
 		if *manifestStatusResp.Data.Result.Status == "CREATED" {
 			// start the manifest generation
-			fmt.Println("starting manifest gen")
-			fmt.Println(manifestID)
 			startResp, err := manifestS.Start(manifestID)
 			if err != nil {
 				return nil, err
 			} else if startResp.Status == "ERROR" {
-				fmt.Println("some reason here")
 				return &provider.JobStatus{
 					ProviderName:  Name,
 					ProviderJobID: job.ProviderJobID,
 					Status:        provider.StatusFailed,
 				}, nil
 			}
-			fmt.Println("returning started")
 			return &provider.JobStatus{
 				ProviderName:  Name,
 				ProviderJobID: job.ProviderJobID,
