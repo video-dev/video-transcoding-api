@@ -21,11 +21,13 @@ import (
 // registry of providers.
 const Name = "bitmovin"
 
+const bitmovinAPIErrorMsg = "ERROR"
+
 // Just to double check the interface is properly implemented
 var _ provider.TranscodingProvider = (*bitmovinProvider)(nil)
 
 func init() {
-	provider.Register(Name, bitmovinConductorFactory)
+	provider.Register(Name, bitmovinFactory)
 }
 
 var h264Levels = []bitmovintypes.H264Level{
@@ -51,9 +53,6 @@ var errBitmovinInvalidConfig = provider.InvalidConfigError("missing Bitmovin api
 
 var s3Pattern = regexp.MustCompile(`^s3://`)
 
-var httpPattern = regexp.MustCompile(`^http://`)
-var httpsPattern = regexp.MustCompile(`^https://`)
-
 type bitmovinProvider struct {
 	client *bitmovin.Bitmovin
 	config *config.Bitmovin
@@ -76,6 +75,9 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	aac := services.NewAACCodecConfigurationService(p.client)
 	var audioConfigID string
 	bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
+	if err != nil {
+		return "", err
+	}
 	temp := int64(bitrate)
 	audioConfig := &models.AACCodecConfiguration{
 		Name:         stringToPtr(preset.Name),
@@ -86,7 +88,7 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if audioResp.Status == "ERROR" {
+	if audioResp.Status == bitmovinAPIErrorMsg {
 		return "", errors.New("Error in creating audio portion of Preset")
 	}
 
@@ -96,13 +98,16 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	customData["audio"] = audioConfigID
 	customData["container"] = preset.Container
 	h264Config, err := p.createVideoPreset(preset, customData)
+	if err != nil {
+		return "", err
+	}
 
 	h264 := services.NewH264CodecConfigurationService(p.client)
 	videoResp, err := h264.Create(h264Config)
 	if err != nil {
 		return "", err
 	}
-	if videoResp.Status == "ERROR" {
+	if videoResp.Status == bitmovinAPIErrorMsg {
 		return "", errors.New("error in creating video portion of Preset")
 	}
 	return *videoResp.Data.Result.ID, nil
@@ -179,7 +184,7 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	if err != nil {
 		return err
 	}
-	if cdResp.Status == "ERROR" {
+	if cdResp.Status == bitmovinAPIErrorMsg {
 		return errors.New("Video Preset must contain custom data to hold audio and container information")
 	}
 	var audioPresetID string
@@ -202,7 +207,7 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	if err != nil {
 		return err
 	}
-	if audioDeleteResp.Status == "ERROR" {
+	if audioDeleteResp.Status == bitmovinAPIErrorMsg {
 		return errors.New("Error in deleting audio portion of Preset")
 	}
 
@@ -210,7 +215,7 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	if err != nil {
 		return err
 	}
-	if videoDeleteResp.Status == "ERROR" {
+	if videoDeleteResp.Status == bitmovinAPIErrorMsg {
 		return errors.New("Error in deleting video portion of Preset")
 	}
 	return nil
@@ -222,7 +227,7 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if response.Status == "ERROR" {
+	if response.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in retrieving video portion of Preset")
 	}
 	h264Config := response.Data.Result
@@ -230,7 +235,7 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	if err != nil {
 		return nil, err
 	}
-	if cd.Status == "ERROR" {
+	if cd.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("")
 	}
 	if cd.Data.Result.CustomData != nil {
@@ -248,7 +253,7 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 		if err != nil {
 			return nil, err
 		}
-		if audioResponse.Status == "ERROR" {
+		if audioResponse.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("Error in retrieving audio portion of Preset")
 		}
 		aacConfig := audioResponse.Data.Result
@@ -283,7 +288,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	s3ISResponse, err := s3IS.Create(s3Input)
 	if err != nil {
 		return nil, err
-	} else if s3ISResponse.Status == "ERROR" {
+	} else if s3ISResponse.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in setting up S3 input")
 	}
 
@@ -298,11 +303,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	s3OSResponse, err := s3OS.Create(s3Output)
 	if err != nil {
 		return nil, err
-	} else if s3ISResponse.Status == "ERROR" {
+	} else if s3ISResponse.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in setting up S3 input")
 	}
 
-	inputPath := ""
+	var inputPath string
 	if path == "" {
 		inputPath = fileName
 	} else {
@@ -334,12 +339,12 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	//create the master manifest if needed so we can add it to the customData of the encoding response
 	for _, output := range job.Outputs {
 		videoPresetID := output.Preset.ProviderMapping[Name]
-		customDataResp, err := h264S.RetrieveCustomData(videoPresetID)
+		customDataResp, cdErr := h264S.RetrieveCustomData(videoPresetID)
 
-		if err != nil {
-			return nil, err
+		if cdErr != nil {
+			return nil, cdErr
 		}
-		if customDataResp.Status == "ERROR" {
+		if customDataResp.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("")
 		}
 		containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
@@ -370,10 +375,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			ManifestName: stringToPtr(masterManifestFile),
 			Outputs:      []models.Output{manifestOutput},
 		}
-		hlsMasterManifestResp, err := hlsService.Create(hlsMasterManifest)
-		if err != nil {
-			return nil, err
-		} else if hlsMasterManifestResp.Status == "ERROR" {
+		hlsMasterManifestResp, manErr := hlsService.Create(hlsMasterManifest)
+		if manErr != nil {
+			return nil, manErr
+		} else if hlsMasterManifestResp.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("Error in HLS Master Manifest creation")
 		}
 		manifestID = *hlsMasterManifestResp.Data.Result.ID
@@ -393,24 +398,24 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	encodingResp, err := encodingS.Create(encoding)
 	if err != nil {
 		return nil, err
-	} else if encodingResp.Status == "ERROR" {
+	} else if encodingResp.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in Encoding Creation")
 	}
 
 	for _, output := range job.Outputs {
 		videoPresetID := output.Preset.ProviderMapping[Name]
-		videoResponse, err := h264S.Retrieve(videoPresetID)
+		videoResponse, h264Err := h264S.Retrieve(videoPresetID)
 		if err != nil {
-			return nil, err
+			return nil, h264Err
 		}
-		if videoResponse.Status == "ERROR" {
+		if videoResponse.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("Error in retrieving video portion of preset")
 		}
-		customDataResp, err := h264S.RetrieveCustomData(videoPresetID)
+		customDataResp, h264CDErr := h264S.RetrieveCustomData(videoPresetID)
 		if err != nil {
-			return nil, err
+			return nil, h264CDErr
 		}
-		if customDataResp.Status == "ERROR" {
+		if customDataResp.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("Error in retrieving video custom data where the audio ID and container type is stored")
 		}
 		audioPresetIDInterface, ok := customDataResp.Data.Result.CustomData["audio"]
@@ -427,11 +432,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			CodecConfigurationID: &audioPresetID,
 			InputStreams:         aiss,
 		}
-		audioStreamResp, err := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
-		if err != nil {
-			return nil, err
+		audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
+		if audioErr != nil {
+			return nil, audioErr
 		}
-		if audioStreamResp.Status == "ERROR" {
+		if audioStreamResp.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("Error in adding audio stream to Encoding")
 		}
 		audioStreamID = *audioStreamResp.Data.Result.ID
@@ -440,11 +445,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			CodecConfigurationID: &videoPresetID,
 			InputStreams:         viss,
 		}
-		videoStreamResp, err := encodingS.AddStream(*encodingResp.Data.Result.ID, videoStream)
-		if err != nil {
-			return nil, err
+		videoStreamResp, vsErr := encodingS.AddStream(*encodingResp.Data.Result.ID, videoStream)
+		if vsErr != nil {
+			return nil, vsErr
 		}
-		if videoStreamResp.Status == "ERROR" {
+		if videoStreamResp.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("Error in adding video stream to Encoding")
 		}
 		videoStreamID = *videoStreamResp.Data.Result.ID
@@ -465,9 +470,9 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("Container type somehow not a string")
 		}
 		if container == "m3u8" {
-			audioMuxingStream := models.StreamItem{
-				StreamID: &audioStreamID,
-			}
+			// audioMuxingStream := models.StreamItem{
+			// 	StreamID: &audioStreamID,
+			// }
 			audioMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
 				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, audioPresetID)),
@@ -479,11 +484,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				Streams:       []models.StreamItem{audioMuxingStream},
 				Outputs:       []models.Output{audioMuxingOutput},
 			}
-			audioMuxingResp, err := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
-			if err != nil {
-				return nil, err
+			audioMuxingResp, muxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
+			if muxErr != nil {
+				return nil, muxErr
 			}
-			if audioMuxingResp.Status == "ERROR" {
+			if audioMuxingResp.Status == bitmovinAPIErrorMsg {
 				return nil, errors.New("Error in adding TS Muxing for audio")
 			}
 
@@ -506,19 +511,19 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 			// Add to Master manifest, we will set the m3u8 and segments relative to the master
 
-			audioMediaInfoResp, err := hlsService.AddMediaInfo(manifestID, audioMediaInfo)
-			if err != nil {
-				return nil, err
+			audioMediaInfoResp, miErr := hlsService.AddMediaInfo(manifestID, audioMediaInfo)
+			if miErr != nil {
+				return nil, miErr
 			}
-			if audioMediaInfoResp.Status == "ERROR" {
+			if audioMediaInfoResp.Status == bitmovinAPIErrorMsg {
 				return nil, errors.New("Error in adding EXT-X-MEDIA")
 			}
 
 			// create the video ts muxing
 
-			videoMuxingStream := models.StreamItem{
-				StreamID: &videoStreamID,
-			}
+			// videoMuxingStream := models.StreamItem{
+			// 	StreamID: &videoStreamID,
+			// }
 
 			if err != nil {
 				return nil, err
@@ -534,11 +539,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				Streams:       []models.StreamItem{videoMuxingStream},
 				Outputs:       []models.Output{videoMuxingOutput},
 			}
-			videoMuxingResp, err := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, videoMuxing)
+			videoMuxingResp, vmuxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, videoMuxing)
 			if err != nil {
-				return nil, err
+				return nil, vmuxErr
 			}
-			if videoMuxingResp.Status == "ERROR" {
+			if videoMuxingResp.Status == bitmovinAPIErrorMsg {
 				return nil, errors.New("Error in adding TS Muxing for video")
 			}
 
@@ -551,11 +556,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				MuxingID:    videoMuxingResp.Data.Result.ID,
 			}
 
-			videoStreamInfoResp, err := hlsService.AddStreamInfo(manifestID, videoStreamInfo)
-			if err != nil {
-				return nil, err
+			videoStreamInfoResp, vsiErr := hlsService.AddStreamInfo(manifestID, videoStreamInfo)
+			if vsiErr != nil {
+				return nil, vsiErr
 			}
-			if videoStreamInfoResp.Status == "ERROR" {
+			if videoStreamInfoResp.Status == bitmovinAPIErrorMsg {
 				return nil, errors.New("Error in adding EXT-X-STREAM-INF")
 			}
 		} else if container == "mp4" {
@@ -569,11 +574,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				Outputs:  []models.Output{videoMuxingOutput},
 				Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
 			}
-			videoMuxingResp, err := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
+			videoMuxingResp, vmErr := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
 			if err != nil {
-				return nil, err
+				return nil, vmErr
 			}
-			if videoMuxingResp.Status == "ERROR" {
+			if videoMuxingResp.Status == bitmovinAPIErrorMsg {
 				return nil, errors.New("Error in adding MP4 Muxing")
 			}
 		}
@@ -583,7 +588,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	if startResp.Status == "ERROR" {
+	if startResp.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in starting encoding")
 	}
 
@@ -603,7 +608,7 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, err
 	}
-	if statusResp.Status == "ERROR" {
+	if statusResp.Status == bitmovinAPIErrorMsg {
 		return &provider.JobStatus{
 			ProviderName:  Name,
 			ProviderJobID: job.ProviderJobID,
@@ -616,7 +621,7 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		if err != nil {
 			return nil, err
 		}
-		if cdResp.Status == "ERROR" {
+		if cdResp.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("No Custom Data on Encoding, there should at least be container information here")
 		}
 		cd := cdResp.Data.Result.CustomData
@@ -638,7 +643,7 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		if err != nil {
 			return nil, err
 		}
-		if *manifestStatusResp.Data.Result.Status == "ERROR" {
+		if *manifestStatusResp.Data.Result.Status == bitmovinAPIErrorMsg {
 			return &provider.JobStatus{
 				ProviderName:  Name,
 				ProviderJobID: job.ProviderJobID,
@@ -651,7 +656,7 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			startResp, err := manifestS.Start(manifestID)
 			if err != nil {
 				return nil, err
-			} else if startResp.Status == "ERROR" {
+			} else if startResp.Status == bitmovinAPIErrorMsg {
 				return &provider.JobStatus{
 					ProviderName:  Name,
 					ProviderJobID: job.ProviderJobID,
@@ -708,7 +713,7 @@ func (p *bitmovinProvider) CancelJob(jobID string) error {
 	if err != nil {
 		return err
 	}
-	if resp.Status == "ERROR" {
+	if resp.Status == bitmovinAPIErrorMsg {
 		return errors.New("Error in canceling Job")
 	}
 	return nil
@@ -721,7 +726,7 @@ func (p *bitmovinProvider) Healthcheck() error {
 	if err != nil {
 		return err
 	}
-	if resp.Status == "ERROR" {
+	if resp.Status == bitmovinAPIErrorMsg {
 		return errors.New("Bitmovin service unavailable")
 	}
 	return nil
@@ -755,15 +760,6 @@ func parseS3URL(input string) (bucketName string, path string, fileName string, 
 		return
 	}
 	return "", "", "", bitmovintypes.AWSCloudRegion(""), errors.New("Could not parse S3 URL")
-}
-
-func bitmovinConductorFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	if cfg.Bitmovin.APIKey == "" || cfg.Bitmovin.AccessKeyID == "" || cfg.Bitmovin.SecretAccessKey == "" {
-		return nil, errors.New("")
-	}
-	client := bitmovin.NewBitmovin(cfg.Bitmovin.APIKey, cfg.Bitmovin.Endpoint, int64(cfg.Bitmovin.Timeout))
-
-	return &bitmovinProvider{client: client, config: cfg.Bitmovin}, nil
 }
 
 func stringToPtr(s string) *string {
