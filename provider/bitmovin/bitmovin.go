@@ -519,15 +519,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				return nil, errors.New("Error in adding EXT-X-MEDIA")
 			}
 
-			// create the video ts muxing
-
-			// videoMuxingStream := models.StreamItem{
-			// 	StreamID: &videoStreamID,
-			// }
-
-			if err != nil {
-				return nil, err
-			}
 			videoMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
 				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, videoPresetID)),

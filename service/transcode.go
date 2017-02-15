@@ -84,8 +84,6 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	if err != nil {
 		return swagger.NewErrorResponse(err)
 	}
-	fmt.Println("should be 200'ing here")
-	fmt.Println(job.ID)
 	return newJobResponse(job.ID)
 }
 
