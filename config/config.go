@@ -17,6 +17,7 @@ type Config struct {
 	ElasticTranscoder      *ElasticTranscoder
 	ElementalConductor     *ElementalConductor
 	Zencoder               *Zencoder
+	Bitmovin               *Bitmovin
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com
@@ -57,6 +58,16 @@ type ElementalConductor struct {
 	Destination     string `envconfig:"ELEMENTALCONDUCTOR_DESTINATION"`
 }
 
+// Bitmovin represents the set of configurations for the Bitmovin
+// provider.
+type Bitmovin struct {
+	APIKey          string `envconfig:"BITMOVIN_API_KEY"`
+	Endpoint        string `envconfig:"BITMOVIN_ENDPOINT" default:"https://api.bitmovin.com/v1/"`
+	Timeout         uint   `envconfig:"BITMOVIN_TIMEOUT" default:"5"`
+	AccessKeyID     string `envconfig:"BITMOVIN_AWS_ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"BITMOVIN_AWS_SECRET_ACCESS_KEY"`
+}
+
 // LoadConfig loads the configuration of the API using environment variables.
 func LoadConfig() *Config {
 	cfg := Config{
@@ -64,10 +75,11 @@ func LoadConfig() *Config {
 		EncodingCom:        new(EncodingCom),
 		ElasticTranscoder:  new(ElasticTranscoder),
 		ElementalConductor: new(ElementalConductor),
+		Bitmovin:           new(Bitmovin),
 		Server:             new(server.Config),
 	}
 	config.LoadEnvConfig(&cfg)
-	loadFromEnv(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor, cfg.Server)
+	loadFromEnv(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor, cfg.Bitmovin, cfg.Server)
 	return &cfg
 }
 

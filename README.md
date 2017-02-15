@@ -15,6 +15,7 @@ providers:
 - [Encoding.com](http://encoding.com)
 - [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
 - [Zencoder](http://zencoder.com)
+- [Bitmovin](http://bitmovin.com)
 
 ## Setting Up
 
@@ -56,6 +57,14 @@ export ELASTICTRANSCODER_PIPELINE_ID="yourpipeline-id"
 ```
 export ZENCODER_API_KEY=your.api.key
 export ZENCODER_DESTINATION=http://access.key.id:secret.access.key@your-s3-bucket.s3.amazonaws.com/
+```
+
+#### For [Bitmovin](http://bitmovin.com)
+
+```
+export BITMOVIN_API_KEY=your.api.key
+export BITMOVIN_AWS_ACCESS_KEY_ID=your.access.key.id
+export BITMOVIN_AWS_SECRET_ACCESS_KEY=your.secret.access.key
 ```
 
 
