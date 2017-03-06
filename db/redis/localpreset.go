@@ -5,7 +5,7 @@ import (
 
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
-	"gopkg.in/redis.v4"
+	"gopkg.in/redis.v5"
 )
 
 const localPresetsSetKey = "localpresets"

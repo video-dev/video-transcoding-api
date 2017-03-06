@@ -4,6 +4,7 @@ import (
 	"github.com/Gurpartap/logrus-stack"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/config"
+	_ "github.com/NYTimes/video-transcoding-api/provider/bitmovin"
 	_ "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
 	_ "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
 	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
@@ -15,7 +16,8 @@ import (
 )
 
 func main() {
-	agent.Start()
+	agent.Listen(&agent.Options{NoShutdownCleanup: true})
+	defer agent.Close()
 	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
 		cfg.Server.RouterType = "fast"

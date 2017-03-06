@@ -7,6 +7,7 @@ type Person struct {
 	Name             string    `redis-hash:"name"`
 	Address          Address   `redis-hash:"address,expand"`
 	Age              uint      `redis-hash:"age"`
+	Weight           float64   `redis-hash:"weight"`
 	BirthTime        time.Time `redis-hash:"birth"`
 	PreferredColors  []string  `redis-hash:"colors"`
 	NonTagged        string

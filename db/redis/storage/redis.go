@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/redis.v4"
+	"gopkg.in/redis.v5"
 )
 
 // ErrNotFound is the error returned when the given key is not found.
@@ -272,6 +272,12 @@ func (s *Storage) loadStruct(in map[string]string, out reflect.Value, prefixes .
 						return err
 					}
 					fieldValue.SetBool(boolValue)
+				case reflect.Float64:
+					floatValue, err := strconv.ParseFloat(value, 64)
+					if err != nil {
+						return err
+					}
+					fieldValue.SetFloat(floatValue)
 				case reflect.Int:
 					intValue, err := strconv.ParseInt(value, 10, 64)
 					if err != nil {

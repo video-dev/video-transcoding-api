@@ -15,6 +15,7 @@ providers:
 - [Encoding.com](http://encoding.com)
 - [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
 - [Zencoder](http://zencoder.com)
+- [Bitmovin](http://bitmovin.com)
 
 ## Setting Up
 
@@ -58,6 +59,14 @@ export ZENCODER_API_KEY=your.api.key
 export ZENCODER_DESTINATION=http://access.key.id:secret.access.key@your-s3-bucket.s3.amazonaws.com/
 ```
 
+#### For [Bitmovin](http://bitmovin.com)
+
+```
+export BITMOVIN_API_KEY=your.api.key
+export BITMOVIN_AWS_ACCESS_KEY_ID=your.access.key.id
+export BITMOVIN_AWS_SECRET_ACCESS_KEY=your.secret.access.key
+```
+
 
 Please notice that for Elastic Transcoder you don't specify the destination
 bucket, as it is [defined in the Elastic Transcoder
@@ -69,7 +78,7 @@ running. Learn how to setup and run a Redis
 its configuration variables:
 
 ````
-export REDIS_ADDR=200.221.14.140
+export REDIS_ADDR=192.0.2.31
 export REDIS_PASSWORD=p4ssw0rd.here
 ```
 

@@ -280,7 +280,7 @@ func (z *zencoderProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	return &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: job.ProviderJobID,
-		Status:        z.statusMap(progress.State),
+		Status:        z.statusMap(zencoder.JobState(jobDetails.Job.State)),
 		Progress:      progress.JobProgress,
 		Output:        jobOutputs,
 		SourceInfo: provider.SourceInfo{

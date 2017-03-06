@@ -1,3 +1,49 @@
+## Version 1.1.2 (Release date: 2017-01-25)
+
+([f32e347](https://github.com/nytimes/video-transcoding-api/commit/f32e347)) Changes the Zencoder wrapper to use the job status found in the jobDetails for the JobState 
+
+([58b5e83](https://github.com/nytimes/video-transcoding-api/commit/58b5e83)) travis: update go 1.8 to rc2 
+
+([9357eaa](https://github.com/nytimes/video-transcoding-api/commit/9357eaa)) db/redis: update go-redis 
+
+([17730c0](https://github.com/nytimes/video-transcoding-api/commit/17730c0)) drone: run integration tests after deploying 
+
+([fa7488e](https://github.com/nytimes/video-transcoding-api/commit/fa7488e)) travis: update Go 1.8 to rc1 
+
+([ba8e873](https://github.com/nytimes/video-transcoding-api/commit/ba8e873)) readme: don't use an actual IP address in example 
+
+([43e243e](https://github.com/nytimes/video-transcoding-api/commit/43e243e)) Update swagger.json 
+
+([f4bd0eb](https://github.com/nytimes/video-transcoding-api/commit/f4bd0eb)) doc: include zencoder 
+
+
+
+
+## Version 1.1.1 (Release date: 2017-01-06)
+
+([98ba09f](https://github.com/nytimes/video-transcoding-api/commit/98ba09f)) travis: use .x syntax to ensure latest 1.7 
+
+([24d9528](https://github.com/nytimes/video-transcoding-api/commit/24d9528)) db/redis/storage: support float64 
+
+
+
+
+## Version 1.1.0 (Release date: 2016-12-22)
+
+([ec42742](https://github.com/nytimes/video-transcoding-api/commit/ec42742)) encodingcom: Returns converted file size 
+
+([12b0a6d](https://github.com/nytimes/video-transcoding-api/commit/12b0a6d)) Update gops 
+
+([0c1152c](https://github.com/nytimes/video-transcoding-api/commit/0c1152c)) encodingcom: Returns converted file size 
+
+
+
+
+
+## Version 1.0.9 (Release date: 2016-12-19)
+
+
+
 ## Version 1.0.8-rc (Release date: 2016-12-19)
 
 ([071a2d8](https://github.com/nytimes/video-transcoding-api/commit/071a2d8)) preset: avoid creating PresetMap when ProviderMapping is empty 
