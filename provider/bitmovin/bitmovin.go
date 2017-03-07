@@ -26,6 +26,38 @@ const bitmovinAPIErrorMsg = "ERROR"
 // Just to double check the interface is properly implemented
 var _ provider.TranscodingProvider = (*bitmovinProvider)(nil)
 
+var cloudRegions = map[string]struct{}{
+	"AWS_US_EAST_1":        {},
+	"AWS_US_WEST_1":        {},
+	"AWS_US_WEST_2":        {},
+	"AWS_EU_WEST_1":        {},
+	"AWS_EU_CENTRAL_1":     {},
+	"AWS_AP_SOUTH_1":       {},
+	"AWS_AP_NORTHEAST_1":   {},
+	"AWS_AP_NORTHEAST_2":   {},
+	"AWS_AP_SOUTHEAST_1":   {},
+	"AWS_AP_SOUTHEAST_2":   {},
+	"AWS_SA_EAST_1":        {},
+	"GOOGLE_EUROPE_WEST_1": {},
+	"GOOGLE_US_EAST_1":     {},
+	"GOOGLE_US_CENTRAL_1":  {},
+	"GOOGLE_ASIA_EAST_1":   {},
+}
+
+var awsCloudRegions = map[string]struct{}{
+	"US_EAST_1":      {},
+	"US_WEST_1":      {},
+	"US_WEST_2":      {},
+	"EU_WEST_1":      {},
+	"EU_CENTRAL_1":   {},
+	"AP_SOUTH_1":     {},
+	"AP_NORTHEAST_1": {},
+	"AP_NORTHEAST_2": {},
+	"AP_SOUTHEAST_1": {},
+	"AP_SOUTHEAST_2": {},
+	"SA_EAST_1":      {},
+}
+
 func init() {
 	provider.Register(Name, bitmovinFactory)
 }
@@ -267,10 +299,11 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 }
 
 func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
-	bucketName, path, fileName, cloudRegion, err := parseS3URL(job.SourceMedia)
+	bucketName, path, fileName, err := parseS3URL(job.SourceMedia)
 	if err != nil {
 		return nil, err
 	}
+	cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
 
 	aclEntry := models.ACLItem{
 		Permission: bitmovintypes.ACLPermissionPublicRead,
@@ -389,10 +422,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	if outputtingHLS {
 		customData["manifest"] = manifestID
 	}
+	encodingRegion := bitmovintypes.CloudRegion(p.config.EncodingRegion)
 	encoding := &models.Encoding{
 		Name:        stringToPtr("encoding"),
 		CustomData:  customData,
-		CloudRegion: bitmovintypes.CloudRegionAWSUSEast1,
+		CloudRegion: encodingRegion,
 	}
 
 	encodingResp, err := encodingS.Create(encoding)
@@ -735,11 +769,17 @@ func bitmovinFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	if cfg.Bitmovin.APIKey == "" {
 		return nil, errBitmovinInvalidConfig
 	}
+	if _, ok := cloudRegions[cfg.Bitmovin.EncodingRegion]; !ok {
+		return nil, errBitmovinInvalidConfig
+	}
+	if _, ok := awsCloudRegions[cfg.Bitmovin.AWSStorageRegion]; !ok {
+		return nil, errBitmovinInvalidConfig
+	}
 	client := bitmovin.NewBitmovin(cfg.Bitmovin.APIKey, cfg.Bitmovin.Endpoint, int64(cfg.Bitmovin.Timeout))
 	return &bitmovinProvider{client: client, config: cfg.Bitmovin}, nil
 }
 
-func parseS3URL(input string) (bucketName string, path string, fileName string, cloudRegion bitmovintypes.AWSCloudRegion, err error) {
+func parseS3URL(input string) (bucketName string, path string, fileName string, err error) {
 	if s3Pattern.MatchString(input) {
 		truncatedInput := strings.TrimPrefix(input, "s3://")
 		splitTruncatedInput := strings.Split(truncatedInput, "/")
@@ -747,10 +787,9 @@ func parseS3URL(input string) (bucketName string, path string, fileName string, 
 		fileName = splitTruncatedInput[len(splitTruncatedInput)-1]
 		truncatedInput = strings.TrimPrefix(truncatedInput, bucketName+"/")
 		path = strings.TrimSuffix(truncatedInput, fileName)
-		cloudRegion = bitmovintypes.AWSCloudRegionUSEast1
 		return
 	}
-	return "", "", "", bitmovintypes.AWSCloudRegion(""), errors.New("Could not parse S3 URL")
+	return "", "", "", errors.New("Could not parse S3 URL")
 }
 
 func stringToPtr(s string) *string {
