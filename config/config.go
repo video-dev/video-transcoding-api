@@ -68,6 +68,7 @@ type Bitmovin struct {
 	SecretAccessKey  string `envconfig:"BITMOVIN_AWS_SECRET_ACCESS_KEY"`
 	AWSStorageRegion string `envconfig:"BITMOVIN_AWS_STORAGE_REGION" default:"US_EAST_1"`
 	EncodingRegion   string `envconfig:"BITMOVIN_ENCODING_REGION" default:"AWS_US_EAST_1"`
+	EncodingVersion  string `envconfig:"BITMOVIN_ENCODING_VERSION" default:"STABLE"`
 }
 
 // LoadConfig loads the configuration of the API using environment variables.

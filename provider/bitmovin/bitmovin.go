@@ -423,10 +423,12 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		customData["manifest"] = manifestID
 	}
 	encodingRegion := bitmovintypes.CloudRegion(p.config.EncodingRegion)
+	encodingVersion := bitmovintypes.EncoderVersion(p.config.EncodingVersion)
 	encoding := &models.Encoding{
-		Name:        stringToPtr("encoding"),
-		CustomData:  customData,
-		CloudRegion: encodingRegion,
+		Name:           stringToPtr("encoding"),
+		CustomData:     customData,
+		CloudRegion:    encodingRegion,
+		EncoderVersion: encodingVersion,
 	}
 
 	encodingResp, err := encodingS.Create(encoding)
