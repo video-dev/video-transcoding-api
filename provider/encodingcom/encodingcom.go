@@ -283,8 +283,8 @@ func (e *encodingComProvider) parseSize(size string) (width int64, height int64,
 
 func (e *encodingComProvider) adjustSize(reportedSize string, sourceInfo *encodingcom.MediaInfo) (width int64, height int64, err error) {
 	width, height, err = e.parseSize(reportedSize)
-	if err != nil {
-		return 0, 0, err
+	if err != nil || sourceInfo == nil {
+		return width, height, err
 	}
 	if width != 0 && height != 0 {
 		return width, height, nil
