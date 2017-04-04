@@ -1,3 +1,67 @@
+## Version 1.2.0 (Release date: 2017-04-04)
+([9cbe954](https://github.com/nytimes/video-transcoding-api/commit/9cbe954)) Fix gometalinter violations 
+
+([5776807](https://github.com/nytimes/video-transcoding-api/commit/5776807)) provider/encodingcom: provide the proper information on JobStatus 
+
+
+([41ae17b](https://github.com/nytimes/video-transcoding-api/commit/41ae17b)) new fields for README 
+
+([05dc0ea](https://github.com/nytimes/video-transcoding-api/commit/05dc0ea)) adding flexibility for s3 storage region and the ability to encode in any region of aws or gcp 
+
+
+([6f5cf95](https://github.com/nytimes/video-transcoding-api/commit/6f5cf95)) travis: use .x notation for Go 1.8 
+
+
+([8eaa73e](https://github.com/nytimes/video-transcoding-api/commit/8eaa73e)) code cleanup 
+
+([6deee07](https://github.com/nytimes/video-transcoding-api/commit/6deee07)) removing debugging code 
+
+([1d8e517](https://github.com/nytimes/video-transcoding-api/commit/1d8e517)) linter caught some dead code and other things, fixing this 
+
+([e93afc3](https://github.com/nytimes/video-transcoding-api/commit/e93afc3)) code cleanup 
+
+([b12c739](https://github.com/nytimes/video-transcoding-api/commit/b12c739)) more test coverage and code cleanup 
+
+([0c1c815](https://github.com/nytimes/video-transcoding-api/commit/0c1c815)) adding test code 
+
+([da1a24e](https://github.com/nytimes/video-transcoding-api/commit/da1a24e)) travis: update go 1.8 to rc3 
+
+([1b3bd2d](https://github.com/nytimes/video-transcoding-api/commit/1b3bd2d)) adding Bitmovin to readme 
+
+([ccb4321](https://github.com/nytimes/video-transcoding-api/commit/ccb4321)) jobs submit but does not respond with proper json, debugging code in here for now, manifest gen works for hls 
+
+([4af9b33](https://github.com/nytimes/video-transcoding-api/commit/4af9b33)) changing import directory 
+
+([7a0a658](https://github.com/nytimes/video-transcoding-api/commit/7a0a658)) need to register bitmovin 
+
+([2900b79](https://github.com/nytimes/video-transcoding-api/commit/2900b79)) fleshing out rest of methods 
+
+([ec748c5](https://github.com/nytimes/video-transcoding-api/commit/ec748c5)) interstitial commit 
+
+([29272e9](https://github.com/nytimes/video-transcoding-api/commit/29272e9)) change in logic, adding a lot of steps 
+
+([e2c10d9](https://github.com/nytimes/video-transcoding-api/commit/e2c10d9)) adding environment variables for bitmovin aws credentials 
+
+([2fbc577](https://github.com/nytimes/video-transcoding-api/commit/2fbc577)) s3 url parsing 
+
+([3a05910](https://github.com/nytimes/video-transcoding-api/commit/3a05910)) interstitial commit 
+
+([50b89f3](https://github.com/nytimes/video-transcoding-api/commit/50b89f3)) interstitial commit 
+
+([595dce8](https://github.com/nytimes/video-transcoding-api/commit/595dce8)) implementing the interface 
+
+([a34faef](https://github.com/nytimes/video-transcoding-api/commit/a34faef)) adding rest of config for bitmovin clinet 
+
+([02e97d3](https://github.com/nytimes/video-transcoding-api/commit/02e97d3)) initial config changes for bitmovin 
+
+([003fcd1](https://github.com/nytimes/video-transcoding-api/commit/003fcd1)) adding stubs for functions, capapbilities and first test 
+
+([6f424e6](https://github.com/nytimes/video-transcoding-api/commit/6f424e6)) initial commit 
+
+
+
+
+
 ## Version 1.1.2 (Release date: 2017-01-25)
 
 ([f32e347](https://github.com/nytimes/video-transcoding-api/commit/f32e347)) Changes the Zencoder wrapper to use the job status found in the jobDetails for the JobState 
