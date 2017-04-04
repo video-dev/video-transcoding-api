@@ -18,6 +18,7 @@ package encodingcom
 import (
 	"errors"
 	"fmt"
+	"math"
 	"path"
 	"regexp"
 	"strconv"
@@ -220,10 +221,13 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 	if len(resp) < 1 {
 		return nil, errors.New("invalid value returned by the Encoding.com API: []")
 	}
-	var sourceInfo provider.SourceInfo
+	var (
+		sourceInfo provider.SourceInfo
+		mediaInfo  *encodingcom.MediaInfo
+	)
 	status := e.statusMap(resp[0].MediaStatus)
 	if status == provider.StatusFinished {
-		sourceInfo, err = e.sourceInfo(job.ProviderJobID)
+		sourceInfo, mediaInfo, err = e.sourceInfo(job.ProviderJobID)
 		if err != nil {
 			return nil, err
 		}
@@ -243,22 +247,22 @@ func (e *encodingComProvider) JobStatus(job *db.Job) (*provider.JobStatus, error
 		},
 		Output: provider.JobOutput{
 			Destination: e.getOutputDestination(job),
-			Files:       e.getOutputDestinationStatus(resp),
+			Files:       e.getOutputDestinationStatus(resp, mediaInfo),
 		},
 		SourceInfo: sourceInfo,
 	}, nil
 }
 
-func (e *encodingComProvider) sourceInfo(id string) (provider.SourceInfo, error) {
+func (e *encodingComProvider) sourceInfo(id string) (provider.SourceInfo, *encodingcom.MediaInfo, error) {
 	var sourceInfo provider.SourceInfo
 	info, err := e.client.GetMediaInfo(id)
 	if err != nil {
-		return sourceInfo, err
+		return sourceInfo, nil, err
 	}
 	sourceInfo.Width, sourceInfo.Height, err = e.parseSize(info.Size)
 	sourceInfo.Duration = info.Duration
 	sourceInfo.VideoCodec = info.VideoCodec
-	return sourceInfo, err
+	return sourceInfo, info, err
 }
 
 func (e *encodingComProvider) parseSize(size string) (width int64, height int64, err error) {
@@ -277,6 +281,32 @@ func (e *encodingComProvider) parseSize(size string) (width int64, height int64,
 	return width, height, nil
 }
 
+func (e *encodingComProvider) adjustSize(reportedSize string, sourceInfo *encodingcom.MediaInfo) (width int64, height int64, err error) {
+	width, height, err = e.parseSize(reportedSize)
+	if err != nil {
+		return 0, 0, err
+	}
+	if width != 0 && height != 0 {
+		return width, height, nil
+	}
+	sourceWidth, sourceHeight, err := e.parseSize(sourceInfo.Size)
+	if err != nil {
+		return 0, 0, err
+	}
+	if (sourceInfo.Rotation/90)%2 == 1 {
+		sourceWidth, sourceHeight = sourceHeight, sourceWidth
+	}
+	if width == 0 {
+		ratio := float64(sourceWidth) / float64(sourceHeight)
+		width = int64(math.Floor(float64(height)*ratio + .5))
+	}
+	if height == 0 {
+		ratio := float64(sourceHeight) / float64(sourceWidth)
+		height = int64(math.Floor(float64(width)*ratio + .5))
+	}
+	return width, height, nil
+}
+
 func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusResponse) []string {
 	formatStatusList := []string{}
 	formats := status[0].Formats
@@ -286,7 +316,7 @@ func (e *encodingComProvider) getFormatStatus(status []encodingcom.StatusRespons
 	return formatStatusList
 }
 
-func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse) []provider.OutputFile {
+func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.StatusResponse, sourceInfo *encodingcom.MediaInfo) []provider.OutputFile {
 	var outputFiles []provider.OutputFile
 	formats := status[0].Formats
 	for _, formatStatus := range formats {
@@ -316,7 +346,7 @@ func (e *encodingComProvider) getOutputDestinationStatus(status []encodingcom.St
 				VideoCodec: formatStatus.VideoCodec,
 				FileSize:   fileSize,
 			}
-			file.Width, file.Height, _ = e.parseSize(formatStatus.Size)
+			file.Width, file.Height, _ = e.adjustSize(formatStatus.Size, sourceInfo)
 			outputFiles = append(outputFiles, file)
 		}
 	}

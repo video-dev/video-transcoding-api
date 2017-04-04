@@ -477,7 +477,8 @@ func TestJobStatus(t *testing.T) {
 	defer server.Close()
 	now := time.Now().UTC().Truncate(time.Second)
 	media := fakeMedia{
-		ID: "mymedia",
+		ID:   "mymedia",
+		Size: "1920x1080",
 		Request: request{
 			Format: []encodingcom.Format{
 				{
@@ -543,6 +544,175 @@ func TestJobStatus(t *testing.T) {
 					Path:       "s3://mybucket/dir/job-123/video.m3u8",
 					VideoCodec: "VP9",
 					Width:      1920,
+					Height:     1080,
+					Container:  "m3u8",
+					FileSize:   45674,
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(*jobStatus, expected) {
+		t.Errorf("JobStatus: wrong job returned.\nWant %#v\nGot  %#v", expected, *jobStatus)
+	}
+}
+
+func TestJobStatusMissingDimension(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	now := time.Now().UTC().Truncate(time.Second)
+	media := fakeMedia{
+		ID:   "mymedia",
+		Size: "1920x1080",
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Bitrate:    "2500k",
+					Size:       "0x1080",
+					VideoCodec: "VP9",
+					Output:     []string{hlsOutput},
+				},
+			},
+		},
+		Status:   "Saving",
+		Created:  now.Add(-time.Hour),
+		Started:  now.Add(-50 * time.Minute),
+		Finished: now.Add(-10 * time.Minute),
+	}
+	server.medias["mymedia"] = &media
+	client, err := encodingcom.NewClient(server.URL, "myuser", "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := encodingComProvider{client: client}
+	prov.config = &config.Config{
+		EncodingCom: &config.EncodingCom{
+			Destination: "https://mybucket.s3.amazonaws.com/dir/",
+		},
+	}
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: "mymedia"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := provider.JobStatus{
+		ProviderJobID: "mymedia",
+		ProviderName:  "encoding.com",
+		Status:        provider.StatusFinished,
+		StatusMessage: "",
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"sourcefile":   "http://some.source.file",
+			"timeleft":     "1",
+			"created":      media.Created,
+			"started":      media.Started,
+			"finished":     media.Finished,
+			"formatStatus": []string{""},
+		},
+		SourceInfo: provider.SourceInfo{
+			Duration:   183e9,
+			Width:      1920,
+			Height:     1080,
+			VideoCodec: "VP9",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://mybucket/dir/job-123/",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
+					VideoCodec: "VP9",
+					Width:      1920,
+					Height:     1080,
+					Container:  "m3u8",
+					FileSize:   45674,
+				},
+				{
+					Path:       "s3://mybucket/dir/job-123/video.m3u8",
+					VideoCodec: "VP9",
+					Width:      1920,
+					Height:     1080,
+					Container:  "m3u8",
+					FileSize:   45674,
+				},
+			},
+		},
+	}
+	if !reflect.DeepEqual(*jobStatus, expected) {
+		t.Errorf("JobStatus: wrong job returned.\nWant %#v\nGot  %#v", expected, *jobStatus)
+	}
+}
+
+func TestJobStatusRotatedVideo(t *testing.T) {
+	server := newEncodingComFakeServer()
+	defer server.Close()
+	now := time.Now().UTC().Truncate(time.Second)
+	media := fakeMedia{
+		ID:       "mymedia",
+		Size:     "1920x1080",
+		Rotation: 90,
+		Request: request{
+			Format: []encodingcom.Format{
+				{
+					Bitrate:    "2500k",
+					Size:       "0x1080",
+					VideoCodec: "VP9",
+					Output:     []string{hlsOutput},
+				},
+			},
+		},
+		Status:   "Saving",
+		Created:  now.Add(-time.Hour),
+		Started:  now.Add(-50 * time.Minute),
+		Finished: now.Add(-10 * time.Minute),
+	}
+	server.medias["mymedia"] = &media
+	client, err := encodingcom.NewClient(server.URL, "myuser", "secret")
+	if err != nil {
+		t.Fatal(err)
+	}
+	prov := encodingComProvider{client: client}
+	prov.config = &config.Config{
+		EncodingCom: &config.EncodingCom{
+			Destination: "https://mybucket.s3.amazonaws.com/dir/",
+		},
+	}
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: "mymedia"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := provider.JobStatus{
+		ProviderJobID: "mymedia",
+		ProviderName:  "encoding.com",
+		Status:        provider.StatusFinished,
+		StatusMessage: "",
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"sourcefile":   "http://some.source.file",
+			"timeleft":     "1",
+			"created":      media.Created,
+			"started":      media.Started,
+			"finished":     media.Finished,
+			"formatStatus": []string{""},
+		},
+		SourceInfo: provider.SourceInfo{
+			Duration:   183e9,
+			Width:      1920,
+			Height:     1080,
+			VideoCodec: "VP9",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://mybucket/dir/job-123/",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://mybucket/dir/job-123/some_hls_preset/video-0.m3u8",
+					VideoCodec: "VP9",
+					Width:      608,
+					Height:     1080,
+					Container:  "m3u8",
+					FileSize:   45674,
+				},
+				{
+					Path:       "s3://mybucket/dir/job-123/video.m3u8",
+					VideoCodec: "VP9",
+					Width:      608,
 					Height:     1080,
 					Container:  "m3u8",
 					FileSize:   45674,
@@ -636,11 +806,12 @@ func TestJobStatusInvalidSourceInfo(t *testing.T) {
 	defer server.Close()
 	now := time.Now().UTC().Truncate(time.Second)
 	media1 := fakeMedia{
-		ID: "media1",
+		ID:   "media1",
+		Size: "1920x1080x900",
 		Request: request{
 			Format: []encodingcom.Format{
 				{
-					Size:       "1920x1080x900",
+					Size:       "1920x1080",
 					VideoCodec: "VP9",
 					Output:     []string{"webm"},
 				},
@@ -653,11 +824,12 @@ func TestJobStatusInvalidSourceInfo(t *testing.T) {
 	}
 	server.medias["media1"] = &media1
 	media2 := fakeMedia{
-		ID: "media2",
+		ID:   "media2",
+		Size: "πx1080",
 		Request: request{
 			Format: []encodingcom.Format{
 				{
-					Size:       "πx1080",
+					Size:       "1920x1080",
 					VideoCodec: "VP9",
 					Output:     []string{"webm"},
 				},
@@ -670,11 +842,12 @@ func TestJobStatusInvalidSourceInfo(t *testing.T) {
 	}
 	server.medias["media2"] = &media2
 	media3 := fakeMedia{
-		ID: "media3",
+		ID:   "media3",
+		Size: "π",
 		Request: request{
 			Format: []encodingcom.Format{
 				{
-					Size:       "π",
+					Size:       "1920x1080",
 					VideoCodec: "VP9",
 					Output:     []string{"webm"},
 				},
