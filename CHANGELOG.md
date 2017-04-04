@@ -1,3 +1,9 @@
+## Version 1.2.1 (Release date: 2017-04-04)
+([1212d45](https://github.com/nytimes/video-transcoding-api/commit/1212d45)) provider/encodingcom: fix bug in newly introduced adjustSize function 
+
+
+
+
 ## Version 1.2.0 (Release date: 2017-04-04)
 ([9cbe954](https://github.com/nytimes/video-transcoding-api/commit/9cbe954)) Fix gometalinter violations 
 
