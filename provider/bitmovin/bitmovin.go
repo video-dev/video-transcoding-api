@@ -299,7 +299,7 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 }
 
 func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
-	bucketName, path, fileName, err := parseS3URL(job.SourceMedia)
+	inputMediaBucketName, inputMediaPath, inputMediaFileName, err := parseS3URL(job.SourceMedia)
 	if err != nil {
 		return nil, err
 	}
@@ -312,7 +312,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 	s3IS := services.NewS3InputService(p.client)
 	s3Input := &models.S3Input{
-		BucketName:  stringToPtr(bucketName),
+		BucketName:  stringToPtr(inputMediaBucketName),
 		AccessKey:   stringToPtr(p.config.AccessKeyID),
 		SecretKey:   stringToPtr(p.config.SecretAccessKey),
 		CloudRegion: cloudRegion,
@@ -325,9 +325,14 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("Error in setting up S3 input")
 	}
 
+	outputBucketName, err := grabBucketNameFromS3Destination(p.config.Destination)
+	if err != nil {
+		return nil, err
+	}
+
 	s3OS := services.NewS3OutputService(p.client)
 	s3Output := &models.S3Output{
-		BucketName:  stringToPtr(bucketName),
+		BucketName:  stringToPtr(outputBucketName),
 		AccessKey:   stringToPtr(p.config.AccessKeyID),
 		SecretKey:   stringToPtr(p.config.SecretAccessKey),
 		CloudRegion: cloudRegion,
@@ -340,22 +345,22 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("Error in setting up S3 input")
 	}
 
-	var inputPath string
-	if path == "" {
-		inputPath = fileName
+	var inputFullPath string
+	if inputMediaPath == "" {
+		inputFullPath = inputMediaFileName
 	} else {
-		inputPath = path + fileName
+		inputFullPath = inputMediaPath + inputMediaFileName
 	}
 
 	videoInputStream := models.InputStream{
 		InputID:       s3ISResponse.Data.Result.ID,
-		InputPath:     stringToPtr(inputPath),
+		InputPath:     stringToPtr(inputFullPath),
 		SelectionMode: bitmovintypes.SelectionModeAuto,
 	}
 
 	audioInputStream := models.InputStream{
 		InputID:       s3ISResponse.Data.Result.ID,
-		InputPath:     stringToPtr(inputPath),
+		InputPath:     stringToPtr(inputFullPath),
 		SelectionMode: bitmovintypes.SelectionModeAuto,
 	}
 
@@ -401,7 +406,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		masterManifestFile = filepath.Base(job.StreamingParams.PlaylistFileName)
 		manifestOutput := models.Output{
 			OutputID:   s3OSResponse.Data.Result.ID,
-			OutputPath: stringToPtr(filepath.Join(path, masterManifestPath)),
+			OutputPath: stringToPtr(masterManifestPath),
 			ACL:        acl,
 		}
 		hlsMasterManifest := &models.HLSManifest{
@@ -511,7 +516,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			// }
 			audioMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
-				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, audioPresetID)),
+				OutputPath: stringToPtr(filepath.Join(masterManifestPath, audioPresetID)),
 				ACL:        acl,
 			}
 			audioMuxing := &models.TSMuxing{
@@ -557,7 +562,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 			videoMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
-				OutputPath: stringToPtr(filepath.Join(path, masterManifestPath, videoPresetID)),
+				OutputPath: stringToPtr(filepath.Join(masterManifestPath, videoPresetID)),
 				ACL:        acl,
 			}
 			videoMuxing := &models.TSMuxing{
@@ -594,7 +599,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			videoMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
 				ACL:        acl,
-				OutputPath: stringToPtr(filepath.Join(path, filepath.Dir(output.FileName))),
+				OutputPath: stringToPtr(filepath.Dir(output.FileName)),
 			}
 			videoMuxing := &models.MP4Muxing{
 				Filename: stringToPtr(filepath.Base(output.FileName)),
@@ -792,6 +797,15 @@ func parseS3URL(input string) (bucketName string, path string, fileName string, 
 		return
 	}
 	return "", "", "", errors.New("Could not parse S3 URL")
+}
+
+func grabBucketNameFromS3Destination(input string) (bucketName string, err error) {
+	if s3Pattern.MatchString(input) {
+		name := strings.TrimPrefix(input, "s3://")
+		name = strings.TrimSuffix(name, "/")
+		return name, err
+	}
+	return "", errors.New("Could not parse S3 URL")
 }
 
 func stringToPtr(s string) *string {

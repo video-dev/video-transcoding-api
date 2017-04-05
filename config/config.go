@@ -66,6 +66,7 @@ type Bitmovin struct {
 	Timeout          uint   `envconfig:"BITMOVIN_TIMEOUT" default:"5"`
 	AccessKeyID      string `envconfig:"BITMOVIN_AWS_ACCESS_KEY_ID"`
 	SecretAccessKey  string `envconfig:"BITMOVIN_AWS_SECRET_ACCESS_KEY"`
+	Destination      string `envconfig:"BITMOVIN_DESTINATION"`
 	AWSStorageRegion string `envconfig:"BITMOVIN_AWS_STORAGE_REGION" default:"US_EAST_1"`
 	EncodingRegion   string `envconfig:"BITMOVIN_ENCODING_REGION" default:"AWS_US_EAST_1"`
 	EncodingVersion  string `envconfig:"BITMOVIN_ENCODING_VERSION" default:"STABLE"`
