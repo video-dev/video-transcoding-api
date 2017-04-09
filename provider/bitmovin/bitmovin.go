@@ -15,6 +15,7 @@ import (
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"
 	"github.com/bitmovin/bitmovin-go/services"
+	"net/url"
 )
 
 // Name is the name used for registering the bitmovin provider in the
@@ -81,9 +82,11 @@ var h264Levels = []bitmovintypes.H264Level{
 	bitmovintypes.H264Level5_1,
 	bitmovintypes.H264Level5_2}
 
-var errBitmovinInvalidConfig = provider.InvalidConfigError("missing Bitmovin api key. Please define the environment variable BITMOVIN_API_KEY set this value in the configuration file")
+var errBitmovinInvalidConfig = provider.InvalidConfigError("Invalid configuration")
 
 var s3Pattern = regexp.MustCompile(`^s3://`)
+var httpPattern = regexp.MustCompile(`^http://`)
+var httpsPattern = regexp.MustCompile(`^https://`)
 
 type bitmovinProvider struct {
 	client *bitmovin.Bitmovin
@@ -299,32 +302,12 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 }
 
 func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
-	inputMediaBucketName, inputMediaPath, inputMediaFileName, err := parseS3URL(job.SourceMedia)
-	if err != nil {
-		return nil, err
-	}
-	cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
-
 	aclEntry := models.ACLItem{
 		Permission: bitmovintypes.ACLPermissionPublicRead,
 	}
 	acl := []models.ACLItem{aclEntry}
 
-	s3IS := services.NewS3InputService(p.client)
-	s3Input := &models.S3Input{
-		BucketName:  stringToPtr(inputMediaBucketName),
-		AccessKey:   stringToPtr(p.config.AccessKeyID),
-		SecretKey:   stringToPtr(p.config.SecretAccessKey),
-		CloudRegion: cloudRegion,
-	}
-
-	s3ISResponse, err := s3IS.Create(s3Input)
-	if err != nil {
-		return nil, err
-	} else if s3ISResponse.Status == bitmovinAPIErrorMsg {
-		return nil, errors.New("Error in setting up S3 input")
-	}
-
+	cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
 	outputBucketName, err := grabBucketNameFromS3Destination(p.config.Destination)
 	if err != nil {
 		return nil, err
@@ -341,25 +324,23 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	s3OSResponse, err := s3OS.Create(s3Output)
 	if err != nil {
 		return nil, err
-	} else if s3ISResponse.Status == bitmovinAPIErrorMsg {
+	} else if s3OSResponse.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in setting up S3 input")
 	}
 
-	var inputFullPath string
-	if inputMediaPath == "" {
-		inputFullPath = inputMediaFileName
-	} else {
-		inputFullPath = inputMediaPath + inputMediaFileName
+	inputID, inputFullPath, err := createInput(p, job.SourceMedia)
+	if err != nil {
+		return nil, err
 	}
 
 	videoInputStream := models.InputStream{
-		InputID:       s3ISResponse.Data.Result.ID,
+		InputID:       stringToPtr(inputID),
 		InputPath:     stringToPtr(inputFullPath),
 		SelectionMode: bitmovintypes.SelectionModeAuto,
 	}
 
 	audioInputStream := models.InputStream{
-		InputID:       s3ISResponse.Data.Result.ID,
+		InputID:       stringToPtr(inputID),
 		InputPath:     stringToPtr(inputFullPath),
 		SelectionMode: bitmovintypes.SelectionModeAuto,
 	}
@@ -511,9 +492,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			return nil, errors.New("Container type somehow not a string")
 		}
 		if container == "m3u8" {
-			// audioMuxingStream := models.StreamItem{
-			// 	StreamID: &audioStreamID,
-			// }
 			audioMuxingOutput := models.Output{
 				OutputID:   s3OSResponse.Data.Result.ID,
 				OutputPath: stringToPtr(filepath.Join(masterManifestPath, audioPresetID)),
@@ -806,6 +784,71 @@ func grabBucketNameFromS3Destination(input string) (bucketName string, err error
 		return name, err
 	}
 	return "", errors.New("Could not parse S3 URL")
+}
+
+func createInput(provider *bitmovinProvider, input string) (inputID string, path string, err error) {
+	if s3Pattern.MatchString(input) {
+		inputMediaBucketName, inputMediaPath, inputMediaFileName, err := parseS3URL(input)
+		if err != nil {
+			return "", "", err
+		}
+		cloudRegion := bitmovintypes.AWSCloudRegion(provider.config.AWSStorageRegion)
+
+		s3IS := services.NewS3InputService(provider.client)
+		s3Input := &models.S3Input{
+			BucketName:  stringToPtr(inputMediaBucketName),
+			AccessKey:   stringToPtr(provider.config.AccessKeyID),
+			SecretKey:   stringToPtr(provider.config.SecretAccessKey),
+			CloudRegion: cloudRegion,
+		}
+
+		s3ISResponse, err := s3IS.Create(s3Input)
+		if err != nil {
+			return "", "", err
+		} else if s3ISResponse.Status == bitmovinAPIErrorMsg {
+			return "", "", errors.New("Error in setting up S3 input")
+		}
+		var inputFullPath string
+		if inputMediaPath == "" {
+			inputFullPath = inputMediaFileName
+		} else {
+			inputFullPath = inputMediaPath + inputMediaFileName
+		}
+		return *s3ISResponse.Data.Result.ID, inputFullPath, nil
+	} else if httpPattern.MatchString(input) {
+		u, err := url.Parse(input)
+		if err != nil {
+			return "", "", errors.New("Error in setting up HTTP input")
+		}
+		httpIS := services.NewHTTPInputService(provider.client)
+		httpInput := &models.HTTPInput{
+			Host: stringToPtr(u.Host),
+		}
+		httpISResponse, err := httpIS.Create(httpInput)
+		if err != nil {
+			return "", "", errors.New("Error in setting up HTTP input")
+		} else if httpISResponse.Status == bitmovinAPIErrorMsg {
+			return "", "", errors.New("Error in setting up HTTP input")
+		}
+		return *httpISResponse.Data.Result.ID, u.Path, nil
+	} else if httpsPattern.MatchString(input) {
+		u, err := url.Parse(input)
+		if err != nil {
+			return "", "", errors.New("Error in setting up HTTPS input")
+		}
+		httpsIS := services.NewHTTPSInputService(provider.client)
+		httpsInput := &models.HTTPSInput{
+			Host: stringToPtr(u.Host),
+		}
+		httpsISResponse, err := httpsIS.Create(httpsInput)
+		if err != nil {
+			return "", "", errors.New("Error in setting up HTTPS input")
+		} else if httpsISResponse.Status == bitmovinAPIErrorMsg {
+			return "", "", errors.New("Error in setting up HTTPS input")
+		}
+		return *httpsISResponse.Data.Result.ID, u.Path, nil
+	}
+	return "", "", errors.New("Only S3, http, and https URLS are supported")
 }
 
 func stringToPtr(s string) *string {
