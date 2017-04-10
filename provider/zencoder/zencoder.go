@@ -100,6 +100,9 @@ func (z *zencoderProvider) buildOutputs(job *db.Job) ([]*zencoder.OutputSettings
 	}
 	if hlsOutputs > 0 {
 		optimizedOutputs, err := z.optimizeOutputsForHLS(zencoderOutputs)
+		if err != nil {
+			return nil, err
+		}
 		outputsWithHLSPlaylist := make([]*zencoder.OutputSettings, len(optimizedOutputs)+1)
 		copy(outputsWithHLSPlaylist, optimizedOutputs)
 		hlsPlaylist, err := z.buildHLSPlaylist(optimizedOutputs, hlsOutputs, job)

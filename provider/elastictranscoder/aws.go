@@ -408,7 +408,10 @@ func elasticTranscoderFactory(cfg *config.Config) (provider.TranscodingProvider,
 	if region == "" {
 		region = defaultAWSRegion
 	}
-	awsSession := session.New(aws.NewConfig().WithCredentials(creds).WithRegion(region))
+	awsSession, err := session.NewSession(aws.NewConfig().WithCredentials(creds).WithRegion(region))
+	if err != nil {
+		return nil, err
+	}
 	return &awsProvider{
 		c:      elastictranscoder.New(awsSession),
 		config: cfg.ElasticTranscoder,

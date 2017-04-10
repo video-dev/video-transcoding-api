@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"time"
 
 	"github.com/NYTimes/encoding-wrapper/encodingcom"
@@ -46,6 +47,8 @@ type fakeMedia struct {
 	Created  time.Time
 	Started  time.Time
 	Finished time.Time
+	Size     string
+	Rotation int
 	Status   string
 }
 
@@ -116,10 +119,12 @@ func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {
 	id := generateID()
 	created := time.Now().UTC()
 	s.medias[id] = &fakeMedia{
-		ID:      id,
-		Request: req,
-		Created: created,
-		Started: created.Add(time.Second),
+		ID:       id,
+		Request:  req,
+		Created:  created,
+		Started:  created.Add(time.Second),
+		Size:     "1920x1080",
+		Rotation: 90,
 	}
 	resp := map[string]encodingcom.AddMediaResponse{
 		"response": {MediaID: id, Message: "it worked"},
@@ -150,8 +155,9 @@ func (s *encodingComFakeServer) getMediaInfo(w http.ResponseWriter, req request)
 	resp := map[string]map[string]interface{}{
 		"response": {
 			"duration":    "183",
-			"size":        format.Size,
+			"size":        media.Size,
 			"video_codec": format.VideoCodec,
+			"rotation":    strconv.Itoa(media.Rotation),
 		},
 	}
 	json.NewEncoder(w).Encode(resp)

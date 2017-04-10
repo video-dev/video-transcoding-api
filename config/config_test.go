@@ -40,8 +40,10 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"BITMOVIN_TIMEOUT":                         "3",
 		"BITMOVIN_AWS_ACCESS_KEY_ID":               "AKIANOTREALLY",
 		"BITMOVIN_AWS_SECRET_ACCESS_KEY":           "secret-key",
+		"BITMOVIN_DESTINATION":                     "https://safe-stuff",
 		"BITMOVIN_AWS_STORAGE_REGION":              "US_WEST_1",
 		"BITMOVIN_ENCODING_REGION":                 "GOOGLE_EUROPE_WEST_1",
+		"BITMOVIN_ENCODING_VERSION":                "notstable",
 		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
@@ -88,7 +90,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			AccessKeyID:      "AKIANOTREALLY",
 			SecretAccessKey:  "secret-key",
 			AWSStorageRegion: "US_WEST_1",
+			Destination:      "https://safe-stuff",
 			EncodingRegion:   "GOOGLE_EUROPE_WEST_1",
+			EncodingVersion:  "notstable",
 		},
 		Server: &server.Config{
 			HTTPPort:      8080,
@@ -118,7 +122,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 	}
 }
 
-func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
+func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 	os.Clearenv()
 	accessLog := "/var/log/transcoding-api-access.log"
 	setEnvs(map[string]string{
@@ -146,6 +150,7 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 		"BITMOVIN_API_KEY":                         "secret-key",
 		"BITMOVIN_AWS_ACCESS_KEY_ID":               "AKIANOTREALLY",
 		"BITMOVIN_AWS_SECRET_ACCESS_KEY":           "secret-key",
+		"BITMOVIN_DESTINATION":                     "https://safe-stuff",
 		"SWAGGER_MANIFEST_PATH":                    "/opt/video-transcoding-api-swagger.json",
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
@@ -191,8 +196,10 @@ func TestLoadConfigFromEnvWithDefauts(t *testing.T) {
 			Timeout:          5,
 			AccessKeyID:      "AKIANOTREALLY",
 			SecretAccessKey:  "secret-key",
+			Destination:      "https://safe-stuff",
 			AWSStorageRegion: "US_EAST_1",
 			EncodingRegion:   "AWS_US_EAST_1",
+			EncodingVersion:  "STABLE",
 		},
 		Server: &server.Config{
 			HTTPPort:      8080,

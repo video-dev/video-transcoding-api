@@ -66,7 +66,9 @@ export BITMOVIN_API_KEY=your.api.key
 export BITMOVIN_AWS_ACCESS_KEY_ID=your.access.key.id
 export BITMOVIN_AWS_SECRET_ACCESS_KEY=your.secret.access.key
 export BITMOVIN_AWS_STORAGE_REGION=your.s3.region.such.as.US_EAST_1.or.EU_WEST_1
+export BITMOVIN_DESTINATION=s3://your-s3-bucket
 export BITMOVIN_ENCODING_REGION=your.provider.region.such.as.AWS_US_EAST_1.or.GOOGLE_EUROPE_WEST_1
+export BITMOVIN_ENCODING_VERSION=STABLE.or.BETA
 ```
 
 
@@ -79,7 +81,7 @@ running. Learn how to setup and run a Redis
 [here](http://redis.io/topics/quickstart). With the Redis instance running, set
 its configuration variables:
 
-````
+```
 export REDIS_ADDR=192.0.2.31
 export REDIS_PASSWORD=p4ssw0rd.here
 ```
