@@ -81,7 +81,7 @@ running. Learn how to setup and run a Redis
 [here](http://redis.io/topics/quickstart). With the Redis instance running, set
 its configuration variables:
 
-````
+```
 export REDIS_ADDR=192.0.2.31
 export REDIS_PASSWORD=p4ssw0rd.here
 ```
