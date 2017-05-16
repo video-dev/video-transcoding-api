@@ -224,17 +224,19 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 			return "", ErrPresetOutputMatch
 		}
 
-		e, err := hp.mountTranscodeElement(strconv.Itoa(elementID), job.ID, output.FileName, hp.config.Destination, job.StreamingParams.SegmentDuration, preset)
+		var segmentDur uint
+		// track the hls outputs so we can later connect them to a manifest creator task
+		if len(preset.Payload.Targets) > 0 && preset.Payload.Targets[0].Container.Kind == hls {
+			hlsElementIds = append(hlsElementIds, elementID)
+			segmentDur = job.StreamingParams.SegmentDuration
+		}
+
+		e, err := hp.mountTranscodeElement(strconv.Itoa(elementID), job.ID, output.FileName, hp.config.Destination, segmentDur, preset)
 		if err != nil {
 			return "", err
 		}
 
 		elements = append(elements, e)
-
-		// track the hls outputs so we can later connect them to a manifest creator task
-		if len(preset.Payload.Targets) > 0 && preset.Payload.Targets[0].Container.Kind == hls {
-			hlsElementIds = append(hlsElementIds, elementID)
-		}
 
 		elementID++
 	}
