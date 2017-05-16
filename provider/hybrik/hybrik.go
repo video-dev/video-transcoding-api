@@ -139,6 +139,24 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 	return e, nil
 }
 
+type presetResult struct {
+	presetID string
+	preset   interface{}
+}
+
+func makeGetPresetRequest(hp *hybrikProvider, presetID string, ch chan *presetResult) {
+	presetOutput, err := hp.GetPreset(presetID)
+	result := new(presetResult)
+	result.presetID = presetID
+	if err != nil {
+		result.preset = err
+		ch <- result
+	} else {
+		result.preset = presetOutput
+		ch <- result
+	}
+}
+
 func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 	elements := []hwrapper.Element{}
 	var hlsElementIds []int
@@ -158,6 +176,34 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 
 	elements = append(elements, sourceElement)
 
+	presetCh := make(chan *presetResult)
+	presets := make(map[string]interface{})
+
+	for _, output := range job.Outputs {
+		presetID, ok := output.Preset.ProviderMapping[Name]
+		if !ok {
+			return "", provider.ErrPresetMapNotFound
+		}
+
+		if _, ok := presets[presetID]; ok {
+			continue
+		}
+
+		presets[presetID] = nil
+
+		go makeGetPresetRequest(hp, presetID, presetCh)
+	}
+
+	for i := 0; i < len(presets); i++ {
+		res := <-presetCh
+		err, isErr := res.preset.(error)
+		if isErr {
+			return "", fmt.Errorf("Error getting preset info: %s", err.Error())
+		}
+
+		presets[res.presetID] = res.preset
+	}
+
 	// create transcode elements for each target
 	// TODO: This can be optimized further with regards to combining tasks so that they run in the same machine. Requires some discussion
 	elementID := 0
@@ -166,9 +212,10 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		if !ok {
 			return "", provider.ErrPresetMapNotFound
 		}
-		presetOutput, err := hp.GetPreset(presetID)
-		if err != nil {
-			return "", fmt.Errorf("Error getting preset info: %s", err.Error())
+
+		presetOutput, ok := presets[presetID]
+		if !ok {
+			return "", fmt.Errorf("Hybrik preset not found in preset results")
 		}
 
 		preset, ok := presetOutput.(hwrapper.Preset)
