@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	hwrapper "github.com/NYTimes/encoding-wrapper/hybrik"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
+	hwrapper "github.com/hybrik/hybrik-sdk-go"
 )
 
 const (
@@ -312,16 +312,18 @@ func (hp *hybrikProvider) CancelJob(id string) error {
 }
 
 func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
-	var gopSize int
-	var gopMode bool
+	var minGOPFrames, maxGOPFrames, gopSize int
+
+	gopSize, err := strconv.Atoi(preset.Video.GopSize)
+	if err != nil {
+		return "", err
+	}
+
 	if preset.Video.GopMode == "fixed" {
-		gopMode = true
-		gopSize = 90
-		if preset.Video.GopSize != "" {
-			gopSize, _ = strconv.Atoi(preset.Video.GopSize)
-		}
+		minGOPFrames = gopSize
+		maxGOPFrames = gopSize
 	} else {
-		gopMode = false
+		maxGOPFrames = gopSize
 	}
 
 	container := ""
@@ -394,8 +396,8 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 						Height:        videoHeight,
 						Codec:         preset.Video.Codec,
 						BitrateKb:     bitrate / 1000,
-						GopMode:       gopMode,
-						GopSize:       gopSize,
+						MinGOPFrames:  minGOPFrames,
+						MaxGOPFrames:  maxGOPFrames,
 						Profile:       videoProfile,
 						Level:         videoLevel,
 						InterlaceMode: preset.Video.InterlaceMode,
@@ -438,12 +440,9 @@ func (hp *hybrikProvider) GetPreset(presetID string) (interface{}, error) {
 // for transcoding videos, otherwise it should return an error
 // explaining what's going on.
 func (hp *hybrikProvider) Healthcheck() error {
-	err := hp.c.HealthCheck()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	// For now, just call list jobs. If this errors, then we can consider the service unhealthy
+	_, err := hp.c.CallAPI("GET", "/jobs/info", nil, nil)
+	return err
 }
 
 // Capabilities describes the capabilities of the provider.
