@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	hwrapper "github.com/NYTimes/encoding-wrapper/hybrik"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
+	hwrapper "github.com/hybrik/hybrik-sdk-go"
 )
 
 const (
@@ -139,6 +139,24 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 	return e, nil
 }
 
+type presetResult struct {
+	presetID string
+	preset   interface{}
+}
+
+func makeGetPresetRequest(hp *hybrikProvider, presetID string, ch chan *presetResult) {
+	presetOutput, err := hp.GetPreset(presetID)
+	result := new(presetResult)
+	result.presetID = presetID
+	if err != nil {
+		result.preset = err
+		ch <- result
+	} else {
+		result.preset = presetOutput
+		ch <- result
+	}
+}
+
 func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 	elements := []hwrapper.Element{}
 	var hlsElementIds []int
@@ -158,6 +176,34 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 
 	elements = append(elements, sourceElement)
 
+	presetCh := make(chan *presetResult)
+	presets := make(map[string]interface{})
+
+	for _, output := range job.Outputs {
+		presetID, ok := output.Preset.ProviderMapping[Name]
+		if !ok {
+			return "", provider.ErrPresetMapNotFound
+		}
+
+		if _, ok := presets[presetID]; ok {
+			continue
+		}
+
+		presets[presetID] = nil
+
+		go makeGetPresetRequest(hp, presetID, presetCh)
+	}
+
+	for i := 0; i < len(presets); i++ {
+		res := <-presetCh
+		err, isErr := res.preset.(error)
+		if isErr {
+			return "", fmt.Errorf("Error getting preset info: %s", err.Error())
+		}
+
+		presets[res.presetID] = res.preset
+	}
+
 	// create transcode elements for each target
 	// TODO: This can be optimized further with regards to combining tasks so that they run in the same machine. Requires some discussion
 	elementID := 0
@@ -166,9 +212,10 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		if !ok {
 			return "", provider.ErrPresetMapNotFound
 		}
-		presetOutput, err := hp.GetPreset(presetID)
-		if err != nil {
-			return "", fmt.Errorf("Error getting preset info: %s", err.Error())
+
+		presetOutput, ok := presets[presetID]
+		if !ok {
+			return "", fmt.Errorf("Hybrik preset not found in preset results")
 		}
 
 		preset, ok := presetOutput.(hwrapper.Preset)
@@ -312,16 +359,18 @@ func (hp *hybrikProvider) CancelJob(id string) error {
 }
 
 func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
-	var gopSize int
-	var gopMode bool
+	var minGOPFrames, maxGOPFrames, gopSize int
+
+	gopSize, err := strconv.Atoi(preset.Video.GopSize)
+	if err != nil {
+		return "", err
+	}
+
 	if preset.Video.GopMode == "fixed" {
-		gopMode = true
-		gopSize = 90
-		if preset.Video.GopSize != "" {
-			gopSize, _ = strconv.Atoi(preset.Video.GopSize)
-		}
+		minGOPFrames = gopSize
+		maxGOPFrames = gopSize
 	} else {
-		gopMode = false
+		maxGOPFrames = gopSize
 	}
 
 	container := ""
@@ -394,8 +443,8 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 						Height:        videoHeight,
 						Codec:         preset.Video.Codec,
 						BitrateKb:     bitrate / 1000,
-						GopMode:       gopMode,
-						GopSize:       gopSize,
+						MinGOPFrames:  minGOPFrames,
+						MaxGOPFrames:  maxGOPFrames,
 						Profile:       videoProfile,
 						Level:         videoLevel,
 						InterlaceMode: preset.Video.InterlaceMode,
@@ -438,12 +487,9 @@ func (hp *hybrikProvider) GetPreset(presetID string) (interface{}, error) {
 // for transcoding videos, otherwise it should return an error
 // explaining what's going on.
 func (hp *hybrikProvider) Healthcheck() error {
-	err := hp.c.HealthCheck()
-	if err != nil {
-		return err
-	}
-
-	return nil
+	// For now, just call list jobs. If this errors, then we can consider the service unhealthy
+	_, err := hp.c.CallAPI("GET", "/jobs/info", nil, nil)
+	return err
 }
 
 // Capabilities describes the capabilities of the provider.
