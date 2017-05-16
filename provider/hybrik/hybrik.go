@@ -22,6 +22,7 @@ const (
 	failed        = "failed"
 	activeRunning = "running"
 	activeWaiting = "waiting"
+	hls           = "hls"
 )
 
 var (
@@ -125,7 +126,7 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 				Path:            fmt.Sprintf("%s/j%s", destination, id),
 			},
 			Targets: []hwrapper.TranscodeLocationTarget{
-				hwrapper.TranscodeLocationTarget{
+				{
 					Location:    subLocation,
 					FilePattern: outputFilePattern,
 					Container: hwrapper.TranscodeTargetContainer{
@@ -231,7 +232,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		elements = append(elements, e)
 
 		// track the hls outputs so we can later connect them to a manifest creator task
-		if len(preset.Payload.Targets) > 0 && preset.Payload.Targets[0].Container.Kind == "hls" {
+		if len(preset.Payload.Targets) > 0 && preset.Payload.Targets[0].Container.Kind == hls {
 			hlsElementIds = append(hlsElementIds, elementID)
 		}
 
@@ -250,9 +251,9 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		Payload: hwrapper.CreateJobPayload{
 			Elements: elements,
 			Connections: []hwrapper.Connection{
-				hwrapper.Connection{
+				{
 					From: []hwrapper.ConnectionFrom{
-						hwrapper.ConnectionFrom{
+						{
 							Element: "source_file",
 						},
 					},
@@ -265,7 +266,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 	}
 
 	// check if we need to add a master manifest task element
-	if job.StreamingParams.Protocol == "hls" {
+	if job.StreamingParams.Protocol == hls {
 		manifestOutputDir := fmt.Sprintf("%s/j%s", hp.config.Destination, job.ID)
 		manifestSubDir := path.Dir(job.StreamingParams.PlaylistFileName)
 		manifestFilePattern := path.Base(job.StreamingParams.PlaylistFileName)
@@ -283,7 +284,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 					Path:            manifestOutputDir,
 				},
 				FilePattern: manifestFilePattern,
-				Kind:        "hls",
+				Kind:        hls,
 			},
 		}
 
@@ -299,7 +300,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 				From: manifestFromConnections,
 				To: hwrapper.ConnectionTo{
 					Success: []hwrapper.ToSuccess{
-						hwrapper.ToSuccess{Element: "manifest_creator"},
+						{Element: "manifest_creator"},
 					},
 				},
 			},
@@ -346,14 +347,6 @@ func (hp *hybrikProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (hp *hybrikProvider) getOutputDestination(name string) string {
-	return ""
-}
-
-func (hp *hybrikProvider) getOutputFiles() []provider.OutputFile {
-	return []provider.OutputFile{}
-}
-
 func (hp *hybrikProvider) CancelJob(id string) error {
 	return hp.c.StopJob(id)
 }
@@ -375,7 +368,7 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 
 	container := ""
 	for _, c := range hp.Capabilities().OutputFormats {
-		if preset.Container == c || (preset.Container == "m3u8" && c == "hls") {
+		if preset.Container == c || (preset.Container == "m3u8" && c == hls) {
 			container = c
 		}
 	}
@@ -398,7 +391,8 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 	var videoHeight *int
 
 	if preset.Video.Width != "" {
-		presetWidth, err := strconv.Atoi(preset.Video.Width)
+		var presetWidth int
+		presetWidth, err = strconv.Atoi(preset.Video.Width)
 		if err != nil {
 			return "", ErrVideoWidthNan
 		}
@@ -408,7 +402,8 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 	}
 
 	if preset.Video.Height != "" {
-		presetHeight, err := strconv.Atoi(preset.Video.Height)
+		var presetHeight int
+		presetHeight, err = strconv.Atoi(preset.Video.Height)
 		if err != nil {
 			return "", ErrVideoHeightNan
 		}
@@ -435,7 +430,7 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 		Path:        "video-transcoding-api-presets",
 		Payload: hwrapper.PresetPayload{
 			Targets: []hwrapper.PresetTarget{
-				hwrapper.PresetTarget{
+				{
 					FilePattern: "",
 					Container:   hwrapper.TranscodeContainer{Kind: container},
 					Video: hwrapper.VideoTarget{
@@ -450,7 +445,7 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 						InterlaceMode: preset.Video.InterlaceMode,
 					},
 					Audio: []hwrapper.AudioTarget{
-						hwrapper.AudioTarget{
+						{
 							Codec:     preset.Audio.Codec,
 							BitrateKb: audioBitrate / 1000,
 						},
