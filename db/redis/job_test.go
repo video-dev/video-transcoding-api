@@ -378,7 +378,7 @@ func TestListJobsFiltering(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	now := time.Now().UTC()
+	now := time.Now().UTC().Truncate(time.Millisecond)
 	jobs := []db.Job{
 		{
 			ID:            "job-1",
@@ -422,7 +422,7 @@ func TestListJobsFiltering(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(gotJobs, expectedJobs) {
-		t.Errorf("ListJobs({}): wrong list returned. Want %#v. Got %#v", expectedJobs, gotJobs)
+		t.Errorf("ListJobs({}): wrong list returned\nWant %#v\nGot  %#v", expectedJobs, gotJobs)
 	}
 }
 
@@ -437,7 +437,7 @@ func TestListJobsFilteringAndLimit(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	now := time.Now().UTC()
+	now := time.Now().UTC().Truncate(time.Millisecond)
 	jobs := []db.Job{
 		{
 			ID:            "job-1",

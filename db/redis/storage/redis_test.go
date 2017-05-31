@@ -335,7 +335,7 @@ func TestLoadStruct(t *testing.T) {
 	}
 	client := storage.RedisClient()
 	defer client.Close()
-	date := time.Now().UTC().Add(-29 * 365 * 24 * time.Hour)
+	date := time.Now().UTC().Add(-29 * 365 * 24 * time.Hour).Truncate(time.Millisecond)
 	err = storage.Save("test-key", map[string]string{
 		"name":              "Gopher",
 		"age":               "29",
@@ -369,7 +369,7 @@ func TestLoadStruct(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(person, expectedPerson) {
-		t.Errorf("Didn't load data to struct. Want %#v. Got %#v.", expectedPerson, person)
+		t.Errorf("Didn't load data to struct\nwant %#v\ngot  %#v", expectedPerson, person)
 	}
 }
 
