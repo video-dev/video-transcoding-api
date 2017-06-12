@@ -55,7 +55,6 @@ func (hp hybrikProvider) String() string {
 }
 
 func hybrikTranscoderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-
 	api, err := hwrapper.NewClient(hwrapper.Config{
 		URL:            cfg.Hybrik.URL,
 		ComplianceDate: cfg.Hybrik.ComplianceDate,
@@ -75,7 +74,6 @@ func hybrikTranscoderFactory(cfg *config.Config) (provider.TranscodingProvider, 
 }
 
 func (hp *hybrikProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
-
 	cj, err := hp.presetsToTranscodeJob(job)
 	if err != nil {
 		return &provider.JobStatus{}, err
@@ -106,8 +104,6 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 			StorageProvider: "relative",
 			Path:            subPath,
 		}
-	} else {
-		subLocation = nil
 	}
 
 	// create the transcode element
@@ -319,7 +315,6 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 }
 
 func (hp *hybrikProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
-
 	ji, err := hp.c.GetJobInfo(job.ProviderJobID)
 	if err != nil {
 		return &provider.JobStatus{}, err
@@ -399,8 +394,6 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 			return "", ErrVideoWidthNan
 		}
 		videoWidth = &presetWidth
-	} else {
-		videoWidth = nil
 	}
 
 	if preset.Video.Height != "" {
@@ -410,8 +403,6 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 			return "", ErrVideoHeightNan
 		}
 		videoHeight = &presetHeight
-	} else {
-		videoHeight = nil
 	}
 
 	videoProfile := strings.ToLower(preset.Video.Profile)
