@@ -83,6 +83,7 @@ type Hybrik struct {
 	AuthKey        string `envconfig:"HYBRIK_AUTH_KEY"`
 	AuthSecret     string `envconfig:"HYBRIK_AUTH_SECRET"`
 	Destination    string `envconfig:"HYBRIK_DESTINATION"`
+	PresetPath     string `envconfig:"HYBRIK_PRESET_PATH"`
 }
 
 // LoadConfig loads the configuration of the API using environment variables.

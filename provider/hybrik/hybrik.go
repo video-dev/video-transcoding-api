@@ -415,12 +415,17 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 		videoLevel = ""
 	}
 
+	presetPath := "video-transcoding-api-presets"
+	if hp.config.PresetPath != "" {
+		presetPath = hp.config.PresetPath
+	}
+
 	p := hwrapper.Preset{
 		Key:         preset.Name,
 		Name:        preset.Name,
 		Description: preset.Description,
 		Kind:        "transcode",
-		Path:        "video-transcoding-api-presets",
+		Path:        presetPath,
 		Payload: hwrapper.PresetPayload{
 			Targets: []hwrapper.PresetTarget{
 				{

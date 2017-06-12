@@ -81,7 +81,10 @@ export HYBRIK_OAPI_SECRET=your.hybrik.oapi.secret
 export HYBRIK_AUTH_KEY=your.hybrik.auth.key
 export HYBRIK_AUTH_SECRET=your.hybrik.auth.secret
 export HYBRIK_DESTINATION=s3://your-s3-bucket
+export HYBRIK_PRESET_PATH=video-transcoding-api-presets
 ```
+
+The HYBRIK_PRESET_PATH is optional and defines the folder presets will be stored in. If not specified, it will default to 'video-transcoding-api-presets'.
 
 Please notice that for Elastic Transcoder you don't specify the destination
 bucket, as it is [defined in the Elastic Transcoder
