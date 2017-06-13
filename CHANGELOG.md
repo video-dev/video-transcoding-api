@@ -1,3 +1,47 @@
+## Version 1.3.0 (Release date: 2017-06-13)
+
+([7695f83](https://github.com/nytimes/video-transcoding-api/commit/7695f83)) Add default Hybrik PresetPath and ComplianceDate settings to config 
+
+([0641150](https://github.com/nytimes/video-transcoding-api/commit/0641150)) Allow Hybrik preset path to be optionaly configurable via env config var 
+
+([4532d91](https://github.com/nytimes/video-transcoding-api/commit/4532d91)) Fix code formatting issues 
+
+([14b8876](https://github.com/nytimes/video-transcoding-api/commit/14b8876)) Update license information 
+
+([86b8f30](https://github.com/nytimes/video-transcoding-api/commit/86b8f30)) db/redis: truncate time to milliseconds 
+
+([b3e136a](https://github.com/nytimes/video-transcoding-api/commit/b3e136a)) Hybrik provider: Only apply StreamingParams.SegmentDuration to HLS outputs 
+
+([a4eafc7](https://github.com/nytimes/video-transcoding-api/commit/a4eafc7)) Fix gometalinter warnings 
+
+
+([d126217](https://github.com/nytimes/video-transcoding-api/commit/d126217)) Parallelize preset retrieval on job creation 
+
+([8cc97c6](https://github.com/nytimes/video-transcoding-api/commit/8cc97c6)) Switch from encoding-wrapper/hybrik to hybrik-sdk-go package 
+
+([286b126](https://github.com/nytimes/video-transcoding-api/commit/286b126)) Add Hybrik to README 
+
+([d354cbc](https://github.com/nytimes/video-transcoding-api/commit/d354cbc)) Add support for Hybrik as a transcoding provider 
+
+([c49c678](https://github.com/nytimes/video-transcoding-api/commit/c49c678)) fix Readme 
+
+
+([06e5856](https://github.com/nytimes/video-transcoding-api/commit/06e5856)) forgot to add Destination field in README 
+
+([3896683](https://github.com/nytimes/video-transcoding-api/commit/3896683)) adding more tests 
+
+([4d9819e](https://github.com/nytimes/video-transcoding-api/commit/4d9819e)) removing debug code 
+
+([4ae3275](https://github.com/nytimes/video-transcoding-api/commit/4ae3275)) added ability to set output s3 destination, decoupling from input.  about to add more input types 
+
+([145bf16](https://github.com/nytimes/video-transcoding-api/commit/145bf16)) adding debugging code will remove later 
+
+([dd86b3c](https://github.com/nytimes/video-transcoding-api/commit/dd86b3c)) adding ability to specify encoding version 
+
+
+
+
+
 ## Version 1.2.1 (Release date: 2017-04-04)
 ([1212d45](https://github.com/nytimes/video-transcoding-api/commit/1212d45)) provider/encodingcom: fix bug in newly introduced adjustSize function 
 
