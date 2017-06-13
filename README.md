@@ -75,7 +75,7 @@ export BITMOVIN_ENCODING_VERSION=STABLE.or.BETA
 
 ```
 export HYBRIK_URL=your.hybrik.api.endpoint.such.as.https://api_demo.hybrik.com/v1
-export HYBRIK_COMPLIANCE_DATE=20170501
+export HYBRIK_COMPLIANCE_DATE=20170601
 export HYBRIK_OAPI_KEY=your.hybrik.oapi.key
 export HYBRIK_OAPI_SECRET=your.hybrik.oapi.secret
 export HYBRIK_AUTH_KEY=your.hybrik.auth.key
