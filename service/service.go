@@ -10,8 +10,8 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/swagger"
-	"github.com/Sirupsen/logrus"
 	"github.com/fsouza/ctxlogger"
+	"github.com/sirupsen/logrus"
 )
 
 // TranscodingService will implement server.JSONService and handle all requests

@@ -14,7 +14,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/dbtest"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/Sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 func TestTranscode(t *testing.T) {

@@ -11,8 +11,8 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/hybrik"
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
+	"github.com/fsouza/sdhook"
 	"github.com/google/gops/agent"
-	"github.com/knq/sdhook"
 	"github.com/marzagao/logrus-env"
 )
 
