@@ -10,7 +10,6 @@ addons:
 go:
 - 1.7.x
 - 1.8.x
-- 1.9rc1
 - tip
 services:
 - redis-server

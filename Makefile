@@ -40,7 +40,7 @@ run: build
 
 swagger:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
-	GOROOT=$$(go env GOROOT) swagger generate spec -o swagger.json
+	swagger generate spec -o swagger.json
 
 checkswagger:
 	swagger validate swagger.json
