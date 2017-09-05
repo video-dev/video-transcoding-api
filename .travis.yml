@@ -1,8 +1,6 @@
 language: go
 sudo: false
-install:
-  - export GOROOT=$(go env GOROOT)
-  - make testdeps
+install: make testdeps
 script: make swagger coverage
 after_success: bash <(curl -s https://codecov.io/bash)
 addons:
