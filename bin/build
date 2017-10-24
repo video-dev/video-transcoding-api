@@ -2,7 +2,7 @@
 cd $(cd `dirname "$0"`; cd ..; pwd)
 
 if [ -z "$TARBALL" ]; then
-  echo "Error: destination TARBALL must be set"
+  echo >&2 "Error: destination TARBALL must be set"
   exit 1
 fi
 
@@ -16,10 +16,7 @@ export OUTPUT=$GOTMP/output
 export CODE=$GOTMP/src/github.com/NYTimes/video-transcoding-api
 mkdir -p $CODE
 cp -R . $CODE
-
-if [ -z "$GOPATH" ]; then
-  export GOPATH=$GOTMP
-fi
+export GOPATH=$GOTMP
 
 # Download dependencies and build
 pushd $CODE
