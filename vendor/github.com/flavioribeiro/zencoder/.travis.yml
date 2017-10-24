@@ -1,0 +1,12 @@
+language: go
+
+go:
+- 1.2
+
+install: cat BUILD_DEPENDENCIES | xargs -I{} go get -v {}
+
+script: $HOME/gopath/bin/goveralls -v $GOVERALLS
+
+env:
+  global:
+    secure: FNiT1iwL+7PQwwZRwvnJGu7Wxy2sFv3b3AKecx41OoegGCTWL0R64ftrLvARuV85ZiMvT39NB8SZr7ojO9tcQeVeC6CpGuwuadBXp+kCvh1yUsZZvTI/f/I9LokT8xp/VQVJTZVasXZ/20C2lZkspyaFN36cHnPHIoLB6bKSO2w=

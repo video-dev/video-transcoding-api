@@ -8,7 +8,6 @@ addons:
     packages:
     - redis-server
 go:
-- 1.8.x
 - 1.9
 - tip
 services:
