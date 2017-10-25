@@ -13,7 +13,7 @@ testdeps:
 	go get -d -t ./...
 
 lint: testdeps
-	go get github.com/alecthomas/gometalinter honnef.co/go/unused/cmd/unused
+	go get github.com/alecthomas/gometalinter
 	gometalinter --install --vendored-linters
 	go get -d -t ./...
 	go build -i
