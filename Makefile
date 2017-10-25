@@ -1,4 +1,4 @@
-.PHONY: all lint test gotest build run checkswagger swagger runswagger
+.PHONY: all testdeps lint test gotest build run checkswagger swagger runswagger
 
 HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
@@ -10,10 +10,12 @@ all: test
 
 testdeps:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
+	go get -d -t ./...
 
-lint:
-	go get github.com/alecthomas/gometalinter
+lint: testdeps
+	go get github.com/alecthomas/gometalinter honnef.co/go/unused/cmd/unused
 	gometalinter --install --vendored-linters
+	go get -d -t ./...
 	go build -i
 	go list -f '{{.TestImports}}' ./... | sed -e 's/\[\(.*\)\]/\1/' | tr ' ' '\n' | grep '^.*\..*/.*$$' | xargs go install
 	gometalinter -j 2 --enable=misspell --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests --vendor ./...
