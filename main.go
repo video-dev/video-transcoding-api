@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	agent.Listen(&agent.Options{NoShutdownCleanup: true})
+	agent.Listen(agent.Options{})
 	defer agent.Close()
 	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
