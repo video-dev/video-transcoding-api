@@ -10,7 +10,7 @@ import (
 	"sync"
 	"time"
 
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 // ErrNotFound is the error returned when the given key is not found.
@@ -88,7 +88,7 @@ func (s *Storage) Save(key string, hash interface{}) error {
 
 // FieldMap extract the map of fields from the given type (which can be a
 // struct, a map[string]string or pointer to those).
-func (s *Storage) FieldMap(hash interface{}) (map[string]string, error) {
+func (s *Storage) FieldMap(hash interface{}) (map[string]interface{}, error) {
 	if hash == nil {
 		return nil, errors.New("no fields provided")
 	}
@@ -106,7 +106,7 @@ func (s *Storage) FieldMap(hash interface{}) (map[string]string, error) {
 	}
 }
 
-func (s *Storage) mapToFieldList(hash interface{}, prefixes ...string) (map[string]string, error) {
+func (s *Storage) mapToFieldList(hash interface{}, prefixes ...string) (map[string]interface{}, error) {
 	m, ok := hash.(map[string]string)
 	if !ok {
 		return nil, errors.New("please provide a map[string]string")
@@ -114,7 +114,7 @@ func (s *Storage) mapToFieldList(hash interface{}, prefixes ...string) (map[stri
 	if len(m) < 1 {
 		return nil, errors.New("please provide a map[string]string with at least one item")
 	}
-	fields := make(map[string]string, len(m))
+	fields := make(map[string]interface{}, len(m))
 	for key, value := range m {
 		key = strings.Join(append(prefixes, key), "_")
 		fields[key] = value
@@ -122,8 +122,8 @@ func (s *Storage) mapToFieldList(hash interface{}, prefixes ...string) (map[stri
 	return fields, nil
 }
 
-func (s *Storage) structToFieldList(value reflect.Value, prefixes ...string) (map[string]string, error) {
-	fields := make(map[string]string)
+func (s *Storage) structToFieldList(value reflect.Value, prefixes ...string) (map[string]interface{}, error) {
+	fields := make(map[string]interface{})
 	for i := 0; i < value.NumField(); i++ {
 		field := value.Type().Field(i)
 		if field.PkgPath != "" {

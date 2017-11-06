@@ -241,7 +241,7 @@ func TestFieldMap(t *testing.T) {
 	var tests = []struct {
 		description string
 		hash        interface{}
-		expected    map[string]string
+		expected    map[string]interface{}
 	}{
 		{
 			"Job",
@@ -260,7 +260,7 @@ func TestFieldMap(t *testing.T) {
 					{Preset: PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
 				},
 			},
-			map[string]string{
+			map[string]interface{}{
 				"source":                           "http://nyt.net/source_here.mp4",
 				"jobID":                            "job1",
 				"providerName":                     "encoding.com",
@@ -297,7 +297,7 @@ func TestFieldMap(t *testing.T) {
 					},
 				},
 			},
-			map[string]string{
+			map[string]interface{}{
 				"preset_name":                "test",
 				"preset_description":         "test preset",
 				"preset_container":           "mp4",

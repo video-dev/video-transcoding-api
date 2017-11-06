@@ -54,10 +54,10 @@
   branch = "master"
   name = "github.com/sirupsen/logrus"
 
-[[constraint]]
-  name = "gopkg.in/redis.v5"
-  version = "5.2.9"
-
 [[override]]
   branch = "master"
   name = "github.com/julienschmidt/httprouter"
+
+[[constraint]]
+  name = "github.com/go-redis/redis"
+  version = "6.7.3"

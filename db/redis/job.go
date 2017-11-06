@@ -7,7 +7,7 @@ import (
 
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 const jobsSetKey = "jobs"

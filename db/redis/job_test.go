@@ -12,7 +12,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/kr/pretty"
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 func TestCreateJob(t *testing.T) {
