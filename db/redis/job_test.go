@@ -11,8 +11,8 @@ import (
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
-	"github.com/kr/pretty"
 	"github.com/go-redis/redis"
+	"github.com/kr/pretty"
 )
 
 func TestCreateJob(t *testing.T) {
