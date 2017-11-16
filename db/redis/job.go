@@ -7,7 +7,7 @@ import (
 
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
-	"gopkg.in/redis.v5"
+	"github.com/go-redis/redis"
 )
 
 const jobsSetKey = "jobs"
@@ -16,7 +16,7 @@ func (r *redisRepository) CreateJob(job *db.Job) error {
 	if job.ID == "" {
 		return errors.New("job id is required")
 	}
-	job.CreationTime = time.Now().UTC()
+	job.CreationTime = time.Now().UTC().Truncate(time.Millisecond)
 	return r.saveJob(job)
 }
 

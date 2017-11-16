@@ -1,0 +1,9 @@
+language: go
+install:
+  - make testdeps
+script: make coverage
+after_success: bash <(curl -s https://codecov.io/bash)
+go:
+  - 1.8.x
+  - 1.9
+  - tip

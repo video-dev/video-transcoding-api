@@ -241,7 +241,7 @@ func TestFieldMap(t *testing.T) {
 	var tests = []struct {
 		description string
 		hash        interface{}
-		expected    map[string]string
+		expected    map[string]interface{}
 	}{
 		{
 			"Job",
@@ -260,7 +260,7 @@ func TestFieldMap(t *testing.T) {
 					{Preset: PresetMap{Name: "preset-2"}, FileName: "output2.m3u8"},
 				},
 			},
-			map[string]string{
+			map[string]interface{}{
 				"source":                           "http://nyt.net/source_here.mp4",
 				"jobID":                            "job1",
 				"providerName":                     "encoding.com",
@@ -297,7 +297,7 @@ func TestFieldMap(t *testing.T) {
 					},
 				},
 			},
-			map[string]string{
+			map[string]interface{}{
 				"preset_name":                "test",
 				"preset_description":         "test preset",
 				"preset_container":           "mp4",
@@ -335,7 +335,7 @@ func TestLoadStruct(t *testing.T) {
 	}
 	client := storage.RedisClient()
 	defer client.Close()
-	date := time.Now().UTC().Add(-29 * 365 * 24 * time.Hour)
+	date := time.Now().UTC().Add(-29 * 365 * 24 * time.Hour).Truncate(time.Millisecond)
 	err = storage.Save("test-key", map[string]string{
 		"name":              "Gopher",
 		"age":               "29",
@@ -369,7 +369,7 @@ func TestLoadStruct(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !reflect.DeepEqual(person, expectedPerson) {
-		t.Errorf("Didn't load data to struct. Want %#v. Got %#v.", expectedPerson, person)
+		t.Errorf("Didn't load data to struct\nwant %#v\ngot  %#v", expectedPerson, person)
 	}
 }
 

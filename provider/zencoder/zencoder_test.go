@@ -13,8 +13,8 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/flavioribeiro/zencoder"
+	redisDriver "github.com/go-redis/redis"
 	"github.com/kr/pretty"
-	redisDriver "gopkg.in/redis.v5"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {

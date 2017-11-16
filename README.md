@@ -16,6 +16,7 @@ providers:
 - [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
 - [Zencoder](http://zencoder.com)
 - [Bitmovin](http://bitmovin.com)
+- [Hybrik](https://www.hybrik.com)
 
 ## Setting Up
 
@@ -70,7 +71,20 @@ export BITMOVIN_DESTINATION=s3://your-s3-bucket
 export BITMOVIN_ENCODING_REGION=your.provider.region.such.as.AWS_US_EAST_1.or.GOOGLE_EUROPE_WEST_1
 export BITMOVIN_ENCODING_VERSION=STABLE.or.BETA
 ```
+#### For [Hybrik](https://www.hybrik.com)
 
+```
+export HYBRIK_URL=your.hybrik.api.endpoint.such.as.https://api_demo.hybrik.com/v1
+export HYBRIK_COMPLIANCE_DATE=20170601
+export HYBRIK_OAPI_KEY=your.hybrik.oapi.key
+export HYBRIK_OAPI_SECRET=your.hybrik.oapi.secret
+export HYBRIK_AUTH_KEY=your.hybrik.auth.key
+export HYBRIK_AUTH_SECRET=your.hybrik.auth.secret
+export HYBRIK_DESTINATION=s3://your-s3-bucket
+export HYBRIK_PRESET_PATH=video-transcoding-api-presets
+```
+
+The HYBRIK_PRESET_PATH is optional and defines the folder presets will be stored in. If not specified, it will default to 'video-transcoding-api-presets'.
 
 Please notice that for Elastic Transcoder you don't specify the destination
 bucket, as it is [defined in the Elastic Transcoder

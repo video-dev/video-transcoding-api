@@ -8,6 +8,7 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
 	_ "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
 	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
+	_ "github.com/NYTimes/video-transcoding-api/provider/hybrik"
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/google/gops/agent"
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	agent.Listen(&agent.Options{NoShutdownCleanup: true})
+	agent.Listen(agent.Options{})
 	defer agent.Close()
 	cfg := config.LoadConfig()
 	if cfg.Server.RouterType == "" {
@@ -25,6 +26,7 @@ func main() {
 	server.Init("video-transcoding-api", cfg.Server)
 	server.Log.Hooks.Add(logrus_stack.StandardHook())
 	server.Log.Hooks.Add(logrus_env.NewHook([]string{"ENVIRONMENT"}))
+
 	gcpLoggingHook, err := sdhook.New(
 		sdhook.GoogleLoggingAgent(),
 		sdhook.ErrorReportingService("video-transcoding-api"),

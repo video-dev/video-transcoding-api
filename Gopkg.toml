@@ -1,0 +1,63 @@
+[[constraint]]
+  branch = "master"
+  name = "github.com/Gurpartap/logrus-stack"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/NYTimes/encoding-wrapper"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/NYTimes/gizmo"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/NYTimes/gziphandler"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/aws/aws-sdk-go"
+
+[[constraint]]
+  name = "github.com/bitmovin/bitmovin-go"
+  version = "1.5.1"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/flavioribeiro/zencoder"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/fsouza/ctxlogger"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/google/gops"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/hybrik/hybrik-sdk-go"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/knq/sdhook"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/kr/pretty"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/marzagao/logrus-env"
+
+[[constraint]]
+  branch = "master"
+  name = "github.com/sirupsen/logrus"
+
+[[override]]
+  branch = "master"
+  name = "github.com/julienschmidt/httprouter"
+
+[[constraint]]
+  name = "github.com/go-redis/redis"
+  version = "6.7.3"

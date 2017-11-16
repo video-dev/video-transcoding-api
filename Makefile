@@ -10,14 +10,13 @@ all: test
 
 testdeps:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
-	go get -d -t ./...
 
 lint: testdeps
-	go get github.com/alecthomas/gometalinter honnef.co/go/unused/cmd/unused
+	go get github.com/alecthomas/gometalinter
 	gometalinter --install --vendored-linters
-	go get -t ./...
+	go build -i
 	go list -f '{{.TestImports}}' ./... | sed -e 's/\[\(.*\)\]/\1/' | tr ' ' '\n' | grep '^.*\..*/.*$$' | xargs go install
-	gometalinter -j 2 --enable=misspell --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests ./...
+	gometalinter -j 2 --enable=misspell --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests --vendor ./...
 
 gotest: testdeps
 	go test ./...
