@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/davecgh/go-spew/spew"
 )
 
 // GizmoJSONResponse represents a response type that can be converted to
@@ -20,6 +21,7 @@ type Handler func(*http.Request) GizmoJSONResponse
 // HandlerToJSONEndpoint converts a handler to a proper Gizmo JSONEndpoint.
 func HandlerToJSONEndpoint(h Handler) server.JSONEndpoint {
 	return func(r *http.Request) (int, interface{}, error) {
+		spew.Dump(h(r))
 		return h(r).Result()
 	}
 }
