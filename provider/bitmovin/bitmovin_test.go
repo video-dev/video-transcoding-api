@@ -57,9 +57,9 @@ func TestBitmovinFactory(t *testing.T) {
 	}
 }
 
-func TestCreatePreset(t *testing.T) {
+func TestCreateH264Preset(t *testing.T) {
 	testPresetName := "this_is_an_audio_config_uuid"
-	preset := getPreset()
+	preset := getH264Preset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -97,8 +97,48 @@ func TestCreatePreset(t *testing.T) {
 	}
 }
 
+func TestCreateVP8Preset(t *testing.T) {
+	testPresetName := "this_is_an_audio_config_uuid"
+	preset := getVP8Preset()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/audio/vorbis":
+			resp := models.VorbisCodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VorbisCodecConfigurationData{
+					Result: models.VorbisCodecConfiguration{
+						ID: stringToPtr("this_is_an_audio_config_uuid"),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/vp8":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						ID: stringToPtr(testPresetName),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	presetName, err := prov.CreatePreset(preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if presetName != testPresetName {
+		t.Error("expected ", testPresetName, "got ", presetName)
+	}
+}
+
 func TestCreatePresetFailsOnAPIError(t *testing.T) {
-	preset := getPreset()
+	preset := getH264Preset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -119,7 +159,7 @@ func TestCreatePresetFailsOnAPIError(t *testing.T) {
 }
 
 func TestCreatePresetFailsOnGenericError(t *testing.T) {
-	preset := getPreset()
+	preset := getH264Preset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -136,7 +176,7 @@ func TestCreatePresetFailsOnGenericError(t *testing.T) {
 	}
 }
 
-func TestDeletePreset(t *testing.T) {
+func TestDeletePresetH264(t *testing.T) {
 	testPresetID := "i_want_to_delete_this"
 	audioPresetID := "embedded_audio_id"
 	customData := make(map[string]interface{})
@@ -179,7 +219,7 @@ func TestDeletePresetFailsOnAPIError(t *testing.T) {
 	testPresetID := "i_want_to_delete_this"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
+		case "/encoding/configurations/video/h264/" + testPresetID:
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusError,
 			}
@@ -196,11 +236,13 @@ func TestDeletePresetFailsOnAPIError(t *testing.T) {
 	}
 }
 
-func TestDeletePresetFailsOnGenericError(t *testing.T) {
+func TestDeletePresetFailsOnGenericErrors(t *testing.T) {
 	testPresetID := "i_want_to_delete_this"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
+		case "/encoding/configurations/video/h264/" + testPresetID:
+			fmt.Fprintln(w, "Not proper json")
+		case "/encoding/configurations/video/vp8/" + testPresetID:
 			fmt.Fprintln(w, "Not proper json")
 		default:
 			t.Fatal(errors.New("unexpected path hit"))
@@ -251,7 +293,7 @@ func TestGetPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := bitmovinPreset{
+	expected := bitmovinH264Preset{
 		Video: models.H264CodecConfiguration{CustomData: customData},
 		Audio: models.AACCodecConfiguration{},
 	}
@@ -284,11 +326,13 @@ func TestGetPresetFailsOnAPIError(t *testing.T) {
 	}
 }
 
-func TestGetPresetFailsOnGenericError(t *testing.T) {
+func TestGetPresetFailsOnGenericErrors(t *testing.T) {
 	testPresetID := "this_is_a_video_preset_id"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/video/h264/" + testPresetID:
+			fmt.Fprintln(w, "Not proper json")
+		case "/encoding/configurations/video/vp8/" + testPresetID:
 			fmt.Fprintln(w, "Not proper json")
 		default:
 			t.Fatal(errors.New("unexpected path hit"))
@@ -1369,7 +1413,7 @@ func TestCapabilities(t *testing.T) {
 	var prov bitmovinProvider
 	expected := provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
-		OutputFormats: []string{"mp4", "hls"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
 		Destinations:  []string{"s3"},
 	}
 	cap := prov.Capabilities()
@@ -1393,7 +1437,7 @@ func getBitmovinProvider(url string) bitmovinProvider {
 	}
 }
 
-func getPreset() db.Preset {
+func getH264Preset() db.Preset {
 	return db.Preset{
 		Audio: db.AudioPreset{
 			Bitrate: "128000",
@@ -1408,6 +1452,28 @@ func getPreset() db.Preset {
 			ProfileLevel: "3.1",
 			Bitrate:      "3500000",
 			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Height:       "1080",
+		},
+	}
+}
+
+func getVP8Preset() db.Preset {
+	return db.Preset{
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "vorbis",
+		},
+		Container:   "mp4",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
+		Video: db.VideoPreset{
+			Profile:      "main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "vp8",
 			GopMode:      "fixed",
 			GopSize:      "90",
 			Height:       "1080",

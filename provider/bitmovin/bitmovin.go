@@ -3,6 +3,7 @@ package bitmovin
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"path/filepath"
 	"regexp"
 	"strconv"
@@ -15,7 +16,6 @@ import (
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"
 	"github.com/bitmovin/bitmovin-go/services"
-	"net/url"
 )
 
 // Name is the name used for registering the bitmovin provider in the
@@ -23,6 +23,7 @@ import (
 const Name = "bitmovin"
 
 const bitmovinAPIErrorMsg = "ERROR"
+const bitmovinAPISuccessMsg = "SUCCESS"
 
 // Just to double check the interface is properly implemented
 var _ provider.TranscodingProvider = (*bitmovinProvider)(nil)
@@ -104,7 +105,6 @@ type bitmovinVP8Preset struct {
 }
 
 func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
-	fmt.Println("HERE")
 	if strings.ToLower(preset.Audio.Codec) == "aac" && strings.ToLower(preset.Video.Codec) == "h264" {
 		aac := services.NewAACCodecConfigurationService(p.client)
 		var audioConfigID string
@@ -188,35 +188,6 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 		return *videoResp.Data.Result.ID, nil
 	}
 	return "", fmt.Errorf("Unsupported Audio codec: %v", preset.Audio.Codec)
-}
-
-func (p *bitmovinProvider) createAACAudioPreset(preset db.Preset) (*models.AACCodecConfiguration, error) {
-	bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
-	if err != nil {
-		return nil, err
-	}
-	temp := int64(bitrate)
-	audioConfig := &models.AACCodecConfiguration{
-		Name:         stringToPtr(preset.Name),
-		Bitrate:      &temp,
-		SamplingRate: floatToPtr(48000.0),
-	}
-	return audioConfig, nil
-}
-
-func (p *bitmovinProvider) createVorbisAudioPreset(preset db.Preset) (*models.VorbisCodecConfiguration, error) {
-	bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
-	if err != nil {
-		return nil, err
-	}
-	temp := int64(bitrate)
-	audioConfig := &models.VorbisCodecConfiguration{
-		Name:    stringToPtr(preset.Name),
-		Bitrate: &temp,
-		// FIXME: double check bitrate sampling rate comibnatins for vorbis
-		SamplingRate: floatToPtr(48000.0),
-	}
-	return audioConfig, nil
 }
 
 func (p *bitmovinProvider) createH264VideoPreset(preset db.Preset, customData map[string]interface{}) (*models.H264CodecConfiguration, error) {
@@ -319,11 +290,15 @@ func (p *bitmovinProvider) createVP8VideoPreset(preset db.Preset, customData map
 func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	// Delete both the audio and video preset
 	h264 := services.NewH264CodecConfigurationService(p.client)
-	_, err := h264.Retrieve(presetID)
+	h264Response, err := h264.Retrieve(presetID)
 	if err == nil {
-		cdResp, err := h264.RetrieveCustomData(presetID)
-		if err != nil {
-			return err
+		if h264Response.Status == bitmovinAPIErrorMsg {
+			//if it were merely to not exist, then the err would not be nil
+			return errors.New("API Error")
+		}
+		cdResp, cdErr := h264.RetrieveCustomData(presetID)
+		if cdErr != nil {
+			return cdErr
 		}
 		if cdResp.Status == bitmovinAPIErrorMsg {
 			return errors.New("Video Preset must contain custom data to hold audio and container information")
@@ -344,17 +319,17 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 		}
 
 		aac := services.NewAACCodecConfigurationService(p.client)
-		audioDeleteResp, err := aac.Delete(audioPresetID)
-		if err != nil {
-			return err
+		audioDeleteResp, adErr := aac.Delete(audioPresetID)
+		if adErr != nil {
+			return adErr
 		}
 		if audioDeleteResp.Status == bitmovinAPIErrorMsg {
 			return errors.New("Error in deleting audio portion of Preset")
 		}
 
-		videoDeleteResp, err := h264.Delete(presetID)
-		if err != nil {
-			return err
+		videoDeleteResp, vdErr := h264.Delete(presetID)
+		if vdErr != nil {
+			return vdErr
 		}
 		if videoDeleteResp.Status == bitmovinAPIErrorMsg {
 			return errors.New("Error in deleting video portion of Preset")
@@ -362,8 +337,12 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 		return nil
 	}
 	vp8 := services.NewVP8CodecConfigurationService(p.client)
-	_, err = vp8.Retrieve(presetID)
+	vp8Response, err := vp8.Retrieve(presetID)
 	if err == nil {
+		if vp8Response.Status == bitmovinAPIErrorMsg {
+			//if it were merely to not exist, then the err would not be nil
+			return errors.New("API Error")
+		}
 		cdResp, err := vp8.RetrieveCustomData(presetID)
 		if err != nil {
 			return err
@@ -407,50 +386,6 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	return errors.New("Could not find H.264 or VP8 configuration to delete")
 }
 
-// func (p *bitmovinProvider) DeletePreset(presetID string) error {
-// 	// Delete both the audio and video preset
-// 	h264 := services.NewH264CodecConfigurationService(p.client)
-// 	cdResp, err := h264.RetrieveCustomData(presetID)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if cdResp.Status == bitmovinAPIErrorMsg {
-// 		return errors.New("Video Preset must contain custom data to hold audio and container information")
-// 	}
-// 	var audioPresetID string
-// 	if cdResp.Data.Result.CustomData != nil {
-// 		cd := cdResp.Data.Result.CustomData
-// 		i, ok := cd["audio"]
-// 		if !ok {
-// 			return errors.New("No Audio configuration found for Video Preset")
-// 		}
-// 		audioPresetID, ok = i.(string)
-// 		if !ok {
-// 			return errors.New("Audio Configuration somehow not a string")
-// 		}
-// 	} else {
-// 		return errors.New("No Audio configuration found for Video Preset")
-// 	}
-
-// 	aac := services.NewAACCodecConfigurationService(p.client)
-// 	audioDeleteResp, err := aac.Delete(audioPresetID)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if audioDeleteResp.Status == bitmovinAPIErrorMsg {
-// 		return errors.New("Error in deleting audio portion of Preset")
-// 	}
-
-// 	videoDeleteResp, err := h264.Delete(presetID)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	if videoDeleteResp.Status == bitmovinAPIErrorMsg {
-// 		return errors.New("Error in deleting video portion of Preset")
-// 	}
-// 	return nil
-// }
-
 func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	h264 := services.NewH264CodecConfigurationService(p.client)
 	response, err := h264.Retrieve(presetID)
@@ -460,9 +395,9 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 			return nil, errors.New("Error in retrieving video portion of Preset")
 		}
 		h264Config := response.Data.Result
-		cd, err := h264.RetrieveCustomData(presetID)
-		if err != nil {
-			return nil, err
+		cd, cdErr := h264.RetrieveCustomData(presetID)
+		if cdErr != nil {
+			return nil, cdErr
 		}
 		if cd.Status == bitmovinAPIErrorMsg {
 			return nil, errors.New("")
@@ -478,9 +413,9 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 				return nil, errors.New("Audio Configuration somehow not a string")
 			}
 			aac := services.NewAACCodecConfigurationService(p.client)
-			audioResponse, err := aac.Retrieve(s)
-			if err != nil {
-				return nil, err
+			audioResponse, arErr := aac.Retrieve(s)
+			if arErr != nil {
+				return nil, arErr
 			}
 			if audioResponse.Status == bitmovinAPIErrorMsg {
 				return nil, errors.New("Error in retrieving audio portion of Preset")
@@ -540,361 +475,6 @@ func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
 	return nil, errors.New("No Audio configuration found for Video Preset")
 }
 
-// func (p *bitmovinProvider) GetPreset(presetID string) (interface{}, error) {
-// 	h264 := services.NewH264CodecConfigurationService(p.client)
-// 	response, err := h264.Retrieve(presetID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if response.Status == bitmovinAPIErrorMsg {
-// 		return nil, errors.New("Error in retrieving video portion of Preset")
-// 	}
-// 	h264Config := response.Data.Result
-// 	cd, err := h264.RetrieveCustomData(presetID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if cd.Status == bitmovinAPIErrorMsg {
-// 		return nil, errors.New("")
-// 	}
-// 	if cd.Data.Result.CustomData != nil {
-// 		h264Config.CustomData = cd.Data.Result.CustomData
-// 		i, ok := h264Config.CustomData["audio"]
-// 		if !ok {
-// 			return nil, errors.New("No Audio configuration found for Video Preset")
-// 		}
-// 		s, ok := i.(string)
-// 		if !ok {
-// 			return nil, errors.New("Audio Configuration somehow not a string")
-// 		}
-// 		aac := services.NewAACCodecConfigurationService(p.client)
-// 		audioResponse, err := aac.Retrieve(s)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		if audioResponse.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("Error in retrieving audio portion of Preset")
-// 		}
-// 		aacConfig := audioResponse.Data.Result
-// 		preset := bitmovinPreset{
-// 			Video: h264Config,
-// 			Audio: aacConfig,
-// 		}
-// 		return preset, nil
-// 	}
-// 	return nil, errors.New("No Audio configuration found for Video Preset")
-// }
-
-// func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
-// 	aclEntry := models.ACLItem{
-// 		Permission: bitmovintypes.ACLPermissionPublicRead,
-// 	}
-// 	acl := []models.ACLItem{aclEntry}
-
-// 	cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
-// 	outputBucketName, err := grabBucketNameFromS3Destination(p.config.Destination)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	s3OS := services.NewS3OutputService(p.client)
-// 	s3Output := &models.S3Output{
-// 		BucketName:  stringToPtr(outputBucketName),
-// 		AccessKey:   stringToPtr(p.config.AccessKeyID),
-// 		SecretKey:   stringToPtr(p.config.SecretAccessKey),
-// 		CloudRegion: cloudRegion,
-// 	}
-
-// 	s3OSResponse, err := s3OS.Create(s3Output)
-// 	if err != nil {
-// 		return nil, err
-// 	} else if s3OSResponse.Status == bitmovinAPIErrorMsg {
-// 		return nil, errors.New("Error in setting up S3 input")
-// 	}
-
-// 	inputID, inputFullPath, err := createInput(p, job.SourceMedia)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	videoInputStream := models.InputStream{
-// 		InputID:       stringToPtr(inputID),
-// 		InputPath:     stringToPtr(inputFullPath),
-// 		SelectionMode: bitmovintypes.SelectionModeAuto,
-// 	}
-
-// 	audioInputStream := models.InputStream{
-// 		InputID:       stringToPtr(inputID),
-// 		InputPath:     stringToPtr(inputFullPath),
-// 		SelectionMode: bitmovintypes.SelectionModeAuto,
-// 	}
-
-// 	viss := []models.InputStream{videoInputStream}
-// 	aiss := []models.InputStream{audioInputStream}
-
-// 	h264S := services.NewH264CodecConfigurationService(p.client)
-
-// 	var masterManifestPath string
-// 	var masterManifestFile string
-// 	outputtingHLS := false
-// 	manifestID := ""
-
-// 	//create the master manifest if needed so we can add it to the customData of the encoding response
-// 	for _, output := range job.Outputs {
-// 		videoPresetID := output.Preset.ProviderMapping[Name]
-// 		customDataResp, cdErr := h264S.RetrieveCustomData(videoPresetID)
-
-// 		if cdErr != nil {
-// 			return nil, cdErr
-// 		}
-// 		if customDataResp.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("")
-// 		}
-// 		containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
-// 		if !ok {
-// 			return nil, errors.New("")
-// 		}
-// 		container, ok := containerInterface.(string)
-// 		if !ok {
-// 			return nil, errors.New("")
-// 		}
-// 		if container == "m3u8" {
-// 			outputtingHLS = true
-// 			break
-// 		}
-// 	}
-
-// 	hlsService := services.NewHLSManifestService(p.client)
-
-// 	if outputtingHLS {
-// 		masterManifestPath = filepath.Dir(job.StreamingParams.PlaylistFileName)
-// 		masterManifestFile = filepath.Base(job.StreamingParams.PlaylistFileName)
-// 		manifestOutput := models.Output{
-// 			OutputID:   s3OSResponse.Data.Result.ID,
-// 			OutputPath: stringToPtr(masterManifestPath),
-// 			ACL:        acl,
-// 		}
-// 		hlsMasterManifest := &models.HLSManifest{
-// 			ManifestName: stringToPtr(masterManifestFile),
-// 			Outputs:      []models.Output{manifestOutput},
-// 		}
-// 		hlsMasterManifestResp, manErr := hlsService.Create(hlsMasterManifest)
-// 		if manErr != nil {
-// 			return nil, manErr
-// 		} else if hlsMasterManifestResp.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("Error in HLS Master Manifest creation")
-// 		}
-// 		manifestID = *hlsMasterManifestResp.Data.Result.ID
-// 	}
-
-// 	encodingS := services.NewEncodingService(p.client)
-// 	customData := make(map[string]interface{})
-// 	if outputtingHLS {
-// 		customData["manifest"] = manifestID
-// 	}
-// 	encodingRegion := bitmovintypes.CloudRegion(p.config.EncodingRegion)
-// 	encodingVersion := bitmovintypes.EncoderVersion(p.config.EncodingVersion)
-// 	encoding := &models.Encoding{
-// 		Name:           stringToPtr("encoding"),
-// 		CustomData:     customData,
-// 		CloudRegion:    encodingRegion,
-// 		EncoderVersion: encodingVersion,
-// 	}
-
-// 	encodingResp, err := encodingS.Create(encoding)
-// 	if err != nil {
-// 		return nil, err
-// 	} else if encodingResp.Status == bitmovinAPIErrorMsg {
-// 		return nil, errors.New("Error in Encoding Creation")
-// 	}
-
-// 	for _, output := range job.Outputs {
-// 		videoPresetID := output.Preset.ProviderMapping[Name]
-// 		videoResponse, h264Err := h264S.Retrieve(videoPresetID)
-// 		if err != nil {
-// 			return nil, h264Err
-// 		}
-// 		if videoResponse.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("Error in retrieving video portion of preset")
-// 		}
-// 		customDataResp, h264CDErr := h264S.RetrieveCustomData(videoPresetID)
-// 		if err != nil {
-// 			return nil, h264CDErr
-// 		}
-// 		if customDataResp.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("Error in retrieving video custom data where the audio ID and container type is stored")
-// 		}
-// 		audioPresetIDInterface, ok := customDataResp.Data.Result.CustomData["audio"]
-// 		if !ok {
-// 			return nil, errors.New("Audio ID not found in video custom data")
-// 		}
-// 		audioPresetID, ok := audioPresetIDInterface.(string)
-// 		if !ok {
-// 			return nil, errors.New("Audio ID somehow not a string")
-// 		}
-
-// 		var audioStreamID, videoStreamID string
-// 		audioStream := &models.Stream{
-// 			CodecConfigurationID: &audioPresetID,
-// 			InputStreams:         aiss,
-// 		}
-// 		audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
-// 		if audioErr != nil {
-// 			return nil, audioErr
-// 		}
-// 		if audioStreamResp.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("Error in adding audio stream to Encoding")
-// 		}
-// 		audioStreamID = *audioStreamResp.Data.Result.ID
-
-// 		videoStream := &models.Stream{
-// 			CodecConfigurationID: &videoPresetID,
-// 			InputStreams:         viss,
-// 		}
-// 		videoStreamResp, vsErr := encodingS.AddStream(*encodingResp.Data.Result.ID, videoStream)
-// 		if vsErr != nil {
-// 			return nil, vsErr
-// 		}
-// 		if videoStreamResp.Status == bitmovinAPIErrorMsg {
-// 			return nil, errors.New("Error in adding video stream to Encoding")
-// 		}
-// 		videoStreamID = *videoStreamResp.Data.Result.ID
-
-// 		audioMuxingStream := models.StreamItem{
-// 			StreamID: &audioStreamID,
-// 		}
-// 		videoMuxingStream := models.StreamItem{
-// 			StreamID: &videoStreamID,
-// 		}
-
-// 		containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
-// 		if !ok {
-// 			return nil, errors.New("Container type not found in video custom data")
-// 		}
-// 		container, ok := containerInterface.(string)
-// 		if !ok {
-// 			return nil, errors.New("Container type somehow not a string")
-// 		}
-// 		if container == "m3u8" {
-// 			audioMuxingOutput := models.Output{
-// 				OutputID:   s3OSResponse.Data.Result.ID,
-// 				OutputPath: stringToPtr(filepath.Join(masterManifestPath, audioPresetID)),
-// 				ACL:        acl,
-// 			}
-// 			audioMuxing := &models.TSMuxing{
-// 				SegmentLength: floatToPtr(float64(job.StreamingParams.SegmentDuration)),
-// 				SegmentNaming: stringToPtr("seg_%number%.ts"),
-// 				Streams:       []models.StreamItem{audioMuxingStream},
-// 				Outputs:       []models.Output{audioMuxingOutput},
-// 			}
-// 			audioMuxingResp, muxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
-// 			if muxErr != nil {
-// 				return nil, muxErr
-// 			}
-// 			if audioMuxingResp.Status == bitmovinAPIErrorMsg {
-// 				return nil, errors.New("Error in adding TS Muxing for audio")
-// 			}
-
-// 			// create the MediaInfo
-// 			audioMediaInfo := &models.MediaInfo{
-// 				Type:            bitmovintypes.MediaTypeAudio,
-// 				URI:             stringToPtr(audioPresetID + ".m3u8"),
-// 				GroupID:         stringToPtr(audioPresetID),
-// 				Language:        stringToPtr("en"),
-// 				Name:            stringToPtr(audioPresetID),
-// 				IsDefault:       boolToPtr(false),
-// 				Autoselect:      boolToPtr(false),
-// 				Forced:          boolToPtr(false),
-// 				SegmentPath:     stringToPtr(audioPresetID),
-// 				Characteristics: []string{"public.accessibility.describes-video"},
-// 				EncodingID:      encodingResp.Data.Result.ID,
-// 				StreamID:        audioStreamResp.Data.Result.ID,
-// 				MuxingID:        audioMuxingResp.Data.Result.ID,
-// 			}
-
-// 			// Add to Master manifest, we will set the m3u8 and segments relative to the master
-
-// 			audioMediaInfoResp, miErr := hlsService.AddMediaInfo(manifestID, audioMediaInfo)
-// 			if miErr != nil {
-// 				return nil, miErr
-// 			}
-// 			if audioMediaInfoResp.Status == bitmovinAPIErrorMsg {
-// 				return nil, errors.New("Error in adding EXT-X-MEDIA")
-// 			}
-
-// 			videoMuxingOutput := models.Output{
-// 				OutputID:   s3OSResponse.Data.Result.ID,
-// 				OutputPath: stringToPtr(filepath.Join(masterManifestPath, videoPresetID)),
-// 				ACL:        acl,
-// 			}
-// 			videoMuxing := &models.TSMuxing{
-// 				SegmentLength: floatToPtr(float64(job.StreamingParams.SegmentDuration)),
-// 				SegmentNaming: stringToPtr("seg_%number%.ts"),
-// 				Streams:       []models.StreamItem{videoMuxingStream},
-// 				Outputs:       []models.Output{videoMuxingOutput},
-// 			}
-// 			videoMuxingResp, vmuxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, videoMuxing)
-// 			if err != nil {
-// 				return nil, vmuxErr
-// 			}
-// 			if videoMuxingResp.Status == bitmovinAPIErrorMsg {
-// 				return nil, errors.New("Error in adding TS Muxing for video")
-// 			}
-
-// 			videoStreamInfo := &models.StreamInfo{
-// 				Audio:       stringToPtr(audioPresetID),
-// 				SegmentPath: stringToPtr(videoPresetID),
-// 				URI:         stringToPtr(filepath.Base(output.FileName)),
-// 				EncodingID:  encodingResp.Data.Result.ID,
-// 				StreamID:    videoStreamResp.Data.Result.ID,
-// 				MuxingID:    videoMuxingResp.Data.Result.ID,
-// 			}
-
-// 			videoStreamInfoResp, vsiErr := hlsService.AddStreamInfo(manifestID, videoStreamInfo)
-// 			if vsiErr != nil {
-// 				return nil, vsiErr
-// 			}
-// 			if videoStreamInfoResp.Status == bitmovinAPIErrorMsg {
-// 				return nil, errors.New("Error in adding EXT-X-STREAM-INF")
-// 			}
-// 		} else if container == "mp4" {
-// 			videoMuxingOutput := models.Output{
-// 				OutputID:   s3OSResponse.Data.Result.ID,
-// 				ACL:        acl,
-// 				OutputPath: stringToPtr(filepath.Dir(output.FileName)),
-// 			}
-// 			videoMuxing := &models.MP4Muxing{
-// 				Filename: stringToPtr(filepath.Base(output.FileName)),
-// 				Outputs:  []models.Output{videoMuxingOutput},
-// 				Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
-// 			}
-// 			videoMuxingResp, vmErr := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
-// 			if err != nil {
-// 				return nil, vmErr
-// 			}
-// 			if videoMuxingResp.Status == bitmovinAPIErrorMsg {
-// 				return nil, errors.New("Error in adding MP4 Muxing")
-// 			}
-// 		}
-// 	}
-
-// 	startResp, err := encodingS.Start(*encodingResp.Data.Result.ID)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	if startResp.Status == bitmovinAPIErrorMsg {
-// 		return nil, errors.New("Error in starting encoding")
-// 	}
-
-// 	jobStatus := &provider.JobStatus{
-// 		ProviderName:  Name,
-// 		ProviderJobID: *encodingResp.Data.Result.ID,
-// 		Status:        provider.StatusQueued,
-// 	}
-
-// 	return jobStatus, nil
-// }
-
 func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	aclEntry := models.ACLItem{
 		Permission: bitmovintypes.ACLPermissionPublicRead,
@@ -952,26 +532,28 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 	//create the master manifest if needed so we can add it to the customData of the encoding response
 	for _, output := range job.Outputs {
-		videoPresetID := output.Preset.ProviderMapping[Name]
-		customDataResp, cdErr := h264S.RetrieveCustomData(videoPresetID)
+		if output.Preset.OutputOpts.Extension != "webm" {
+			videoPresetID := output.Preset.ProviderMapping[Name]
+			customDataResp, cdErr := h264S.RetrieveCustomData(videoPresetID)
 
-		if cdErr != nil {
-			return nil, cdErr
-		}
-		if customDataResp.Status == bitmovinAPIErrorMsg {
-			return nil, errors.New("")
-		}
-		containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
-		if !ok {
-			return nil, errors.New("")
-		}
-		container, ok := containerInterface.(string)
-		if !ok {
-			return nil, errors.New("")
-		}
-		if container == "m3u8" {
-			outputtingHLS = true
-			break
+			if cdErr != nil {
+				return nil, cdErr
+			}
+			if customDataResp.Status == bitmovinAPIErrorMsg {
+				return nil, errors.New("Error retrieving Custom Data of Video Preset")
+			}
+			containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
+			if !ok {
+				return nil, errors.New("Could not find container field in Custom Data")
+			}
+			container, ok := containerInterface.(string)
+			if !ok {
+				return nil, errors.New("Container in Custom Data could not be converted into a string")
+			}
+			if container == "m3u8" {
+				outputtingHLS = true
+				break
+			}
 		}
 	}
 
@@ -1184,92 +766,95 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
 					return nil, errors.New("Error in adding MP4 Muxing")
 				}
+			} else {
+				return nil, errors.New("unknown container format")
 			}
-			return nil, errors.New("unknown container format")
-		}
-		vp8VideoResponse, vp8Err := vp8S.Retrieve(videoPresetID)
-		if vp8Err == nil {
-			if vp8VideoResponse.Status == bitmovinAPIErrorMsg {
-				return nil, errors.New("Error in retrieving video portion of preset")
-			}
-			customDataResp, vp8CDErr := vp8S.RetrieveCustomData(videoPresetID)
-			if vp8CDErr != nil {
-				return nil, vp8CDErr
-			}
-			if customDataResp.Status == bitmovinAPIErrorMsg {
-				return nil, errors.New("Error in retrieving video custom data where the audio ID and container type is stored")
-			}
-			audioPresetIDInterface, ok := customDataResp.Data.Result.CustomData["audio"]
-			if !ok {
-				return nil, errors.New("Audio ID not found in video custom data")
-			}
-			audioPresetID, ok := audioPresetIDInterface.(string)
-			if !ok {
-				return nil, errors.New("Audio ID somehow not a string")
-			}
-			var audioStreamID, videoStreamID string
-			audioStream := &models.Stream{
-				CodecConfigurationID: &audioPresetID,
-				InputStreams:         aiss,
-			}
-			audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
-			if audioErr != nil {
-				return nil, audioErr
-			}
-			if audioStreamResp.Status == bitmovinAPIErrorMsg {
-				return nil, errors.New("Error in adding audio stream to Encoding")
-			}
-			audioStreamID = *audioStreamResp.Data.Result.ID
+		} else {
+			vp8VideoResponse, vp8Err := vp8S.Retrieve(videoPresetID)
+			if vp8Err == nil {
+				if vp8VideoResponse.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in retrieving video portion of preset")
+				}
+				customDataResp, vp8CDErr := vp8S.RetrieveCustomData(videoPresetID)
+				if vp8CDErr != nil {
+					return nil, vp8CDErr
+				}
+				if customDataResp.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in retrieving video custom data where the audio ID and container type is stored")
+				}
+				audioPresetIDInterface, ok := customDataResp.Data.Result.CustomData["audio"]
+				if !ok {
+					return nil, errors.New("Audio ID not found in video custom data")
+				}
+				audioPresetID, ok := audioPresetIDInterface.(string)
+				if !ok {
+					return nil, errors.New("Audio ID somehow not a string")
+				}
+				var audioStreamID, videoStreamID string
+				audioStream := &models.Stream{
+					CodecConfigurationID: &audioPresetID,
+					InputStreams:         aiss,
+				}
+				audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
+				if audioErr != nil {
+					return nil, audioErr
+				}
+				if audioStreamResp.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in adding audio stream to Encoding")
+				}
+				audioStreamID = *audioStreamResp.Data.Result.ID
 
-			videoStream := &models.Stream{
-				CodecConfigurationID: &videoPresetID,
-				InputStreams:         viss,
-			}
-			videoStreamResp, vsErr := encodingS.AddStream(*encodingResp.Data.Result.ID, videoStream)
-			if vsErr != nil {
-				return nil, vsErr
-			}
-			if videoStreamResp.Status == bitmovinAPIErrorMsg {
-				return nil, errors.New("Error in adding video stream to Encoding")
-			}
-			videoStreamID = *videoStreamResp.Data.Result.ID
+				videoStream := &models.Stream{
+					CodecConfigurationID: &videoPresetID,
+					InputStreams:         viss,
+				}
+				videoStreamResp, vsErr := encodingS.AddStream(*encodingResp.Data.Result.ID, videoStream)
+				if vsErr != nil {
+					return nil, vsErr
+				}
+				if videoStreamResp.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in adding video stream to Encoding")
+				}
+				videoStreamID = *videoStreamResp.Data.Result.ID
 
-			audioMuxingStream := models.StreamItem{
-				StreamID: &audioStreamID,
-			}
-			videoMuxingStream := models.StreamItem{
-				StreamID: &videoStreamID,
-			}
-			containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
-			if !ok {
-				return nil, errors.New("Container type not found in video custom data")
-			}
-			container, ok := containerInterface.(string)
-			if !ok {
-				return nil, errors.New("Container type somehow not a string")
-			}
-			if container != "webm" {
-				return nil, errors.New("unknown container for vp8 encoding")
-			}
-			videoMuxingOutput := models.Output{
-				OutputID:   s3OSResponse.Data.Result.ID,
-				ACL:        acl,
-				OutputPath: stringToPtr(filepath.Dir(output.FileName)),
-			}
-			videoMuxing := &models.ProgressiveWebMMuxing{
-				Filename: stringToPtr(filepath.Base(output.FileName)),
-				Outputs:  []models.Output{videoMuxingOutput},
-				Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
-			}
-			videoMuxingResp, vmErr := encodingS.AddProgressiveWebMMuxing(*encodingResp.Data.Result.ID, videoMuxing)
-			if err != nil {
-				return nil, vmErr
-			}
-			if videoMuxingResp.Status == bitmovinAPIErrorMsg {
-				return nil, errors.New("Error in adding MP4 Muxing")
+				audioMuxingStream := models.StreamItem{
+					StreamID: &audioStreamID,
+				}
+				videoMuxingStream := models.StreamItem{
+					StreamID: &videoStreamID,
+				}
+				containerInterface, ok := customDataResp.Data.Result.CustomData["container"]
+				if !ok {
+					return nil, errors.New("Container type not found in video custom data")
+				}
+				container, ok := containerInterface.(string)
+				if !ok {
+					return nil, errors.New("Container type somehow not a string")
+				}
+				if container != "webm" {
+					return nil, errors.New("unknown container for vp8 encoding")
+				}
+				videoMuxingOutput := models.Output{
+					OutputID:   s3OSResponse.Data.Result.ID,
+					ACL:        acl,
+					OutputPath: stringToPtr(filepath.Dir(output.FileName)),
+				}
+				videoMuxing := &models.ProgressiveWebMMuxing{
+					Filename: stringToPtr(filepath.Base(output.FileName)),
+					Outputs:  []models.Output{videoMuxingOutput},
+					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
+				}
+				videoMuxingResp, vmErr := encodingS.AddProgressiveWebMMuxing(*encodingResp.Data.Result.ID, videoMuxing)
+				if err != nil {
+					return nil, vmErr
+				}
+				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in adding MP4 Muxing")
+				}
+			} else {
+				return nil, errors.New("No H264 or VP8 codec configuration found")
 			}
 		}
-		return nil, errors.New("No H264 or VP8 codec configuration found")
 	}
 
 	startResp, err := encodingS.Start(*encodingResp.Data.Result.ID)
@@ -1421,10 +1006,9 @@ func (p *bitmovinProvider) Healthcheck() error {
 }
 
 func (p *bitmovinProvider) Capabilities() provider.Capabilities {
-	// FIXME ?
 	return provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
-		OutputFormats: []string{"mp4", "hls"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
 		Destinations:  []string{"s3"},
 	}
 }
