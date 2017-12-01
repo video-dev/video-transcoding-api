@@ -246,6 +246,52 @@ type MP4MuxingListResponse struct {
 	Data      MP4MuxingListData            `json:"data,omitempty"`
 }
 
+type ProgressiveWebMMuxing struct {
+	ID          *string                `json:"id,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	CustomData  map[string]interface{} `json:"customData,omitempty"`
+	Streams     []StreamItem           `json:"streams,omitempty"`
+	Outputs     []Output               `json:"outputs,omitempty"`
+	Filename    *string                `json:"filename,omitempty"`
+}
+
+type ProgressiveWebMMuxingData struct {
+	//Success fields
+	Result   ProgressiveWebMMuxing `json:"result,omitempty"`
+	Messages []Message             `json:"messages,omitempty"`
+
+	//Error fields
+	Code             *int64   `json:"code,omitempty"`
+	Message          *string  `json:"message,omitempty"`
+	DeveloperMessage *string  `json:"developerMessage,omitempty"`
+	Links            []Link   `json:"links,omitempty"`
+	Details          []Detail `json:"details,omitempty"`
+}
+
+type ProgressiveWebMMuxingResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      ProgressiveWebMMuxingData    `json:"data,omitempty"`
+}
+
+type ProgressiveWebMMuxingListResult struct {
+	TotalCount *int64                  `json:"totalCount,omitempty"`
+	Previous   *string                 `json:"previous,omitempty"`
+	Next       *string                 `json:"next,omitempty"`
+	Items      []ProgressiveWebMMuxing `json:"items,omitempty"`
+}
+
+type ProgressiveWebMMuxingListData struct {
+	Result ProgressiveWebMMuxingListResult `json:"result,omitempty"`
+}
+
+type ProgressiveWebMMuxingListResponse struct {
+	RequestID *string                       `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus  `json:"status,omitempty"`
+	Data      ProgressiveWebMMuxingListData `json:"data,omitempty"`
+}
+
 type StartResult struct {
 	ID *string `json:"id,omitempty"`
 }
