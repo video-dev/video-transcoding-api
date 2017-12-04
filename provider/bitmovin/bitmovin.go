@@ -23,7 +23,6 @@ import (
 const Name = "bitmovin"
 
 const bitmovinAPIErrorMsg = "ERROR"
-const bitmovinAPISuccessMsg = "SUCCESS"
 
 // Just to double check the interface is properly implemented
 var _ provider.TranscodingProvider = (*bitmovinProvider)(nil)
