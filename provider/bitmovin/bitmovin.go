@@ -1026,31 +1026,25 @@ func bitmovinFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	return &bitmovinProvider{client: client, config: cfg.Bitmovin}, nil
 }
 
-func parseS3URL(input string) (bucketName string, path string, fileName string, err error) {
-	if s3Pattern.MatchString(input) {
-		truncatedInput := strings.TrimPrefix(input, "s3://")
-		splitTruncatedInput := strings.Split(truncatedInput, "/")
-		bucketName = splitTruncatedInput[0]
-		fileName = splitTruncatedInput[len(splitTruncatedInput)-1]
-		truncatedInput = strings.TrimPrefix(truncatedInput, bucketName+"/")
-		path = strings.TrimSuffix(truncatedInput, fileName)
-		return
+func parseS3URL(input string) (bucketName string, objectKey string, err error) {
+	s3URL, err := url.Parse(input)
+	if err != nil || s3URL.Scheme != "s3" {
+		return "", "", errors.New("Could not parse S3 URL")
 	}
-	return "", "", "", errors.New("Could not parse S3 URL")
+	return s3URL.Host, strings.TrimLeft(s3URL.Path, "/"), nil
 }
 
 func grabBucketNameFromS3Destination(input string) (bucketName string, err error) {
-	if s3Pattern.MatchString(input) {
-		name := strings.TrimPrefix(input, "s3://")
-		name = strings.TrimSuffix(name, "/")
-		return name, err
+	bucketName, _, err = parseS3URL(input)
+	if err != nil {
+		return "", err
 	}
-	return "", errors.New("Could not parse S3 URL")
+	return bucketName, nil
 }
 
 func createInput(provider *bitmovinProvider, input string) (inputID string, path string, err error) {
 	if s3Pattern.MatchString(input) {
-		inputMediaBucketName, inputMediaPath, inputMediaFileName, err := parseS3URL(input)
+		inputMediaBucketName, inputMediaPath, err := parseS3URL(input)
 		if err != nil {
 			return "", "", err
 		}
@@ -1070,13 +1064,7 @@ func createInput(provider *bitmovinProvider, input string) (inputID string, path
 		} else if s3ISResponse.Status == bitmovinAPIErrorMsg {
 			return "", "", errors.New("Error in setting up S3 input")
 		}
-		var inputFullPath string
-		if inputMediaPath == "" {
-			inputFullPath = inputMediaFileName
-		} else {
-			inputFullPath = inputMediaPath + inputMediaFileName
-		}
-		return *s3ISResponse.Data.Result.ID, inputFullPath, nil
+		return *s3ISResponse.Data.Result.ID, inputMediaPath, nil
 	} else if httpPattern.MatchString(input) {
 		u, err := url.Parse(input)
 		if err != nil {
