@@ -57,9 +57,9 @@ func TestBitmovinFactory(t *testing.T) {
 	}
 }
 
-func TestCreatePreset(t *testing.T) {
+func TestCreateH264Preset(t *testing.T) {
 	testPresetName := "this_is_an_audio_config_uuid"
-	preset := getPreset()
+	preset := getH264Preset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -97,8 +97,48 @@ func TestCreatePreset(t *testing.T) {
 	}
 }
 
+func TestCreateVP8Preset(t *testing.T) {
+	testPresetName := "this_is_an_audio_config_uuid"
+	preset := getVP8Preset()
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/audio/vorbis":
+			resp := models.VorbisCodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VorbisCodecConfigurationData{
+					Result: models.VorbisCodecConfiguration{
+						ID: stringToPtr("this_is_an_audio_config_uuid"),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/vp8":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						ID: stringToPtr(testPresetName),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	presetName, err := prov.CreatePreset(preset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if presetName != testPresetName {
+		t.Error("expected ", testPresetName, "got ", presetName)
+	}
+}
+
 func TestCreatePresetFailsOnAPIError(t *testing.T) {
-	preset := getPreset()
+	preset := getH264Preset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -119,7 +159,7 @@ func TestCreatePresetFailsOnAPIError(t *testing.T) {
 }
 
 func TestCreatePresetFailsOnGenericError(t *testing.T) {
-	preset := getPreset()
+	preset := getH264Preset()
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/audio/aac":
@@ -136,7 +176,7 @@ func TestCreatePresetFailsOnGenericError(t *testing.T) {
 	}
 }
 
-func TestDeletePreset(t *testing.T) {
+func TestDeletePresetH264(t *testing.T) {
 	testPresetID := "i_want_to_delete_this"
 	audioPresetID := "embedded_audio_id"
 	customData := make(map[string]interface{})
@@ -175,11 +215,53 @@ func TestDeletePreset(t *testing.T) {
 	}
 }
 
+func TestDeletePresetVP8(t *testing.T) {
+	testPresetID := "i_want_to_delete_this"
+	audioPresetID := "embedded_audio_id"
+	customData := make(map[string]interface{})
+	customData["audio"] = audioPresetID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/video/vp8/" + testPresetID + "/customData":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/audio/vorbis/" + audioPresetID:
+			resp := models.VorbisCodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/" + testPresetID:
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - no API found with those values"))
+		case "/encoding/configurations/video/vp8/" + testPresetID:
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	err := prov.DeletePreset(testPresetID)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestDeletePresetFailsOnAPIError(t *testing.T) {
 	testPresetID := "i_want_to_delete_this"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
+		case "/encoding/configurations/video/h264/" + testPresetID:
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusError,
 			}
@@ -196,11 +278,13 @@ func TestDeletePresetFailsOnAPIError(t *testing.T) {
 	}
 }
 
-func TestDeletePresetFailsOnGenericError(t *testing.T) {
+func TestDeletePresetFailsOnGenericErrors(t *testing.T) {
 	testPresetID := "i_want_to_delete_this"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case "/encoding/configurations/video/h264/" + testPresetID + "/customData":
+		case "/encoding/configurations/video/h264/" + testPresetID:
+			fmt.Fprintln(w, "Not proper json")
+		case "/encoding/configurations/video/vp8/" + testPresetID:
 			fmt.Fprintln(w, "Not proper json")
 		default:
 			t.Fatal(errors.New("unexpected path hit"))
@@ -214,7 +298,7 @@ func TestDeletePresetFailsOnGenericError(t *testing.T) {
 	}
 }
 
-func TestGetPreset(t *testing.T) {
+func TestGetPresetH264(t *testing.T) {
 	testPresetID := "this_is_a_video_preset_id"
 	audioPresetID := "this_is_a_audio_preset_id"
 	customData := make(map[string]interface{})
@@ -251,9 +335,58 @@ func TestGetPreset(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	expected := bitmovinPreset{
+	expected := bitmovinH264Preset{
 		Video: models.H264CodecConfiguration{CustomData: customData},
 		Audio: models.AACCodecConfiguration{},
+	}
+	if !reflect.DeepEqual(i, expected) {
+		t.Errorf("GetPreset: want %#v. Got %#v", expected, i)
+	}
+}
+
+func TestGetPresetVP8(t *testing.T) {
+	testPresetID := "this_is_a_video_preset_id"
+	audioPresetID := "this_is_a_audio_preset_id"
+	customData := make(map[string]interface{})
+	customData["audio"] = audioPresetID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/configurations/video/h264/" + testPresetID:
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - no API found with those values"))
+		case "/encoding/configurations/video/vp8/" + testPresetID:
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/vp8/" + testPresetID + "/customData":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/audio/vorbis/" + audioPresetID:
+			resp := models.VorbisCodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		default:
+			t.Fatal(errors.New("unexpected path hit"))
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	i, err := prov.GetPreset(testPresetID)
+	if err != nil {
+		t.Fatal(err)
+	}
+	expected := bitmovinVP8Preset{
+		Video: models.VP8CodecConfiguration{CustomData: customData},
+		Audio: models.VorbisCodecConfiguration{},
 	}
 	if !reflect.DeepEqual(i, expected) {
 		t.Errorf("GetPreset: want %#v. Got %#v", expected, i)
@@ -284,11 +417,13 @@ func TestGetPresetFailsOnAPIError(t *testing.T) {
 	}
 }
 
-func TestGetPresetFailsOnGenericError(t *testing.T) {
+func TestGetPresetFailsOnGenericErrors(t *testing.T) {
 	testPresetID := "this_is_a_video_preset_id"
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/configurations/video/h264/" + testPresetID:
+			fmt.Fprintln(w, "Not proper json")
+		case "/encoding/configurations/video/vp8/" + testPresetID:
 			fmt.Fprintln(w, "Not proper json")
 		default:
 			t.Fatal(errors.New("unexpected path hit"))
@@ -371,6 +506,19 @@ func TestTranscodeWithS3Input(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/vp8/videoID4/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID4"
+			customData["container"] = "webm"
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -398,6 +546,14 @@ func TestTranscodeWithS3Input(t *testing.T) {
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID4":
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - no API found with those values"))
+		case "/encoding/configurations/video/vp8/videoID4":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/streams":
 			resp := models.StreamResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -421,6 +577,11 @@ func TestTranscodeWithS3Input(t *testing.T) {
 						ID: stringToPtr("this_is_a_ts_muxing_id"),
 					},
 				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
+			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls/" + manifestID + "/media":
@@ -524,6 +685,19 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/vp8/videoID4/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID4"
+			customData["container"] = "webm"
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -551,6 +725,14 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID4":
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - no API found with those values"))
+		case "/encoding/configurations/video/vp8/videoID4":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/streams":
 			resp := models.StreamResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -574,6 +756,11 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 						ID: stringToPtr("this_is_a_ts_muxing_id"),
 					},
 				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
+			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls/" + manifestID + "/media":
@@ -677,6 +864,19 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/vp8/videoID4/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID4"
+			customData["container"] = "webm"
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.VP8CodecConfigurationData{
+					Result: models.VP8CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -704,6 +904,14 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID4":
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("404 - no API found with those values"))
+		case "/encoding/configurations/video/vp8/videoID4":
+			resp := models.VP8CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/streams":
 			resp := models.StreamResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -727,6 +935,11 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 						ID: stringToPtr("this_is_a_ts_muxing_id"),
 					},
 				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
+			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls/" + manifestID + "/media":
@@ -1369,7 +1582,7 @@ func TestCapabilities(t *testing.T) {
 	var prov bitmovinProvider
 	expected := provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
-		OutputFormats: []string{"mp4", "hls"},
+		OutputFormats: []string{"mp4", "hls", "webm"},
 		Destinations:  []string{"s3"},
 	}
 	cap := prov.Capabilities()
@@ -1393,7 +1606,7 @@ func getBitmovinProvider(url string) bitmovinProvider {
 	}
 }
 
-func getPreset() db.Preset {
+func getH264Preset() db.Preset {
 	return db.Preset{
 		Audio: db.AudioPreset{
 			Bitrate: "128000",
@@ -1408,6 +1621,28 @@ func getPreset() db.Preset {
 			ProfileLevel: "3.1",
 			Bitrate:      "3500000",
 			Codec:        "h264",
+			GopMode:      "fixed",
+			GopSize:      "90",
+			Height:       "1080",
+		},
+	}
+}
+
+func getVP8Preset() db.Preset {
+	return db.Preset{
+		Audio: db.AudioPreset{
+			Bitrate: "128000",
+			Codec:   "vorbis",
+		},
+		Container:   "mp4",
+		Description: "my nice preset",
+		Name:        "mp4_1080p",
+		RateControl: "VBR",
+		Video: db.VideoPreset{
+			Profile:      "main",
+			ProfileLevel: "3.1",
+			Bitrate:      "3500000",
+			Codec:        "vp8",
 			GopMode:      "fixed",
 			GopSize:      "90",
 			Height:       "1080",
@@ -1437,6 +1672,13 @@ func getJob(sourceMedia string) *db.Job {
 				Name: "videoID3",
 			},
 			OutputOpts: db.OutputOptions{Extension: "m3u8"},
+		},
+		{
+			Name: "webm_480p",
+			ProviderMapping: map[string]string{
+				Name: "videoID4",
+			},
+			OutputOpts: db.OutputOptions{Extension: "webm"},
 		},
 	}
 	outputs := make([]db.TranscodeOutput, len(presets))

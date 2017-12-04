@@ -58,8 +58,8 @@
 [[projects]]
   name = "github.com/bitmovin/bitmovin-go"
   packages = ["bitmovin","bitmovintypes","models","services"]
-  revision = "ac1714314b80cea96b013a88262d8e3fe0a93237"
-  version = "v1.5.1"
+  revision = "a67f4d0c831ffcfb3364428cc22f48dd9fb02c41"
+  version = "v1.5.2"
 
 [[projects]]
   branch = "master"
@@ -363,6 +363,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "7a5fb01277fb3568f967cbacbfd1f1753a9541b0f68500ed5031df18dfc6568e"
+  inputs-digest = "b326fa8ce5427a62c93afaf0822f2e26c0f7db8c9a2e1eb0ba07107caca1c1bc"
   solver-name = "gps-cdcl"
   solver-version = 1
