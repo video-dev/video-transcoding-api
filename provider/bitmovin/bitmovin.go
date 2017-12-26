@@ -968,6 +968,7 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			ProviderName:  Name,
 			ProviderJobID: job.ProviderJobID,
 			Status:        provider.StatusStarted,
+			Progress:      *statusResp.Data.Result.Progress,
 		}, nil
 	}
 

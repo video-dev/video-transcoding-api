@@ -1282,11 +1282,13 @@ func TestJobStatusReturnsStartedIfEncodeIsRunning(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/encodings/" + testJobID + "/status":
+			progress := 33.
 			resp := models.StatusResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
-						Status: stringToPtr("RUNNING"),
+						Status:   stringToPtr("RUNNING"),
+						Progress: &progress,
 					},
 				},
 			}
@@ -1304,6 +1306,7 @@ func TestJobStatusReturnsStartedIfEncodeIsRunning(t *testing.T) {
 	expectedJobStatus := &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
+		Progress:      33.,
 		Status:        provider.StatusStarted,
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
