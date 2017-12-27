@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## 1.3.0
+* Add `SubSecondPrecision` option to handle Fluentd v0.14 (and v1) sub-second EventTime (default: false)
+* Add `WriteTimeout` option
+* Fix API of `Post` to accept `msgp.Marshaler` objects for better performance
+
 ## 1.2.1
 * Fix a bug not to reconnect to destination twice or more
 * Fix to connect on background goroutine in async mode

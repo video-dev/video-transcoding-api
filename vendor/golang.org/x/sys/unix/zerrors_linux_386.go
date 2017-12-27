@@ -623,6 +623,7 @@ const (
 	IN_OPEN                              = 0x20
 	IN_Q_OVERFLOW                        = 0x4000
 	IN_UNMOUNT                           = 0x2000
+	IOCTL_VM_SOCKETS_GET_LOCAL_CID       = 0x7b9
 	IPPROTO_AH                           = 0x33
 	IPPROTO_BEETPH                       = 0x5e
 	IPPROTO_COMP                         = 0x6c
@@ -1277,7 +1278,7 @@ const (
 	RLIMIT_RTTIME                        = 0xf
 	RLIMIT_SIGPENDING                    = 0xb
 	RLIMIT_STACK                         = 0x3
-	RLIM_INFINITY                        = -0x1
+	RLIM_INFINITY                        = 0xffffffffffffffff
 	RTAX_ADVMSS                          = 0x8
 	RTAX_CC_ALGO                         = 0x10
 	RTAX_CWND                            = 0x7

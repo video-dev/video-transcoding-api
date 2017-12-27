@@ -4,26 +4,24 @@ import (
 	"crypto"
 	"crypto/hmac"
 	"errors"
-
-	"github.com/knq/pemutil"
 )
 
-// hmacSigner provides a HMAC Signer.
-type hmacSigner struct {
+// HmacSigner provides a HMAC Signer.
+type HmacSigner struct {
 	alg  Algorithm
 	hash crypto.Hash
 	key  []byte
 }
 
 // NewHMACSigner creates a HMAC Signer for the specified Algorithm.
-func NewHMACSigner(alg Algorithm) func(pemutil.Store, crypto.Hash) (Signer, error) {
-	return func(store pemutil.Store, hash crypto.Hash) (Signer, error) {
+func NewHMACSigner(alg Algorithm) func(Store, crypto.Hash) (Signer, error) {
+	return func(store Store, hash crypto.Hash) (Signer, error) {
 		var ok bool
 		var keyRaw interface{}
 		var key []byte
 
 		// check private key
-		if keyRaw, ok = store[pemutil.PrivateKey]; !ok {
+		if keyRaw, ok = store.PrivateKey(); !ok {
 			return nil, errors.New("NewHMACSigner: private key must be provided")
 		}
 
@@ -32,7 +30,7 @@ func NewHMACSigner(alg Algorithm) func(pemutil.Store, crypto.Hash) (Signer, erro
 			return nil, errors.New("NewHMACSigner: private key must be type []byte")
 		}
 
-		return &hmacSigner{
+		return &HmacSigner{
 			alg:  alg,
 			hash: hash,
 			key:  key,
@@ -41,12 +39,12 @@ func NewHMACSigner(alg Algorithm) func(pemutil.Store, crypto.Hash) (Signer, erro
 }
 
 // SignBytes creates a signature for buf.
-func (hs *hmacSigner) SignBytes(buf []byte) ([]byte, error) {
+func (hs *HmacSigner) SignBytes(buf []byte) ([]byte, error) {
 	var err error
 
 	// check hs.key
 	if hs.key == nil {
-		return nil, errors.New("hmacSigner.SignBytes: key cannot be nil")
+		return nil, errors.New("HmacSigner.SignBytes: key cannot be nil")
 	}
 
 	// hash
@@ -61,7 +59,7 @@ func (hs *hmacSigner) SignBytes(buf []byte) ([]byte, error) {
 
 // Sign creates a signature for buf, returning it as a URL-safe base64 encoded
 // byte slice.
-func (hs *hmacSigner) Sign(buf []byte) ([]byte, error) {
+func (hs *HmacSigner) Sign(buf []byte) ([]byte, error) {
 	sig, err := hs.SignBytes(buf)
 	if err != nil {
 		return nil, err
@@ -75,12 +73,12 @@ func (hs *hmacSigner) Sign(buf []byte) ([]byte, error) {
 
 // VerifyBytes creates a signature for buf, comparing it against the raw sig.
 // If the sig is invalid, then ErrInvalidSignature is returned.
-func (hs *hmacSigner) VerifyBytes(buf, sig []byte) error {
+func (hs *HmacSigner) VerifyBytes(buf, sig []byte) error {
 	var err error
 
 	// check hs.key
 	if hs.key == nil {
-		return errors.New("hmacSigner.VerifyBytes: key cannot be nil")
+		return errors.New("HmacSigner.VerifyBytes: key cannot be nil")
 	}
 
 	// hash
@@ -101,7 +99,7 @@ func (hs *hmacSigner) VerifyBytes(buf, sig []byte) error {
 // Verify creates a signature for buf, comparing it against the URL-safe base64
 // encoded sig and returning the decoded signature. If the sig is invalid, then
 // ErrInvalidSignature will be returned.
-func (hs *hmacSigner) Verify(buf, sig []byte) ([]byte, error) {
+func (hs *HmacSigner) Verify(buf, sig []byte) ([]byte, error) {
 	var err error
 
 	// decode
@@ -120,12 +118,12 @@ func (hs *hmacSigner) Verify(buf, sig []byte) ([]byte, error) {
 }
 
 // Encode serializes the JSON marshalable obj data as a JWT.
-func (hs *hmacSigner) Encode(obj interface{}) ([]byte, error) {
+func (hs *HmacSigner) Encode(obj interface{}) ([]byte, error) {
 	return hs.alg.Encode(hs, obj)
 }
 
 // Decode decodes a serialized token, verifying the signature, storing the
 // decoded data from the token in obj.
-func (hs *hmacSigner) Decode(buf []byte, obj interface{}) error {
+func (hs *HmacSigner) Decode(buf []byte, obj interface{}) error {
 	return hs.alg.Decode(hs, buf, obj)
 }

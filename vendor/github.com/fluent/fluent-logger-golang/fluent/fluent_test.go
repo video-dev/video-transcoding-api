@@ -1,7 +1,6 @@
 package fluent
 
 import (
-	"bytes"
 	"encoding/json"
 	"io/ioutil"
 	"net"
@@ -17,9 +16,27 @@ const (
 	RECV_BUF_LEN = 1024
 )
 
-// Conn is io.WriteCloser
+// Conn is net.Conn with the parameters to be verified in the test
 type Conn struct {
-	bytes.Buffer
+	net.Conn
+	buf           []byte
+	writeDeadline time.Time
+}
+
+func (c *Conn) Read(b []byte) (int, error) {
+	copy(b, c.buf)
+	return len(c.buf), nil
+}
+
+func (c *Conn) Write(b []byte) (int, error) {
+	c.buf = make([]byte, len(b))
+	copy(c.buf, b)
+	return len(b), nil
+}
+
+func (c *Conn) SetWriteDeadline(t time.Time) error {
+	c.writeDeadline = t
+	return nil
 }
 
 func (c *Conn) Close() error {
@@ -66,6 +83,7 @@ func Test_New_itShouldUseDefaultConfigValuesIfNoOtherProvided(t *testing.T) {
 	assert.Equal(t, f.Config.FluentPort, defaultPort)
 	assert.Equal(t, f.Config.FluentHost, defaultHost)
 	assert.Equal(t, f.Config.Timeout, defaultTimeout)
+	assert.Equal(t, f.Config.WriteTimeout, defaultWriteTimeout)
 	assert.Equal(t, f.Config.BufferLimit, defaultBufferLimit)
 	assert.Equal(t, f.Config.FluentNetwork, defaultNetwork)
 	assert.Equal(t, f.Config.FluentSocketPath, defaultSocketPath)
@@ -124,8 +142,8 @@ func Test_New_itShouldUseConfigValuesFromMashalAsJSONArgument(t *testing.T) {
 func Test_send_WritePendingToConn(t *testing.T) {
 	f := &Fluent{Config: Config{}, reconnecting: false}
 
-	buf := &Conn{}
-	f.conn = buf
+	conn := &Conn{}
+	f.conn = conn
 
 	msg := "This is test writing."
 	bmsg := []byte(msg)
@@ -136,17 +154,18 @@ func Test_send_WritePendingToConn(t *testing.T) {
 		t.Error(err)
 	}
 
-	rcv := buf.String()
-	if rcv != msg {
-		t.Errorf("got %s, except %s", rcv, msg)
+	rcv := make([]byte, len(conn.buf))
+	_, err = conn.Read(rcv)
+	if string(rcv) != msg {
+		t.Errorf("got %s, except %s", string(rcv), msg)
 	}
 }
 
 func Test_MarshalAsMsgpack(t *testing.T) {
 	f := &Fluent{Config: Config{}, reconnecting: false}
 
-	buf := &Conn{}
-	f.conn = buf
+	conn := &Conn{}
+	f.conn = conn
 
 	tag := "tag"
 	var data = map[string]string{
@@ -168,11 +187,38 @@ func Test_MarshalAsMsgpack(t *testing.T) {
 	}
 }
 
+func Test_SubSecondPrecision(t *testing.T) {
+	// Setup the test subject
+	fluent := &Fluent{
+		Config: Config{
+			SubSecondPrecision: true,
+		},
+		reconnecting: false,
+	}
+	fluent.conn = &Conn{}
+
+	// Exercise the test subject
+	timestamp := time.Unix(1267867237, 256)
+	encodedData, err := fluent.EncodeData("tag", timestamp, map[string]string{
+		"foo": "bar",
+	})
+
+	// Assert no encoding errors and that the timestamp has been encoded into
+	// the message as expected.
+	if err != nil {
+		t.Error(err)
+	}
+
+	expected := "\x94\xA3tag\xC7\x08\x00K\x92\u001Ee\x00\x00\x01\x00\x81\xA3foo\xA3bar\xC0"
+	actual := string(encodedData)
+	assert.Equal(t, expected, actual)
+}
+
 func Test_MarshalAsJSON(t *testing.T) {
 	f := &Fluent{Config: Config{MarshalAsJSON: true}, reconnecting: false}
 
-	buf := &Conn{}
-	f.conn = buf
+	conn := &Conn{}
+	f.conn = conn
 
 	var data = map[string]string{
 		"foo":  "bar",
@@ -203,6 +249,7 @@ func TestJsonConfig(t *testing.T) {
 		FluentNetwork:    "tcp",
 		FluentSocketPath: "/var/tmp/fluent.sock",
 		Timeout:          3000,
+		WriteTimeout:     6000,
 		BufferLimit:      200,
 		RetryWait:        5,
 		MaxRetry:         3,
@@ -245,6 +292,92 @@ func TestAsyncConnect(t *testing.T) {
 		res.f.Close()
 	case <-time.After(time.Millisecond * 500):
 		t.Error("AsyncConnect must not block")
+	}
+}
+
+func Test_PostWithTimeNotTimeOut(t *testing.T) {
+	f, err := New(Config{
+		FluentPort:    6666,
+		AsyncConnect:  false,
+		MarshalAsJSON: true, // easy to check equality
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	var testData = []struct {
+		in  map[string]string
+		out string
+	}{
+		{
+			map[string]string{"foo": "bar"},
+			"[\"tag_name\",1482493046,{\"foo\":\"bar\"},null]",
+		},
+		{
+			map[string]string{"fuga": "bar", "hoge": "fuga"},
+			"[\"tag_name\",1482493046,{\"fuga\":\"bar\",\"hoge\":\"fuga\"},null]",
+		},
+	}
+	for _, tt := range testData {
+		conn := &Conn{}
+		f.conn = conn
+
+		err = f.PostWithTime("tag_name", time.Unix(1482493046, 0), tt.in)
+		if err != nil {
+			t.Errorf("in=%s, err=%s", tt.in, err)
+		}
+
+		rcv := make([]byte, len(conn.buf))
+		_, err = conn.Read(rcv)
+		if string(rcv) != tt.out {
+			t.Errorf("got %s, except %s", string(rcv), tt.out)
+		}
+
+		if !conn.writeDeadline.IsZero() {
+			t.Errorf("got %s, except 0", conn.writeDeadline)
+		}
+	}
+}
+
+func Test_PostMsgpMarshaler(t *testing.T) {
+	f, err := New(Config{
+		FluentPort:    6666,
+		AsyncConnect:  false,
+		MarshalAsJSON: true, // easy to check equality
+	})
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	var testData = []struct {
+		in  *TestMessage
+		out string
+	}{
+		{
+			&TestMessage{Foo: "bar"},
+			"[\"tag_name\",1482493046,{\"foo\":\"bar\"},null]",
+		},
+	}
+	for _, tt := range testData {
+		conn := &Conn{}
+		f.conn = conn
+
+		err = f.PostWithTime("tag_name", time.Unix(1482493046, 0), tt.in)
+		if err != nil {
+			t.Errorf("in=%s, err=%s", tt.in, err)
+		}
+
+		rcv := make([]byte, len(conn.buf))
+		_, err = conn.Read(rcv)
+		if string(rcv) != tt.out {
+			t.Errorf("got %s, except %s", string(rcv), tt.out)
+		}
+
+		if !conn.writeDeadline.IsZero() {
+			t.Errorf("got %s, except 0", conn.writeDeadline)
+		}
 	}
 }
 
@@ -367,6 +500,22 @@ func Benchmark_PostWithMapString(b *testing.B) {
 	data := map[string]string{
 		"foo": "bar",
 	}
+	for i := 0; i < b.N; i++ {
+		if err := f.Post("tag", data); err != nil {
+			panic(err)
+		}
+	}
+}
+
+func Benchmark_PostWithMsgpMarshaler(b *testing.B) {
+	b.StopTimer()
+	f, err := New(Config{})
+	if err != nil {
+		panic(err)
+	}
+
+	b.StartTimer()
+	data := &TestMessage{Foo: "bar"}
 	for i := 0; i < b.N; i++ {
 		if err := f.Post("tag", data); err != nil {
 			panic(err)

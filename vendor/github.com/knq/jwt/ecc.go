@@ -8,12 +8,10 @@ import (
 	"errors"
 	"fmt"
 	"math/big"
-
-	"github.com/knq/pemutil"
 )
 
-// eccSigner provides an Elliptic Curve Signer.
-type eccSigner struct {
+// EccSigner provides an Elliptic Curve Signer.
+type EccSigner struct {
 	alg   Algorithm
 	curve elliptic.Curve
 	hash  crypto.Hash
@@ -24,7 +22,7 @@ type eccSigner struct {
 }
 
 // NewEllipticSigner creates an Elliptic Curve Signer for the specified curve.
-func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(pemutil.Store, crypto.Hash) (Signer, error) {
+func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(Store, crypto.Hash) (Signer, error) {
 	curveBitSize := curve.Params().BitSize
 
 	// precompute curve key len
@@ -33,14 +31,14 @@ func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(pemutil.Store, 
 		keyLen++
 	}
 
-	return func(store pemutil.Store, hash crypto.Hash) (Signer, error) {
+	return func(store Store, hash crypto.Hash) (Signer, error) {
 		var ok bool
 		var privRaw, pubRaw interface{}
 		var priv *ecdsa.PrivateKey
 		var pub *ecdsa.PublicKey
 
 		// check private key
-		if privRaw, ok = store[pemutil.ECPrivateKey]; ok {
+		if privRaw, ok = store.PrivateKey(); ok {
 			if priv, ok = privRaw.(*ecdsa.PrivateKey); !ok {
 				return nil, errors.New("NewEllipticSigner: private key must be a *ecdsa.PrivateKey")
 			}
@@ -52,7 +50,7 @@ func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(pemutil.Store, 
 		}
 
 		// check public key
-		if pubRaw, ok = store[pemutil.PublicKey]; ok {
+		if pubRaw, ok = store.PublicKey(); ok {
 			if pub, ok = pubRaw.(*ecdsa.PublicKey); !ok {
 				return nil, errors.New("NewEllipticSigner: public key must be a *ecdsa.PublicKey")
 			}
@@ -63,7 +61,7 @@ func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(pemutil.Store, 
 			return nil, errors.New("NewEllipticSigner: either a private key or a public key must be provided")
 		}
 
-		return &eccSigner{
+		return &EccSigner{
 			alg:    alg,
 			curve:  curve,
 			hash:   hash,
@@ -74,9 +72,9 @@ func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(pemutil.Store, 
 	}
 }
 
-// mksig creates a byte slice of length 2*keyLen, copying the bytes from r and
+// Mksig creates a byte slice of length 2*keyLen, copying the bytes from r and
 // s into the slice, left padding r and s to keyLen.
-func (es *eccSigner) mksig(r, s *big.Int) ([]byte, error) {
+func (es *EccSigner) Mksig(r, s *big.Int) ([]byte, error) {
 	var n int
 
 	buf := make([]byte, 2*es.keyLen)
@@ -85,26 +83,26 @@ func (es *eccSigner) mksig(r, s *big.Int) ([]byte, error) {
 	rb := r.Bytes()
 	n = copy(buf[es.keyLen-len(rb):], rb)
 	if n != len(rb) {
-		return nil, fmt.Errorf("eccSigner.mksig: could not copy r into sig, copied: %d", n)
+		return nil, fmt.Errorf("EccSigner.Mksig: could not copy r into sig, copied: %d", n)
 	}
 
 	// copy s into buf
 	sb := s.Bytes()
 	n = copy(buf[es.keyLen+(es.keyLen-(len(sb))):], sb)
 	if n != len(sb) {
-		return nil, fmt.Errorf("eccSigner.mksig: could not copy s into sig, copied: %d", n)
+		return nil, fmt.Errorf("EccSigner.Mksig: could not copy s into sig, copied: %d", n)
 	}
 
 	return buf, nil
 }
 
 // SignBytes creates a signature for buf.
-func (es *eccSigner) SignBytes(buf []byte) ([]byte, error) {
+func (es *EccSigner) SignBytes(buf []byte) ([]byte, error) {
 	var err error
 
 	// check es.priv
 	if es.priv == nil {
-		return nil, errors.New("eccSigner.SignBytes: priv cannot be nil")
+		return nil, errors.New("EccSigner.SignBytes: priv cannot be nil")
 	}
 
 	// hash
@@ -121,12 +119,12 @@ func (es *eccSigner) SignBytes(buf []byte) ([]byte, error) {
 	}
 
 	// make sig
-	return es.mksig(r, s)
+	return es.Mksig(r, s)
 }
 
 // Sign creates a signature for buf, returning it as a URL-safe base64 encoded
 // byte slice.
-func (es *eccSigner) Sign(buf []byte) ([]byte, error) {
+func (es *EccSigner) Sign(buf []byte) ([]byte, error) {
 	sig, err := es.SignBytes(buf)
 	if err != nil {
 		return nil, err
@@ -140,12 +138,12 @@ func (es *eccSigner) Sign(buf []byte) ([]byte, error) {
 
 // VerifyBytes creates a signature for buf, comparing it against the raw sig.
 // If the sig is invalid, then ErrInvalidSignature is returned.
-func (es *eccSigner) VerifyBytes(buf, sig []byte) error {
+func (es *EccSigner) VerifyBytes(buf, sig []byte) error {
 	var err error
 
 	// check es.pub
 	if es.pub == nil {
-		return errors.New("eccSigner.VerifyBytes: pub cannot be nil")
+		return errors.New("EccSigner.VerifyBytes: pub cannot be nil")
 	}
 
 	// hash
@@ -174,7 +172,7 @@ func (es *eccSigner) VerifyBytes(buf, sig []byte) error {
 // Verify creates a signature for buf, comparing it against the URL-safe base64
 // encoded sig and returning the decoded signature. If the sig is invalid, then
 // ErrInvalidSignature will be returned.
-func (es *eccSigner) Verify(buf, sig []byte) ([]byte, error) {
+func (es *EccSigner) Verify(buf, sig []byte) ([]byte, error) {
 	var err error
 
 	// decode
@@ -193,12 +191,12 @@ func (es *eccSigner) Verify(buf, sig []byte) ([]byte, error) {
 }
 
 // Encode serializes the JSON marshalable obj data as a JWT.
-func (es *eccSigner) Encode(obj interface{}) ([]byte, error) {
+func (es *EccSigner) Encode(obj interface{}) ([]byte, error) {
 	return es.alg.Encode(es, obj)
 }
 
 // Decode decodes a serialized token, verifying the signature, storing the
 // decoded data from the token in obj.
-func (es *eccSigner) Decode(buf []byte, obj interface{}) error {
+func (es *EccSigner) Decode(buf []byte, obj interface{}) error {
 	return es.alg.Decode(es, buf, obj)
 }

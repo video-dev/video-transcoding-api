@@ -11,8 +11,7 @@ import (
 	"github.com/knq/pemutil"
 )
 
-func loadKey(a Algorithm) (pemutil.Store, error) {
-	var err error
+func loadKey(a Algorithm) (Store, error) {
 	var keyfile string
 
 	// determine key
@@ -27,8 +26,7 @@ func loadKey(a Algorithm) (pemutil.Store, error) {
 	}
 
 	// load key
-	s := pemutil.Store{}
-	err = s.LoadFile(keyfile)
+	s, err := pemutil.LoadFile(keyfile)
 	if err != nil {
 		return nil, err
 	}
@@ -115,8 +113,7 @@ func TestSignAndVerify(t *testing.T) {
 }
 
 func TestDecodeErrors(t *testing.T) {
-	keyset := pemutil.Store{}
-	err := keyset.LoadFile("testdata/rsa.pem")
+	keyset, err := pemutil.LoadFile("testdata/rsa.pem")
 	if err != nil {
 		t.Fatalf("could not load rsa key, got: %v", err)
 	}
@@ -286,8 +283,7 @@ func TestEncode(t *testing.T) {
 func TestEncodeDecodeCustom(t *testing.T) {
 	var err error
 
-	keyset := pemutil.Store{}
-	err = keyset.LoadFile("testdata/hmac.pem")
+	keyset, err := pemutil.LoadFile("testdata/hmac.pem")
 	if err != nil {
 		t.Fatal(err)
 	}

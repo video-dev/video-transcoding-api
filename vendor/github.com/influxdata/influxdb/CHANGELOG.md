@@ -1,4 +1,150 @@
-## v1.3.6 [unreleased]
+## v1.4.2 [2017-11-15]
+
+Refer to the 1.4.0 breaking changes section if `influxd` fails to start with an `incompatible tsi1 index MANIFEST` error.
+
+### Bugfixes
+
+- [#9117](https://github.com/influxdata/influxdb/pull/9117): Fix panic: runtime error: slice bounds out of range
+
+## v1.4.1 [2017-11-13]
+
+### Bugfixes
+
+- [#9105](https://github.com/influxdata/influxdb/pull/9105): Fix descending cursors and range queries via IFQL RPC API.
+
+## v1.4.0 [2017-11-13]
+
+### Breaking changes
+
+You can no longer specify a different `ORDER BY` clause in a subquery than the one in the top level query. This functionality never worked properly, but was not explicitly forbidden.
+
+As part of the ongoing development of the `tsi1` index, the implementation of a Bloom Filter, used
+to efficiently determine if series are not present in the index, was altered in [#8857](https://github.com/influxdata/influxdb/pull/8857).
+While this significantly increases the performance of the index and reduces its memory consumption,
+the existing `tsi1` indexes created while running previous versions of the database are not compatible with 1.4.0.
+
+Users with databases using the `tsi1` index must go through the following process to upgrade to 1.4.0:
+
+1. Stop `influxd`.
+2. Remove all `index` directories on databases using the `tsi1` index. With default configuration these can be found in
+   `/var/lib/influxdb/data/DB_NAME/RP_NAME/SHARD_ID/index` or `~/.influxdb/data/DB_NAME/RP_NAME/SHARD_ID/index`.
+   It's worth noting at this point how many different `shard_ids` you visit.
+3. Run the `influx_inspect inmem2tsi` tool using the shard's data and WAL directories for -datadir and -waldir, respectively.
+   Given the example in step (2) that would be
+   `influx_inspect inmem2tsi -datadir /var/lib/influxdb/data/DB_NAME/RP_NAME/SHARD_ID -waldir /path/to/influxdb/wal/DB_NAME/RP_NAME/SHARD_ID`.
+4. Repeat step (3) for each shard that needs to be converted.
+5. Start `influxd`.
+
+Users with existing `tsi1` shards, who attempt to start version 1.4.0 without following the above steps, will find the shards
+refuse to open, and will most likely see the following error message:
+
+`incompatible tsi1 index MANIFEST`
+
+### Configuration Changes
+
+#### `[collectd]` Section
+
+* `parse-multivalue-plugin` was added with a default of `split`.  When set to `split`, multivalue plugin data (e.g. df free:5000,used:1000) will be split into separate measurements (e.g., (df_free, value=5000) (df_used, value=1000)).  When set to `join`, multivalue plugin will be stored as a single multi-value measurement (e.g., (df, free=5000,used=1000)).
+
+### Features
+
+- [#8574](https://github.com/influxdata/influxdb/pull/8574): Add 'X-Influxdb-Build' to http response headers so users can identify if a response is from an OSS or Enterprise service.
+- [#8426](https://github.com/influxdata/influxdb/issues/8426): Add `parse-multivalue-plugin` to allow users to choose how multivalue plugins should be handled by the collectd service.
+- [#8548](https://github.com/influxdata/influxdb/issues/8548): Allow panic recovery to be disabled when investigating server issues.
+- [#8525](https://github.com/influxdata/influxdb/issues/8525): Support http pipelining for /query endpoint.
+- [#8652](https://github.com/influxdata/influxdb/pull/8652): Reduce allocations when reading data
+- [#8592](https://github.com/influxdata/influxdb/pull/8592): Mutex profiles are now available.
+- [#8669](https://github.com/influxdata/influxdb/pull/8669): TSI Index Migration Tool
+- [#7195](https://github.com/influxdata/influxdb/issues/7195): Support SHOW CARDINALITY queries.
+- [#8711](https://github.com/influxdata/influxdb/pull/8711): Batch up writes for monitor service
+- [#8572](https://github.com/influxdata/influxdb/pull/8572): All errors from queries or writes are available via X-InfluxDB-Error header, and 5xx error messages will be written to server logs.
+- [#8662](https://github.com/influxdata/influxdb/pull/8662): Improve test coverage across both indexes.
+- [#8611](https://github.com/influxdata/influxdb/issues/8611): Respect X-Request-Id/Request-Id headers.
+- [#8572](https://github.com/influxdata/influxdb/issues/8668): InfluxDB now uses MIT licensed version of BurntSushi/toml.
+- [#8752](https://github.com/influxdata/influxdb/pull/8752): Use system cursors for measurement, series, and tag key meta queries.
+- [#6563](https://github.com/influxdata/influxdb/issues/6563): Support Ctrl+C to cancel a running query in the Influx CLI. Thanks @emluque!
+- [#8776](https://github.com/influxdata/influxdb/pull/8776): Initial implementation of explain plan.
+- [#8791](https://github.com/influxdata/influxdb/pull/8791): Include the number of scanned cached values in the iterator cost.
+- [#8784](https://github.com/influxdata/influxdb/pull/8784): Add support for the Prometheus remote read and write APIs.
+- [#8851](https://github.com/influxdata/influxdb/pull/8851): Improve performance of `Include` and `Exclude` functions
+- [#8854](https://github.com/influxdata/influxdb/pull/8854): Report the task status for a query.
+- [#8853](https://github.com/influxdata/influxdb/pull/8853): Reduce allocations, improve `readEntries` performance by simplifying loop
+- [#8830](https://github.com/influxdata/influxdb/issues/8830): Separate importer log statements to stdout and stderr.
+- [#8857](https://github.com/influxdata/influxdb/pull/8857): Improve performance of Bloom Filter in TSI index.
+- [#8897](https://github.com/influxdata/influxdb/pull/8897): Add message pack format for query responses.
+- [#8886](https://github.com/influxdata/influxdb/pull/8886): Improved compaction scheduling
+- [#8690](https://github.com/influxdata/influxdb/issues/8690): Implicitly decide on a lower limit for fill queries when none is present.
+- [#8947](https://github.com/influxdata/influxdb/pull/8947): Add `EXPLAIN ANALYZE` command, which produces a detailed execution plan of a `SELECT` statement.
+- [#8963](https://github.com/influxdata/influxdb/pull/8963): Streaming inmem2tsi conversion.
+- [#8995](https://github.com/influxdata/influxdb/pull/8995): Sort & validate TSI key value insertion. 
+- [#8968](https://github.com/influxdata/influxdb/issues/8968): Make client errors more helpful on downstream errs. Thanks @darkliquid!
+- [#8984](https://github.com/influxdata/influxdb/pull/8984): EXACT and estimated CARDINALITY queries.
+- [#8893](https://github.com/influxdata/influxdb/pull/8893): Handle nil MeasurementIterator.
+- [#8986](https://github.com/influxdata/influxdb/issues/8986): Add long-line support to client importer. Thanks @lets00!
+- [#9021](https://github.com/influxdata/influxdb/pull/9021): Update to go 1.9.2
+- [#8891](https://github.com/influxdata/influxdb/pull/8891): Allow human-readable byte sizes in config
+- [#9073](https://github.com/influxdata/influxdb/pull/9073): Improve SHOW TAG KEYS performance.
+
+### Bugfixes
+
+- [#8480](https://github.com/influxdata/influxdb/pull/8480): Change the default stats interval to 1 second instead of 10 seconds.
+- [#8466](https://github.com/influxdata/influxdb/issues/8466): illumos build broken on syscall.Mmap
+- [#8124](https://github.com/influxdata/influxdb/issues/8124): Prevent privileges on non-existent databases from being set.
+- [#8461](https://github.com/influxdata/influxdb/issues/8461) influxd backup tool will now separate out its logging to stdout and stderr. Thanks @xginn8!
+- [#8558](https://github.com/influxdata/influxdb/issues/8558): Dropping measurement used several GB disk space
+- [#8569](https://github.com/influxdata/influxdb/issues/8569): Fix the cq start and end times to use unix timestamps.
+- [#8590](https://github.com/influxdata/influxdb/issues/8590): influx cli case sensitivity.
+- [#8601](https://github.com/influxdata/influxdb/pull/8601): Fixed time boundaries for continuous queries with time zones.
+- [#8097](https://github.com/influxdata/influxdb/pull/8097): Return query parsing errors in CSV formats.
+- [#8607](https://github.com/influxdata/influxdb/issues/8607): Fix time zone shifts when the shift happens on a time zone boundary.
+- [#8639](https://github.com/influxdata/influxdb/issues/8639): Parse time literals using the time zone in the select statement.
+- [#8694](https://github.com/influxdata/influxdb/issues/8694): Reduce CPU usage when checking series cardinality
+- [#8677](https://github.com/influxdata/influxdb/issues/8677): Fix backups when snapshot is empty.
+- [#8706](https://github.com/influxdata/influxdb/pull/8706): Cursor leak, resulting in an accumulation of `.tsm.tmp` files after compactions.
+- [#8712](https://github.com/influxdata/influxdb/pull/8712): Improve condition parsing.
+- [#8716](https://github.com/influxdata/influxdb/pull/8716): Ensure inputs are closed on error. Add runtime GC finalizer as additional guard to close iterators
+- [#8695](https://github.com/influxdata/influxdb/issues/8695): Fix merging bug on system iterators.
+- [#8699](https://github.com/influxdata/influxdb/issues/8699): Force subqueries to match the parent queries ordering.
+- [#8755](https://github.com/influxdata/influxdb/pull/8755): Fix race condition accessing `seriesByID` map.
+- [#8766](https://github.com/influxdata/influxdb/pull/8766): Fix deadlock when calling `SeriesIDsAllOrByExpr`
+- [#8638](https://github.com/influxdata/influxdb/issues/8638): Fix `influx_inspect export` so it skips missing files.
+- [#8770](https://github.com/influxdata/influxdb/pull/8770): Reduce how long it takes to walk the varrefs in an expression.
+- [#8787](https://github.com/influxdata/influxdb/issues/8787): panic: runtime error: invalid memory address or nil pointer dereference.
+- [#8697](https://github.com/influxdata/influxdb/issues/8697): Drop Series Cause Write Fail/Write Timeouts/High Memory Usage
+- [#8741](https://github.com/influxdata/influxdb/issues/8741): Fix increased memory usage in cache and wal readers
+- [#8749](https://github.com/influxdata/influxdb/issues/8749): An OSS read-only user should be able to list measurements on a database
+- [#8678](https://github.com/influxdata/influxdb/issues/8678): Ensure time and tag-based condition can be used with tsi1 index when deleting.
+- [#8848](https://github.com/influxdata/influxdb/issues/8848): Prevent deadlock when doing math on the result of a subquery.
+- [#8895](https://github.com/influxdata/influxdb/issues/8895): Fix a minor memory leak in batching points in tsdb.
+- [#8900](https://github.com/influxdata/influxdb/issues/8900): Don't assume `which` is present in package post-install script.
+- [#8908](https://github.com/influxdata/influxdb/issues/8908): Fix missing man pages in new packaging output
+- [#8909](https://github.com/influxdata/influxdb/issues/8909): Fix use of `INFLUXD_OPTS` in service file
+- [#8952](https://github.com/influxdata/influxdb/issues/8952): Fix WAL panic: runtime error: makeslice: cap out of range
+- [#8975](https://github.com/influxdata/influxdb/pull/8975): Copy returned bytes from TSI meta functions.
+- [#7797](https://github.com/influxdata/influxdb/issues/7706): Fix data deleted outside of time range
+- [#8822](https://github.com/influxdata/influxdb/issues/8822): Fix data dropped incorrectly during compaction
+- [#8780](https://github.com/influxdata/influxdb/issues/8780): Prevent deadlock during collectd, graphite, opentsdb, and udp shutdown.
+- [#8983](https://github.com/influxdata/influxdb/issues/8983): Remove the pidfile after the server has exited.
+- [#9005](https://github.com/influxdata/influxdb/pull/9005): Return `query.ErrQueryInterrupted` for successful read on `InterruptCh`.
+- [#8989](https://github.com/influxdata/influxdb/issues/8989): Fix race inside Measurement index.
+- [#8819](https://github.com/influxdata/influxdb/issues/8819): Ensure retention service always removes local shards.
+- [#8965](https://github.com/influxdata/influxdb/issues/8965): Handle utf16 files when reading the configuration file.
+- [#8538](https://github.com/influxdata/influxdb/pull/8538): Fix panic: runtime error: slice bounds out of range
+
+## v1.3.7 [2017-10-26]
+
+### Bugfixes
+
+- [#8900](https://github.com/influxdata/influxdb/issues/8900): Don't assume `which` is present in package post-install script.
+- [#8909](https://github.com/influxdata/influxdb/issues/8909): Fix use of `INFLUXD_OPTS` in service file
+- [#8908](https://github.com/influxdata/influxdb/issues/8908): Fix missing man pages in new packaging output
+- [#8951](https://github.com/influxdata/influxdb/issues/8951): Add RPM dependency on shadow-utils for `useradd`.
+- [#7797](https://github.com/influxdata/influxdb/issues/7706): Fix data deleted outside of time range
+- [#8822](https://github.com/influxdata/influxdb/issues/8822): Fix data dropped incorrectly during compaction
+- [#9006](https://github.com/influxdata/influxdb/pull/9006): Return `query.ErrQueryInterrupted` for a successful read on `InterruptCh`.
+- [#8978](https://github.com/influxdata/influxdb/pull/8978): Copy returned bytes from TSI meta functions.
+
+## v1.3.6 [2017-09-29]
 
 ### Bugfixes
 
@@ -59,6 +205,25 @@
 
 ## v1.3.0 [2017-06-21]
 
+### Release Notes
+
+#### Continuous Query Statistics
+
+When enabled, each time a continuous query is completed, a number of details regarding the execution are written to the `cq_query` measurement of the internal monitor database (`_internal` by default). The tags and fields of interest are
+
+| tag / field       | description                                        |
+|:----------------- |:-------------------------------------------------- |
+| `db`              | name of database                                   |
+| `cq`              | name of continuous query                           |
+| `durationNS`      | query execution time in nanoseconds                |
+| `startTime`       | lower bound of time range                          |
+| `endTime`         | upper bound of time range                          |
+| `pointsWrittenOK` | number of points written to the target measurement |
+
+
+* `startTime` and `endTime` are UNIX timestamps, in nanoseconds.
+* The number of points written is also included in CQ log messages.
+
 ### Removals
 
 The admin UI is removed and unusable in this release. The `[admin]` configuration section will be ignored.
@@ -68,8 +233,21 @@ The admin UI is removed and unusable in this release. The `[admin]` configuratio
 * The top-level config `bind-address` now defaults to `localhost:8088`.
   The previous default was just `:8088`, causing the backup and restore port to be bound on all available interfaces (i.e. including interfaces on the public internet).
 
+The following new configuration options are available.
+
+#### `[http]` Section
+
+* `max-body-size` was added with a default of 25,000,000, but can be disabled by setting it to 0.
+  Specifies the maximum size (in bytes) of a client request body. When a client sends data that exceeds
+  the configured maximum size, a `413 Request Entity Too Large` HTTP response is returned.
+
+#### `[continuous_queries]` Section
+
+* `query-stats-enabled` was added with a default of `false`. When set to `true`, continuous query execution statistics are written to the default monitor store.
+
 ### Features
 
+- [#8512](https://github.com/influxdata/influxdb/pull/8512): Switch to LogLog-Beta Cardinality estimation
 - [#8143](https://github.com/influxdata/influxdb/pull/8143): Add WAL sync delay
 - [#7977](https://github.com/influxdata/influxdb/issues/7977): Add chunked request processing back into the Go client v2
 - [#7974](https://github.com/influxdata/influxdb/pull/7974): Allow non-admin users to execute SHOW DATABASES.
@@ -94,6 +272,7 @@ The admin UI is removed and unusable in this release. The `[admin]` configuratio
 - [#8390](https://github.com/influxdata/influxdb/issues/8390): Add nanosecond duration literal support.
 - [#8394](https://github.com/influxdata/influxdb/pull/8394): Optimize top() and bottom() using an incremental aggregator.
 - [#7129](https://github.com/influxdata/influxdb/issues/7129): Maintain the tags of points selected by top() or bottom() when writing the results.
+- [#8188](https://github.com/influxdata/influxdb/issues/8188): Write CQ stats to _internal
 
 ### Bugfixes
 
@@ -137,8 +316,11 @@ The admin UI is removed and unusable in this release. The `[admin]` configuratio
 - [#8417](https://github.com/influxdata/influxdb/issues/8417): Fix large field keys preventing snapshot compactions
 - [#7957](https://github.com/influxdata/influxdb/issues/7957): URL query parameter credentials take priority over Authentication header.
 - [#8443](https://github.com/influxdata/influxdb/issues/8443): TSI branch has duplicate tag values.
+- [#8299](https://github.com/influxdata/influxdb/issues/8299): Out of memory when using HTTP API
+- [#8455](https://github.com/influxdata/influxdb/pull/8455): Check file count before attempting a TSI level compaction.
 - [#8470](https://github.com/influxdata/influxdb/issues/8470): index file fd leak in tsi branch
 - [#8468](https://github.com/influxdata/influxdb/pull/8468): Fix TSI non-contiguous compaction panic.
+- [#8500](https://github.com/influxdata/influxdb/issues/8500): InfluxDB goes unresponsive
 
 ## v1.2.4 [2017-05-08]
 

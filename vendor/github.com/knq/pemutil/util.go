@@ -29,9 +29,9 @@ const (
 	Certificate BlockType = "CERTIFICATE"
 )
 
-// parsePKCSPrivateKey attempts to decode a RSA private key first using PKCS1
+// ParsePKCSPrivateKey attempts to decode a RSA private key first using PKCS1
 // encoding, and then PKCS8 encoding.
-func parsePKCSPrivateKey(buf []byte) (interface{}, error) {
+func ParsePKCSPrivateKey(buf []byte) (interface{}, error) {
 	// attempt PKCS1 parsing
 	key, err := x509.ParsePKCS1PrivateKey(buf)
 	if err == nil {

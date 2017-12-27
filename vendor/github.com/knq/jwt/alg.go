@@ -9,8 +9,6 @@ import (
 	"crypto/rsa"
 	"errors"
 	"fmt"
-
-	"github.com/knq/pemutil"
 )
 
 // Algorithm is the type for signing algorithms implemented in this package.
@@ -116,11 +114,11 @@ const (
 
 // algSet is the set of Algorithm implementations.
 var algSet = []struct {
-	new  func(pemutil.Store, crypto.Hash) (Signer, error)
+	new  func(Store, crypto.Hash) (Signer, error)
 	hash crypto.Hash
 }{
 	// none
-	NONE: {func(pemutil.Store, crypto.Hash) (Signer, error) {
+	NONE: {func(Store, crypto.Hash) (Signer, error) {
 		return nil, errors.New("algorithm none is not implemented")
 	}, crypto.SHA256},
 
@@ -134,13 +132,13 @@ var algSet = []struct {
 	HS512: {NewHMACSigner(HS512), crypto.SHA512},
 
 	// RS256 is RSASSA-PKCS1-V1_5 + SHA-256
-	RS256: {NewRSASigner(RS256, rsaMethodPKCS1v15), crypto.SHA256},
+	RS256: {NewRSASigner(RS256, RSAMethodPKCS1v15), crypto.SHA256},
 
 	// RS384 is RSASSA-PKCS1-V1_5 + SHA-384
-	RS384: {NewRSASigner(RS384, rsaMethodPKCS1v15), crypto.SHA384},
+	RS384: {NewRSASigner(RS384, RSAMethodPKCS1v15), crypto.SHA384},
 
 	// RS512 is RSASSA-PKCS1-V1_5 + SHA-512
-	RS512: {NewRSASigner(RS512, rsaMethodPKCS1v15), crypto.SHA512},
+	RS512: {NewRSASigner(RS512, RSAMethodPKCS1v15), crypto.SHA512},
 
 	// ES256 is ECDSA P-256 + SHA-256
 	ES256: {NewEllipticSigner(ES256, elliptic.P256()), crypto.SHA256},
@@ -152,26 +150,24 @@ var algSet = []struct {
 	ES512: {NewEllipticSigner(ES512, elliptic.P521()), crypto.SHA512},
 
 	// PS256 is RSASSA-PSS + SHA-256
-	PS256: {NewRSASigner(PS256, rsaMethodPSS), crypto.SHA256},
+	PS256: {NewRSASigner(PS256, RSAMethodPSS), crypto.SHA256},
 
 	// PS384 is RSASSA-PSS + SHA-384
-	PS384: {NewRSASigner(PS384, rsaMethodPSS), crypto.SHA384},
+	PS384: {NewRSASigner(PS384, RSAMethodPSS), crypto.SHA384},
 
 	// PS512 is RSASSA-PSS + SHA-512
-	PS512: {NewRSASigner(PS512, rsaMethodPSS), crypto.SHA512},
+	PS512: {NewRSASigner(PS512, RSAMethodPSS), crypto.SHA512},
 }
 
 // New creates a Signer using the supplied keyset.
 //
 // The keyset can be of type []byte, *rsa.{PrivateKey,PublicKey},
-// *ecdsa.{PrivateKey,PublicKey}, or be pemutil.Store.
+// *ecdsa.{PrivateKey,PublicKey}, or compatible with the Store interface.
 //
 // If a private key is not provided, tokens cannot be Encode'd.  Public keys
 // will be automatically generated for RSA and ECC private keys if none were
 // provided in the keyset.
 func (alg Algorithm) New(keyset interface{}) (Signer, error) {
-	var err error
-
 	a := algSet[alg]
 
 	// check hash
@@ -179,38 +175,32 @@ func (alg Algorithm) New(keyset interface{}) (Signer, error) {
 		return nil, fmt.Errorf("%s.New: crypto hash unavailable", alg)
 	}
 
-	var s pemutil.Store
+	var s Store
 
 	// load the data
 	switch p := keyset.(type) {
 	// regular store
-	case pemutil.Store:
+	case Store:
 		s = p
 
 	// raw key
 	case []byte:
-		s = pemutil.Store{pemutil.PrivateKey: p}
+		s = &Keystore{Key: p}
 
 	// rsa keys
 	case *rsa.PrivateKey:
-		s = pemutil.Store{pemutil.RSAPrivateKey: p}
+		s = &Keystore{Key: p}
 	case *rsa.PublicKey:
-		s = pemutil.Store{pemutil.PublicKey: p}
+		s = &Keystore{PubKey: p}
 
 	// ecc keys
 	case *ecdsa.PrivateKey:
-		s = pemutil.Store{pemutil.ECPrivateKey: p}
+		s = &Keystore{Key: p}
 	case *ecdsa.PublicKey:
-		s = pemutil.Store{pemutil.PublicKey: p}
+		s = &Keystore{PubKey: p}
 
 	default:
-		return nil, fmt.Errorf("%s.New: unrecognized keyset type", alg)
-	}
-
-	// generate public keys
-	err = s.AddPublicKeys()
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("%s.New: unknown keyset type", alg)
 	}
 
 	return a.new(s, a.hash)

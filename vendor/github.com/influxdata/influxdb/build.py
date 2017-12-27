@@ -690,7 +690,7 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                                                             package_arch)
                         current_location = os.path.join(os.getcwd(), current_location)
                         if package_type == 'tar':
-                            tar_command = "cd {} && tar -cvzf {}.tar.gz ./*".format(package_build_root, name)
+                            tar_command = "cd {} && tar -cvzf {}.tar.gz --owner=root ./*".format(package_build_root, name)
                             run(tar_command, shell=True)
                             run("mv {}.tar.gz {}".format(os.path.join(package_build_root, name), current_location), shell=True)
                             outfile = os.path.join(current_location, name + ".tar.gz")
@@ -714,7 +714,7 @@ def package(build_output, pkg_name, version, nightly=False, iteration=1, static=
                             package_build_root,
                             current_location)
                         if package_type == "rpm":
-                            fpm_command += "--depends coreutils --rpm-posttrans {}".format(POSTINST_SCRIPT)
+                            fpm_command += "--depends coreutils --depends shadow-utils --rpm-posttrans {}".format(POSTINST_SCRIPT)
                         out = run(fpm_command, shell=True)
                         matches = re.search(':path=>"(.*)"', out)
                         outfile = None
