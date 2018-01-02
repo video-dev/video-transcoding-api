@@ -902,6 +902,11 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		}
 	}
 
+	err = p.addOutputStatusInfo(job, &jobStatus)
+	if err != nil {
+		return nil, err
+	}
+
 	return &jobStatus, nil
 }
 
@@ -946,6 +951,13 @@ func (p *bitmovinProvider) addManifestStatusInfo(status *provider.JobStatus) err
 		status.Status = provider.StatusStarted
 	}
 
+	return nil
+}
+
+func (p *bitmovinProvider) addOutputStatusInfo(job *db.Job, status *provider.JobStatus) error {
+	status.Output = provider.JobOutput{
+		Destination: strings.TrimRight(p.config.Destination, "/") + "/" + job.ID + "/",
+	}
 	return nil
 }
 

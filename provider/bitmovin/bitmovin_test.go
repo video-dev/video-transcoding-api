@@ -1077,6 +1077,9 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 			"originalStatus": "FINISHED",
 			"manifestStatus": "FINISHED",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1127,6 +1130,9 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 		ProviderStatus: map[string]interface{}{
 			"message":        "it's done!",
 			"originalStatus": "FINISHED",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1191,6 +1197,9 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsRunning(t *testin
 			"message":        "life's good",
 			"originalStatus": "FINISHED",
 			"manifestStatus": "RUNNING",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1261,6 +1270,9 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsCreatedAndStartRe
 			"originalStatus": "FINISHED",
 			"manifestStatus": "CREATED",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1302,6 +1314,9 @@ func TestJobStatusReturnsQueuedIfEncodeIsCreated(t *testing.T) {
 		ProviderStatus: map[string]interface{}{
 			"message":        "pending, pending",
 			"originalStatus": "CREATED",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1346,6 +1361,9 @@ func TestJobStatusReturnsStartedIfEncodeIsRunning(t *testing.T) {
 			"message":        "",
 			"originalStatus": "RUNNING",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1386,6 +1404,9 @@ func TestJobStatusReturnsFailedIfEncodeFailed(t *testing.T) {
 		ProviderStatus: map[string]interface{}{
 			"message":        "",
 			"originalStatus": "ERROR",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1450,6 +1471,9 @@ func TestJobStatusReturnsFailedIfEncodeIsFinishedAndManifestFailed(t *testing.T)
 			"originalStatus": "FINISHED",
 			"manifestStatus": "ERROR",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1485,6 +1509,9 @@ func TestJobStatusReturnsUnknownOnAPIError(t *testing.T) {
 		ProviderStatus: map[string]interface{}{
 			"message":        "",
 			"originalStatus": "",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
