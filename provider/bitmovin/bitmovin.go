@@ -876,106 +876,98 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	encodingS := services.NewEncodingService(p.client)
 	statusResp, err := encodingS.RetrieveStatus(job.ProviderJobID)
-
 	if err != nil {
 		return nil, err
 	}
-	if statusResp.Status == bitmovinAPIErrorMsg {
-		return &provider.JobStatus{
-			ProviderName:  Name,
-			ProviderJobID: job.ProviderJobID,
-			Status:        provider.StatusFailed,
-		}, nil
+	progress := 0.
+	if statusResp.Data.Result.Progress != nil {
+		progress = *statusResp.Data.Result.Progress
 	}
-	if *statusResp.Data.Result.Status == "FINISHED" {
-		// see if manifest generation needs to happen
-		cdResp, err := encodingS.RetrieveCustomData(job.ProviderJobID)
-		if err != nil {
-			return nil, err
-		}
-		if cdResp.Status == bitmovinAPIErrorMsg {
-			return nil, errors.New("No Custom Data on Encoding, there should at least be container information here")
-		}
-		cd := cdResp.Data.Result.CustomData
-		i, ok := cd["manifest"]
-		if !ok {
-			// No manifest generation needed, we are finished
-			return &provider.JobStatus{
-				ProviderName:  Name,
-				ProviderJobID: job.ProviderJobID,
-				Status:        provider.StatusFinished,
-			}, nil
-		}
-		manifestID, ok := i.(string)
-		if !ok {
-			return nil, errors.New("Audio Configuration somehow not a string")
-		}
-		manifestS := services.NewHLSManifestService(p.client)
-		manifestStatusResp, err := manifestS.RetrieveStatus(manifestID)
-		if err != nil {
-			return nil, err
-		}
-		if *manifestStatusResp.Data.Result.Status == bitmovinAPIErrorMsg {
-			return &provider.JobStatus{
-				ProviderName:  Name,
-				ProviderJobID: job.ProviderJobID,
-				Status:        provider.StatusFailed,
-			}, nil
-		}
-
-		if *manifestStatusResp.Data.Result.Status == "CREATED" {
-			// start the manifest generation
-			startResp, err := manifestS.Start(manifestID)
-			if err != nil {
-				return nil, err
-			} else if startResp.Status == bitmovinAPIErrorMsg {
-				return &provider.JobStatus{
-					ProviderName:  Name,
-					ProviderJobID: job.ProviderJobID,
-					Status:        provider.StatusFailed,
-				}, nil
-			}
-			return &provider.JobStatus{
-				ProviderName:  Name,
-				ProviderJobID: job.ProviderJobID,
-				Status:        provider.StatusStarted,
-			}, nil
-		}
-
-		if *manifestStatusResp.Data.Result.Status == "QUEUED" || *manifestStatusResp.Data.Result.Status == "RUNNING" {
-			return &provider.JobStatus{
-				ProviderName:  Name,
-				ProviderJobID: job.ProviderJobID,
-				Status:        provider.StatusStarted,
-			}, nil
-		}
-
-		if *manifestStatusResp.Data.Result.Status == "FINISHED" {
-			return &provider.JobStatus{
-				ProviderName:  Name,
-				ProviderJobID: job.ProviderJobID,
-				Status:        provider.StatusFinished,
-			}, nil
-		}
-	} else if *statusResp.Data.Result.Status == "CREATED" || *statusResp.Data.Result.Status == "QUEUED" {
-		return &provider.JobStatus{
-			ProviderName:  Name,
-			ProviderJobID: job.ProviderJobID,
-			Status:        provider.StatusQueued,
-		}, nil
-	} else if *statusResp.Data.Result.Status == "RUNNING" {
-		return &provider.JobStatus{
-			ProviderName:  Name,
-			ProviderJobID: job.ProviderJobID,
-			Status:        provider.StatusStarted,
-		}, nil
-	}
-
-	return &provider.JobStatus{
+	jobStatus := provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: job.ProviderJobID,
-		Status:        provider.StatusFailed,
-	}, nil
+		Status:        p.mapStatus(stringValue(statusResp.Data.Result.Status)),
+		Progress:      progress,
+		ProviderStatus: map[string]interface{}{
+			"message":        stringValue(statusResp.Data.Message),
+			"originalStatus": stringValue(statusResp.Data.Result.Status),
+		},
+	}
+
+	if jobStatus.Status == provider.StatusFinished {
+		err = p.addManifestStatusInfo(&jobStatus)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &jobStatus, nil
+}
+
+func (p *bitmovinProvider) addManifestStatusInfo(status *provider.JobStatus) error {
+	encodingS := services.NewEncodingService(p.client)
+	cdResp, err := encodingS.RetrieveCustomData(status.ProviderJobID)
+	if err != nil {
+		return err
+	}
+	if cdResp.Status == bitmovinAPIErrorMsg {
+		return errors.New("No Custom Data on Encoding, there should at least be container information here")
+	}
+	cd := cdResp.Data.Result.CustomData
+	i, ok := cd["manifest"]
+	if !ok {
+		// no manifest requested, no-op
+		return nil
+	}
+	manifestID, ok := i.(string)
+	if !ok {
+		return errors.New("driver error: manifest ID somehow not a string")
+	}
+	manifestS := services.NewHLSManifestService(p.client)
+	manifestStatusResp, err := manifestS.RetrieveStatus(manifestID)
+	if err != nil {
+		return err
+	}
+	status.Status = p.mapStatus(stringValue(manifestStatusResp.Data.Result.Status))
+	status.ProviderStatus["manifestStatus"] = stringValue(manifestStatusResp.Data.Result.Status)
+
+	switch stringValue(manifestStatusResp.Data.Result.Status) {
+	case "CREATED":
+		startResp, err := manifestS.Start(manifestID)
+		if err != nil {
+			return err
+		} else if startResp.Status == bitmovinAPIErrorMsg {
+			status.Status = provider.StatusFailed
+		} else {
+			status.Status = provider.StatusStarted
+		}
+	case "QUEUED", "RUNNING":
+		status.Status = provider.StatusStarted
+	}
+
+	return nil
+}
+
+func (p *bitmovinProvider) mapStatus(status string) provider.Status {
+	switch status {
+	case "CREATED", "QUEUED":
+		return provider.StatusQueued
+	case "RUNNING":
+		return provider.StatusStarted
+	case "FINISHED":
+		return provider.StatusFinished
+	case "ERROR":
+		return provider.StatusFailed
+	default:
+		return provider.StatusUnknown
+	}
+}
+
+func stringValue(str *string) string {
+	if str == nil {
+		return ""
+	}
+	return *str
 }
 
 func (p *bitmovinProvider) CancelJob(jobID string) error {

@@ -623,6 +623,7 @@ const (
 	IN_OPEN                              = 0x20
 	IN_Q_OVERFLOW                        = 0x4000
 	IN_UNMOUNT                           = 0x2000
+	IOCTL_VM_SOCKETS_GET_LOCAL_CID       = 0x7b9
 	IPPROTO_AH                           = 0x33
 	IPPROTO_BEETPH                       = 0x5e
 	IPPROTO_COMP                         = 0x6c
@@ -1187,7 +1188,7 @@ const (
 	PR_SET_NO_NEW_PRIVS                  = 0x26
 	PR_SET_PDEATHSIG                     = 0x1
 	PR_SET_PTRACER                       = 0x59616d61
-	PR_SET_PTRACER_ANY                   = -0x1
+	PR_SET_PTRACER_ANY                   = 0xffffffffffffffff
 	PR_SET_SECCOMP                       = 0x16
 	PR_SET_SECUREBITS                    = 0x1c
 	PR_SET_THP_DISABLE                   = 0x29
@@ -1278,7 +1279,7 @@ const (
 	RLIMIT_RTTIME                        = 0xf
 	RLIMIT_SIGPENDING                    = 0xb
 	RLIMIT_STACK                         = 0x3
-	RLIM_INFINITY                        = -0x1
+	RLIM_INFINITY                        = 0xffffffffffffffff
 	RTAX_ADVMSS                          = 0x8
 	RTAX_CC_ALGO                         = 0x10
 	RTAX_CWND                            = 0x7

@@ -1,9 +1,7 @@
 language: go
-notifications:
-  slack:
-    secure: wFLuLRLv6F7e2SCkQquwjoKZER30yeMQLKRhyt1kbxqlU4w9FkAnynWPbIKDCg45MAJSBrjas0nyKP8pI4qX1m2NrE0g7dE6gGD9+FlAqWHVLnT3DA2aKi0kvqNWU9Okby2ENOMgb5R7kUY0XBkk3L05pe4cVkn/0xhAGlUAlRzTJkSaRoxcQMrADpOdgHiZwtZ66WuldqTJk7oFLhuhpUQwagFtTl0hgyQ7/PeIXaYpGovpW/P/5q4xctkQX+8zAJg81P3geTvwaaqPY3qWHTkff872HSPCV5igxobUbGTVF91clyG2RlldlUg6Bj0/BNCRbxzXUo6JPg0IErlaZYVgez53jJqwn4yErMO1zLyGYHOHNJVJkZxso0a8YnWueoW0gKdUmy4GmaWoJYtCo8kKRI+HJ1ZjW/CJICyLlMz84M5MILGy7URJAhF2bp1EUddZnf0A/1vF4M3ZvrCED/U7gfiYfU2ZJuxWP10nx9by6TVcge1a/TTnvydCtVxdYyxpZCD0C4Ig6uKm+ZHKaxFlb4EaXqqzkNGBtmRxw21BEXu2oseXP52ookBVtirOuQGPtb4EBXeIzpoWfO3prt2WH8kHMLaydmLIc0ctQHY+bAaZk2ITctl45aI0X7NsgpwCGYHYC3lVZXmjocuCYHiPgzDAy05qNqXEEn/1DtQ=
 go:
-  - 1.5
+  - 1.8
+  - 1.9
   - tip
 before_install:
   - go get github.com/mattn/goveralls

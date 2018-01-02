@@ -6,8 +6,8 @@
 // The API is designed to be instantly familiar to users of the standard crypto
 // and json packages:
 //
-//		// create jwt.Signer from the RSA key on disk
-//		rs384 := jwt.RS384.New(jwt.PEM{"myrsakey.pem"})
+//		// create jwt.Signer from a key store
+//		rs384 := jwt.RS384.New(myKeyStore())
 //
 //		// create claims
 //		claims := jwt.Claims{

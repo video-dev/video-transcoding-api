@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-
-	"github.com/knq/pemutil"
 )
 
 const (
@@ -30,39 +28,39 @@ type RSASignerVerifier interface {
 	Verify(pub *rsa.PublicKey, hash crypto.Hash, hashed []byte, sig []byte) error
 }
 
-// rsaMethod provides a wrapper for rsa signing methods.
-type rsaMethod struct {
-	signFunc   func(io.Reader, *rsa.PrivateKey, crypto.Hash, []byte) ([]byte, error)
-	verifyFunc func(*rsa.PublicKey, crypto.Hash, []byte, []byte) error
+// RSAMethod provides a wrapper for rsa signing methods.
+type RSAMethod struct {
+	SignFunc   func(io.Reader, *rsa.PrivateKey, crypto.Hash, []byte) ([]byte, error)
+	VerifyFunc func(*rsa.PublicKey, crypto.Hash, []byte, []byte) error
 }
 
 // Sign signs the data in buf using rand, priv and hash.
-func (r rsaMethod) Sign(rand io.Reader, priv *rsa.PrivateKey, hash crypto.Hash, buf []byte) ([]byte, error) {
-	return r.signFunc(rand, priv, hash, buf)
+func (r RSAMethod) Sign(rand io.Reader, priv *rsa.PrivateKey, hash crypto.Hash, buf []byte) ([]byte, error) {
+	return r.SignFunc(rand, priv, hash, buf)
 }
 
 // Verify verifies the signature sig against using pub, hash, and the hashed
 // data.
-func (r rsaMethod) Verify(pub *rsa.PublicKey, hash crypto.Hash, hashed []byte, sig []byte) error {
-	return r.verifyFunc(pub, hash, hashed, sig)
+func (r RSAMethod) Verify(pub *rsa.PublicKey, hash crypto.Hash, hashed []byte, sig []byte) error {
+	return r.VerifyFunc(pub, hash, hashed, sig)
 }
 
-// rsaMethodPKCS1v15 provides a RSA method that signs and verifies with
+// RSAMethodPKCS1v15 provides a RSA method that signs and verifies with
 // PKCS1v15.
-var rsaMethodPKCS1v15 = rsaMethod{
-	signFunc:   rsa.SignPKCS1v15,
-	verifyFunc: rsa.VerifyPKCS1v15,
+var RSAMethodPKCS1v15 = RSAMethod{
+	SignFunc:   rsa.SignPKCS1v15,
+	VerifyFunc: rsa.VerifyPKCS1v15,
 }
 
-// rsaMethodPSS provides a RSA method that signs and verifies with PSS.
-var rsaMethodPSS = rsaMethod{
-	signFunc: func(rand io.Reader, priv *rsa.PrivateKey, hash crypto.Hash, hashed []byte) ([]byte, error) {
+// RSAMethodPSS provides a RSA method that signs and verifies with PSS.
+var RSAMethodPSS = RSAMethod{
+	SignFunc: func(rand io.Reader, priv *rsa.PrivateKey, hash crypto.Hash, hashed []byte) ([]byte, error) {
 		return rsa.SignPSS(rand, priv, hash, hashed, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 			Hash:       hash,
 		})
 	},
-	verifyFunc: func(pub *rsa.PublicKey, hash crypto.Hash, hashed []byte, sig []byte) error {
+	VerifyFunc: func(pub *rsa.PublicKey, hash crypto.Hash, hashed []byte, sig []byte) error {
 		return rsa.VerifyPSS(pub, hash, hashed, sig, &rsa.PSSOptions{
 			SaltLength: rsa.PSSSaltLengthAuto,
 			Hash:       hash,
@@ -70,8 +68,8 @@ var rsaMethodPSS = rsaMethod{
 	},
 }
 
-// rsaSigner provides a RSA Signer.
-type rsaSigner struct {
+// RSASigner provides a RSA Signer.
+type RSASigner struct {
 	alg    Algorithm
 	method RSASignerVerifier
 	hash   crypto.Hash
@@ -81,15 +79,15 @@ type rsaSigner struct {
 
 // NewRSASigner creates an RSA Signer for the specified Algorithm and provided
 // low level RSA implementation.
-func NewRSASigner(alg Algorithm, method RSASignerVerifier) func(pemutil.Store, crypto.Hash) (Signer, error) {
-	return func(store pemutil.Store, hash crypto.Hash) (Signer, error) {
+func NewRSASigner(alg Algorithm, method RSASignerVerifier) func(Store, crypto.Hash) (Signer, error) {
+	return func(store Store, hash crypto.Hash) (Signer, error) {
 		var ok bool
 		var privRaw, pubRaw interface{}
 		var priv *rsa.PrivateKey
 		var pub *rsa.PublicKey
 
 		// check private key
-		if privRaw, ok = store[pemutil.RSAPrivateKey]; ok {
+		if privRaw, ok = store.PrivateKey(); ok {
 			if priv, ok = privRaw.(*rsa.PrivateKey); !ok {
 				return nil, errors.New("NewRSASigner: private key must be a *rsa.PrivateKey")
 			}
@@ -101,7 +99,7 @@ func NewRSASigner(alg Algorithm, method RSASignerVerifier) func(pemutil.Store, c
 		}
 
 		// check public key
-		if pubRaw, ok = store[pemutil.PublicKey]; ok {
+		if pubRaw, ok = store.PublicKey(); ok {
 			if pub, ok = pubRaw.(*rsa.PublicKey); !ok {
 				return nil, errors.New("NewRSASigner: public key must be a *rsa.PublicKey")
 			}
@@ -117,7 +115,7 @@ func NewRSASigner(alg Algorithm, method RSASignerVerifier) func(pemutil.Store, c
 			return nil, errors.New("NewRSASigner: either a private key or a public key must be provided")
 		}
 
-		return &rsaSigner{
+		return &RSASigner{
 			alg:    alg,
 			method: method,
 			hash:   hash,
@@ -128,12 +126,12 @@ func NewRSASigner(alg Algorithm, method RSASignerVerifier) func(pemutil.Store, c
 }
 
 // SignBytes creates a signature for buf.
-func (rs *rsaSigner) SignBytes(buf []byte) ([]byte, error) {
+func (rs *RSASigner) SignBytes(buf []byte) ([]byte, error) {
 	var err error
 
 	// check rs.priv
 	if rs.priv == nil {
-		return nil, errors.New("rsaSigner.Sign: priv cannot be nil")
+		return nil, errors.New("RSASigner.Sign: priv cannot be nil")
 	}
 
 	// hash
@@ -149,7 +147,7 @@ func (rs *rsaSigner) SignBytes(buf []byte) ([]byte, error) {
 
 // Sign creates a signature for buf, returning it as a URL-safe base64 encoded
 // byte slice.
-func (rs *rsaSigner) Sign(buf []byte) ([]byte, error) {
+func (rs *RSASigner) Sign(buf []byte) ([]byte, error) {
 	sig, err := rs.SignBytes(buf)
 	if err != nil {
 		return nil, err
@@ -164,12 +162,12 @@ func (rs *rsaSigner) Sign(buf []byte) ([]byte, error) {
 
 // VerifyBytes creates a signature for buf, comparing it against the raw sig.
 // If the sig is invalid, then ErrInvalidSignature is returned.
-func (rs *rsaSigner) VerifyBytes(buf, sig []byte) error {
+func (rs *RSASigner) VerifyBytes(buf, sig []byte) error {
 	var err error
 
 	// check rs.pub
 	if rs.pub == nil {
-		return errors.New("rsaSigner.VerifyBytes: pub cannot be nil")
+		return errors.New("RSASigner.VerifyBytes: pub cannot be nil")
 	}
 
 	// hash
@@ -191,7 +189,7 @@ func (rs *rsaSigner) VerifyBytes(buf, sig []byte) error {
 // Verify creates a signature for buf, comparing it against the URL-safe base64
 // encoded sig and returning the decoded signature. If the sig is invalid, then
 // ErrInvalidSignature will be returned.
-func (rs *rsaSigner) Verify(buf, sig []byte) ([]byte, error) {
+func (rs *RSASigner) Verify(buf, sig []byte) ([]byte, error) {
 	var err error
 
 	// decode
@@ -210,12 +208,12 @@ func (rs *rsaSigner) Verify(buf, sig []byte) ([]byte, error) {
 }
 
 // Encode serializes the JSON marshalable obj data as a JWT.
-func (rs *rsaSigner) Encode(obj interface{}) ([]byte, error) {
+func (rs *RSASigner) Encode(obj interface{}) ([]byte, error) {
 	return rs.alg.Encode(rs, obj)
 }
 
 // Decode decodes a serialized token, verifying the signature, storing the
 // decoded data from the token in obj.
-func (rs *rsaSigner) Decode(buf []byte, obj interface{}) error {
+func (rs *RSASigner) Decode(buf []byte, obj interface{}) error {
 	return rs.alg.Decode(rs, buf, obj)
 }

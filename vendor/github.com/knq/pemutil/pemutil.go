@@ -4,11 +4,11 @@
 //
 // The pemutil package commonly used similar to the following:
 //
-//		store := pemutil.Store{}
-//		pemutil.PEM{"myrsakey.pem"}.Load(store)
+//		store, err := pemutil.LoadFile("/path/to/file")
+// 		if err != nil { /* ... */ }
 //
-//		if rsaPrivKey, ok := store[pemutil.RSAPrivateKey].(*rsa.PrivateKey); !ok {
-//			// do some kind of error
+//		if rsaPrivKey, ok := store.RSAPrivateKey(); !ok {
+//			// PEM does not contain an RSA private key
 //		}
 //
 package pemutil
@@ -23,6 +23,44 @@ import (
 	"errors"
 	"fmt"
 )
+
+// Decode parses and decodes PEM-encoded data from buf, storing any resulting
+// crypto primitives encountered into the Store. The decoded PEM BlockType will
+// be used as the map key for each primitive.
+func Decode(s Store, buf []byte) error {
+	var err error
+	var block *pem.Block
+
+	// loop over pem encoded data
+	for len(buf) > 0 {
+		block, buf = pem.Decode(buf)
+		if block == nil {
+			return errors.New("invalid PEM data")
+		}
+
+		err = s.DecodeBlock(block)
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(s) == 0 {
+		return errors.New("could not decode any PEM blocks")
+	}
+
+	return nil
+}
+
+// DecodeBytes decodes the supplied buf into a store.
+func DecodeBytes(buf []byte) (Store, error) {
+	s := Store{}
+	err := Decode(s, buf)
+	if err != nil {
+		return nil, err
+	}
+
+	return s, nil
+}
 
 // EncodePrimitive encodes the crypto primitive p into PEM-encoded data.
 func EncodePrimitive(p interface{}) ([]byte, error) {

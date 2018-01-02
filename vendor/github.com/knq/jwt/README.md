@@ -22,7 +22,7 @@ full API listing.
 The jwt package can be used similarly to the following:
 
 ```go
-// example/example.go
+// example/main.go
 package main
 
 //go:generate openssl genrsa -out rsa-private.pem 2048
@@ -44,12 +44,7 @@ func main() {
 	var err error
 
 	// load key
-	keyset := pemutil.Store{}
-	err = keyset.LoadFile("rsa-private.pem")
-	if err != nil {
-		log.Fatal(err)
-	}
-	err = keyset.AddPublicKeys()
+	keyset, err := pemutil.LoadFile("rsa-private.pem")
 	if err != nil {
 		log.Fatal(err)
 	}

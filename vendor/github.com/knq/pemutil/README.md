@@ -18,7 +18,7 @@ full API listing.
 The pemutil package can be used similarly to the following:
 
 ```go
-// example/example.go
+// example/main.go
 package main
 
 //go:generate openssl genrsa -out rsa-private.pem 2048
@@ -35,22 +35,15 @@ func main() {
 	var err error
 
 	// create store and load our private key
-	s := pemutil.Store{}
-	err = s.LoadFile("rsa-private.pem")
+	keyset, err := pemutil.LoadFile("rsa-private.pem")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	// ensure that the corresponding public key exists
-	err = s.AddPublicKeys()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// do something with keyset.RSAPrivateKey()
 
-	// do something with s[pemutil.RSAPrivateKey]
-
-	// get pem data
-	buf, err := s.Bytes()
+	// get pem data and write to disk
+	buf, err := keyset.Bytes()
 	if err != nil {
 		log.Fatal(err)
 	}

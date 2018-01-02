@@ -3,6 +3,7 @@
 package gserviceaccount
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -10,8 +11,6 @@ import (
 	"io/ioutil"
 	"sync"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/knq/jwt"
 	"github.com/knq/jwt/bearer"
@@ -85,11 +84,11 @@ func (gsa *GServiceAccount) Signer() (jwt.Signer, error) {
 	defer gsa.mu.Unlock()
 
 	if gsa.signer == nil {
-		keyset := pemutil.Store{}
-		err := keyset.Decode([]byte(gsa.PrivateKey))
+		keyset, err := pemutil.DecodeBytes([]byte(gsa.PrivateKey))
 		if err != nil {
 			return nil, fmt.Errorf("jwt/gserviceaccount: could not decode private key: %v", err)
 		}
+		keyset.AddPublicKeys()
 
 		s, err := DefaultAlgorithm.New(keyset)
 		if err != nil {

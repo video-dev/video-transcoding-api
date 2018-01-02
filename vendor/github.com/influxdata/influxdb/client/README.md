@@ -164,6 +164,14 @@ func writePoints(clnt client.Client) {
 }
 ```
 
+#### Uint64 Support
+
+The `uint64` data type is supported if your server is version `1.4.0` or
+greater. To write a data point as an unsigned integer, you must insert
+the point as `uint64`. You cannot use `uint` or any of the other
+derivatives because previous versions of the client have supported
+writing those types as an integer.
+
 ### Querying Data
 
 One nice advantage of using **InfluxDB** the ability to query your data using familiar
@@ -213,7 +221,7 @@ log.Printf("Found a total of %v records\n", count)
 #### Find the last 10 _shapes_ records
 
 ```go
-q := fmt.Sprintf("SELECT * FROM %s LIMIT %d", MyMeasurement, 20)
+q := fmt.Sprintf("SELECT * FROM %s LIMIT %d", MyMeasurement, 10)
 res, err = queryDB(clnt, q)
 if err != nil {
 	log.Fatal(err)

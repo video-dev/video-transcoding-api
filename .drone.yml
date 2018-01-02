@@ -40,7 +40,7 @@ build:
       - np deploy transcoding-api:dev#$${COMMIT:0:7}
       - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-dev-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
       - np deploy transcoding-api:stg#$${COMMIT:0:7}
-      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-stg-$${COMMIT}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-stg-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
     when:
       branch: master
       event: push
@@ -67,7 +67,7 @@ build:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - go get github.com/${NP_REPO}
       - np deploy transcoding-api:prd#$${COMMIT}
-      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-prd-$${COMMIT}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
+      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-prd-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
     when:
       event: tag
 notify:

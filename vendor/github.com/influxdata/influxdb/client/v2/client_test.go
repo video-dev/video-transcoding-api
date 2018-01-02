@@ -3,6 +3,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"reflect"
@@ -138,6 +139,7 @@ func (w *writeLogger) Close() error { return nil }
 func TestClient_Query(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data Response
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(data)
 	}))
@@ -154,9 +156,126 @@ func TestClient_Query(t *testing.T) {
 	}
 }
 
+func TestClientDownstream500WithBody_Query(t *testing.T) {
+	const err500page = `<html>
+	<head>
+		<title>500 Internal Server Error</title>
+	</head>
+	<body>Internal Server Error</body>
+</html>`
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err500page))
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{}
+	_, err := c.Query(query)
+
+	expected := fmt.Sprintf("received status code 500 from downstream server, with response body: %q", err500page)
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClientDownstream500_Query(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{}
+	_, err := c.Query(query)
+
+	expected := "received status code 500 from downstream server"
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClientDownstream400WithBody_Query(t *testing.T) {
+	const err403page = `<html>
+	<head>
+		<title>403 Forbidden</title>
+	</head>
+	<body>Forbidden</body>
+</html>`
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(err403page))
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{}
+	_, err := c.Query(query)
+
+	expected := fmt.Sprintf(`expected json response, got "text/html", with status: %v and response body: %q`, http.StatusForbidden, err403page)
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClientDownstream400_Query(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{}
+	_, err := c.Query(query)
+
+	expected := fmt.Sprintf(`expected json response, got "text/plain", with status: %v`, http.StatusForbidden)
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClient500_Query(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Influxdb-Version", "1.3.1")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"test"}`))
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{}
+	resp, err := c.Query(query)
+
+	if err != nil {
+		t.Errorf("unexpected error.  expected nothing, actual %v", err)
+	}
+
+	if resp.Err != "test" {
+		t.Errorf(`unexpected response error.  expected "test", actual %v`, resp.Err)
+	}
+}
+
 func TestClient_ChunkedQuery(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data Response
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Influxdb-Version", "1.3.1")
 		w.WriteHeader(http.StatusOK)
 		enc := json.NewEncoder(w)
 		_ = enc.Encode(data)
@@ -177,12 +296,130 @@ func TestClient_ChunkedQuery(t *testing.T) {
 	}
 }
 
+func TestClientDownstream500WithBody_ChunkedQuery(t *testing.T) {
+	const err500page = `<html>
+	<head>
+		<title>500 Internal Server Error</title>
+	</head>
+	<body>Internal Server Error</body>
+</html>`
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err500page))
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, err := NewHTTPClient(config)
+	if err != nil {
+		t.Fatalf("unexpected error.  expected %v, actual %v", nil, err)
+	}
+
+	query := Query{Chunked: true}
+	_, err = c.Query(query)
+
+	expected := fmt.Sprintf("received status code 500 from downstream server, with response body: %q", err500page)
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClientDownstream500_ChunkedQuery(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusInternalServerError)
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{Chunked: true}
+	_, err := c.Query(query)
+
+	expected := "received status code 500 from downstream server"
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClient500_ChunkedQuery(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("X-Influxdb-Version", "1.3.1")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(`{"error":"test"}`))
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{Chunked: true}
+	resp, err := c.Query(query)
+
+	if err != nil {
+		t.Errorf("unexpected error.  expected nothing, actual %v", err)
+	}
+
+	if resp.Err != "test" {
+		t.Errorf(`unexpected response error.  expected "test", actual %v`, resp.Err)
+	}
+}
+
+func TestClientDownstream400WithBody_ChunkedQuery(t *testing.T) {
+	const err403page = `<html>
+	<head>
+		<title>403 Forbidden</title>
+	</head>
+	<body>Forbidden</body>
+</html>`
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+		w.Write([]byte(err403page))
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{Chunked: true}
+	_, err := c.Query(query)
+
+	expected := fmt.Sprintf(`expected json response, got "text/html", with status: %v and response body: %q`, http.StatusForbidden, err403page)
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
+func TestClientDownstream400_ChunkedQuery(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusForbidden)
+	}))
+	defer ts.Close()
+
+	config := HTTPConfig{Addr: ts.URL}
+	c, _ := NewHTTPClient(config)
+	defer c.Close()
+
+	query := Query{Chunked: true}
+	_, err := c.Query(query)
+
+	expected := fmt.Sprintf(`expected json response, got "text/plain", with status: %v`, http.StatusForbidden)
+	if err.Error() != expected {
+		t.Errorf("unexpected error.  expected %v, actual %v", expected, err)
+	}
+}
+
 func TestClient_BoundParameters(t *testing.T) {
 	var parameterString string
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data Response
 		r.ParseForm()
 		parameterString = r.FormValue("params")
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(data)
 	}))
@@ -232,6 +469,7 @@ func TestClient_BasicAuth(t *testing.T) {
 			t.Errorf("unexpected password, expected %q, actual %q", "password", p)
 		}
 		var data Response
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(data)
 	}))
@@ -251,6 +489,7 @@ func TestClient_BasicAuth(t *testing.T) {
 func TestClient_Ping(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var data Response
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNoContent)
 		_ = json.NewEncoder(w).Encode(data)
 	}))
@@ -268,6 +507,7 @@ func TestClient_Ping(t *testing.T) {
 
 func TestClient_Concurrent_Use(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{}`))
 	}))
@@ -330,6 +570,12 @@ func TestClient_Concurrent_Use(t *testing.T) {
 
 func TestClient_Write(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		in, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("unexpected error: %s", err)
+		} else if have, want := strings.TrimSpace(string(in)), `m0,host=server01 v1=2,v2=2i,v3=2u,v4="foobar",v5=true 0`; have != want {
+			t.Errorf("unexpected write protocol: %s != %s", have, want)
+		}
 		var data Response
 		w.WriteHeader(http.StatusNoContent)
 		_ = json.NewEncoder(w).Encode(data)
@@ -344,6 +590,24 @@ func TestClient_Write(t *testing.T) {
 	if err != nil {
 		t.Errorf("unexpected error.  expected %v, actual %v", nil, err)
 	}
+	pt, err := NewPoint(
+		"m0",
+		map[string]string{
+			"host": "server01",
+		},
+		map[string]interface{}{
+			"v1": float64(2),
+			"v2": int64(2),
+			"v3": uint64(2),
+			"v4": "foobar",
+			"v5": true,
+		},
+		time.Unix(0, 0).UTC(),
+	)
+	if err != nil {
+		t.Errorf("unexpected error.  expected %v, actual %v", nil, err)
+	}
+	bp.AddPoint(pt)
 	err = c.Write(bp)
 	if err != nil {
 		t.Errorf("unexpected error.  expected %v, actual %v", nil, err)
@@ -356,6 +620,7 @@ func TestClient_UserAgent(t *testing.T) {
 		receivedUserAgent = r.UserAgent()
 
 		var data Response
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		_ = json.NewEncoder(w).Encode(data)
 	}))
