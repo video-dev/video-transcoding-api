@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"path/filepath"
+	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -115,7 +115,7 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 		audioConfig := &models.AACCodecConfiguration{
 			Name:         stringToPtr(preset.Name),
 			Bitrate:      &temp,
-			SamplingRate: floatToPtr(48000.0),
+			SamplingRate: floatToPtr(48000),
 		}
 		audioResp, err := aac.Create(audioConfig)
 		if err != nil {
@@ -156,7 +156,7 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 		audioConfig := &models.VorbisCodecConfiguration{
 			Name:         stringToPtr(preset.Name),
 			Bitrate:      &temp,
-			SamplingRate: floatToPtr(48000.0),
+			SamplingRate: floatToPtr(48000),
 		}
 		audioResp, err := vorbis.Create(audioConfig)
 		if err != nil {
@@ -481,10 +481,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	acl := []models.ACLItem{aclEntry}
 
 	cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
-	outputBucketName, err := grabBucketNameFromS3Destination(p.config.Destination)
+	outputBucketName, prefix, err := parseS3URL(p.config.Destination)
 	if err != nil {
 		return nil, err
 	}
+	prefix = path.Join(prefix, job.ID)
 
 	s3OS := services.NewS3OutputService(p.client)
 	s3Output := &models.S3Output{
@@ -559,8 +560,8 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	hlsService := services.NewHLSManifestService(p.client)
 
 	if outputtingHLS {
-		masterManifestPath = filepath.Dir(job.StreamingParams.PlaylistFileName)
-		masterManifestFile = filepath.Base(job.StreamingParams.PlaylistFileName)
+		masterManifestPath = path.Dir(path.Join(prefix, job.StreamingParams.PlaylistFileName))
+		masterManifestFile = path.Base(job.StreamingParams.PlaylistFileName)
 		manifestOutput := models.Output{
 			OutputID:   s3OSResponse.Data.Result.ID,
 			OutputPath: stringToPtr(masterManifestPath),
@@ -668,7 +669,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			if container == "m3u8" {
 				audioMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
-					OutputPath: stringToPtr(filepath.Join(masterManifestPath, audioPresetID)),
+					OutputPath: stringToPtr(path.Join(masterManifestPath, audioPresetID)),
 					ACL:        acl,
 				}
 				audioMuxing := &models.TSMuxing{
@@ -714,7 +715,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
-					OutputPath: stringToPtr(filepath.Join(masterManifestPath, videoPresetID)),
+					OutputPath: stringToPtr(path.Join(masterManifestPath, videoPresetID)),
 					ACL:        acl,
 				}
 				videoMuxing := &models.TSMuxing{
@@ -734,7 +735,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoStreamInfo := &models.StreamInfo{
 					Audio:       stringToPtr(audioPresetID),
 					SegmentPath: stringToPtr(videoPresetID),
-					URI:         stringToPtr(filepath.Base(output.FileName)),
+					URI:         stringToPtr(path.Join(prefix, output.FileName)),
 					EncodingID:  encodingResp.Data.Result.ID,
 					StreamID:    videoStreamResp.Data.Result.ID,
 					MuxingID:    videoMuxingResp.Data.Result.ID,
@@ -751,10 +752,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
 					ACL:        acl,
-					OutputPath: stringToPtr(filepath.Dir(output.FileName)),
+					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
 				}
 				videoMuxing := &models.MP4Muxing{
-					Filename: stringToPtr(filepath.Base(output.FileName)),
+					Filename: stringToPtr(path.Base(output.FileName)),
 					Outputs:  []models.Output{videoMuxingOutput},
 					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
 				}
@@ -836,10 +837,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
 					ACL:        acl,
-					OutputPath: stringToPtr(filepath.Dir(output.FileName)),
+					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
 				}
 				videoMuxing := &models.ProgressiveWebMMuxing{
-					Filename: stringToPtr(filepath.Base(output.FileName)),
+					Filename: stringToPtr(path.Base(output.FileName)),
 					Outputs:  []models.Output{videoMuxingOutput},
 					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
 				}
@@ -1024,14 +1025,6 @@ func parseS3URL(input string) (bucketName string, objectKey string, err error) {
 		return "", "", errors.New("Could not parse S3 URL")
 	}
 	return s3URL.Host, strings.TrimLeft(s3URL.Path, "/"), nil
-}
-
-func grabBucketNameFromS3Destination(input string) (bucketName string, err error) {
-	bucketName, _, err = parseS3URL(input)
-	if err != nil {
-		return "", err
-	}
-	return bucketName, nil
 }
 
 func createInput(provider *bitmovinProvider, input string) (inputID string, path string, err error) {
