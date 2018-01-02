@@ -1032,7 +1032,8 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
-						Status: stringToPtr("FINISHED"),
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
 					},
 				},
 			}
@@ -1070,13 +1071,19 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusFinished,
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"message":        "",
+			"originalStatus": "FINISHED",
+			"manifestStatus": "FINISHED",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
-func TestJobStatusReturnsFinishedIfEncodeISFinishedAndNoManifestGenerationIsNeeded(t *testing.T) {
+func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeeded(t *testing.T) {
 	testJobID := "this_is_a_job_id"
 	customData := make(map[string]interface{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1086,8 +1093,10 @@ func TestJobStatusReturnsFinishedIfEncodeISFinishedAndNoManifestGenerationIsNeed
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
-						Status: stringToPtr("FINISHED"),
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
 					},
+					Message: stringToPtr("it's done!"),
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -1114,9 +1123,14 @@ func TestJobStatusReturnsFinishedIfEncodeISFinishedAndNoManifestGenerationIsNeed
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusFinished,
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"message":        "it's done!",
+			"originalStatus": "FINISHED",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
@@ -1132,8 +1146,10 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsRunning(t *testin
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
-						Status: stringToPtr("FINISHED"),
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
 					},
+					Message: stringToPtr("life's good"),
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -1170,9 +1186,15 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsRunning(t *testin
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusStarted,
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"message":        "life's good",
+			"originalStatus": "FINISHED",
+			"manifestStatus": "RUNNING",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
@@ -1188,8 +1210,10 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsCreatedAndStartRe
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
-						Status: stringToPtr("FINISHED"),
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
 					},
+					Message: stringToPtr("encoding is done!"),
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -1231,9 +1255,15 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsCreatedAndStartRe
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusStarted,
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"message":        "encoding is done!",
+			"originalStatus": "FINISHED",
+			"manifestStatus": "CREATED",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
@@ -1251,6 +1281,7 @@ func TestJobStatusReturnsQueuedIfEncodeIsCreated(t *testing.T) {
 					Result: models.StatusResult{
 						Status: stringToPtr("CREATED"),
 					},
+					Message: stringToPtr("pending, pending"),
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -1268,9 +1299,13 @@ func TestJobStatusReturnsQueuedIfEncodeIsCreated(t *testing.T) {
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusQueued,
+		ProviderStatus: map[string]interface{}{
+			"message":        "pending, pending",
+			"originalStatus": "CREATED",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
@@ -1282,13 +1317,12 @@ func TestJobStatusReturnsStartedIfEncodeIsRunning(t *testing.T) {
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case "/encoding/encodings/" + testJobID + "/status":
-			progress := 33.
 			resp := models.StatusResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
 						Status:   stringToPtr("RUNNING"),
-						Progress: &progress,
+						Progress: floatToPtr(33),
 					},
 				},
 			}
@@ -1306,11 +1340,15 @@ func TestJobStatusReturnsStartedIfEncodeIsRunning(t *testing.T) {
 	expectedJobStatus := &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
-		Progress:      33.,
+		Progress:      33,
 		Status:        provider.StatusStarted,
+		ProviderStatus: map[string]interface{}{
+			"message":        "",
+			"originalStatus": "RUNNING",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
@@ -1345,9 +1383,13 @@ func TestJobStatusReturnsFailedIfEncodeFailed(t *testing.T) {
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusFailed,
+		ProviderStatus: map[string]interface{}{
+			"message":        "",
+			"originalStatus": "ERROR",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
@@ -1363,7 +1405,8 @@ func TestJobStatusReturnsFailedIfEncodeIsFinishedAndManifestFailed(t *testing.T)
 				Status: bitmovintypes.ResponseStatusSuccess,
 				Data: models.StatusData{
 					Result: models.StatusResult{
-						Status: stringToPtr("FINISHED"),
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
 					},
 				},
 			}
@@ -1401,13 +1444,19 @@ func TestJobStatusReturnsFailedIfEncodeIsFinishedAndManifestFailed(t *testing.T)
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
 		Status:        provider.StatusFailed,
+		Progress:      100,
+		ProviderStatus: map[string]interface{}{
+			"message":        "",
+			"originalStatus": "FINISHED",
+			"manifestStatus": "ERROR",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
-func TestJobStatusReturnsFailureOnAPIError(t *testing.T) {
+func TestJobStatusReturnsUnknownOnAPIError(t *testing.T) {
 	testJobID := "this_is_a_job_id"
 	manifestID := "this_is_the_underlying_manifest_id"
 	customData := make(map[string]interface{})
@@ -1432,10 +1481,14 @@ func TestJobStatusReturnsFailureOnAPIError(t *testing.T) {
 	expectedJobStatus := &provider.JobStatus{
 		ProviderName:  Name,
 		ProviderJobID: testJobID,
-		Status:        provider.StatusFailed,
+		Status:        provider.StatusUnknown,
+		ProviderStatus: map[string]interface{}{
+			"message":        "",
+			"originalStatus": "",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
-		t.Errorf("Job Status: want %#v. Got %#v", expectedJobStatus, jobStatus)
+		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
 	}
 }
 
