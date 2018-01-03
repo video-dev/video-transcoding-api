@@ -38,3 +38,38 @@ type DeinterlacingFilter struct {
 	Mode   bitmovintypes.DeinterlacingMode  `json:"mode"`
 	Parity bitmovintypes.PictureFieldParity `json:"parity"`
 }
+
+type DeinterlacingFilterResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      DeinterlacingFilterData      `json:"data,omitempty"`
+}
+
+type DeinterlacingFilterData struct {
+	Result           DeinterlacingFilter `json:"result,omitempty"`
+	Messages         []Message           `json:"messages,omitempty"`
+	Code             *int64              `json:"code,omitempty"`
+	Message          *string             `json:"message,omitempty"`
+	DeveloperMessage *string             `json:"developerMessage,omitempty"`
+	Links            []Link              `json:"links,omitempty"`
+	Details          []Detail            `json:"details,omitempty"`
+}
+
+type AddFilter struct {
+	ID       string `json:"id"`
+	Position *int64 `json:"position"`
+}
+type AddFilterResponseData struct {
+	Result           AddFilter `json:"result,omitempty"`
+	Messages         []Message `json:"messages,omitempty"`
+	Code             *int64    `json:"code,omitempty"`
+	Message          *string   `json:"message,omitempty"`
+	DeveloperMessage *string   `json:"developerMessage,omitempty"`
+	Links            []Link    `json:"links,omitempty"`
+	Details          []Detail  `json:"details,omitempty"`
+}
+type AddFilterResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      AddFilterResponseData        `json:"data,omitempty"`
+}

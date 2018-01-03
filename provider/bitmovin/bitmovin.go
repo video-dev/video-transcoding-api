@@ -766,6 +766,24 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
 					return nil, errors.New("Error in adding MP4 Muxing")
 				}
+			} else if container == "mov" {
+				videoMuxingOutput := models.Output{
+					OutputID:   s3OSResponse.Data.Result.ID,
+					ACL:        acl,
+					OutputPath: stringToPtr(filepath.Dir(output.FileName)),
+				}
+				videoMuxing := &models.ProgressiveMOVMuxing{
+					Filename: stringToPtr(filepath.Base(output.FileName)),
+					Outputs:  []models.Output{videoMuxingOutput},
+					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
+				}
+				videoMuxingResp, vmErr := encodingS.AddProgressiveMOVMuxing(*encodingResp.Data.Result.ID, videoMuxing)
+				if err != nil {
+					return nil, vmErr
+				}
+				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in adding MP4 Muxing")
+				}
 			} else {
 				return nil, errors.New("unknown container format")
 			}
@@ -1012,7 +1030,7 @@ func (p *bitmovinProvider) Healthcheck() error {
 func (p *bitmovinProvider) Capabilities() provider.Capabilities {
 	return provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
-		OutputFormats: []string{"mp4", "hls", "webm"},
+		OutputFormats: []string{"mp4", "mov", "hls", "webm"},
 		Destinations:  []string{"s3"},
 	}
 }

@@ -519,6 +519,19 @@ func TestTranscodeWithS3Input(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID5/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID5"
+			customData["container"] = "mov"
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.H264CodecConfigurationData{
+					Result: models.H264CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -541,7 +554,8 @@ func TestTranscodeWithS3Input(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/configurations/video/h264/videoID1",
 			"/encoding/configurations/video/h264/videoID2",
-			"/encoding/configurations/video/h264/videoID3":
+			"/encoding/configurations/video/h264/videoID3",
+			"/encoding/configurations/video/h264/videoID5":
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
@@ -581,6 +595,11 @@ func TestTranscodeWithS3Input(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
 			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -698,6 +717,19 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID5/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID5"
+			customData["container"] = "mov"
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.H264CodecConfigurationData{
+					Result: models.H264CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -720,7 +752,8 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/configurations/video/h264/videoID1",
 			"/encoding/configurations/video/h264/videoID2",
-			"/encoding/configurations/video/h264/videoID3":
+			"/encoding/configurations/video/h264/videoID3",
+			"/encoding/configurations/video/h264/videoID5":
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
@@ -760,6 +793,11 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
 			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -877,6 +915,19 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID5/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID5"
+			customData["container"] = "mov"
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.H264CodecConfigurationData{
+					Result: models.H264CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -899,7 +950,8 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/configurations/video/h264/videoID1",
 			"/encoding/configurations/video/h264/videoID2",
-			"/encoding/configurations/video/h264/videoID3":
+			"/encoding/configurations/video/h264/videoID3",
+			"/encoding/configurations/video/h264/videoID5":
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
@@ -939,6 +991,11 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
 			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -1665,7 +1722,7 @@ func TestCapabilities(t *testing.T) {
 	var prov bitmovinProvider
 	expected := provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
-		OutputFormats: []string{"mp4", "hls", "webm"},
+		OutputFormats: []string{"mp4", "mov", "hls", "webm"},
 		Destinations:  []string{"s3"},
 	}
 	cap := prov.Capabilities()
@@ -1762,6 +1819,13 @@ func getJob(sourceMedia string) *db.Job {
 				Name: "videoID4",
 			},
 			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name: "1080p_synd",
+			ProviderMapping: map[string]string{
+				Name: "videoID5",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mov"},
 		},
 	}
 	outputs := make([]db.TranscodeOutput, len(presets))

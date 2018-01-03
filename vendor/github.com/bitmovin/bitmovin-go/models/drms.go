@@ -15,6 +15,10 @@ type PlayReadyDrm struct {
 	Outputs     []Output                       `json:"outputs,omitempty"`
 }
 
+func (p *PlayReadyDrm) AddOutput(output *Output) {
+	p.Outputs = append(p.Outputs, *output)
+}
+
 type FairPlayDrm struct {
 	ID          *string                `json:"id,omitempty"`
 	Name        *string                `json:"name,omitempty"`
@@ -26,6 +30,10 @@ type FairPlayDrm struct {
 	Outputs     []Output               `json:"outputs,omitempty"`
 }
 
+func (p *FairPlayDrm) AddOutput(output *Output) {
+	p.Outputs = append(p.Outputs, *output)
+}
+
 type WidevineDrm struct {
 	ID          *string                `json:"id,omitempty"`
 	Name        *string                `json:"name,omitempty"`
@@ -35,6 +43,10 @@ type WidevineDrm struct {
 	KID         *string                `json:"kid,omitempty"`
 	PSSH        *string                `json:"pssh,omitempty"`
 	Outputs     []Output               `json:"outputs,omitempty"`
+}
+
+func (p *WidevineDrm) AddOutput(output *Output) {
+	p.Outputs = append(p.Outputs, *output)
 }
 
 type WidevineCencDrm struct {
@@ -56,6 +68,10 @@ type CencDrm struct {
 	Outputs     []Output               `json:"outputs,omitempty"`
 	Widevine    WidevineCencDrm        `json:"widevine,omitempty"`
 	PlayReady   PlayReadyCencDrm       `json:"playReady,omitEmpty"`
+}
+
+func (p *CencDrm) AddOutput(output *Output) {
+	p.Outputs = append(p.Outputs, *output)
 }
 
 type DrmResponseData struct {
