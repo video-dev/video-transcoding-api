@@ -1,6 +1,8 @@
 package models
 
-import "github.com/bitmovin/bitmovin-go/bitmovintypes"
+import (
+	"github.com/bitmovin/bitmovin-go/bitmovintypes"
+)
 
 type AsperaInput struct {
 	ID           *string                `json:"id,omitempty"`
@@ -138,13 +140,13 @@ type HTTPInputListResult struct {
 }
 
 type HTTPInputListData struct {
-	Result S3InputListResult `json:"result,omitempty"`
+	Result HTTPInputListResult `json:"result,omitempty"`
 }
 
 type HTTPInputListResponse struct {
 	RequestID *string                      `json:"requestId,omitempty"`
 	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
-	Data      S3InputListData              `json:"data,omitempty"`
+	Data      HTTPInputListData            `json:"data,omitempty"`
 }
 
 type HTTPSInput struct {
@@ -193,13 +195,13 @@ type HTTPSInputListResult struct {
 }
 
 type HTTPSInputListData struct {
-	Result S3InputListResult `json:"result,omitempty"`
+	Result HTTPSInputListResult `json:"result,omitempty"`
 }
 
 type HTTPSInputListResponse struct {
 	RequestID *string                      `json:"requestId,omitempty"`
 	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
-	Data      S3InputListData              `json:"data,omitempty"`
+	Data      HTTPSInputListData           `json:"data,omitempty"`
 }
 
 type S3Input struct {
@@ -312,4 +314,65 @@ type RTMPInputListResponse struct {
 	RequestID *string                      `json:"requestId,omitempty"`
 	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
 	Data      RTMPInputListData            `json:"data,omitempty"`
+}
+
+type ZixiInput struct {
+	ID             *string                `json:"id,omitempty"`
+	Name           *string                `json:"name,omitempty"`
+	Description    *string                `json:"description,omitempty"`
+	CustomData     map[string]interface{} `json:"customData,omitempty"`
+	Host           *string                `json:"host",omitempty"`
+	Port           *int64                 `json:"port",omitempty"`
+	Stream         *string                `json:"stream",omitempty`
+	Password       *string                `json:"password",omitempty`
+	Latency        *int64                 `json:"latency",omitempty`
+	MinBitrate     *int64                 `json:"minBitrate",omitempty`
+	DecryptionType *string                `json:"decryptionType",omitempty`
+	DecryptionKey  *string                `json:"decryptionKey",omitempty`
+}
+
+type ZixiInputItem struct {
+	ID             *string                `json:"id,omitempty"`
+	Name           *string                `json:"name,omitempty"`
+	Description    *string                `json:"description,omitempty"`
+	CustomData     map[string]interface{} `json:"customData,omitempty"`
+	Host           *string                `json:"host",omitempty"`
+	Port           *int64                 `json:"port",omitempty"`
+	Stream         *string                `json:"stream",omitempty`
+	Latency        *int64                 `json:"latency",omitempty`
+	MinBitrate     *int64                 `json:"minBitrate",omitempty`
+	DecryptionType *string                `json:"decryptionType",omitempty`
+}
+
+type ZixiInputData struct {
+	Result           ZixiInputItem `json:"result,omitempty"`
+	Messages         []Message     `json:"messages,omitempty"`
+	Code             *int64        `json:"code,omitempty"`
+	Message          *string       `json:"message,omitempty"`
+	DeveloperMessage *string       `json:"developerMessage,omitempty"`
+	Links            []Link        `json:"links,omitempty"`
+	Details          []Detail      `json:"details,omitempty"`
+}
+
+type ZixiInputResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      ZixiInputData                `json:"data,omitempty"`
+}
+
+type ZixiInputListResult struct {
+	TotalCount *int64          `json:"totalCount,omitempty"`
+	Previous   *string         `json:"previous,omitempty"`
+	Next       *string         `json:"next,omitempty"`
+	Items      []ZixiInputItem `json:"items,omitempty"`
+}
+
+type ZixiInputListData struct {
+	Result ZixiInputListResult `json:"result,omitempty"`
+}
+
+type ZixiInputListResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      ZixiInputListData            `json:"data,omitempty"`
 }

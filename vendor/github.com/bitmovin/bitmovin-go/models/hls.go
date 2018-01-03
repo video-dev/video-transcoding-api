@@ -10,6 +10,10 @@ type HLSManifest struct {
 	ManifestName *string  `json:"manifestName,omitempty"`
 }
 
+func (h *HLSManifest) AddOutput(output *Output) {
+	h.Outputs = append(h.Outputs, *output)
+}
+
 type HLSManifestData struct {
 	//Success fields
 	Result   HLSManifest `json:"result,omitempty"`
