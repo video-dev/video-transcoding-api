@@ -1,3 +1,18 @@
+Release v1.12.55 (2018-01-02)
+===
+
+### Service Client Updates
+* `service/rds`: Updates service documentation
+  * Documentation updates for rds
+
+Release v1.12.54 (2017-12-29)
+===
+
+### Service Client Updates
+* `aws/endpoints`: Updated Regions and Endpoints metadata.
+* `service/workspaces`: Updates service API and documentation
+  * Modify WorkSpaces have been updated with flexible storage and switching of hardware bundles feature. The following configurations have been added to ModifyWorkSpacesProperties: storage and compute. This update provides the capability to configure the storage of a WorkSpace. It also adds the capability of switching hardware bundle of a WorkSpace by specifying an eligible compute (Value, Standard, Performance, Power).
+
 Release v1.12.53 (2017-12-22)
 ===
 

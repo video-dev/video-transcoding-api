@@ -16,13 +16,21 @@
 [[projects]]
   branch = "master"
   name = "github.com/NYTimes/encoding-wrapper"
-  packages = ["elementalconductor","encodingcom"]
+  packages = [
+    "elementalconductor",
+    "encodingcom"
+  ]
   revision = "36fb9db91f136e65449cdb64497f28ec0b9f6685"
 
 [[projects]]
   branch = "master"
   name = "github.com/NYTimes/gizmo"
-  packages = ["config","config/metrics","server","web"]
+  packages = [
+    "config",
+    "config/metrics",
+    "server",
+    "web"
+  ]
   revision = "584d6c56247edeefd1deef98e761791d36a16312"
 
 [[projects]]
@@ -46,8 +54,37 @@
 [[projects]]
   branch = "master"
   name = "github.com/aws/aws-sdk-go"
-  packages = ["aws","aws/awserr","aws/awsutil","aws/client","aws/client/metadata","aws/corehandlers","aws/credentials","aws/credentials/ec2rolecreds","aws/credentials/endpointcreds","aws/credentials/stscreds","aws/defaults","aws/ec2metadata","aws/endpoints","aws/request","aws/session","aws/signer/v4","internal/shareddefaults","private/protocol","private/protocol/json/jsonutil","private/protocol/jsonrpc","private/protocol/query","private/protocol/query/queryutil","private/protocol/rest","private/protocol/restjson","private/protocol/xml/xmlutil","service/elastictranscoder","service/elastictranscoder/elastictranscoderiface","service/sts"]
-  revision = "6eab70e3edd8e65a17a1dbf9a2eeaf83f06281d0"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/stscreds",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/restjson",
+    "private/protocol/xml/xmlutil",
+    "service/elastictranscoder",
+    "service/elastictranscoder/elastictranscoderiface",
+    "service/sts"
+  ]
+  revision = "59a00e612400e688c7553db01b9b394368660a34"
 
 [[projects]]
   branch = "master"
@@ -57,7 +94,12 @@
 
 [[projects]]
   name = "github.com/bitmovin/bitmovin-go"
-  packages = ["bitmovin","bitmovintypes","models","services"]
+  packages = [
+    "bitmovin",
+    "bitmovintypes",
+    "models",
+    "services"
+  ]
   revision = "f03d428a6d9aff80a683e3cd195f96a35ab651aa"
   version = "v1.5.3"
 
@@ -93,7 +135,22 @@
 
 [[projects]]
   name = "github.com/go-kit/kit"
-  packages = ["log","metrics","metrics/discard","metrics/dogstatsd","metrics/expvar","metrics/generic","metrics/graphite","metrics/influx","metrics/internal/lv","metrics/internal/ratemap","metrics/prometheus","metrics/provider","metrics/statsd","util/conn"]
+  packages = [
+    "log",
+    "metrics",
+    "metrics/discard",
+    "metrics/dogstatsd",
+    "metrics/expvar",
+    "metrics/generic",
+    "metrics/graphite",
+    "metrics/influx",
+    "metrics/internal/lv",
+    "metrics/internal/ratemap",
+    "metrics/prometheus",
+    "metrics/provider",
+    "metrics/statsd",
+    "util/conn"
+  ]
   revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
   version = "v0.6.0"
 
@@ -105,9 +162,16 @@
 
 [[projects]]
   name = "github.com/go-redis/redis"
-  packages = [".","internal","internal/consistenthash","internal/hashtag","internal/pool","internal/proto"]
-  revision = "9c885d5ba8a22f260badcffde1649915fbeebfc0"
-  version = "v6.7.5"
+  packages = [
+    ".",
+    "internal",
+    "internal/consistenthash",
+    "internal/hashtag",
+    "internal/pool",
+    "internal/proto"
+  ]
+  revision = "73b70592cdaa9e6abdfcfbf97b4a90d80728c836"
+  version = "v6.8.0"
 
 [[projects]]
   name = "github.com/go-stack/stack"
@@ -118,13 +182,23 @@
 [[projects]]
   branch = "master"
   name = "github.com/golang/protobuf"
-  packages = ["proto","ptypes","ptypes/any","ptypes/duration","ptypes/timestamp"]
+  packages = [
+    "proto",
+    "ptypes",
+    "ptypes/any",
+    "ptypes/duration",
+    "ptypes/timestamp"
+  ]
   revision = "1e59b77b52bf8e4b449a57e6f79f21226d571845"
 
 [[projects]]
   branch = "master"
   name = "github.com/google/gops"
-  packages = ["agent","internal","signal"]
+  packages = [
+    "agent",
+    "internal",
+    "signal"
+  ]
   revision = "e09130d898274b1faa2ecb484b59204e7e372548"
 
 [[projects]]
@@ -177,7 +251,11 @@
 
 [[projects]]
   name = "github.com/influxdata/influxdb"
-  packages = ["client/v2","models","pkg/escape"]
+  packages = [
+    "client/v2",
+    "models",
+    "pkg/escape"
+  ]
   revision = "6d2685d1738277a1c2672fc58df7994627769be6"
   version = "v1.4.2"
 
@@ -207,7 +285,11 @@
 [[projects]]
   branch = "master"
   name = "github.com/knq/jwt"
-  packages = [".","bearer","gserviceaccount"]
+  packages = [
+    ".",
+    "bearer",
+    "gserviceaccount"
+  ]
   revision = "d499a6b4a557d0d8a1b12889c8efbf7ea9477f54"
 
 [[projects]]
@@ -285,13 +367,20 @@
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/common"
-  packages = ["expfmt","internal/bitbucket.org/ww/goautoneg","model"]
+  packages = [
+    "expfmt",
+    "internal/bitbucket.org/ww/goautoneg",
+    "model"
+  ]
   revision = "2e54d0b93cba2fd133edc32211dcc32c06ef72ca"
 
 [[projects]]
   branch = "master"
   name = "github.com/prometheus/procfs"
-  packages = [".","xfs"]
+  packages = [
+    ".",
+    "xfs"
+  ]
   revision = "b15cd069a83443be3154b719d0cc9fe8117f09fb"
 
 [[projects]]
@@ -310,41 +399,91 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "d585fd2cc9195196078f516b69daff6744ef5e84"
+  revision = "0fcca4842a8d74bfddc2c96a073bd2a4d2a7a2e8"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/net"
-  packages = ["context","context/ctxhttp","http2","http2/hpack","idna","internal/timeseries","lex/httplex","trace"]
+  packages = [
+    "context",
+    "context/ctxhttp",
+    "http2",
+    "http2/hpack",
+    "idna",
+    "internal/timeseries",
+    "lex/httplex",
+    "trace"
+  ]
   revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/oauth2"
-  packages = [".","google","internal","jws","jwt"]
-  revision = "197281d4e0ecd78c33865daf9c6e51626feefcb2"
+  packages = [
+    ".",
+    "google",
+    "internal",
+    "jws",
+    "jwt"
+  ]
+  revision = "876b1c6ee618a9f8fa31ded3b27708d44b3153af"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix","windows"]
-  revision = "83801418e1b59fb1880e363299581ee543af32ca"
+  packages = [
+    "unix",
+    "windows"
+  ]
+  revision = "28a7276518d399b9634904daad79e18b44d481bc"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
-  packages = ["collate","collate/build","internal/colltab","internal/gen","internal/tag","internal/triegen","internal/ucd","language","secure/bidirule","transform","unicode/bidi","unicode/cldr","unicode/norm","unicode/rangetable"]
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable"
+  ]
   revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [[projects]]
   branch = "master"
   name = "google.golang.org/api"
-  packages = ["clouderrorreporting/v1beta1","gensupport","googleapi","googleapi/internal/uritemplates","logging/v2"]
-  revision = "272e2963aad1a56aba54e1167c47abff8d37ac08"
+  packages = [
+    "clouderrorreporting/v1beta1",
+    "gensupport",
+    "googleapi",
+    "googleapi/internal/uritemplates",
+    "logging/v2"
+  ]
+  revision = "99aea8c56b9527d6ca9dc96b743c94e184ab704b"
 
 [[projects]]
   name = "google.golang.org/appengine"
-  packages = [".","internal","internal/app_identity","internal/base","internal/datastore","internal/log","internal/modules","internal/remote_api","internal/urlfetch","urlfetch"]
+  packages = [
+    ".",
+    "internal",
+    "internal/app_identity",
+    "internal/base",
+    "internal/datastore",
+    "internal/log",
+    "internal/modules",
+    "internal/remote_api",
+    "internal/urlfetch",
+    "urlfetch"
+  ]
   revision = "150dc57a1b433e64154302bdc40b6bb8aefa313a"
   version = "v1.0.0"
 
@@ -356,9 +495,32 @@
 
 [[projects]]
   name = "google.golang.org/grpc"
-  packages = [".","balancer","balancer/roundrobin","codes","connectivity","credentials","encoding","grpclb/grpc_lb_v1/messages","grpclog","internal","keepalive","metadata","naming","peer","resolver","resolver/dns","resolver/passthrough","stats","status","tap","transport"]
-  revision = "e687fa4e6424368ece6e4fe727cea2c806a0fcb4"
-  version = "v1.8.2"
+  packages = [
+    ".",
+    "balancer",
+    "balancer/base",
+    "balancer/roundrobin",
+    "codes",
+    "connectivity",
+    "credentials",
+    "encoding",
+    "grpclb/grpc_lb_v1/messages",
+    "grpclog",
+    "internal",
+    "keepalive",
+    "metadata",
+    "naming",
+    "peer",
+    "resolver",
+    "resolver/dns",
+    "resolver/passthrough",
+    "stats",
+    "status",
+    "tap",
+    "transport"
+  ]
+  revision = "f3955b8e9e244dd4dd4bc4f7b7a23a8445400a76"
+  version = "v1.9.0"
 
 [solve-meta]
   analyzer-name = "dep"
