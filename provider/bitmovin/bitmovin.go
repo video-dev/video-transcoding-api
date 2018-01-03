@@ -770,10 +770,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
 					ACL:        acl,
-					OutputPath: stringToPtr(filepath.Dir(output.FileName)),
+					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
 				}
 				videoMuxing := &models.ProgressiveMOVMuxing{
-					Filename: stringToPtr(filepath.Base(output.FileName)),
+					Filename: stringToPtr(path.Base(output.FileName)),
 					Outputs:  []models.Output{videoMuxingOutput},
 					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
 				}
