@@ -19,7 +19,7 @@ type VP8CodecConfiguration struct {
 	QPMin             *int64                   `json:"qpMin,omitempty"`
 	QPMax             *int64                   `json:"qpMax,omitempty"`
 	RateUndershootPct *int64                   `json:"rateUndershootPct,omitempty"`
-	RateOvershootPct  *int64                   `json:"rateUndershootPct,omitempty"`
+	RateOvershootPct  *int64                   `json:"rateOvershootPct,omitempty"`
 	Sharpness         *int64                   `json:"sharpness,omitempty"`
 	Quality           bitmovintypes.VPQuality  `json:"quality,omitempty"`
 	StaticThresh      *int64                   `json:"staticThresh,omitempty"`
@@ -83,7 +83,7 @@ type VP9CodecConfiguration struct {
 	QPMin             *int64                   `json:"qpMin,omitempty"`
 	QPMax             *int64                   `json:"qpMax,omitempty"`
 	RateUndershootPct *int64                   `json:"rateUndershootPct,omitempty"`
-	RateOvershootPct  *int64                   `json:"rateUndershootPct,omitempty"`
+	RateOvershootPct  *int64                   `json:"rateOvershootPct,omitempty"`
 	Sharpness         *int64                   `json:"sharpness,omitempty"`
 	Quality           bitmovintypes.VPQuality  `json:"quality,omitempty"`
 	StaticThresh      *int64                   `json:"staticThresh,omitempty"`

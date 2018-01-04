@@ -61,3 +61,7 @@
 [[constraint]]
   name = "github.com/go-redis/redis"
   version = "^6.8.0"
+
+[[override]]
+  branch = "master"
+  name = "github.com/bitmovin/bitmovin-go"

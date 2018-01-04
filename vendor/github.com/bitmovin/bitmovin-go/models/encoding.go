@@ -88,15 +88,19 @@ type StreamResponse struct {
 	Data      StreamData                   `json:"data,omitempty"`
 }
 
+type StreamListResponse struct {
+	Data StreamListData `json:"data,omitempty"`
+}
+
+type StreamListData struct {
+	Result StreamListResult `json:"result,omitempty"`
+}
+
 type StreamListResult struct {
 	TotalCount *int64   `json:"totalCount,omitempty"`
 	Previous   *string  `json:"previous,omitempty"`
 	Next       *string  `json:"next,omitempty"`
 	Items      []Stream `json:"items,omitempty"`
-}
-
-type StreamListResponse struct {
-	Result StreamListResult `json:"result,omitempty"`
 }
 
 type StreamItem struct {
