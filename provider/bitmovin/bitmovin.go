@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
@@ -925,6 +926,13 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		return nil, err
 	}
 
+	if jobStatus.Status == provider.StatusFinished {
+		err = p.addSourceInfo(job, &jobStatus)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &jobStatus, nil
 }
 
@@ -979,6 +987,32 @@ func (p *bitmovinProvider) addOutputStatusInfo(job *db.Job, status *provider.Job
 	return nil
 }
 
+func (p *bitmovinProvider) addSourceInfo(job *db.Job, status *provider.JobStatus) error {
+	encodingS := services.NewEncodingService(p.client)
+	resp, err := encodingS.ListStream(job.ProviderJobID, 0, 1)
+	if err != nil {
+		return err
+	}
+	if len(resp.Data.Result.Items) > 0 {
+		streamID := stringValue(resp.Data.Result.Items[0].ID)
+		streamInput, err := encodingS.RetrieveStreamInputData(job.ProviderJobID, streamID)
+		if err != nil {
+			return err
+		}
+		var videoStream models.StreamInputVideo
+		if len(streamInput.Data.Result.VideoStreams) > 0 {
+			videoStream = streamInput.Data.Result.VideoStreams[0]
+		}
+		status.SourceInfo = provider.SourceInfo{
+			Duration:   time.Duration(floatValue(streamInput.Data.Result.Duration) * float64(time.Second)),
+			Width:      int64Value(videoStream.Width),
+			Height:     int64Value(videoStream.Height),
+			VideoCodec: stringValue(videoStream.Codec),
+		}
+	}
+	return nil
+}
+
 func (p *bitmovinProvider) mapStatus(status string) provider.Status {
 	switch status {
 	case "CREATED", "QUEUED":
@@ -992,13 +1026,6 @@ func (p *bitmovinProvider) mapStatus(status string) provider.Status {
 	default:
 		return provider.StatusUnknown
 	}
-}
-
-func stringValue(str *string) string {
-	if str == nil {
-		return ""
-	}
-	return *str
 }
 
 func (p *bitmovinProvider) CancelJob(jobID string) error {
@@ -1114,6 +1141,27 @@ func createInput(provider *bitmovinProvider, input string) (inputID string, path
 		return *httpsISResponse.Data.Result.ID, u.Path, nil
 	}
 	return "", "", errors.New("Only S3, http, and https URLS are supported")
+}
+
+func floatValue(f *float64) float64 {
+	if f == nil {
+		return 0
+	}
+	return *f
+}
+
+func int64Value(i *int64) int64 {
+	if i == nil {
+		return 0
+	}
+	return *i
+}
+
+func stringValue(str *string) string {
+	if str == nil {
+		return ""
+	}
+	return *str
 }
 
 func stringToPtr(s string) *string {

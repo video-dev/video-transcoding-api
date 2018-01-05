@@ -321,14 +321,14 @@ type ZixiInput struct {
 	Name           *string                `json:"name,omitempty"`
 	Description    *string                `json:"description,omitempty"`
 	CustomData     map[string]interface{} `json:"customData,omitempty"`
-	Host           *string                `json:"host",omitempty"`
-	Port           *int64                 `json:"port",omitempty"`
-	Stream         *string                `json:"stream",omitempty`
-	Password       *string                `json:"password",omitempty`
-	Latency        *int64                 `json:"latency",omitempty`
-	MinBitrate     *int64                 `json:"minBitrate",omitempty`
-	DecryptionType *string                `json:"decryptionType",omitempty`
-	DecryptionKey  *string                `json:"decryptionKey",omitempty`
+	Host           *string                `json:"host,omitempty"`
+	Port           *int64                 `json:"port,omitempty"`
+	Stream         *string                `json:"stream,omitempty"`
+	Password       *string                `json:"password,omitempty"`
+	Latency        *int64                 `json:"latency,omitempty"`
+	MinBitrate     *int64                 `json:"minBitrate,omitempty"`
+	DecryptionType *string                `json:"decryptionType,omitempty"`
+	DecryptionKey  *string                `json:"decryptionKey,omitempty"`
 }
 
 type ZixiInputItem struct {
@@ -336,12 +336,12 @@ type ZixiInputItem struct {
 	Name           *string                `json:"name,omitempty"`
 	Description    *string                `json:"description,omitempty"`
 	CustomData     map[string]interface{} `json:"customData,omitempty"`
-	Host           *string                `json:"host",omitempty"`
-	Port           *int64                 `json:"port",omitempty"`
-	Stream         *string                `json:"stream",omitempty`
-	Latency        *int64                 `json:"latency",omitempty`
-	MinBitrate     *int64                 `json:"minBitrate",omitempty`
-	DecryptionType *string                `json:"decryptionType",omitempty`
+	Host           *string                `json:"host,omitempty"`
+	Port           *int64                 `json:"port,omitempty"`
+	Stream         *string                `json:"stream,omitempty"`
+	Latency        *int64                 `json:"latency,omitempty"`
+	MinBitrate     *int64                 `json:"minBitrate,omitempty"`
+	DecryptionType *string                `json:"decryptionType,omitempty"`
 }
 
 type ZixiInputData struct {

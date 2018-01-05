@@ -34,10 +34,10 @@
   revision = "584d6c56247edeefd1deef98e761791d36a16312"
 
 [[projects]]
+  branch = "master"
   name = "github.com/NYTimes/gziphandler"
   packages = ["."]
-  revision = "d6f46609c7629af3a02d791a4666866eed3cbd3e"
-  version = "v1.0.0"
+  revision = "47ca22a0aeea4c9ceddfb935d818d636d934c312"
 
 [[projects]]
   branch = "master"
@@ -93,6 +93,7 @@
   revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
 
 [[projects]]
+  branch = "master"
   name = "github.com/bitmovin/bitmovin-go"
   packages = [
     "bitmovin",
@@ -100,8 +101,7 @@
     "models",
     "services"
   ]
-  revision = "f03d428a6d9aff80a683e3cd195f96a35ab651aa"
-  version = "v1.5.3"
+  revision = "5c58be963ea93ba9508cdfbcc64c4ad8bae115ff"
 
 [[projects]]
   branch = "master"
@@ -435,7 +435,7 @@
     "unix",
     "windows"
   ]
-  revision = "28a7276518d399b9634904daad79e18b44d481bc"
+  revision = "a3f2cbd54cf5dfe3fbaccf76375fdb12f67654c8"
 
 [[projects]]
   branch = "master"
@@ -468,7 +468,7 @@
     "googleapi/internal/uritemplates",
     "logging/v2"
   ]
-  revision = "99aea8c56b9527d6ca9dc96b743c94e184ab704b"
+  revision = "251495678c7835dbcdc35027844ab32f2fcee7a0"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -525,6 +525,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "8544d24f6360aaeb7f859db3241975304fd11b8ce4f3560add744531a0e345dd"
+  inputs-digest = "2263386702d1a43884b53177179d66cc8b85dc4003d656fed11d42282c9d6d2f"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -168,6 +168,20 @@ func (s *EncodingService) RetrieveStreamCustomData(encodingID string, streamID s
 	return &r, nil
 }
 
+func (s *EncodingService) RetrieveStreamInputData(encodingID string, streamID string) (*models.StreamInputResponse, error) {
+	path := EncodingEndpoint + "/" + encodingID + "/" + "streams" + "/" + streamID + "/input"
+	o, err := s.RestService.Retrieve(path)
+	if err != nil {
+		return nil, err
+	}
+	var r models.StreamInputResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 func (s *EncodingService) AddFMP4Muxing(encodingID string, a *models.FMP4Muxing) (*models.FMP4MuxingResponse, error) {
 	b, err := json.Marshal(*a)
 	if err != nil {
