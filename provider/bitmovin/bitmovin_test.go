@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
@@ -1114,8 +1115,36 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			resp := models.StreamListResponse{
+				Data: models.StreamListData{
+					Result: models.StreamListResult{
+						Items: []models.Stream{{ID: stringToPtr("new_stream")}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams/new_stream/input":
+			resp := models.StreamInputResponse{
+				Data: models.StreamInputData{
+					Result: models.StreamInputResult{
+						Duration: floatToPtr(42.1),
+						Bitrate:  intToPtr(25e5),
+						VideoStreams: []models.StreamInputVideo{
+							{
+								ID:       stringToPtr("hd-stream"),
+								Codec:    stringToPtr("h265"),
+								Duration: floatToPtr(42.1),
+								Width:    intToPtr(1280),
+								Height:   intToPtr(720),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		default:
-			t.Fatal(errors.New("unexpected path hit"))
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
 		}
 	}))
 	defer ts.Close()
@@ -1133,6 +1162,12 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 			"message":        "",
 			"originalStatus": "FINISHED",
 			"manifestStatus": "FINISHED",
+		},
+		SourceInfo: provider.SourceInfo{
+			Duration:   42100 * time.Millisecond,
+			VideoCodec: "h265",
+			Width:      1280,
+			Height:     720,
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some-output-bucket/job-123/",
@@ -1169,8 +1204,36 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			resp := models.StreamListResponse{
+				Data: models.StreamListData{
+					Result: models.StreamListResult{
+						Items: []models.Stream{{ID: stringToPtr("test_stream")}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams/test_stream/input":
+			resp := models.StreamInputResponse{
+				Data: models.StreamInputData{
+					Result: models.StreamInputResult{
+						Duration: floatToPtr(32),
+						Bitrate:  intToPtr(25e6),
+						VideoStreams: []models.StreamInputVideo{
+							{
+								ID:       stringToPtr("video-stream-id"),
+								Codec:    stringToPtr("h264"),
+								Duration: floatToPtr(32.1),
+								Width:    intToPtr(1920),
+								Height:   intToPtr(1080),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		default:
-			t.Fatal(errors.New("unexpected path hit"))
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
 		}
 	}))
 	defer ts.Close()
@@ -1187,6 +1250,12 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 		ProviderStatus: map[string]interface{}{
 			"message":        "it's done!",
 			"originalStatus": "FINISHED",
+		},
+		SourceInfo: provider.SourceInfo{
+			Duration:   32 * time.Second,
+			VideoCodec: "h264",
+			Width:      1920,
+			Height:     1080,
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some-output-bucket/job-123/",
@@ -1573,6 +1642,123 @@ func TestJobStatusReturnsUnknownOnAPIError(t *testing.T) {
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
+	}
+}
+
+func TestJobStatusReturnsErrorOnFailureToListStreams(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	manifestID := "this_is_the_underlying_manifest_id"
+	customData := make(map[string]interface{})
+	customData["manifest"] = manifestID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/customData":
+			resp := models.CustomDataResponse{
+				Data: models.Data{
+					Result: models.Result{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/manifests/hls/" + manifestID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status: stringToPtr("FINISHED"),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			w.Write([]byte("internal server error"))
+		default:
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: testJobID})
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
+	}
+}
+
+func TestJobStatusReturnsErrorOnFailureToGetInputData(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	manifestID := "this_is_the_underlying_manifest_id"
+	customData := make(map[string]interface{})
+	customData["manifest"] = manifestID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/customData":
+			resp := models.CustomDataResponse{
+				Data: models.Data{
+					Result: models.Result{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/manifests/hls/" + manifestID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status: stringToPtr("FINISHED"),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			resp := models.StreamListResponse{
+				Data: models.StreamListData{
+					Result: models.StreamListResult{
+						Items: []models.Stream{{ID: stringToPtr("new_stream")}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams/new_stream/input":
+			w.Write([]byte("internal server error"))
+		default:
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: testJobID})
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
 	}
 }
 
