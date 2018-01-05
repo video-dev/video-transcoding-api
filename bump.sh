@@ -17,12 +17,7 @@ increment_version() {
   elif [ "$2" == "bugfix" ]; then
     ((arr[2]++))
   fi
-
-  if [ "$3" == "prd" ]; then
-    echo "${arr[0]}.${arr[1]}.${arr[2]}"
-  else
-    echo "${arr[0]}.${arr[1]}.${arr[2]}-rc"
-  fi
+  echo "${arr[0]}.${arr[1]}.${arr[2]}"
 }
 
 update_changelog() {
@@ -70,6 +65,6 @@ if [ "$1" != "" ]; then
     echo " Bump aborted."
   fi
 else
-  echo "Usage: ./bump.sh (major|minor|bugfix) [prd]"
+  echo "Usage: ./bump.sh (major|minor|bugfix)"
 fi
 
