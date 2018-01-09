@@ -1,3 +1,9 @@
+## Version 1.3.3 (Release date: 2018-01-09)
+([68213de](https://github.com/nytimes/video-transcoding-api/commit/68213de)) Update dependencies 
+
+
+
+
 ## Version 1.3.2 (Release date: 2018-01-05)
 ([6f2219e](https://github.com/nytimes/video-transcoding-api/commit/6f2219e)) drone: fix deploy call 
 
