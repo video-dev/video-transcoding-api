@@ -931,6 +931,11 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		err = p.addOutputFilesInfo(job, &jobStatus)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &jobStatus, nil
@@ -985,6 +990,56 @@ func (p *bitmovinProvider) addOutputStatusInfo(job *db.Job, status *provider.Job
 		Destination: strings.TrimRight(p.config.Destination, "/") + "/" + job.ID + "/",
 	}
 	return nil
+}
+
+func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
+	// TODO: we only have info for MP4. Need to add for webm and mov.
+
+	muxings, err := p.listMP4Muxing(job.ProviderJobID)
+	if err != nil {
+		return err
+	}
+
+	var files []provider.OutputFile
+	for _, muxing := range muxings {
+		encodingS := services.NewEncodingService(p.client)
+		resp, err := encodingS.RetrieveMP4MuxingInformation(job.ProviderJobID, stringValue(muxing.ID))
+		if err != nil {
+			return err
+		}
+
+		info := resp.Data.Result
+		if len(info.VideoTracks) > 0 {
+			files = append(files, provider.OutputFile{
+				Path:       status.Output.Destination + stringValue(muxing.Filename),
+				Container:  stringValue(info.ContainerFormat),
+				FileSize:   int64Value(info.FileSize),
+				VideoCodec: stringValue(info.VideoTracks[0].Codec),
+				Width:      int64Value(info.VideoTracks[0].FrameWidth),
+				Height:     int64Value(info.VideoTracks[0].FrameHeight),
+			})
+		}
+	}
+
+	status.Output.Files = append(status.Output.Files, files...)
+	return nil
+}
+
+func (p *bitmovinProvider) listMP4Muxing(jobID string) ([]models.MP4Muxing, error) {
+	encodingS := services.NewEncodingService(p.client)
+
+	var totalCount int64 = 1
+	var muxings []models.MP4Muxing
+	for int64(len(muxings)) < totalCount {
+		resp, err := encodingS.ListMP4Muxing(jobID, int64(len(muxings)), 100)
+		if err != nil {
+			return nil, err
+		}
+		totalCount = int64Value(resp.Data.Result.TotalCount)
+		muxings = append(muxings, resp.Data.Result.Items...)
+	}
+
+	return muxings, nil
 }
 
 func (p *bitmovinProvider) addSourceInfo(job *db.Job, status *provider.JobStatus) error {
