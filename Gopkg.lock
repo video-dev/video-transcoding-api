@@ -31,7 +31,7 @@
     "server",
     "web"
   ]
-  revision = "584d6c56247edeefd1deef98e761791d36a16312"
+  revision = "1f8be3aa2aebbf2a3225e26a5072b299a148e9e5"
 
 [[projects]]
   branch = "master"
@@ -84,7 +84,7 @@
     "service/elastictranscoder/elastictranscoderiface",
     "service/sts"
   ]
-  revision = "59a00e612400e688c7553db01b9b394368660a34"
+  revision = "17fa5fcd6b0c8da076ef41e6a3a25385e9c129ff"
 
 [[projects]]
   branch = "master"
@@ -101,7 +101,7 @@
     "models",
     "services"
   ]
-  revision = "5c58be963ea93ba9508cdfbcc64c4ad8bae115ff"
+  revision = "a31cb3f07f0f4ed42820c2bcc6dfdf6bbd93607d"
 
 [[projects]]
   branch = "master"
@@ -414,7 +414,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "d866cfc389cec985d6fda2859936a575a55a3ab6"
+  revision = "434ec0c7fe3742c984919a691b2018a6e9694425"
 
 [[projects]]
   branch = "master"
@@ -426,7 +426,7 @@
     "jws",
     "jwt"
   ]
-  revision = "876b1c6ee618a9f8fa31ded3b27708d44b3153af"
+  revision = "30785a2c434e431ef7c507b54617d6a951d5f2b4"
 
 [[projects]]
   branch = "master"
@@ -435,7 +435,7 @@
     "unix",
     "windows"
   ]
-  revision = "a3f2cbd54cf5dfe3fbaccf76375fdb12f67654c8"
+  revision = "d38bf781f16e180a1b2ad82697d2f81d7b7ecfac"
 
 [[projects]]
   branch = "master"
@@ -468,7 +468,7 @@
     "googleapi/internal/uritemplates",
     "logging/v2"
   ]
-  revision = "251495678c7835dbcdc35027844ab32f2fcee7a0"
+  revision = "e5c227fa33ebccc5a430d863efae400431fc0e85"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -519,8 +519,8 @@
     "tap",
     "transport"
   ]
-  revision = "f3955b8e9e244dd4dd4bc4f7b7a23a8445400a76"
-  version = "v1.9.0"
+  revision = "7cea4cc846bcf00cbb27595b07da5de875ef7de9"
+  version = "v1.9.1"
 
 [solve-meta]
   analyzer-name = "dep"

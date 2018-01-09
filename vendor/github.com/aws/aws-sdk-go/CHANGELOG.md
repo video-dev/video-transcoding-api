@@ -1,3 +1,25 @@
+Release v1.12.57 (2018-01-08)
+===
+
+### Service Client Updates
+* `service/codedeploy`: Updates service API and documentation
+  * The AWS CodeDeploy API was updated to support DeleteGitHubAccountToken, a new method that deletes a GitHub account connection.
+* `service/discovery`: Updates service API and documentation
+  * Documentation updates for AWS Application Discovery Service.
+* `service/route53`: Updates service API and documentation
+  * This release adds an exception to the CreateTrafficPolicyVersion API operation.
+
+Release v1.12.56 (2018-01-05)
+===
+
+### Service Client Updates
+* `service/inspector`: Updates service API, documentation, and examples
+  * Added 2 new attributes to the DescribeAssessmentTemplate response, indicating the total number of assessment runs and last assessment run ARN (if present.)
+* `service/snowball`: Updates service documentation
+  * Documentation updates for snowball
+* `service/ssm`: Updates service documentation
+  * Documentation updates for ssm
+
 Release v1.12.55 (2018-01-02)
 ===
 

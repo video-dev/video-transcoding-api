@@ -12,6 +12,7 @@ import (
 	"github.com/NYTimes/logrotate"
 	"github.com/go-kit/kit/metrics"
 	"github.com/go-kit/kit/metrics/provider"
+	"github.com/gorilla/mux"
 
 	"github.com/sirupsen/logrus"
 	"golang.org/x/net/context"
@@ -204,6 +205,17 @@ func (r *RPCServer) safelyExecuteHTTPRequest(w http.ResponseWriter, req *http.Re
 		}
 	}()
 
+	// lookup metric name if we can
+	registeredPath := req.URL.Path
+	if muxr, ok := r.mux.(*GorillaRouter); ok {
+		var match mux.RouteMatch
+		if muxr.mux.Match(req, &match) {
+			tmpl, err := match.Route.GetPathTemplate()
+			if err == nil {
+				registeredPath = tmpl
+			}
+		}
+	}
 	TimedAndCounted(http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
 		if req.Body != nil {
 			defer func() {
@@ -213,7 +225,7 @@ func (r *RPCServer) safelyExecuteHTTPRequest(w http.ResponseWriter, req *http.Re
 			}()
 		}
 		r.svc.Middleware(r.mux).ServeHTTP(w, req)
-	}), req.URL.Path, req.Method, r.mets).ServeHTTP(w, req)
+	}), registeredPath, req.Method, r.mets).ServeHTTP(w, req)
 }
 
 // LogRPCWithFields will feed any request context into a logrus Entry.
