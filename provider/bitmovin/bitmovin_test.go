@@ -1081,6 +1081,7 @@ func TestTranscodeFailsOnGenericError(t *testing.T) {
 func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 	testJobID := "this_is_a_job_id"
 	manifestID := "this_is_the_underlying_manifest_id"
+	muxingID := "test_muxing_id"
 	customData := make(map[string]interface{})
 	customData["manifest"] = manifestID
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1143,6 +1144,34 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4":
+			resp := models.MP4MuxingListResponse{
+				Data: models.MP4MuxingListData{
+					Result: models.MP4MuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.MP4Muxing{{
+							ID:       stringToPtr(muxingID),
+							Filename: stringToPtr("test_file.mp4"),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + muxingID + "/information":
+			resp := models.MP4MuxingInformationResponse{
+				Data: models.MP4MuxingInformationData{
+					Result: models.MP4MuxingInformationResult{
+						ContainerFormat: stringToPtr("mpeg-4"),
+						FileSize:        intToPtr(3),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		default:
 			t.Fatalf("unexpected path hit: %v", r.URL.Path)
 		}
@@ -1171,6 +1200,14 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some-output-bucket/job-123/",
+			Files: []provider.OutputFile{{
+				Path:       "s3://some-output-bucket/job-123/test_file.mp4",
+				Container:  "mpeg-4",
+				FileSize:   3,
+				VideoCodec: "h264",
+				Width:      1280,
+				Height:     720,
+			}},
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1180,6 +1217,7 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 
 func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeeded(t *testing.T) {
 	testJobID := "this_is_a_job_id"
+	muxingID := "test_muxing_id"
 	customData := make(map[string]interface{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -1232,6 +1270,34 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4":
+			resp := models.MP4MuxingListResponse{
+				Data: models.MP4MuxingListData{
+					Result: models.MP4MuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.MP4Muxing{{
+							ID:       stringToPtr(muxingID),
+							Filename: stringToPtr("test_file.mp4"),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + muxingID + "/information":
+			resp := models.MP4MuxingInformationResponse{
+				Data: models.MP4MuxingInformationData{
+					Result: models.MP4MuxingInformationResult{
+						ContainerFormat: stringToPtr("mpeg-4"),
+						FileSize:        intToPtr(3),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		default:
 			t.Fatalf("unexpected path hit: %v", r.URL.Path)
 		}
@@ -1259,6 +1325,14 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some-output-bucket/job-123/",
+			Files: []provider.OutputFile{{
+				Path:       "s3://some-output-bucket/job-123/test_file.mp4",
+				Container:  "mpeg-4",
+				FileSize:   3,
+				VideoCodec: "h264",
+				Width:      1280,
+				Height:     720,
+			}},
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {

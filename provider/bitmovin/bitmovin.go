@@ -931,6 +931,11 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		if err != nil {
 			return nil, err
 		}
+
+		err = p.addOutputFilesInfo(job, &jobStatus)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &jobStatus, nil
@@ -987,28 +992,83 @@ func (p *bitmovinProvider) addOutputStatusInfo(job *db.Job, status *provider.Job
 	return nil
 }
 
+func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
+	// TODO: we only have info for MP4. Need to add for webm and mov.
+
+	muxings, err := p.listMP4Muxing(job.ProviderJobID)
+	if err != nil {
+		return err
+	}
+
+	encodingS := services.NewEncodingService(p.client)
+	var files []provider.OutputFile
+	for _, muxing := range muxings {
+		resp, err := encodingS.RetrieveMP4MuxingInformation(job.ProviderJobID, stringValue(muxing.ID))
+		if err != nil {
+			return err
+		}
+
+		info := resp.Data.Result
+		if len(info.VideoTracks) == 0 {
+			return fmt.Errorf("no video track found for encodingID %s muxingID %s", job.ProviderJobID, stringValue(muxing.ID))
+		}
+
+		files = append(files, provider.OutputFile{
+			Path:       status.Output.Destination + stringValue(muxing.Filename),
+			Container:  stringValue(info.ContainerFormat),
+			FileSize:   int64Value(info.FileSize),
+			VideoCodec: stringValue(info.VideoTracks[0].Codec),
+			Width:      int64Value(info.VideoTracks[0].FrameWidth),
+			Height:     int64Value(info.VideoTracks[0].FrameHeight),
+		})
+	}
+
+	status.Output.Files = append(status.Output.Files, files...)
+	return nil
+}
+
+func (p *bitmovinProvider) listMP4Muxing(jobID string) ([]models.MP4Muxing, error) {
+	encodingS := services.NewEncodingService(p.client)
+
+	var totalCount int64 = 1
+	var muxings []models.MP4Muxing
+	for int64(len(muxings)) < totalCount {
+		resp, err := encodingS.ListMP4Muxing(jobID, int64(len(muxings)), 100)
+		if err != nil {
+			return nil, err
+		}
+		totalCount = int64Value(resp.Data.Result.TotalCount)
+		muxings = append(muxings, resp.Data.Result.Items...)
+	}
+
+	return muxings, nil
+}
+
 func (p *bitmovinProvider) addSourceInfo(job *db.Job, status *provider.JobStatus) error {
 	encodingS := services.NewEncodingService(p.client)
 	resp, err := encodingS.ListStream(job.ProviderJobID, 0, 1)
 	if err != nil {
 		return err
 	}
-	if len(resp.Data.Result.Items) > 0 {
-		streamID := stringValue(resp.Data.Result.Items[0].ID)
-		streamInput, err := encodingS.RetrieveStreamInputData(job.ProviderJobID, streamID)
-		if err != nil {
-			return err
-		}
-		var videoStream models.StreamInputVideo
-		if len(streamInput.Data.Result.VideoStreams) > 0 {
-			videoStream = streamInput.Data.Result.VideoStreams[0]
-		}
-		status.SourceInfo = provider.SourceInfo{
-			Duration:   time.Duration(floatValue(streamInput.Data.Result.Duration) * float64(time.Second)),
-			Width:      int64Value(videoStream.Width),
-			Height:     int64Value(videoStream.Height),
-			VideoCodec: stringValue(videoStream.Codec),
-		}
+	if len(resp.Data.Result.Items) == 0 {
+		return fmt.Errorf("no stream item found for encodingID %s", job.ProviderJobID)
+	}
+
+	streamID := stringValue(resp.Data.Result.Items[0].ID)
+	streamInput, err := encodingS.RetrieveStreamInputData(job.ProviderJobID, streamID)
+	if err != nil {
+		return err
+	}
+	if len(streamInput.Data.Result.VideoStreams) == 0 {
+		return fmt.Errorf("no video stream input found for encodingID %s streamID %s", job.ProviderJobID, streamID)
+	}
+
+	videoStream := streamInput.Data.Result.VideoStreams[0]
+	status.SourceInfo = provider.SourceInfo{
+		Duration:   time.Duration(floatValue(streamInput.Data.Result.Duration) * float64(time.Second)),
+		Width:      int64Value(videoStream.Width),
+		Height:     int64Value(videoStream.Height),
+		VideoCodec: stringValue(videoStream.Codec),
 	}
 	return nil
 }
