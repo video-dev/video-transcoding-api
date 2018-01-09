@@ -404,6 +404,20 @@ func (s *EncodingService) RetrieveMP4MuxingCustomData(encodingID string, mp4ID s
 	return &r, nil
 }
 
+func (s *EncodingService) RetrieveMP4MuxingInformation(encodingID string, mp4MuxingID string) (*models.MP4MuxingInformationResponse, error) {
+	path := EncodingEndpoint + "/" + encodingID + "/" + "muxings/mp4" + "/" + mp4MuxingID + "/information"
+	o, err := s.RestService.Retrieve(path)
+	if err != nil {
+		return nil, err
+	}
+	var r models.MP4MuxingInformationResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 func (s *EncodingService) AddProgressiveMOVMuxing(encodingID string, a *models.ProgressiveMOVMuxing) (*models.ProgressiveMOVMuxingResponse, error) {
 	b, err := json.Marshal(*a)
 	if err != nil {
