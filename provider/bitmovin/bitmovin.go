@@ -1000,9 +1000,9 @@ func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobS
 		return err
 	}
 
+	encodingS := services.NewEncodingService(p.client)
 	var files []provider.OutputFile
 	for _, muxing := range muxings {
-		encodingS := services.NewEncodingService(p.client)
 		resp, err := encodingS.RetrieveMP4MuxingInformation(job.ProviderJobID, stringValue(muxing.ID))
 		if err != nil {
 			return err
