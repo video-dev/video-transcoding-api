@@ -912,6 +912,9 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 			"message":        stringValue(statusResp.Data.Message),
 			"originalStatus": stringValue(statusResp.Data.Result.Status),
 		},
+		Output: provider.JobOutput{
+			Destination: strings.TrimRight(p.config.Destination, "/") + "/" + job.ID + "/",
+		},
 	}
 
 	if jobStatus.Status == provider.StatusFinished {
@@ -919,11 +922,6 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 		if err != nil {
 			return nil, err
 		}
-	}
-
-	err = p.addOutputStatusInfo(job, &jobStatus)
-	if err != nil {
-		return nil, err
 	}
 
 	if jobStatus.Status == provider.StatusFinished {
@@ -985,16 +983,19 @@ func (p *bitmovinProvider) addManifestStatusInfo(status *provider.JobStatus) err
 	return nil
 }
 
-func (p *bitmovinProvider) addOutputStatusInfo(job *db.Job, status *provider.JobStatus) error {
-	status.Output = provider.JobOutput{
-		Destination: strings.TrimRight(p.config.Destination, "/") + "/" + job.ID + "/",
+func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
+	err := p.addMP4OutputFilesInfo(job, status)
+	if err != nil {
+		return err
 	}
-	return nil
+	err = p.addWebmOutputFilesInfo(job, status)
+	if err != nil {
+		return err
+	}
+	return p.addMOVOutputFilesInfo(job, status)
 }
 
-func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
-	// TODO: we only have info for MP4. Need to add for webm and mov.
-
+func (p *bitmovinProvider) addMP4OutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
 	muxings, err := p.listMP4Muxing(job.ProviderJobID)
 	if err != nil {
 		return err
@@ -1034,6 +1035,100 @@ func (p *bitmovinProvider) listMP4Muxing(jobID string) ([]models.MP4Muxing, erro
 	var muxings []models.MP4Muxing
 	for int64(len(muxings)) < totalCount {
 		resp, err := encodingS.ListMP4Muxing(jobID, int64(len(muxings)), 100)
+		if err != nil {
+			return nil, err
+		}
+		totalCount = int64Value(resp.Data.Result.TotalCount)
+		muxings = append(muxings, resp.Data.Result.Items...)
+	}
+
+	return muxings, nil
+}
+
+func (p *bitmovinProvider) addWebmOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
+	muxings, err := p.listWebmMuxing(job.ProviderJobID)
+	if err != nil {
+		return err
+	}
+
+	encodingS := services.NewEncodingService(p.client)
+	for _, muxing := range muxings {
+		resp, err := encodingS.RetrieveProgressiveWebMMuxingInformation(job.ProviderJobID, stringValue(muxing.ID))
+		if err != nil {
+			return err
+		}
+
+		info := resp.Data.Result
+		if len(info.VideoTracks) == 0 {
+			return fmt.Errorf("no video track found for encodingID %s muxingID %s", job.ProviderJobID, stringValue(muxing.ID))
+		}
+
+		status.Output.Files = append(status.Output.Files, provider.OutputFile{
+			Path:       status.Output.Destination + stringValue(muxing.Filename),
+			Container:  stringValue(info.ContainerFormat),
+			FileSize:   int64Value(info.FileSize),
+			VideoCodec: stringValue(info.VideoTracks[0].Codec),
+			Width:      int64Value(info.VideoTracks[0].FrameWidth),
+			Height:     int64Value(info.VideoTracks[0].FrameHeight),
+		})
+	}
+	return nil
+}
+
+func (p *bitmovinProvider) listWebmMuxing(jobID string) ([]models.ProgressiveWebMMuxing, error) {
+	encodingS := services.NewEncodingService(p.client)
+
+	var totalCount int64 = 1
+	var muxings []models.ProgressiveWebMMuxing
+	for int64(len(muxings)) < totalCount {
+		resp, err := encodingS.ListProgressiveWebMMuxing(jobID, int64(len(muxings)), 100)
+		if err != nil {
+			return nil, err
+		}
+		totalCount = int64Value(resp.Data.Result.TotalCount)
+		muxings = append(muxings, resp.Data.Result.Items...)
+	}
+
+	return muxings, nil
+}
+
+func (p *bitmovinProvider) addMOVOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
+	muxings, err := p.listMOVMuxing(job.ProviderJobID)
+	if err != nil {
+		return err
+	}
+
+	encodingS := services.NewEncodingService(p.client)
+	for _, muxing := range muxings {
+		resp, err := encodingS.RetrieveProgressiveMOVMuxingInformation(job.ProviderJobID, stringValue(muxing.ID))
+		if err != nil {
+			return err
+		}
+
+		info := resp.Data.Result
+		if len(info.VideoTracks) == 0 {
+			return fmt.Errorf("no video track found for encodingID %s muxingID %s", job.ProviderJobID, stringValue(muxing.ID))
+		}
+
+		status.Output.Files = append(status.Output.Files, provider.OutputFile{
+			Path:       status.Output.Destination + stringValue(muxing.Filename),
+			Container:  stringValue(info.ContainerFormat),
+			FileSize:   int64Value(info.FileSize),
+			VideoCodec: stringValue(info.VideoTracks[0].Codec),
+			Width:      int64Value(info.VideoTracks[0].FrameWidth),
+			Height:     int64Value(info.VideoTracks[0].FrameHeight),
+		})
+	}
+	return nil
+}
+
+func (p *bitmovinProvider) listMOVMuxing(jobID string) ([]models.ProgressiveMOVMuxing, error) {
+	encodingS := services.NewEncodingService(p.client)
+
+	var totalCount int64 = 1
+	var muxings []models.ProgressiveMOVMuxing
+	for int64(len(muxings)) < totalCount {
+		resp, err := encodingS.ListProgressiveMOVMuxing(jobID, int64(len(muxings)), 100)
 		if err != nil {
 			return nil, err
 		}

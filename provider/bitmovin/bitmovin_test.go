@@ -1079,9 +1079,14 @@ func TestTranscodeFailsOnGenericError(t *testing.T) {
 }
 
 func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
-	testJobID := "this_is_a_job_id"
-	manifestID := "this_is_the_underlying_manifest_id"
-	muxingID := "test_muxing_id"
+	const (
+		testJobID    = "this_is_a_job_id"
+		manifestID   = "this_is_the_underlying_manifest_id"
+		mp4MuxingID  = "test_mp4_muxing_id"
+		webmMuxingID = "test_webm_muxing_id"
+		movMuxingID  = "test_mov_muxing_id"
+	)
+
 	customData := make(map[string]interface{})
 	customData["manifest"] = manifestID
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1150,14 +1155,14 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 					Result: models.MP4MuxingListResult{
 						TotalCount: intToPtr(1),
 						Items: []models.MP4Muxing{{
-							ID:       stringToPtr(muxingID),
+							ID:       stringToPtr(mp4MuxingID),
 							Filename: stringToPtr("test_file.mp4"),
 						}},
 					},
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
-		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + muxingID + "/information":
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + mp4MuxingID + "/information":
 			resp := models.MP4MuxingInformationResponse{
 				Data: models.MP4MuxingInformationData{
 					Result: models.MP4MuxingInformationResult{
@@ -1167,6 +1172,66 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 							Codec:       stringToPtr("h264"),
 							FrameWidth:  intToPtr(1280),
 							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm":
+			resp := models.ProgressiveWebMMuxingListResponse{
+				Data: models.ProgressiveWebMMuxingListData{
+					Result: models.ProgressiveWebMMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveWebMMuxing{
+							{
+								ID:       stringToPtr(webmMuxingID),
+								Filename: stringToPtr("test_file.webm"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm/" + webmMuxingID + "/information":
+			resp := models.ProgressiveWebMMuxingInformationResponse{
+				Data: models.ProgressiveWebMMuxingInformationData{
+					Result: models.ProgressiveWebMMuxingInformationResult{
+						ContainerFormat: stringToPtr("webm"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("vp8"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingListResponse{
+				Data: models.ProgressiveMOVMuxingListData{
+					Result: models.ProgressiveMOVMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveMOVMuxing{
+							{
+								ID:       stringToPtr(movMuxingID),
+								Filename: stringToPtr("test_file.mov"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov/" + movMuxingID + "/information":
+			resp := models.ProgressiveMOVMuxingInformationResponse{
+				Data: models.ProgressiveMOVMuxingInformationData{
+					Result: models.ProgressiveMOVMuxingInformationResult{
+						ContainerFormat: stringToPtr("mov"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1920),
+							FrameHeight: intToPtr(1080),
 						}},
 					},
 				},
@@ -1200,14 +1265,32 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some-output-bucket/job-123/",
-			Files: []provider.OutputFile{{
-				Path:       "s3://some-output-bucket/job-123/test_file.mp4",
-				Container:  "mpeg-4",
-				FileSize:   3,
-				VideoCodec: "h264",
-				Width:      1280,
-				Height:     720,
-			}},
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mp4",
+					Container:  "mpeg-4",
+					FileSize:   3,
+					VideoCodec: "h264",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.webm",
+					Container:  "webm",
+					FileSize:   9,
+					VideoCodec: "vp8",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mov",
+					Container:  "mov",
+					FileSize:   9,
+					VideoCodec: "h264",
+					Width:      1920,
+					Height:     1080,
+				},
+			},
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1216,8 +1299,14 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 }
 
 func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeeded(t *testing.T) {
-	testJobID := "this_is_a_job_id"
-	muxingID := "test_muxing_id"
+	const (
+		testJobID    = "this_is_a_job_id"
+		manifestID   = "this_is_the_underlying_manifest_id"
+		mp4MuxingID  = "test_mp4_muxing_id"
+		webmMuxingID = "test_webm_muxing_id"
+		movMuxingID  = "test_mov_muxing_id"
+	)
+
 	customData := make(map[string]interface{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -1276,14 +1365,14 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 					Result: models.MP4MuxingListResult{
 						TotalCount: intToPtr(1),
 						Items: []models.MP4Muxing{{
-							ID:       stringToPtr(muxingID),
+							ID:       stringToPtr(mp4MuxingID),
 							Filename: stringToPtr("test_file.mp4"),
 						}},
 					},
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
-		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + muxingID + "/information":
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + mp4MuxingID + "/information":
 			resp := models.MP4MuxingInformationResponse{
 				Data: models.MP4MuxingInformationData{
 					Result: models.MP4MuxingInformationResult{
@@ -1293,6 +1382,66 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 							Codec:       stringToPtr("h264"),
 							FrameWidth:  intToPtr(1280),
 							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm":
+			resp := models.ProgressiveWebMMuxingListResponse{
+				Data: models.ProgressiveWebMMuxingListData{
+					Result: models.ProgressiveWebMMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveWebMMuxing{
+							{
+								ID:       stringToPtr(webmMuxingID),
+								Filename: stringToPtr("test_file.webm"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm/" + webmMuxingID + "/information":
+			resp := models.ProgressiveWebMMuxingInformationResponse{
+				Data: models.ProgressiveWebMMuxingInformationData{
+					Result: models.ProgressiveWebMMuxingInformationResult{
+						ContainerFormat: stringToPtr("webm"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("vp8"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingListResponse{
+				Data: models.ProgressiveMOVMuxingListData{
+					Result: models.ProgressiveMOVMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveMOVMuxing{
+							{
+								ID:       stringToPtr(movMuxingID),
+								Filename: stringToPtr("test_file.mov"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov/" + movMuxingID + "/information":
+			resp := models.ProgressiveMOVMuxingInformationResponse{
+				Data: models.ProgressiveMOVMuxingInformationData{
+					Result: models.ProgressiveMOVMuxingInformationResult{
+						ContainerFormat: stringToPtr("mov"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1920),
+							FrameHeight: intToPtr(1080),
 						}},
 					},
 				},
@@ -1325,14 +1474,32 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 		},
 		Output: provider.JobOutput{
 			Destination: "s3://some-output-bucket/job-123/",
-			Files: []provider.OutputFile{{
-				Path:       "s3://some-output-bucket/job-123/test_file.mp4",
-				Container:  "mpeg-4",
-				FileSize:   3,
-				VideoCodec: "h264",
-				Width:      1280,
-				Height:     720,
-			}},
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mp4",
+					Container:  "mpeg-4",
+					FileSize:   3,
+					VideoCodec: "h264",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.webm",
+					Container:  "webm",
+					FileSize:   9,
+					VideoCodec: "vp8",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mov",
+					Container:  "mov",
+					FileSize:   9,
+					VideoCodec: "h264",
+					Width:      1920,
+					Height:     1080,
+				},
+			},
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
