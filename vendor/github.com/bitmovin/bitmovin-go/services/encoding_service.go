@@ -492,6 +492,20 @@ func (s *EncodingService) RetrieveProgressiveMOVMuxingCustomData(encodingID stri
 	return &r, nil
 }
 
+func (s *EncodingService) RetrieveProgressiveMOVMuxingInformation(encodingID string, progressiveWebMID string) (*models.ProgressiveMOVMuxingInformationResponse, error) {
+	path := EncodingEndpoint + "/" + encodingID + "/" + "muxings/progressive-mov" + "/" + progressiveWebMID + "/information"
+	o, err := s.RestService.Retrieve(path)
+	if err != nil {
+		return nil, err
+	}
+	var r models.ProgressiveMOVMuxingInformationResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 func (s *EncodingService) AddProgressiveWebMMuxing(encodingID string, a *models.ProgressiveWebMMuxing) (*models.ProgressiveWebMMuxingResponse, error) {
 	b, err := json.Marshal(*a)
 	if err != nil {
@@ -559,6 +573,20 @@ func (s *EncodingService) RetrieveProgressiveWebMMuxingCustomData(encodingID str
 		return nil, err
 	}
 	var r models.CustomDataResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (s *EncodingService) RetrieveProgressiveWebMMuxingInformation(encodingID string, progressiveWebMID string) (*models.ProgressiveWebMMuxingInformationResponse, error) {
+	path := EncodingEndpoint + "/" + encodingID + "/" + "muxings/progressive-webm" + "/" + progressiveWebMID + "/information"
+	o, err := s.RestService.Retrieve(path)
+	if err != nil {
+		return nil, err
+	}
+	var r models.ProgressiveWebMMuxingInformationResponse
 	err = json.Unmarshal(o, &r)
 	if err != nil {
 		return nil, err
