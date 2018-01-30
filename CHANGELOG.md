@@ -1,3 +1,25 @@
+## Version 1.3.4 (Release date: 2018-01-30)
+([3e2de79](https://github.com/nytimes/video-transcoding-api/commit/3e2de79)) Update dependencies 
+
+
+([fad3c83](https://github.com/nytimes/video-transcoding-api/commit/fad3c83)) provider/bitmovin: add metadata info for webm and mov files 
+
+([1d38677](https://github.com/nytimes/video-transcoding-api/commit/1d38677)) Gopkg: update bitmovin-go and add prune config 
+
+([1df0ec5](https://github.com/nytimes/video-transcoding-api/commit/1df0ec5)) Makefile: use fast linters 
+
+
+([97f11c8](https://github.com/nytimes/video-transcoding-api/commit/97f11c8)) provider/bitmovin: move creating encoding service out of a loop 
+
+([eb843bc](https://github.com/nytimes/video-transcoding-api/commit/eb843bc)) provider/bitmovin: return error if any expected data is missing for job status 
+
+([8676701](https://github.com/nytimes/video-transcoding-api/commit/8676701)) provider/bitmovin: add mp4 output files metadata to finished jobs 
+
+([ebb8fd4](https://github.com/nytimes/video-transcoding-api/commit/ebb8fd4)) update vendor bitmovin sdk 
+
+
+
+
 ## Version 1.3.3 (Release date: 2018-01-09)
 ([68213de](https://github.com/nytimes/video-transcoding-api/commit/68213de)) Update dependencies 
 
