@@ -715,6 +715,38 @@ func (s *EncodingService) ListThumbnails(encodingID, streamID string, offset, li
 	return &r, nil
 }
 
+func (s *EncodingService) AddSprites(encodingID, streamID string, sprite *models.Sprite) (*models.SpriteResponse, error) {
+	payload, err := json.Marshal(sprite)
+	if err != nil {
+		return nil, err
+	}
+
+	path := EncodingEndpoint + "/" + encodingID + "/streams/" + streamID + "/sprites"
+	resp, err := s.RestService.Create(path, payload)
+	if err != nil {
+		return nil, err
+	}
+	var r models.SpriteResponse
+	if err := json.Unmarshal(resp, &r); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func (s *EncodingService) ListSprites(encodingID, streamID string, offset, limit int64) (*models.SpriteListResponse, error) {
+	path := EncodingEndpoint + "/" + encodingID + "/" + streamID + "/sprites"
+	o, err := s.RestService.List(path, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	var r models.SpriteListResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 func (s *EncodingService) AddFilter(encodingID, streamID, filterID string, position int64) (*models.AddFilterResponse, error) {
 	path := fmt.Sprintf("%s/%s/streams/%s/filters", EncodingEndpoint, encodingID, streamID)
 	f := &models.AddFilter{ID: filterID, Position: &position}

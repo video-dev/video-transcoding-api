@@ -261,6 +261,65 @@ type S3InputListResponse struct {
 	Data      S3InputListData              `json:"data,omitempty"`
 }
 
+type GenericS3Input struct {
+	ID          *string                `json:"id,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	CustomData  map[string]interface{} `json:"customData,omitempty"`
+	AccessKey   *string                `json:"accessKey,omitempty"`
+	SecretKey   *string                `json:"secretKey,omitempty"`
+	BucketName  *string                `json:"bucketName,omitempty"`
+	Host        *string                `json:"host,omitempty"`
+	Port        *int64                 `json:"port,omitempty"`
+}
+
+type GenericS3InputItem struct {
+	ID          *string `json:"id,omitempty"`
+	Name        *string `json:"name,omitempty"`
+	Description *string `json:"description,omitempty"`
+	BucketName  *string `json:"bucketName,omitempty"`
+	Host        *string `json:"host,omitempty"`
+	Port        *int64  `json:"port,omitempty"`
+	CreatedAt   *string `json:"createdAt,omitempty"`
+	UpdatedAt   *string `json:"updatedAt,omitempty"`
+}
+
+type GenericS3InputData struct {
+	//Success fields
+	Result   GenericS3InputItem `json:"result,omitempty"`
+	Messages []Message          `json:"messages,omitempty"`
+
+	//Error fields
+	Code             *int64   `json:"code,omitempty"`
+	Message          *string  `json:"message,omitempty"`
+	DeveloperMessage *string  `json:"developerMessage,omitempty"`
+	Links            []Link   `json:"links,omitempty"`
+	Details          []Detail `json:"details,omitempty"`
+}
+
+type GenericS3InputResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      GenericS3InputData           `json:"data,omitempty"`
+}
+
+type GenericS3InputListResult struct {
+	TotalCount *int64               `json:"totalCount,omitempty"`
+	Previous   *string              `json:"previous,omitempty"`
+	Next       *string              `json:"next,omitempty"`
+	Items      []GenericS3InputItem `json:"items,omitempty"`
+}
+
+type GenericS3InputListData struct {
+	Result GenericS3InputListResult `json:"result,omitempty"`
+}
+
+type GenericS3InputListResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      GenericS3InputListData       `json:"data,omitempty"`
+}
+
 type SFTPInput struct {
 	ID          *string                `json:"id,omitempty"`
 	Name        *string                `json:"name,omitempty"`

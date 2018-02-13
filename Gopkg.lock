@@ -23,6 +23,7 @@
   revision = "36fb9db91f136e65449cdb64497f28ec0b9f6685"
 
 [[projects]]
+  branch = "master"
   name = "github.com/NYTimes/gizmo"
   packages = [
     "config",
@@ -30,8 +31,7 @@
     "server",
     "web"
   ]
-  revision = "e6489d1782e5e9cb39b1df5e9ed33e2ce033c842"
-  version = "v0.1.0"
+  revision = "6fdbe2c1590e782aedb01eb3510fc0d9580bf3bd"
 
 [[projects]]
   branch = "master"
@@ -84,7 +84,7 @@
     "service/elastictranscoder/elastictranscoderiface",
     "service/sts"
   ]
-  revision = "00cca3f093a8236a93fbbeeae7d28ad83811683c"
+  revision = "e42d74a2cc63cbef14cc85399ad04181da129ded"
 
 [[projects]]
   branch = "master"
@@ -100,8 +100,8 @@
     "models",
     "services"
   ]
-  revision = "a21185445d7413d5e27672b75b56d39f0cd6d122"
-  version = "v1.5.4"
+  revision = "688c65bc2a00ee5ef568610d9698f8343cc3c0c2"
+  version = "v1.6.0"
 
 [[projects]]
   branch = "master"
@@ -125,7 +125,7 @@
   branch = "master"
   name = "github.com/fsouza/ctxlogger"
   packages = ["."]
-  revision = "19d92a651a3df41492d305439c41734e3383dac0"
+  revision = "e2607d8d38c6f05258ee4f62235abaa69ab7faa6"
 
 [[projects]]
   name = "github.com/go-ini/ini"
@@ -180,7 +180,6 @@
   version = "v1.7.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -190,6 +189,7 @@
     "ptypes/timestamp"
   ]
   revision = "925541529c1fa6821df4e44ce2723319eb2be768"
+  version = "v1.0.0"
 
 [[projects]]
   branch = "master"
@@ -222,8 +222,8 @@
 [[projects]]
   name = "github.com/hashicorp/consul"
   packages = ["api"]
-  revision = "48f3dd5642374d079f5a64359023fb8318eb81cc"
-  version = "v1.0.3"
+  revision = "9a494b5fb9c86180a5702e29c485df1507a47198"
+  version = "v1.0.6"
 
 [[projects]]
   branch = "master"
@@ -383,13 +383,13 @@
     "nfs",
     "xfs"
   ]
-  revision = "cb4147076ac75738c9a7d279075a253c0cc5acbd"
+  revision = "282c8707aa210456a825798969cc27edda34992a"
 
 [[projects]]
   branch = "master"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "768a92a02685ee7535069fc1581341b41bab9b72"
+  revision = "8c0189d9f6bbf301e5d055d34268156b317016af"
 
 [[projects]]
   name = "github.com/tinylib/msgp"
@@ -401,7 +401,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "1875d0a70c90e57f11972aefd42276df65e895b9"
+  revision = "9de5f2eaf759b4c4550b3db39fed2e9e5f86f45c"
 
 [[projects]]
   branch = "master"
@@ -416,7 +416,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "0ed95abb35c445290478a5348a7b38bb154135fd"
+  revision = "f5dfe339be1d06f81b22525fe34671ee7d2c8904"
 
 [[projects]]
   branch = "master"
@@ -428,7 +428,7 @@
     "jws",
     "jwt"
   ]
-  revision = "a032972e28060ca4f5644acffae3dfc268cc09db"
+  revision = "543e37812f10c46c622c9575afd7ad22f22a12ba"
 
 [[projects]]
   branch = "master"
@@ -437,7 +437,7 @@
     "unix",
     "windows"
   ]
-  revision = "3dbebcf8efb6a5011a60c2b4591c1022a759af8a"
+  revision = "37707fdb30a5b38865cfb95e5aab41707daec7fd"
 
 [[projects]]
   branch = "master"
@@ -458,7 +458,7 @@
     "unicode/norm",
     "unicode/rangetable"
   ]
-  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
+  revision = "4e4a3210bb54bb31f6ab2cdca2edcc0b50c420c1"
 
 [[projects]]
   branch = "master"
@@ -470,7 +470,7 @@
     "googleapi/internal/uritemplates",
     "logging/v2"
   ]
-  revision = "7d0e2d350555821bef5a5b8aecf0d12cc1def633"
+  revision = "644c193aa4421c00a67106abb92f5d942c09d558"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -493,7 +493,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "4eb30f4778eed4c258ba66527a0d4f9ec8a36c45"
+  revision = "2b5a72b8730b0b16380010cfe5286c42108d88e7"
 
 [[projects]]
   name = "google.golang.org/grpc"
