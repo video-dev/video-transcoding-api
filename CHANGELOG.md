@@ -1,3 +1,13 @@
+## Version 1.3.5 (Release date: 2018-02-13)
+([63d0810](https://github.com/nytimes/video-transcoding-api/commit/63d0810)) vendor: update dependencies 
+
+([e9c9751](https://github.com/nytimes/video-transcoding-api/commit/e9c9751)) Makefile: disable gotype on gometalinter 
+
+([cce824c](https://github.com/nytimes/video-transcoding-api/commit/cce824c)) drone: fix downstream calls 
+
+
+
+
 ## Version 1.3.4 (Release date: 2018-01-30)
 ([3e2de79](https://github.com/nytimes/video-transcoding-api/commit/3e2de79)) Update dependencies 
 
