@@ -25,7 +25,7 @@ func main() {
 	}
 	server.Init("video-transcoding-api", cfg.Server)
 	server.Log.Hooks.Add(logrus_stack.StandardHook())
-	server.Log.Hooks.Add(logrus_env.NewHook([]string{"ENVIRONMENT"}))
+	server.Log.Hooks.Add(logrus_env.NewHook([]string{"ENVIRONMENT", "SERVICE_NAME"}))
 
 	gcpLoggingHook, err := sdhook.New(
 		sdhook.GoogleLoggingAgent(),
