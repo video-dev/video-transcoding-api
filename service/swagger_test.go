@@ -8,6 +8,7 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/sirupsen/logrus"
 )
 
 func TestSwaggerManifest(t *testing.T) {
@@ -19,7 +20,11 @@ func TestSwaggerManifest(t *testing.T) {
 	}
 	srvr := server.NewSimpleServer(nil)
 	srvr.Register(&TranscodingService{
-		config: &config.Config{SwaggerManifest: "testdata/swagger.json"},
+		config: &config.Config{
+			SwaggerManifest: "testdata/swagger.json",
+			Server:          &server.Config{},
+		},
+		logger: logrus.New(),
 	})
 	r, _ := http.NewRequest("GET", "/swagger.json", nil)
 	w := httptest.NewRecorder()
