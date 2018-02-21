@@ -1,3 +1,13 @@
+## Version 1.4.0 (Release date: 2018-02-21)
+([5382f42](https://github.com/nytimes/video-transcoding-api/commit/5382f42)) service: support sending access logs through logrus logger 
+
+([4f2bd85](https://github.com/nytimes/video-transcoding-api/commit/4f2bd85)) Add SERVICE_NAME to log tags 
+
+([cca255b](https://github.com/nytimes/video-transcoding-api/commit/cca255b)) travis: Go 1.10 
+
+
+
+
 ## Version 1.3.5 (Release date: 2018-02-13)
 ([63d0810](https://github.com/nytimes/video-transcoding-api/commit/63d0810)) vendor: update dependencies 
 
