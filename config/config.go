@@ -4,6 +4,7 @@ import (
 	"github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/fsouza/gizmo-stackdriver-logging"
 )
 
 // Config is a struct to contain all the needed configuration for the
@@ -19,6 +20,7 @@ type Config struct {
 	Hybrik                 *Hybrik
 	Zencoder               *Zencoder
 	Bitmovin               *Bitmovin
+	Log                    *logging.Config
 }
 
 // EncodingCom represents the set of configurations for the Encoding.com
@@ -88,22 +90,7 @@ type Hybrik struct {
 
 // LoadConfig loads the configuration of the API using environment variables.
 func LoadConfig() *Config {
-	cfg := Config{
-		Redis:              new(storage.Config),
-		EncodingCom:        new(EncodingCom),
-		ElasticTranscoder:  new(ElasticTranscoder),
-		ElementalConductor: new(ElementalConductor),
-		Bitmovin:           new(Bitmovin),
-		Hybrik:             new(Hybrik),
-		Server:             new(server.Config),
-	}
+	var cfg Config
 	config.LoadEnvConfig(&cfg)
-	loadFromEnv(cfg.Redis, cfg.EncodingCom, cfg.ElasticTranscoder, cfg.ElementalConductor, cfg.Bitmovin, cfg.Hybrik, cfg.Server)
 	return &cfg
-}
-
-func loadFromEnv(cfgs ...interface{}) {
-	for _, cfg := range cfgs {
-		config.LoadEnvConfig(cfg)
-	}
 }

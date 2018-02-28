@@ -2,11 +2,13 @@ package config
 
 import (
 	"os"
-	"reflect"
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/fsouza/gizmo-stackdriver-logging"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {
@@ -48,6 +50,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"HTTP_ACCESS_LOG":                          accessLog,
 		"HTTP_PORT":                                "8080",
 		"DEFAULT_SEGMENT_DURATION":                 "3",
+		"LOGGING_LEVEL":                            "debug",
 	})
 	cfg := LoadConfig()
 	expectedCfg := Config{
@@ -68,6 +71,11 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			StatusEndpoint: "https://safe-status",
 			Region:         "sa-east-1",
 		},
+		Hybrik: &Hybrik{
+			ComplianceDate: "20170601",
+			PresetPath:     "transcoding-api-presets",
+		},
+		Zencoder: &Zencoder{},
 		ElasticTranscoder: &ElasticTranscoder{
 			AccessKeyID:     "AKIANOTREALLY",
 			SecretAccessKey: "secret-key",
@@ -98,27 +106,14 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			HTTPPort:      8080,
 			HTTPAccessLog: &accessLog,
 		},
+		Log: &logging.Config{
+			Level: "debug",
+			StackDriverErrorLogName: "error_log",
+		},
 	}
-	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
-		t.Errorf("LoadConfig(): wrong swagger manifest. Want %q. Got %q", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
-	}
-	if cfg.DefaultSegmentDuration != expectedCfg.DefaultSegmentDuration {
-		t.Errorf("LoadConfig(): wrong default segment duration. Want %q. Got %q", expectedCfg.DefaultSegmentDuration, cfg.DefaultSegmentDuration)
-	}
-	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
-		t.Errorf("LoadConfig(): wrong Redis config returned. Want %#v. Got %#v.", *expectedCfg.Redis, *cfg.Redis)
-	}
-	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
-		t.Errorf("LoadConfig(): wrong EncodingCom config returned. Want %#v. Got %#v.", *expectedCfg.EncodingCom, *cfg.EncodingCom)
-	}
-	if !reflect.DeepEqual(*cfg.ElasticTranscoder, *expectedCfg.ElasticTranscoder) {
-		t.Errorf("LoadConfig(): wrong ElasticTranscoder config returned. Want %#v. Got %#v.", *expectedCfg.ElasticTranscoder, *cfg.ElasticTranscoder)
-	}
-	if !reflect.DeepEqual(*cfg.Bitmovin, *expectedCfg.Bitmovin) {
-		t.Errorf("LoadConfig(): wrong Bitmovin config returned. Want %#v. Got %#v.", *expectedCfg.Bitmovin, *cfg.Bitmovin)
-	}
-	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
-		t.Errorf("LoadConfig(): wrong Elemental Conductor config returned. Want %#v. Got %#v.", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
+	diff := cmp.Diff(*cfg, expectedCfg, cmpopts.IgnoreUnexported(server.Config{}))
+	if diff != "" {
+		t.Errorf("LoadConfig(): wrong config\nWant %#v\nGot %#v\nDiff: %v", expectedCfg, *cfg, diff)
 	}
 }
 
@@ -190,6 +185,11 @@ func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 			SecretAccessKey: "secret-key",
 			Destination:     "https://safe-stuff",
 		},
+		Hybrik: &Hybrik{
+			ComplianceDate: "20170601",
+			PresetPath:     "transcoding-api-presets",
+		},
+		Zencoder: &Zencoder{},
 		Bitmovin: &Bitmovin{
 			APIKey:           "secret-key",
 			Endpoint:         "https://api.bitmovin.com/v1/",
@@ -205,30 +205,14 @@ func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 			HTTPPort:      8080,
 			HTTPAccessLog: &accessLog,
 		},
+		Log: &logging.Config{
+			Level: "info",
+			StackDriverErrorLogName: "error_log",
+		},
 	}
-	if cfg.SwaggerManifest != expectedCfg.SwaggerManifest {
-		t.Errorf("LoadConfig(): wrong swagger manifest. Want %q. Got %q", expectedCfg.SwaggerManifest, cfg.SwaggerManifest)
-	}
-	if cfg.DefaultSegmentDuration != expectedCfg.DefaultSegmentDuration {
-		t.Errorf("LoadConfig(): wrong default segment duration. Want %q. Got %q", expectedCfg.DefaultSegmentDuration, cfg.DefaultSegmentDuration)
-	}
-	if !reflect.DeepEqual(*cfg.Redis, *expectedCfg.Redis) {
-		t.Errorf("LoadConfig(): wrong Redis config returned. Want %#v. Got %#v.", *expectedCfg.Redis, *cfg.Redis)
-	}
-	if !reflect.DeepEqual(*cfg.EncodingCom, *expectedCfg.EncodingCom) {
-		t.Errorf("LoadConfig(): wrong EncodingCom config returned. Want %#v. Got %#v.", *expectedCfg.EncodingCom, *cfg.EncodingCom)
-	}
-	if !reflect.DeepEqual(*cfg.ElasticTranscoder, *expectedCfg.ElasticTranscoder) {
-		t.Errorf("LoadConfig(): wrong ElasticTranscoder config returned. Want %#v. Got %#v.", *expectedCfg.ElasticTranscoder, *cfg.ElasticTranscoder)
-	}
-	if !reflect.DeepEqual(*cfg.ElementalConductor, *expectedCfg.ElementalConductor) {
-		t.Errorf("LoadConfig(): wrong Elemental Conductor config returned. Want %#v. Got %#v.", *expectedCfg.ElementalConductor, *cfg.ElementalConductor)
-	}
-	if !reflect.DeepEqual(*cfg.Bitmovin, *expectedCfg.Bitmovin) {
-		t.Errorf("LoadConfig(): wrong Bitmovin config returned. Want %#v. Got %#v.", *expectedCfg.Bitmovin, *cfg.Bitmovin)
-	}
-	if !reflect.DeepEqual(*cfg.Server, *expectedCfg.Server) {
-		t.Errorf("LoadConfig(): wrong Server config returned. Want %#v. Got %#v.", *expectedCfg.Server, *cfg.Server)
+	diff := cmp.Diff(*cfg, expectedCfg, cmpopts.IgnoreUnexported(server.Config{}))
+	if diff != "" {
+		t.Errorf("LoadConfig(): wrong config\nWant %#v\nGot %#v\nDiff: %v", expectedCfg, *cfg, diff)
 	}
 }
 

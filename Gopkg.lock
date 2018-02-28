@@ -128,6 +128,12 @@
   revision = "e2607d8d38c6f05258ee4f62235abaa69ab7faa6"
 
 [[projects]]
+  name = "github.com/fsouza/gizmo-stackdriver-logging"
+  packages = ["."]
+  revision = "3070fa08c8cb3f8f61ce2f791e44bcea2aae8ce2"
+  version = "v1.0.0"
+
+[[projects]]
   name = "github.com/go-ini/ini"
   packages = ["."]
   revision = "32e4c1e6bc4e7d0d8451aa6b75200d19e37a536a"
@@ -190,6 +196,18 @@
   ]
   revision = "925541529c1fa6821df4e44ce2723319eb2be768"
   version = "v1.0.0"
+
+[[projects]]
+  name = "github.com/google/go-cmp"
+  packages = [
+    "cmp",
+    "cmp/cmpopts",
+    "cmp/internal/diff",
+    "cmp/internal/function",
+    "cmp/internal/value"
+  ]
+  revision = "3af367b6b30c263d47e8895973edcca9a49cf029"
+  version = "v0.2.0"
 
 [[projects]]
   branch = "master"
@@ -386,10 +404,10 @@
   revision = "282c8707aa210456a825798969cc27edda34992a"
 
 [[projects]]
-  branch = "master"
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "8c0189d9f6bbf301e5d055d34268156b317016af"
+  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
+  version = "v1.0.4"
 
 [[projects]]
   name = "github.com/tinylib/msgp"
@@ -527,6 +545,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f25ff8bdef20ba5ecdc159269e080d35e6be164080b387cbf325ff18c928080f"
+  inputs-digest = "f14aba64e6729198338492aa10a5fcb97117d0b798f298af3a28a381d4d51f5a"
   solver-name = "gps-cdcl"
   solver-version = 1
