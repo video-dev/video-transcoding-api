@@ -2,6 +2,7 @@ package main
 
 import (
 	"io/ioutil"
+	"log"
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/config"
