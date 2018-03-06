@@ -122,10 +122,10 @@
   version = "v1.3.0"
 
 [[projects]]
-  branch = "master"
   name = "github.com/fsouza/ctxlogger"
   packages = ["."]
-  revision = "e2607d8d38c6f05258ee4f62235abaa69ab7faa6"
+  revision = "aa0f5445e90e50b7bdc18580b76b5dde263f0900"
+  version = "v1.0.0"
 
 [[projects]]
   name = "github.com/fsouza/gizmo-stackdriver-logging"
@@ -320,7 +320,7 @@
   branch = "master"
   name = "github.com/knq/sdhook"
   packages = ["."]
-  revision = "f7fbc484622bce1766aa251557dc76cb5d7d068f"
+  revision = "7a285b4a65ce116fae73281c456d26c763ee181d"
 
 [[projects]]
   branch = "master"
@@ -545,6 +545,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f14aba64e6729198338492aa10a5fcb97117d0b798f298af3a28a381d4d51f5a"
+  inputs-digest = "34f87848177b5624cd02808833f94390e47c1d9b406d4e10f17a4d46bfe07da6"
   solver-name = "gps-cdcl"
   solver-version = 1

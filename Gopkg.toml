@@ -23,8 +23,8 @@
   name = "github.com/flavioribeiro/zencoder"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/fsouza/ctxlogger"
+  version = "1.0.0"
 
 [[constraint]]
   branch = "master"
