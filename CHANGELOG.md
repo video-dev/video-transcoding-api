@@ -1,3 +1,15 @@
+## Version 1.4.1 (Release date: 2018-03-06)
+([642021a](https://github.com/nytimes/video-transcoding-api/commit/642021a)) Update logging dependencies 
+
+([57e3ff5](https://github.com/nytimes/video-transcoding-api/commit/57e3ff5)) Fix the build 
+
+([0a14ef9](https://github.com/nytimes/video-transcoding-api/commit/0a14ef9)) Silence gizmo logger 
+
+([7e47e62](https://github.com/nytimes/video-transcoding-api/commit/7e47e62)) swagger: make WithStatus ignore 0s 
+
+
+
+
 ## Version 1.4.0 (Release date: 2018-02-21)
 ([5382f42](https://github.com/nytimes/video-transcoding-api/commit/5382f42)) service: support sending access logs through logrus logger 
 
