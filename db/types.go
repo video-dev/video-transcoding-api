@@ -103,6 +103,7 @@ type Preset struct {
 	Description string      `json:"description,omitempty" redis-hash:"description,omitempty"`
 	Container   string      `json:"container,omitempty" redis-hash:"container,omitempty"`
 	RateControl string      `json:"rateControl,omitempty" redis-hash:"ratecontrol,omitempty"`
+	TwoPass     bool        `json:"twoPass" redis-hash:"twopass"`
 	Video       VideoPreset `json:"video" redis-hash:"video,expand"`
 	Audio       AudioPreset `json:"audio" redis-hash:"audio,expand"`
 }

@@ -94,6 +94,7 @@ func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Forma
 	format := encodingcom.Format{
 		Output:      []string{preset.Container},
 		Destination: []string{"ftp://username:password@yourftphost.com/video/encoded/test.flv"},
+		TwoPass:     encodingcom.YesNoBoolean(preset.TwoPass),
 	}
 	if preset.Container == "m3u8" {
 		format.Output = []string{hlsOutput}
