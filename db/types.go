@@ -97,7 +97,7 @@ type LocalPreset struct {
 	Preset Preset `redis-hash:"preset,expand" json:"preset"`
 }
 
-// Preset define the set of parameters of a given preset
+// Preset defines the set of parameters of a given preset
 type Preset struct {
 	Name        string      `json:"name,omitempty" redis-hash:"name"`
 	Description string      `json:"description,omitempty" redis-hash:"description,omitempty"`
@@ -107,7 +107,7 @@ type Preset struct {
 	Audio       AudioPreset `json:"audio" redis-hash:"audio,expand"`
 }
 
-// VideoPreset define the set of parameters for video on a given preset
+// VideoPreset defines the set of parameters for video on a given preset
 type VideoPreset struct {
 	Profile       string `json:"profile,omitempty" redis-hash:"profile,omitempty"`
 	ProfileLevel  string `json:"profileLevel,omitempty" redis-hash:"profilelevel,omitempty"`
@@ -120,7 +120,7 @@ type VideoPreset struct {
 	InterlaceMode string `json:"interlaceMode,omitempty" redis-hash:"interlacemode,omitempty"`
 }
 
-// AudioPreset define the set of parameters for audio on a given preset
+// AudioPreset defines the set of parameters for audio on a given preset
 type AudioPreset struct {
 	Codec   string `json:"codec,omitempty" redis-hash:"codec,omitempty"`
 	Bitrate string `json:"bitrate,omitempty" redis-hash:"bitrate,omitempty"`
