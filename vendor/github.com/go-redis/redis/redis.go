@@ -1,6 +1,7 @@
 package redis
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -11,8 +12,8 @@ import (
 	"github.com/go-redis/redis/internal/proto"
 )
 
-// Nil reply redis returned when key does not exist.
-const Nil = internal.Nil
+// Nil reply Redis returns when key does not exist.
+const Nil = proto.Nil
 
 func init() {
 	SetLogger(log.New(os.Stderr, "redis: ", log.LstdFlags|log.Lshortfile))
@@ -20,6 +21,17 @@ func init() {
 
 func SetLogger(logger *log.Logger) {
 	internal.Logger = logger
+}
+
+type baseClient struct {
+	opt      *Options
+	connPool pool.Pooler
+
+	process           func(Cmder) error
+	processPipeline   func([]Cmder) error
+	processTxPipeline func([]Cmder) error
+
+	onClose func() error // hook called when client is closed
 }
 
 func (c *baseClient) init() {
@@ -119,10 +131,7 @@ func (c *baseClient) initConn(cn *pool.Conn) error {
 	return nil
 }
 
-// WrapProcess replaces the process func. It takes a function createWrapper
-// which is supplied by the user. createWrapper takes the old process func as
-// an input and returns the new wrapper process func. createWrapper should
-// use call the old process func within the new process func.
+// WrapProcess wraps function that processes Redis commands.
 func (c *baseClient) WrapProcess(fn func(oldProcess func(cmd Cmder) error) func(cmd Cmder) error) {
 	c.process = fn(c.process)
 }
@@ -338,6 +347,8 @@ func (c *baseClient) txPipelineReadQueued(cn *pool.Conn, cmds []Cmder) error {
 type Client struct {
 	baseClient
 	cmdable
+
+	ctx context.Context
 }
 
 func newClient(opt *Options, pool pool.Pooler) *Client {
@@ -358,11 +369,25 @@ func NewClient(opt *Options) *Client {
 	return newClient(opt, newConnPool(opt))
 }
 
-func (c *Client) copy() *Client {
-	c2 := new(Client)
-	*c2 = *c
-	c2.cmdable.setProcessor(c2.Process)
+func (c *Client) Context() context.Context {
+	if c.ctx != nil {
+		return c.ctx
+	}
+	return context.Background()
+}
+
+func (c *Client) WithContext(ctx context.Context) *Client {
+	if ctx == nil {
+		panic("nil context")
+	}
+	c2 := c.copy()
+	c2.ctx = ctx
 	return c2
+}
+
+func (c *Client) copy() *Client {
+	cp := *c
+	return &cp
 }
 
 // Options returns read-only Options that were used to create the client.

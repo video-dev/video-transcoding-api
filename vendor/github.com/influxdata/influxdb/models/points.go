@@ -263,6 +263,11 @@ func ParsePointsString(buf string) ([]Point, error) {
 // NOTE: to minimize heap allocations, the returned Tags will refer to subslices of buf.
 // This can have the unintended effect preventing buf from being garbage collected.
 func ParseKey(buf []byte) (string, Tags) {
+	meas, tags := ParseKeyBytes(buf)
+	return string(meas), tags
+}
+
+func ParseKeyBytes(buf []byte) ([]byte, Tags) {
 	// Ignore the error because scanMeasurement returns "missing fields" which we ignore
 	// when just parsing a key
 	state, i, _ := scanMeasurement(buf, 0)
@@ -271,13 +276,13 @@ func ParseKey(buf []byte) (string, Tags) {
 	if state == tagKeyState {
 		tags = parseTags(buf)
 		// scanMeasurement returns the location of the comma if there are tags, strip that off
-		return string(buf[:i-1]), tags
+		return buf[:i-1], tags
 	}
-	return string(buf[:i]), tags
+	return buf[:i], tags
 }
 
-func ParseTags(buf []byte) (Tags, error) {
-	return parseTags(buf), nil
+func ParseTags(buf []byte) Tags {
+	return parseTags(buf)
 }
 
 func ParseName(buf []byte) ([]byte, error) {
@@ -1523,9 +1528,12 @@ func parseTags(buf []byte) Tags {
 		return nil
 	}
 
-	tags := make(Tags, 0, bytes.Count(buf, []byte(",")))
+	tags := make(Tags, bytes.Count(buf, []byte(",")))
+	p := 0
 	walkTags(buf, func(key, value []byte) bool {
-		tags = append(tags, NewTag(key, value))
+		tags[p].Key = key
+		tags[p].Value = value
+		p++
 		return true
 	})
 	return tags
@@ -1684,10 +1692,7 @@ func (p *point) UnmarshalBinary(b []byte) error {
 	p.fields, b = b[:n], b[n:]
 
 	// Read timestamp.
-	if err := p.time.UnmarshalBinary(b); err != nil {
-		return err
-	}
-	return nil
+	return p.time.UnmarshalBinary(b)
 }
 
 // PrecisionString returns a string representation of the point. If there
@@ -2321,9 +2326,3 @@ func appendField(b []byte, k string, v interface{}) []byte {
 
 	return b
 }
-
-type byteSlices [][]byte
-
-func (a byteSlices) Len() int           { return len(a) }
-func (a byteSlices) Less(i, j int) bool { return bytes.Compare(a[i], a[j]) == -1 }
-func (a byteSlices) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }

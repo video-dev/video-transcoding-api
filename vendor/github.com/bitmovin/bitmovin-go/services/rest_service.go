@@ -159,6 +159,35 @@ func (r *RestService) RetrieveCustomData(relativeURL string) ([]byte, error) {
 	return body, nil
 }
 
+func (r *RestService) Update(relativeURL string, input []byte) ([]byte, error) {
+	fullURL := *r.Bitmovin.APIBaseURL + relativeURL
+	_, err := url.Parse(fullURL)
+	if err != nil {
+		return nil, err
+	}
+	req, err := http.NewRequest("PUT", fullURL, bytes.NewBuffer(input))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("X-Api-Key", *r.Bitmovin.APIKey)
+	req.Header.Set("X-Api-Client", ClientName)
+	req.Header.Set("X-Api-Client-Version", Version)
+
+	resp, err := r.Bitmovin.HTTPClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode > 399 {
+		return nil, formatError(body)
+	}
+
+	return body, nil
+}
+
 func unmarshalError(body []byte) (*models.DataEnvelope, error) {
 	var d models.DataEnvelope
 	err := json.Unmarshal(body, &d)

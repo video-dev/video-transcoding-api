@@ -608,6 +608,24 @@ func (s *EncodingService) Start(encodingID string) (*models.StartStopResponse, e
 	return &r, nil
 }
 
+func (s *EncodingService) StartWithOptions(encodingID string, startOptions *models.StartOptions) (*models.StartStopResponse, error) {
+	b, err := json.Marshal(*startOptions)
+	if err != nil {
+		return nil, err
+	}
+	path := EncodingEndpoint + "/" + encodingID + "/start"
+	o, err := s.RestService.Create(path, b)
+	if err != nil {
+		return nil, err
+	}
+	var r models.StartStopResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 // Stop and Start use the same model
 func (s *EncodingService) Stop(encodingID string) (*models.StartStopResponse, error) {
 	path := EncodingEndpoint + "/" + encodingID + "/stop"
