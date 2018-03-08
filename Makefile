@@ -42,6 +42,3 @@ swagger:
 
 checkswagger:
 	swagger validate swagger.json
-
-runswagger:
-	go run swagger-ui-server/main.go
