@@ -4,8 +4,8 @@
 [[projects]]
   name = "cloud.google.com/go"
   packages = ["compute/metadata"]
-  revision = "20d4028b8a750c2aca76bf9fefa8ed2d0109b573"
-  version = "v0.19.0"
+  revision = "4b98a6370e36d7a85192e7bad08a4ebd82eac2a8"
+  version = "v0.20.0"
 
 [[projects]]
   branch = "master"
@@ -31,7 +31,7 @@
     "server",
     "web"
   ]
-  revision = "6fdbe2c1590e782aedb01eb3510fc0d9580bf3bd"
+  revision = "610de4b04f9dbd477df29174f1eb858480ce6904"
 
 [[projects]]
   branch = "master"
@@ -71,6 +71,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/sdkio",
     "internal/sdkrand",
     "internal/shareddefaults",
     "private/protocol",
@@ -85,13 +86,13 @@
     "service/elastictranscoder/elastictranscoderiface",
     "service/sts"
   ]
-  revision = "c87f31c05a31c77f507329203053adba97b62e35"
+  revision = "9e32b386ea18f6d60a3c6d2012044a7aa160ed93"
 
 [[projects]]
   branch = "master"
   name = "github.com/beorn7/perks"
   packages = ["quantile"]
-  revision = "4c0e84591b9aa9e6dcfdf3e020114cd81f89d5f9"
+  revision = "3a771d992973f24aa725d07868b467d1ddfceafb"
 
 [[projects]]
   name = "github.com/bitmovin/bitmovin-go"
@@ -101,8 +102,8 @@
     "models",
     "services"
   ]
-  revision = "99e00c3cc0af10cdff16e129383f4fda39ddbd36"
-  version = "v1.7.0"
+  revision = "057c73b2ab30fe3b22d026fd93410efac2509d4e"
+  version = "v1.8.0"
 
 [[projects]]
   branch = "master"
@@ -158,8 +159,8 @@
     "metrics/statsd",
     "util/conn"
   ]
-  revision = "4dc7be5d2d12881735283bcab7352178e190fc71"
-  version = "v0.6.0"
+  revision = "ca4112baa34cb55091301bdc13b1420a122b1b9e"
+  version = "v0.7.0"
 
 [[projects]]
   name = "github.com/go-logfmt/logfmt"
@@ -179,8 +180,8 @@
     "internal/singleflight",
     "internal/util"
   ]
-  revision = "9133634a132e00309476e2d9acbf0c8058d4c888"
-  version = "v6.10.0"
+  revision = "877867d2845fbaf86798befe410b6ceb6f5c29a3"
+  version = "v6.10.2"
 
 [[projects]]
   name = "github.com/go-stack/stack"
@@ -213,14 +214,14 @@
   version = "v0.2.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/google/gops"
   packages = [
     "agent",
     "internal",
     "signal"
   ]
-  revision = "0e2aa5d22efec1603f7ded7097c500e9a36a13b3"
-  version = "v0.3.3"
+  revision = "160b358b10d6123169a895090938b088c8f78dc9"
 
 [[projects]]
   name = "github.com/gorilla/context"
@@ -277,8 +278,8 @@
     "models",
     "pkg/escape"
   ]
-  revision = "6ac835404e7e64ea7299a6eebcce1ab1ef15fe3c"
-  version = "v1.5.0"
+  revision = "cdae4ccde4c67c3390d8ae8a1a06bd3b4cdce5c5"
+  version = "v1.5.1"
 
 [[projects]]
   name = "github.com/jmespath/go-jmespath"
@@ -393,7 +394,7 @@
     "internal/bitbucket.org/ww/goautoneg",
     "model"
   ]
-  revision = "6fb6fce6f8b75884b92e1889c150403fc0872c5e"
+  revision = "e4aa40a9169a88835b849a6efb71e05dc04b88f0"
 
 [[projects]]
   branch = "master"
@@ -404,13 +405,13 @@
     "nfs",
     "xfs"
   ]
-  revision = "1c7ff3de94ae006f58cba483a4c9c6d7c61e1d98"
+  revision = "780932d4fbbe0e69b84c34c20f5c8d0981e109ea"
 
 [[projects]]
   name = "github.com/sirupsen/logrus"
   packages = ["."]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
+  revision = "c155da19408a8799da419ed3eeb0cb5db0ad5dbc"
+  version = "v1.0.5"
 
 [[projects]]
   name = "github.com/tinylib/msgp"
@@ -422,7 +423,7 @@
   branch = "master"
   name = "golang.org/x/crypto"
   packages = ["ssh/terminal"]
-  revision = "c7dcf104e3a7a1417abc0230cb0d5240d764159d"
+  revision = "88942b9c40a4c9d203b82b3731787b672d6e809b"
 
 [[projects]]
   branch = "master"
@@ -437,7 +438,7 @@
     "lex/httplex",
     "trace"
   ]
-  revision = "d0aafc73d5cdc42264b0af071c261abac580695e"
+  revision = "6078986fec03a1dcc236c34816c71b0e05018fda"
 
 [[projects]]
   branch = "master"
@@ -449,7 +450,7 @@
     "jws",
     "jwt"
   ]
-  revision = "2f32c3ac0fa4fb807a0fcefb0b6f2468a0d99bd0"
+  revision = "fdc9e635145ae97e6c2cb777c48305600cf515cb"
 
 [[projects]]
   branch = "master"
@@ -458,7 +459,7 @@
     "unix",
     "windows"
   ]
-  revision = "7dca6fe1f43775aa6d1334576870ff63f978f539"
+  revision = "91ee8cde435411ca3f1cd365e8f20131aed4d0a1"
 
 [[projects]]
   name = "golang.org/x/text"
@@ -491,7 +492,7 @@
     "googleapi/internal/uritemplates",
     "logging/v2"
   ]
-  revision = "7f657476956314fee258816aaf81c0ff65cf8bee"
+  revision = "24928b980e6919be4c72647aacd53ebcbb8c4bab"
 
 [[projects]]
   name = "google.golang.org/appengine"
@@ -514,7 +515,7 @@
   branch = "master"
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
-  revision = "df60624c1e9b9d2973e889c7a1cff73155da81c4"
+  revision = "f8c8703595236ae70fdf8789ecb656ea0bcdcf46"
 
 [[projects]]
   name = "google.golang.org/grpc"
