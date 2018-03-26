@@ -814,6 +814,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				audioStream := &models.Stream{
 					CodecConfigurationID: &audioPresetID,
 					InputStreams:         aiss,
+					Conditions:           models.NewAttributeCondition(bitmovintypes.ConditionAttributeInputStream, "==", "true"),
 				}
 				audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
 				if audioErr != nil {
