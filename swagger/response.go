@@ -28,7 +28,10 @@ func NewErrorResponse(err error) *ErrorResponse {
 
 // WithStatus creates a new copy of ErrorResponse using the given status.
 func (r *ErrorResponse) WithStatus(status int) *ErrorResponse {
-	return &ErrorResponse{Message: r.Message, status: status}
+	if status > 0 {
+		return &ErrorResponse{Message: r.Message, status: status}
+	}
+	return r
 }
 
 // Error returns the underlying error message.

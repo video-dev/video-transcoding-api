@@ -1,9 +1,5 @@
 [[constraint]]
   branch = "master"
-  name = "github.com/Gurpartap/logrus-stack"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/NYTimes/encoding-wrapper"
 
 [[constraint]]
@@ -20,15 +16,15 @@
 
 [[constraint]]
   name = "github.com/bitmovin/bitmovin-go"
-  version = "1.5.2"
+  version = "1.5.4"
 
 [[constraint]]
   branch = "master"
   name = "github.com/flavioribeiro/zencoder"
 
 [[constraint]]
-  branch = "master"
   name = "github.com/fsouza/ctxlogger"
+  version = "1.0.0"
 
 [[constraint]]
   branch = "master"
@@ -40,19 +36,15 @@
 
 [[constraint]]
   branch = "master"
-  name = "github.com/knq/sdhook"
-
-[[constraint]]
-  branch = "master"
   name = "github.com/kr/pretty"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/marzagao/logrus-env"
+  name = "github.com/sirupsen/logrus"
+  version = "1.0.4"
 
 [[constraint]]
-  branch = "master"
-  name = "github.com/sirupsen/logrus"
+  name = "github.com/fsouza/gizmo-stackdriver-logging"
+  version = "1.0.0"
 
 [[override]]
   branch = "master"
@@ -60,4 +52,9 @@
 
 [[constraint]]
   name = "github.com/go-redis/redis"
-  version = "6.7.3"
+  version = "^6.8.0"
+
+[prune]
+  unused-packages = true
+  non-go = true
+  go-tests = true

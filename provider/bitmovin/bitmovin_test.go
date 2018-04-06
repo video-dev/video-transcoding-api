@@ -8,6 +8,7 @@ import (
 	"net/http/httptest"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
@@ -519,6 +520,19 @@ func TestTranscodeWithS3Input(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID5/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID5"
+			customData["container"] = "mov"
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.H264CodecConfigurationData{
+					Result: models.H264CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -541,7 +555,8 @@ func TestTranscodeWithS3Input(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/configurations/video/h264/videoID1",
 			"/encoding/configurations/video/h264/videoID2",
-			"/encoding/configurations/video/h264/videoID3":
+			"/encoding/configurations/video/h264/videoID3",
+			"/encoding/configurations/video/h264/videoID5":
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
@@ -581,6 +596,11 @@ func TestTranscodeWithS3Input(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
 			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -698,6 +718,19 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID5/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID5"
+			customData["container"] = "mov"
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.H264CodecConfigurationData{
+					Result: models.H264CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -720,7 +753,8 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/configurations/video/h264/videoID1",
 			"/encoding/configurations/video/h264/videoID2",
-			"/encoding/configurations/video/h264/videoID3":
+			"/encoding/configurations/video/h264/videoID3",
+			"/encoding/configurations/video/h264/videoID5":
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
@@ -760,6 +794,11 @@ func TestTranscodeWithHTTPInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
 			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -877,6 +916,19 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/configurations/video/h264/videoID5/customData":
+			customData := make(map[string]interface{})
+			customData["audio"] = "audioID5"
+			customData["container"] = "mov"
+			resp := models.H264CodecConfigurationResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.H264CodecConfigurationData{
+					Result: models.H264CodecConfiguration{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		case "/encoding/manifests/hls":
 			resp := models.HLSManifestResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
@@ -899,7 +951,8 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/configurations/video/h264/videoID1",
 			"/encoding/configurations/video/h264/videoID2",
-			"/encoding/configurations/video/h264/videoID3":
+			"/encoding/configurations/video/h264/videoID3",
+			"/encoding/configurations/video/h264/videoID5":
 			resp := models.H264CodecConfigurationResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
@@ -939,6 +992,11 @@ func TestTranscodeWithHTTPSInput(t *testing.T) {
 			json.NewEncoder(w).Encode(resp)
 		case "/encoding/encodings/" + encodingID + "/muxings/progressive-webm":
 			resp := models.MP4MuxingResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + encodingID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingResponse{
 				Status: bitmovintypes.ResponseStatusSuccess,
 			}
 			json.NewEncoder(w).Encode(resp)
@@ -1021,8 +1079,14 @@ func TestTranscodeFailsOnGenericError(t *testing.T) {
 }
 
 func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
-	testJobID := "this_is_a_job_id"
-	manifestID := "this_is_the_underlying_manifest_id"
+	const (
+		testJobID    = "this_is_a_job_id"
+		manifestID   = "this_is_the_underlying_manifest_id"
+		mp4MuxingID  = "test_mp4_muxing_id"
+		webmMuxingID = "test_webm_muxing_id"
+		movMuxingID  = "test_mov_muxing_id"
+	)
+
 	customData := make(map[string]interface{})
 	customData["manifest"] = manifestID
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -1057,8 +1121,124 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			resp := models.StreamListResponse{
+				Data: models.StreamListData{
+					Result: models.StreamListResult{
+						Items: []models.Stream{{ID: stringToPtr("new_stream")}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams/new_stream/input":
+			resp := models.StreamInputResponse{
+				Data: models.StreamInputData{
+					Result: models.StreamInputResult{
+						Duration: floatToPtr(42.1),
+						Bitrate:  intToPtr(25e5),
+						VideoStreams: []models.StreamInputVideo{
+							{
+								ID:       stringToPtr("hd-stream"),
+								Codec:    stringToPtr("h265"),
+								Duration: floatToPtr(42.1),
+								Width:    intToPtr(1280),
+								Height:   intToPtr(720),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4":
+			resp := models.MP4MuxingListResponse{
+				Data: models.MP4MuxingListData{
+					Result: models.MP4MuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.MP4Muxing{{
+							ID:       stringToPtr(mp4MuxingID),
+							Filename: stringToPtr("test_file.mp4"),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + mp4MuxingID + "/information":
+			resp := models.MP4MuxingInformationResponse{
+				Data: models.MP4MuxingInformationData{
+					Result: models.MP4MuxingInformationResult{
+						ContainerFormat: stringToPtr("mpeg-4"),
+						FileSize:        intToPtr(3),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm":
+			resp := models.ProgressiveWebMMuxingListResponse{
+				Data: models.ProgressiveWebMMuxingListData{
+					Result: models.ProgressiveWebMMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveWebMMuxing{
+							{
+								ID:       stringToPtr(webmMuxingID),
+								Filename: stringToPtr("test_file.webm"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm/" + webmMuxingID + "/information":
+			resp := models.ProgressiveWebMMuxingInformationResponse{
+				Data: models.ProgressiveWebMMuxingInformationData{
+					Result: models.ProgressiveWebMMuxingInformationResult{
+						ContainerFormat: stringToPtr("webm"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("vp8"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingListResponse{
+				Data: models.ProgressiveMOVMuxingListData{
+					Result: models.ProgressiveMOVMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveMOVMuxing{
+							{
+								ID:       stringToPtr(movMuxingID),
+								Filename: stringToPtr("test_file.mov"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov/" + movMuxingID + "/information":
+			resp := models.ProgressiveMOVMuxingInformationResponse{
+				Data: models.ProgressiveMOVMuxingInformationData{
+					Result: models.ProgressiveMOVMuxingInformationResult{
+						ContainerFormat: stringToPtr("mov"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1920),
+							FrameHeight: intToPtr(1080),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		default:
-			t.Fatal(errors.New("unexpected path hit"))
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
 		}
 	}))
 	defer ts.Close()
@@ -1077,6 +1257,41 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 			"originalStatus": "FINISHED",
 			"manifestStatus": "FINISHED",
 		},
+		SourceInfo: provider.SourceInfo{
+			Duration:   42100 * time.Millisecond,
+			VideoCodec: "h265",
+			Width:      1280,
+			Height:     720,
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mp4",
+					Container:  "mpeg-4",
+					FileSize:   3,
+					VideoCodec: "h264",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.webm",
+					Container:  "webm",
+					FileSize:   9,
+					VideoCodec: "vp8",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mov",
+					Container:  "mov",
+					FileSize:   9,
+					VideoCodec: "h264",
+					Width:      1920,
+					Height:     1080,
+				},
+			},
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1084,7 +1299,14 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 }
 
 func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeeded(t *testing.T) {
-	testJobID := "this_is_a_job_id"
+	const (
+		testJobID    = "this_is_a_job_id"
+		manifestID   = "this_is_the_underlying_manifest_id"
+		mp4MuxingID  = "test_mp4_muxing_id"
+		webmMuxingID = "test_webm_muxing_id"
+		movMuxingID  = "test_mov_muxing_id"
+	)
+
 	customData := make(map[string]interface{})
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -1109,8 +1331,124 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 				},
 			}
 			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			resp := models.StreamListResponse{
+				Data: models.StreamListData{
+					Result: models.StreamListResult{
+						Items: []models.Stream{{ID: stringToPtr("test_stream")}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams/test_stream/input":
+			resp := models.StreamInputResponse{
+				Data: models.StreamInputData{
+					Result: models.StreamInputResult{
+						Duration: floatToPtr(32),
+						Bitrate:  intToPtr(25e6),
+						VideoStreams: []models.StreamInputVideo{
+							{
+								ID:       stringToPtr("video-stream-id"),
+								Codec:    stringToPtr("h264"),
+								Duration: floatToPtr(32.1),
+								Width:    intToPtr(1920),
+								Height:   intToPtr(1080),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4":
+			resp := models.MP4MuxingListResponse{
+				Data: models.MP4MuxingListData{
+					Result: models.MP4MuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.MP4Muxing{{
+							ID:       stringToPtr(mp4MuxingID),
+							Filename: stringToPtr("test_file.mp4"),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/mp4/" + mp4MuxingID + "/information":
+			resp := models.MP4MuxingInformationResponse{
+				Data: models.MP4MuxingInformationData{
+					Result: models.MP4MuxingInformationResult{
+						ContainerFormat: stringToPtr("mpeg-4"),
+						FileSize:        intToPtr(3),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm":
+			resp := models.ProgressiveWebMMuxingListResponse{
+				Data: models.ProgressiveWebMMuxingListData{
+					Result: models.ProgressiveWebMMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveWebMMuxing{
+							{
+								ID:       stringToPtr(webmMuxingID),
+								Filename: stringToPtr("test_file.webm"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-webm/" + webmMuxingID + "/information":
+			resp := models.ProgressiveWebMMuxingInformationResponse{
+				Data: models.ProgressiveWebMMuxingInformationData{
+					Result: models.ProgressiveWebMMuxingInformationResult{
+						ContainerFormat: stringToPtr("webm"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("vp8"),
+							FrameWidth:  intToPtr(1280),
+							FrameHeight: intToPtr(720),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov":
+			resp := models.ProgressiveMOVMuxingListResponse{
+				Data: models.ProgressiveMOVMuxingListData{
+					Result: models.ProgressiveMOVMuxingListResult{
+						TotalCount: intToPtr(1),
+						Items: []models.ProgressiveMOVMuxing{
+							{
+								ID:       stringToPtr(movMuxingID),
+								Filename: stringToPtr("test_file.mov"),
+							},
+						},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/muxings/progressive-mov/" + movMuxingID + "/information":
+			resp := models.ProgressiveMOVMuxingInformationResponse{
+				Data: models.ProgressiveMOVMuxingInformationData{
+					Result: models.ProgressiveMOVMuxingInformationResult{
+						ContainerFormat: stringToPtr("mov"),
+						FileSize:        intToPtr(9),
+						VideoTracks: []models.VideoTrack{{
+							Codec:       stringToPtr("h264"),
+							FrameWidth:  intToPtr(1920),
+							FrameHeight: intToPtr(1080),
+						}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
 		default:
-			t.Fatal(errors.New("unexpected path hit"))
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
 		}
 	}))
 	defer ts.Close()
@@ -1127,6 +1465,41 @@ func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeed
 		ProviderStatus: map[string]interface{}{
 			"message":        "it's done!",
 			"originalStatus": "FINISHED",
+		},
+		SourceInfo: provider.SourceInfo{
+			Duration:   32 * time.Second,
+			VideoCodec: "h264",
+			Width:      1920,
+			Height:     1080,
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+			Files: []provider.OutputFile{
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mp4",
+					Container:  "mpeg-4",
+					FileSize:   3,
+					VideoCodec: "h264",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.webm",
+					Container:  "webm",
+					FileSize:   9,
+					VideoCodec: "vp8",
+					Width:      1280,
+					Height:     720,
+				},
+				{
+					Path:       "s3://some-output-bucket/job-123/test_file.mov",
+					Container:  "mov",
+					FileSize:   9,
+					VideoCodec: "h264",
+					Width:      1920,
+					Height:     1080,
+				},
+			},
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1191,6 +1564,9 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsRunning(t *testin
 			"message":        "life's good",
 			"originalStatus": "FINISHED",
 			"manifestStatus": "RUNNING",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1261,6 +1637,9 @@ func TestJobStatusReturnsStartedIfEncodeIsFinishedAndManifestIsCreatedAndStartRe
 			"originalStatus": "FINISHED",
 			"manifestStatus": "CREATED",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1302,6 +1681,9 @@ func TestJobStatusReturnsQueuedIfEncodeIsCreated(t *testing.T) {
 		ProviderStatus: map[string]interface{}{
 			"message":        "pending, pending",
 			"originalStatus": "CREATED",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1346,6 +1728,9 @@ func TestJobStatusReturnsStartedIfEncodeIsRunning(t *testing.T) {
 			"message":        "",
 			"originalStatus": "RUNNING",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1386,6 +1771,9 @@ func TestJobStatusReturnsFailedIfEncodeFailed(t *testing.T) {
 		ProviderStatus: map[string]interface{}{
 			"message":        "",
 			"originalStatus": "ERROR",
+		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
 		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
@@ -1450,6 +1838,9 @@ func TestJobStatusReturnsFailedIfEncodeIsFinishedAndManifestFailed(t *testing.T)
 			"originalStatus": "FINISHED",
 			"manifestStatus": "ERROR",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
@@ -1486,9 +1877,129 @@ func TestJobStatusReturnsUnknownOnAPIError(t *testing.T) {
 			"message":        "",
 			"originalStatus": "",
 		},
+		Output: provider.JobOutput{
+			Destination: "s3://some-output-bucket/job-123/",
+		},
 	}
 	if !reflect.DeepEqual(jobStatus, expectedJobStatus) {
 		t.Errorf("Job Status\nWant %#v\nGot  %#v", expectedJobStatus, jobStatus)
+	}
+}
+
+func TestJobStatusReturnsErrorOnFailureToListStreams(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	manifestID := "this_is_the_underlying_manifest_id"
+	customData := make(map[string]interface{})
+	customData["manifest"] = manifestID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/customData":
+			resp := models.CustomDataResponse{
+				Data: models.Data{
+					Result: models.Result{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/manifests/hls/" + manifestID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status: stringToPtr("FINISHED"),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			w.Write([]byte("internal server error"))
+		default:
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: testJobID})
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
+	}
+}
+
+func TestJobStatusReturnsErrorOnFailureToGetInputData(t *testing.T) {
+	testJobID := "this_is_a_job_id"
+	manifestID := "this_is_the_underlying_manifest_id"
+	customData := make(map[string]interface{})
+	customData["manifest"] = manifestID
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/encoding/encodings/" + testJobID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status:   stringToPtr("FINISHED"),
+						Progress: floatToPtr(100),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/customData":
+			resp := models.CustomDataResponse{
+				Data: models.Data{
+					Result: models.Result{
+						CustomData: customData,
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/manifests/hls/" + manifestID + "/status":
+			resp := models.StatusResponse{
+				Status: bitmovintypes.ResponseStatusSuccess,
+				Data: models.StatusData{
+					Result: models.StatusResult{
+						Status: stringToPtr("FINISHED"),
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams":
+			resp := models.StreamListResponse{
+				Data: models.StreamListData{
+					Result: models.StreamListResult{
+						Items: []models.Stream{{ID: stringToPtr("new_stream")}},
+					},
+				},
+			}
+			json.NewEncoder(w).Encode(resp)
+		case "/encoding/encodings/" + testJobID + "/streams/new_stream/input":
+			w.Write([]byte("internal server error"))
+		default:
+			t.Fatalf("unexpected path hit: %v", r.URL.Path)
+		}
+	}))
+	defer ts.Close()
+	prov := getBitmovinProvider(ts.URL)
+	jobStatus, err := prov.JobStatus(&db.Job{ID: "job-123", ProviderJobID: testJobID})
+	if err == nil {
+		t.Fatal("unexpected <nil> error")
+	}
+	if jobStatus != nil {
+		t.Errorf("Got unexpected non-nil JobStatus: %#v", jobStatus)
 	}
 }
 
@@ -1638,7 +2149,7 @@ func TestCapabilities(t *testing.T) {
 	var prov bitmovinProvider
 	expected := provider.Capabilities{
 		InputFormats:  []string{"prores", "h264"},
-		OutputFormats: []string{"mp4", "hls", "webm"},
+		OutputFormats: []string{"mp4", "mov", "hls", "webm"},
 		Destinations:  []string{"s3"},
 	}
 	cap := prov.Capabilities()
@@ -1735,6 +2246,13 @@ func getJob(sourceMedia string) *db.Job {
 				Name: "videoID4",
 			},
 			OutputOpts: db.OutputOptions{Extension: "webm"},
+		},
+		{
+			Name: "1080p_synd",
+			ProviderMapping: map[string]string{
+				Name: "videoID5",
+			},
+			OutputOpts: db.OutputOptions{Extension: "mov"},
 		},
 	}
 	outputs := make([]db.TranscodeOutput, len(presets))

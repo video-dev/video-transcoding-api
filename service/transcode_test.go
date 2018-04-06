@@ -212,7 +212,10 @@ func TestTranscode(t *testing.T) {
 			Name:            "mp4_360p",
 			ProviderMapping: map[string]string{"elementalconductor": "172712"},
 		})
-		service, err := NewTranscodingService(&config.Config{DefaultSegmentDuration: 5}, logrus.New())
+		service, err := NewTranscodingService(&config.Config{
+			DefaultSegmentDuration: 5,
+			Server:                 &server.Config{},
+		}, logrus.New())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -327,7 +330,7 @@ func TestGetTranscodeJob(t *testing.T) {
 				Protocol:        test.givenProtocol,
 			},
 		})
-		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -427,7 +430,7 @@ func TestCancelTranscodeJob(t *testing.T) {
 			ProviderName:  "fake",
 			ProviderJobID: "some-job",
 		})
-		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
 		if err != nil {
 			t.Fatal(err)
 		}

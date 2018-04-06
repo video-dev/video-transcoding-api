@@ -49,10 +49,10 @@ func varsLogger(vars map[string]string, logger *logrus.Logger) *logrus.Logger {
 		Hooks:     make(logrus.LevelHooks),
 		Level:     logger.Level,
 	}
+	newLogger.Hooks.Add(&varsLogHook{vars})
 	for level, hooks := range logger.Hooks {
 		newLogger.Hooks[level] = append([]logrus.Hook(nil), hooks...)
 	}
-	newLogger.Hooks.Add(&varsLogHook{vars})
 	return &newLogger
 }
 
@@ -65,17 +65,10 @@ func (h *varsLogHook) Levels() []logrus.Level {
 }
 
 func (h *varsLogHook) Fire(e *logrus.Entry) error {
-	fields := make(logrus.Fields)
 	for k, v := range h.vars {
 		if _, ok := e.Data[k]; !ok {
-			fields[k] = v
+			e.Data[k] = v
 		}
 	}
-	newEntry := e.WithFields(fields)
-	newEntry.Time = e.Time
-	newEntry.Message = e.Message
-	newEntry.Level = e.Level
-	newEntry.Buffer = e.Buffer
-	*e = *newEntry
 	return nil
 }

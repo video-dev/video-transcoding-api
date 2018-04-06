@@ -14,7 +14,7 @@ import (
 
 func TestListProviders(t *testing.T) {
 	srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
-	service, err := NewTranscodingService(&config.Config{}, logrus.New())
+	service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,7 @@ func TestGetProvider(t *testing.T) {
 	}
 	for _, test := range tests {
 		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
-		service, err := NewTranscodingService(&config.Config{}, logrus.New())
+		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
 		if err != nil {
 			t.Fatal(err)
 		}

@@ -16,7 +16,7 @@ lint: testdeps
 	gometalinter --install --vendored-linters
 	go build -i
 	go list -f '{{.TestImports}}' ./... | sed -e 's/\[\(.*\)\]/\1/' | tr ' ' '\n' | grep '^.*\..*/.*$$' | xargs go install
-	gometalinter -j 2 --enable=misspell --enable=gofmt --enable=unused --disable=dupl --disable=errcheck --disable=gas --disable=interfacer --disable=gocyclo --deadline=10m --tests --vendor ./...
+	gometalinter -j 2 --fast --disable=gotype --disable=gas --disable=gocyclo --deadline=10m --tests --vendor ./...
 
 gotest: testdeps
 	go test ./...
@@ -42,6 +42,3 @@ swagger:
 
 checkswagger:
 	swagger validate swagger.json
-
-runswagger:
-	go run swagger-ui-server/main.go

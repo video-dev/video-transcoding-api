@@ -10,6 +10,10 @@ type DashManifest struct {
 	ManifestName *string  `json:"manifestName"`
 }
 
+func (h *DashManifest) AddOutput(output *Output) {
+	h.Outputs = append(h.Outputs, *output)
+}
+
 type DashManifestData struct {
 	//Success fields
 	Result   DashManifest `json:"result,omitempty"`
@@ -97,7 +101,7 @@ type VideoAdaptationSet struct {
 
 type VideoAdaptationSetData struct {
 	//Success fields
-	Result   AudioAdaptationSet `json:"result,omitempty"`
+	Result   VideoAdaptationSet `json:"result,omitempty"`
 	Messages []Message          `json:"messages,omitempty"`
 
 	//Error fields

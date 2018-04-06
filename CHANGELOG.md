@@ -1,3 +1,173 @@
+## Version 1.4.1 (Release date: 2018-03-06)
+([642021a](https://github.com/nytimes/video-transcoding-api/commit/642021a)) Update logging dependencies 
+
+([57e3ff5](https://github.com/nytimes/video-transcoding-api/commit/57e3ff5)) Fix the build 
+
+([0a14ef9](https://github.com/nytimes/video-transcoding-api/commit/0a14ef9)) Silence gizmo logger 
+
+([7e47e62](https://github.com/nytimes/video-transcoding-api/commit/7e47e62)) swagger: make WithStatus ignore 0s 
+
+
+
+
+## Version 1.4.0 (Release date: 2018-02-21)
+([5382f42](https://github.com/nytimes/video-transcoding-api/commit/5382f42)) service: support sending access logs through logrus logger 
+
+([4f2bd85](https://github.com/nytimes/video-transcoding-api/commit/4f2bd85)) Add SERVICE_NAME to log tags 
+
+([cca255b](https://github.com/nytimes/video-transcoding-api/commit/cca255b)) travis: Go 1.10 
+
+
+
+
+## Version 1.3.5 (Release date: 2018-02-13)
+([63d0810](https://github.com/nytimes/video-transcoding-api/commit/63d0810)) vendor: update dependencies 
+
+([e9c9751](https://github.com/nytimes/video-transcoding-api/commit/e9c9751)) Makefile: disable gotype on gometalinter 
+
+([cce824c](https://github.com/nytimes/video-transcoding-api/commit/cce824c)) drone: fix downstream calls 
+
+
+
+
+## Version 1.3.4 (Release date: 2018-01-30)
+([3e2de79](https://github.com/nytimes/video-transcoding-api/commit/3e2de79)) Update dependencies 
+
+
+([fad3c83](https://github.com/nytimes/video-transcoding-api/commit/fad3c83)) provider/bitmovin: add metadata info for webm and mov files 
+
+([1d38677](https://github.com/nytimes/video-transcoding-api/commit/1d38677)) Gopkg: update bitmovin-go and add prune config 
+
+([1df0ec5](https://github.com/nytimes/video-transcoding-api/commit/1df0ec5)) Makefile: use fast linters 
+
+
+([97f11c8](https://github.com/nytimes/video-transcoding-api/commit/97f11c8)) provider/bitmovin: move creating encoding service out of a loop 
+
+([eb843bc](https://github.com/nytimes/video-transcoding-api/commit/eb843bc)) provider/bitmovin: return error if any expected data is missing for job status 
+
+([8676701](https://github.com/nytimes/video-transcoding-api/commit/8676701)) provider/bitmovin: add mp4 output files metadata to finished jobs 
+
+([ebb8fd4](https://github.com/nytimes/video-transcoding-api/commit/ebb8fd4)) update vendor bitmovin sdk 
+
+
+
+
+## Version 1.3.3 (Release date: 2018-01-09)
+([68213de](https://github.com/nytimes/video-transcoding-api/commit/68213de)) Update dependencies 
+
+
+
+
+## Version 1.3.2 (Release date: 2018-01-05)
+([6f2219e](https://github.com/nytimes/video-transcoding-api/commit/6f2219e)) drone: fix deploy call 
+
+
+
+
+## Version 1.3.1 (Release date: 2018-01-05)
+
+
+([d3e03d7](https://github.com/nytimes/video-transcoding-api/commit/d3e03d7)) provider/bitmovin: add SourceInfo to finished jobs 
+
+([d8d8845](https://github.com/nytimes/video-transcoding-api/commit/d8d8845)) Gopkg: use bitmovin-go@master 
+
+([4e4179a](https://github.com/nytimes/video-transcoding-api/commit/4e4179a)) Gopkg: make go-redis spec more explicit 
+
+([f3573c3](https://github.com/nytimes/video-transcoding-api/commit/f3573c3)) Update dependencies 
+
+([1233a1d](https://github.com/nytimes/video-transcoding-api/commit/1233a1d)) provider/bitmovin: support full paths for mov output 
+
+
+([0449ec6](https://github.com/nytimes/video-transcoding-api/commit/0449ec6)) adding mov support 
+
+([fef0195](https://github.com/nytimes/video-transcoding-api/commit/fef0195)) provider/bitmovin: add output "folder" to job status 
+
+([4edb190](https://github.com/nytimes/video-transcoding-api/commit/4edb190)) provider/bitmovin: place output files inside folders with job ID 
+
+
+([bf03fb3](https://github.com/nytimes/video-transcoding-api/commit/bf03fb3)) drone: fix autoscaling group name in notification config 
+
+([51ae790](https://github.com/nytimes/video-transcoding-api/commit/51ae790)) provider/bitmovin: refactor JobStatus and add some extra info 
+
+([6cc290d](https://github.com/nytimes/video-transcoding-api/commit/6cc290d)) Update dependencies 
+
+([91a3de1](https://github.com/nytimes/video-transcoding-api/commit/91a3de1)) provider/bitmovin: add progress 
+
+
+([5be7f61](https://github.com/nytimes/video-transcoding-api/commit/5be7f61)) drone: change deployment config 
+
+([070bbc4](https://github.com/nytimes/video-transcoding-api/commit/070bbc4)) provider/bitmovin: refactor s3 url parsing 
+
+([2cbba3d](https://github.com/nytimes/video-transcoding-api/commit/2cbba3d)) provider/bitmovin: fix metalinter violation 
+
+
+([908c910](https://github.com/nytimes/video-transcoding-api/commit/908c910)) dependency management go inflates the amount of lines of code i have changed 
+
+([e12421b](https://github.com/nytimes/video-transcoding-api/commit/e12421b)) changes to our api client so new version 
+
+([d26abab](https://github.com/nytimes/video-transcoding-api/commit/d26abab)) removing debug code 
+
+([e3b60af](https://github.com/nytimes/video-transcoding-api/commit/e3b60af)) do not check in coverage files 
+
+([0f55e37](https://github.com/nytimes/video-transcoding-api/commit/0f55e37)) more test coverage 
+
+([d0f4237](https://github.com/nytimes/video-transcoding-api/commit/d0f4237)) adding vp8, fixing tests 
+
+([fd0025e](https://github.com/nytimes/video-transcoding-api/commit/fd0025e)) some debug code 
+
+([4de37e5](https://github.com/nytimes/video-transcoding-api/commit/4de37e5)) adding vp8 
+
+
+([045cb4d](https://github.com/nytimes/video-transcoding-api/commit/045cb4d)) gofmt -s -w . 
+
+([6511c74](https://github.com/nytimes/video-transcoding-api/commit/6511c74)) db/redis: update version of go-redis 
+
+([7573469](https://github.com/nytimes/video-transcoding-api/commit/7573469)) travis: remove Go 1.8 
+
+([02437e4](https://github.com/nytimes/video-transcoding-api/commit/02437e4)) Another shot at vendoring 
+
+([80c9401](https://github.com/nytimes/video-transcoding-api/commit/80c9401)) Fix gops agent 
+
+([0645448](https://github.com/nytimes/video-transcoding-api/commit/0645448)) Makefile: remove unused 
+
+([d915e08](https://github.com/nytimes/video-transcoding-api/commit/d915e08)) Revert "derp" 
+
+([bf8826d](https://github.com/nytimes/video-transcoding-api/commit/bf8826d)) Revert "Makefile: no need for go get anymore" 
+
+([f4dc40b](https://github.com/nytimes/video-transcoding-api/commit/f4dc40b)) Revert "bin/build: no need for go get" 
+
+([101e70a](https://github.com/nytimes/video-transcoding-api/commit/101e70a)) Revert "bin/build: properly support vendoring" 
+
+([39e8e74](https://github.com/nytimes/video-transcoding-api/commit/39e8e74)) bin/build: properly support vendoring 
+
+([f1e77f8](https://github.com/nytimes/video-transcoding-api/commit/f1e77f8)) bin/build: no need for go get 
+
+([7eaae8b](https://github.com/nytimes/video-transcoding-api/commit/7eaae8b)) Makefile: no need for go get anymore 
+
+([33c43b5](https://github.com/nytimes/video-transcoding-api/commit/33c43b5)) derp 
+
+([f893fb3](https://github.com/nytimes/video-transcoding-api/commit/f893fb3)) Revert "travis: add hack for Go 1.9" 
+
+([cc27f73](https://github.com/nytimes/video-transcoding-api/commit/cc27f73)) travis: add hack for Go 1.9 
+
+([5632c22](https://github.com/nytimes/video-transcoding-api/commit/5632c22)) travis: Go 1.9 
+
+([ee7ff0c](https://github.com/nytimes/video-transcoding-api/commit/ee7ff0c)) Remove go 1.9 from travis 
+
+([c51998f](https://github.com/nytimes/video-transcoding-api/commit/c51998f)) Makefile: set GOROOT before invoking swagger generate 
+
+([a2b5a70](https://github.com/nytimes/video-transcoding-api/commit/a2b5a70)) travis: run tests on Go1.9rc1 
+
+([60c4590](https://github.com/nytimes/video-transcoding-api/commit/60c4590)) Use official sdhook repo 
+
+([f696ba7](https://github.com/nytimes/video-transcoding-api/commit/f696ba7)) Fix logrus import path 
+
+([93b2edc](https://github.com/nytimes/video-transcoding-api/commit/93b2edc)) Makefile: use go build -i instead to install dependencies for lint 
+
+
+
+
+
 ## Version 1.3.0 (Release date: 2017-06-13)
 
 ([7695f83](https://github.com/nytimes/video-transcoding-api/commit/7695f83)) Add default Hybrik PresetPath and ComplianceDate settings to config 

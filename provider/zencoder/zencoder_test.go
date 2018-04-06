@@ -368,6 +368,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"audio_codec":             "aac",
 					"filename":                "output.mp4",
 					"public":                  true,
+					"one_pass":                true,
 				},
 			},
 		},
@@ -448,6 +449,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"filename":                "hls/hls_1080p/video.m3u8",
 					"segment_seconds":         float64(3),
 					"public":                  true,
+					"one_pass":                true,
 				},
 				{
 					"label":                   "hls_720p",
@@ -468,6 +470,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"filename":                "hls/hls_720p/video.m3u8",
 					"segment_seconds":         float64(3),
 					"public":                  true,
+					"one_pass":                true,
 				},
 				{
 					"base_url": "https://log:pass@s3.here.com/1234567890",
@@ -555,6 +558,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 					"audio_codec":             "aac",
 					"filename":                "output.mp4",
 					"public":                  true,
+					"one_pass":                true,
 				},
 				{
 					"source":     "preset_mp4",
@@ -579,30 +583,32 @@ func TestZencoderBuildOutputs(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		cleanLocalPresets()
-		for _, preset := range test.Presets {
-			_, err := prov.CreatePreset(preset)
+		t.Run(test.Description, func(t *testing.T) {
+			cleanLocalPresets()
+			for _, preset := range test.Presets {
+				_, err := prov.CreatePreset(preset)
+				if err != nil {
+					t.Fatal(err)
+				}
+			}
+			res, err := prov.buildOutputs(test.Job)
 			if err != nil {
 				t.Fatal(err)
 			}
-		}
-		res, err := prov.buildOutputs(test.Job)
-		if err != nil {
-			t.Fatal(err)
-		}
-		resultJSON, err := json.Marshal(res)
-		if err != nil {
-			t.Fatal(err)
-		}
-		result := make([]map[string]interface{}, len(res))
-		err = json.Unmarshal(resultJSON, &result)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !reflect.DeepEqual(result, test.Expected) {
-			pretty.Fdiff(os.Stderr, test.Expected, result)
-			t.Errorf("Failed to build outputs on test: %s. Want:\n %#v\n Got\n %#v", test.Description, test.Expected, result)
-		}
+			resultJSON, err := json.Marshal(res)
+			if err != nil {
+				t.Fatal(err)
+			}
+			result := make([]map[string]interface{}, len(res))
+			err = json.Unmarshal(resultJSON, &result)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(result, test.Expected) {
+				pretty.Fdiff(os.Stderr, test.Expected, result)
+				t.Errorf("Failed to build outputs on test: %s. Want:\n %#v\n Got\n %#v", test.Description, test.Expected, result)
+			}
+		})
 	}
 }
 
@@ -613,7 +619,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 		OutputFileName string
 		Destination    string
 		Preset         db.Preset
-		Expected       map[string]interface{}
+		Expected       zencoder.OutputSettings
 	}{
 		{
 			"Test with mp4 preset",
@@ -639,24 +645,25 @@ func TestZencoderBuildOutput(t *testing.T) {
 					Codec:   "aac",
 				},
 			},
-			map[string]interface{}{
-				"label":                   "mp4_1080p",
-				"format":                  "mp4",
-				"video_codec":             "h264",
-				"h264_profile":            "main",
-				"h264_level":              "3.1",
-				"audio_codec":             "aac",
-				"width":                   float64(1920),
-				"height":                  float64(1080),
-				"video_bitrate":           float64(3500),
-				"audio_bitrate":           float64(128),
-				"keyframe_interval":       float64(90),
-				"fixed_keyframe_interval": true,
-				"constant_bitrate":        true,
-				"deinterlace":             "on",
-				"base_url":                "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
-				"filename":                "test.mp4",
-				"public":                  true,
+			zencoder.OutputSettings{
+				Label:                 "mp4_1080p",
+				Format:                "mp4",
+				VideoCodec:            "h264",
+				H264Profile:           "main",
+				H264Level:             "3.1",
+				AudioCodec:            "aac",
+				Width:                 1920,
+				Height:                1080,
+				VideoBitrate:          3500,
+				AudioBitrate:          128,
+				KeyframeInterval:      90,
+				FixedKeyframeInterval: true,
+				ConstantBitrate:       true,
+				Deinterlace:           "on",
+				BaseUrl:               "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
+				Filename:              "test.mp4",
+				MakePublic:            true,
+				OnePass:               true,
 			},
 		},
 		{
@@ -679,21 +686,22 @@ func TestZencoderBuildOutput(t *testing.T) {
 					Codec:   "aac",
 				},
 			},
-			map[string]interface{}{
-				"label":             "hls_1080p",
-				"format":            "ts",
-				"video_codec":       "h264",
-				"audio_codec":       "aac",
-				"width":             float64(1920),
-				"height":            float64(1080),
-				"video_bitrate":     float64(3500),
-				"audio_bitrate":     float64(128),
-				"keyframe_interval": float64(90),
-				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
-				"filename":          "hls/hls_1080p/video.m3u8",
-				"type":              "segmented",
-				"public":            true,
+			zencoder.OutputSettings{
+				Label:            "hls_1080p",
+				Format:           "ts",
+				VideoCodec:       "h264",
+				AudioCodec:       "aac",
+				Width:            1920,
+				Height:           1080,
+				VideoBitrate:     3500,
+				AudioBitrate:     128,
+				KeyframeInterval: 90,
+				Deinterlace:      "on",
+				BaseUrl:          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
+				Filename:         "hls/hls_1080p/video.m3u8",
+				Type:             "segmented",
+				MakePublic:       true,
+				OnePass:          true,
 			},
 		},
 		{
@@ -716,20 +724,21 @@ func TestZencoderBuildOutput(t *testing.T) {
 					Codec:   "aac",
 				},
 			},
-			map[string]interface{}{
-				"label":             "webm_1080p",
-				"format":            "webm",
-				"video_codec":       "vp8",
-				"audio_codec":       "aac",
-				"width":             float64(1920),
-				"height":            float64(1080),
-				"video_bitrate":     float64(3500),
-				"audio_bitrate":     float64(128),
-				"keyframe_interval": float64(90),
-				"deinterlace":       "on",
-				"base_url":          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
-				"filename":          "test.webm",
-				"public":            true,
+			zencoder.OutputSettings{
+				Label:            "webm_1080p",
+				Format:           "webm",
+				VideoCodec:       "vp8",
+				AudioCodec:       "aac",
+				Width:            1920,
+				Height:           1080,
+				VideoBitrate:     3500,
+				AudioBitrate:     128,
+				KeyframeInterval: 90,
+				Deinterlace:      "on",
+				BaseUrl:          "http://a:b@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
+				Filename:         "test.webm",
+				MakePublic:       true,
+				OnePass:          true,
 			},
 		},
 		{
@@ -752,52 +761,46 @@ func TestZencoderBuildOutput(t *testing.T) {
 					Codec:   "aac",
 				},
 			},
-			map[string]interface{}{
-				"label":             "webm_1080p",
-				"format":            "webm",
-				"video_codec":       "vp8",
-				"audio_codec":       "aac",
-				"width":             float64(1920),
-				"height":            float64(1080),
-				"video_bitrate":     float64(3500),
-				"audio_bitrate":     float64(128),
-				"keyframe_interval": float64(90),
-				"deinterlace":       "on",
-				"base_url":          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
-				"filename":          "test.webm",
-				"public":            true,
+			zencoder.OutputSettings{
+				Label:            "webm_1080p",
+				Format:           "webm",
+				VideoCodec:       "vp8",
+				AudioCodec:       "aac",
+				Width:            1920,
+				Height:           1080,
+				VideoBitrate:     3500,
+				AudioBitrate:     128,
+				KeyframeInterval: 90,
+				Deinterlace:      "on",
+				BaseUrl:          "http://user:pass%21word@nyt-elastictranscoder-tests.s3.amazonaws.com/t/abcdef",
+				Filename:         "test.webm",
+				MakePublic:       true,
+				OnePass:          true,
 			},
 		},
 	}
 
 	for _, test := range tests {
-		prov.config = &config.Config{
-			Zencoder: &config.Zencoder{
-				APIKey:      "api-key-here",
-				Destination: test.Destination,
-			},
-		}
-		job := db.Job{
-			ID:              "abcdef",
-			StreamingParams: db.StreamingParams{},
-		}
-		res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
-		if err != nil {
-			t.Fatal(err)
-		}
-		resultJSON, err := json.Marshal(res)
-		if err != nil {
-			t.Fatal(err)
-		}
-		result := make(map[string]interface{})
-		err = json.Unmarshal(resultJSON, &result)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !reflect.DeepEqual(result, test.Expected) {
-			pretty.Fdiff(os.Stderr, test.Expected, result)
-			t.Errorf("Failed to build output. Want\n %+v. Got\n %+v.", test.Expected, result)
-		}
+		t.Run(test.Description, func(t *testing.T) {
+			prov.config = &config.Config{
+				Zencoder: &config.Zencoder{
+					APIKey:      "api-key-here",
+					Destination: test.Destination,
+				},
+			}
+			job := db.Job{
+				ID:              "abcdef",
+				StreamingParams: db.StreamingParams{},
+			}
+			res, err := prov.buildOutput(&job, test.Preset, test.OutputFileName)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(res, test.Expected) {
+				pretty.Fdiff(os.Stderr, test.Expected, res)
+				t.Errorf("Failed to build output. Want\n %#v. Got\n %#v.", test.Expected, res)
+			}
+		})
 	}
 }
 

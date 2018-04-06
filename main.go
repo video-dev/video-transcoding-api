@@ -1,7 +1,9 @@
 package main
 
 import (
-	"github.com/Gurpartap/logrus-stack"
+	"io/ioutil"
+	"log"
+
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/config"
 	_ "github.com/NYTimes/video-transcoding-api/provider/bitmovin"
@@ -12,8 +14,6 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/google/gops/agent"
-	"github.com/knq/sdhook"
-	"github.com/marzagao/logrus-env"
 )
 
 func main() {
@@ -24,29 +24,23 @@ func main() {
 		cfg.Server.RouterType = "fast"
 	}
 	server.Init("video-transcoding-api", cfg.Server)
-	server.Log.Hooks.Add(logrus_stack.StandardHook())
-	server.Log.Hooks.Add(logrus_env.NewHook([]string{"ENVIRONMENT"}))
+	server.Log.Out = ioutil.Discard
 
-	gcpLoggingHook, err := sdhook.New(
-		sdhook.GoogleLoggingAgent(),
-		sdhook.ErrorReportingService("video-transcoding-api"),
-		sdhook.ErrorReportingLogName("error_log"),
-	)
+	logger, err := cfg.Log.Logger()
 	if err != nil {
-		server.Log.Debug("unable to initialize GCP logging hook: ", err)
-	} else {
-		server.Log.Hooks.Add(gcpLoggingHook)
+		log.Fatal(err)
 	}
-	service, err := service.NewTranscodingService(cfg, server.Log)
+
+	service, err := service.NewTranscodingService(cfg, logger)
 	if err != nil {
-		server.Log.Fatal("unable to initialize service: ", err)
+		logger.Fatal("unable to initialize service: ", err)
 	}
 	err = server.Register(service)
 	if err != nil {
-		server.Log.Fatal("unable to register service: ", err)
+		logger.Fatal("unable to register service: ", err)
 	}
 	err = server.Run()
 	if err != nil {
-		server.Log.Fatal("server encountered a fatal error: ", err)
+		logger.Fatal("server encountered a fatal error: ", err)
 	}
 }

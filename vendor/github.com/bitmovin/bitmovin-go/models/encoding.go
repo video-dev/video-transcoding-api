@@ -88,15 +88,19 @@ type StreamResponse struct {
 	Data      StreamData                   `json:"data,omitempty"`
 }
 
+type StreamListResponse struct {
+	Data StreamListData `json:"data,omitempty"`
+}
+
+type StreamListData struct {
+	Result StreamListResult `json:"result,omitempty"`
+}
+
 type StreamListResult struct {
 	TotalCount *int64   `json:"totalCount,omitempty"`
 	Previous   *string  `json:"previous,omitempty"`
 	Next       *string  `json:"next,omitempty"`
 	Items      []Stream `json:"items,omitempty"`
-}
-
-type StreamListResponse struct {
-	Result StreamListResult `json:"result,omitempty"`
 }
 
 type StreamItem struct {
@@ -246,6 +250,126 @@ type MP4MuxingListResponse struct {
 	Data      MP4MuxingListData            `json:"data,omitempty"`
 }
 
+type VideoTrack struct {
+	Index       *int64   `json:"index,omitempty"`
+	Codec       *string  `json:"codec,omitempty"`
+	CodecIso    *string  `json:"codecIso,omitempty"`
+	FrameWidth  *int64   `json:"frameWidth,omitempty"`
+	FrameHeight *int64   `json:"frameHeight,omitempty"`
+	Duration    *float64 `json:"duration,omitempty"`
+}
+
+type AudioTrack struct {
+	Index    *int64   `json:"index,omitempty"`
+	Codec    *string  `json:"codec,omitempty"`
+	CodecIso *string  `json:"codecIso,omitempty"`
+	Duration *float64 `json:"duration,omitempty"`
+}
+
+type MP4MuxingInformationResult struct {
+	MimeType         *string      `json:"mimeType,omitempty"`
+	FileSize         *int64       `json:"fileSize,omitempty"`
+	ContainerFormat  *string      `json:"containerFormat,omitempty"`
+	ContainerBitrate *int64       `json:"containerBitrate,omitempty"`
+	Duration         *float64     `json:"duration,omitempty"`
+	VideoTracks      []VideoTrack `json:"videoTracks,omitempty"`
+	AudioTracks      []AudioTrack `json:"audioTracks,omitempty"`
+}
+
+type MP4MuxingInformationData struct {
+	//Success fields
+	Result   MP4MuxingInformationResult `json:"result,omitempty"`
+	Messages []Message                  `json:"messages,omitempty"`
+
+	//Error fields
+	Code             *int64   `json:"code,omitempty"`
+	Message          *string  `json:"message,omitempty"`
+	DeveloperMessage *string  `json:"developerMessage,omitempty"`
+	Links            []Link   `json:"links,omitempty"`
+	Details          []Detail `json:"details,omitempty"`
+}
+
+type MP4MuxingInformationResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      MP4MuxingInformationData     `json:"data,omitempty"`
+}
+
+type ProgressiveMOVMuxing struct {
+	ID          *string                `json:"id,omitempty"`
+	Name        *string                `json:"name,omitempty"`
+	Description *string                `json:"description,omitempty"`
+	CustomData  map[string]interface{} `json:"customData,omitempty"`
+	Streams     []StreamItem           `json:"streams,omitempty"`
+	Outputs     []Output               `json:"outputs,omitempty"`
+	Filename    *string                `json:"filename,omitempty"`
+}
+
+type ProgressiveMOVMuxingData struct {
+	//Success fields
+	Result   ProgressiveMOVMuxing `json:"result,omitempty"`
+	Messages []Message            `json:"messages,omitempty"`
+
+	//Error fields
+	Code             *int64   `json:"code,omitempty"`
+	Message          *string  `json:"message,omitempty"`
+	DeveloperMessage *string  `json:"developerMessage,omitempty"`
+	Links            []Link   `json:"links,omitempty"`
+	Details          []Detail `json:"details,omitempty"`
+}
+
+type ProgressiveMOVMuxingResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      ProgressiveMOVMuxingData     `json:"data,omitempty"`
+}
+
+type ProgressiveMOVMuxingListResult struct {
+	TotalCount *int64                 `json:"totalCount,omitempty"`
+	Previous   *string                `json:"previous,omitempty"`
+	Next       *string                `json:"next,omitempty"`
+	Items      []ProgressiveMOVMuxing `json:"items,omitempty"`
+}
+
+type ProgressiveMOVMuxingListData struct {
+	Result ProgressiveMOVMuxingListResult `json:"result,omitempty"`
+}
+
+type ProgressiveMOVMuxingInformationResult struct {
+	MimeType         *string      `json:"mimeType,omitempty"`
+	FileSize         *int64       `json:"fileSize,omitempty"`
+	ContainerFormat  *string      `json:"containerFormat,omitempty"`
+	ContainerBitrate *int64       `json:"containerBitrate,omitempty"`
+	Duration         *float64     `json:"duration,omitempty"`
+	VideoTracks      []VideoTrack `json:"videoTracks,omitempty"`
+	AudioTracks      []AudioTrack `json:"audioTracks,omitempty"`
+}
+
+type ProgressiveMOVMuxingInformationData struct {
+	//Success fields
+	Result   ProgressiveMOVMuxingInformationResult `json:"result,omitempty"`
+	Messages []Message                             `json:"messages,omitempty"`
+
+	//Error fields
+	Code             *int64   `json:"code,omitempty"`
+	Message          *string  `json:"message,omitempty"`
+	DeveloperMessage *string  `json:"developerMessage,omitempty"`
+	Links            []Link   `json:"links,omitempty"`
+	Details          []Detail `json:"details,omitempty"`
+}
+
+type ProgressiveMOVMuxingInformationResponse struct {
+	RequestID *string                             `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus        `json:"status,omitempty"`
+	Data      ProgressiveMOVMuxingInformationData `json:"data,omitempty"`
+}
+
+type ProgressiveMOVMuxingListResponse struct {
+	RequestID *string                      `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
+	Data      ProgressiveMOVMuxingListData `json:"data,omitempty"`
+}
+
 type ProgressiveWebMMuxing struct {
 	ID          *string                `json:"id,omitempty"`
 	Name        *string                `json:"name,omitempty"`
@@ -292,8 +416,38 @@ type ProgressiveWebMMuxingListResponse struct {
 	Data      ProgressiveWebMMuxingListData `json:"data,omitempty"`
 }
 
+type ProgressiveWebMMuxingInformationResult struct {
+	MimeType         *string      `json:"mimeType,omitempty"`
+	FileSize         *int64       `json:"fileSize,omitempty"`
+	ContainerFormat  *string      `json:"containerFormat,omitempty"`
+	ContainerBitrate *int64       `json:"containerBitrate,omitempty"`
+	Duration         *float64     `json:"duration,omitempty"`
+	VideoTracks      []VideoTrack `json:"videoTracks,omitempty"`
+	AudioTracks      []AudioTrack `json:"audioTracks,omitempty"`
+}
+
+type ProgressiveWebMMuxingInformationData struct {
+	//Success fields
+	Result   ProgressiveWebMMuxingInformationResult `json:"result,omitempty"`
+	Messages []Message                              `json:"messages,omitempty"`
+
+	//Error fields
+	Code             *int64   `json:"code,omitempty"`
+	Message          *string  `json:"message,omitempty"`
+	DeveloperMessage *string  `json:"developerMessage,omitempty"`
+	Links            []Link   `json:"links,omitempty"`
+	Details          []Detail `json:"details,omitempty"`
+}
+
+type ProgressiveWebMMuxingInformationResponse struct {
+	RequestID *string                              `json:"requestId,omitempty"`
+	Status    bitmovintypes.ResponseStatus         `json:"status,omitempty"`
+	Data      ProgressiveWebMMuxingInformationData `json:"data,omitempty"`
+}
+
 type StartResult struct {
-	ID *string `json:"id,omitempty"`
+	ID         *string            `json:"id,omitempty"`
+	Scheduling *EncodingScheduling `json:"scheduling,omitempty"`
 }
 
 type StartData struct {
@@ -377,4 +531,8 @@ type LiveStatusResponse struct {
 	RequestID *string                      `json:"requestId,omitempty"`
 	Status    bitmovintypes.ResponseStatus `json:"status,omitempty"`
 	Data      LiveStatusData               `json:"data,omitempty"`
+}
+
+type StartOptions struct {
+	Scheduling *EncodingScheduling `json:"scheduling,omitempty"`
 }

@@ -1,3 +1,0 @@
-[submodule "swagger-ui-server/swagger-ui"]
-	path = swagger-ui-server/swagger-ui
-	url = https://github.com/swagger-api/swagger-ui.git

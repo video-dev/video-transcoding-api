@@ -11,6 +11,7 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db/redis"
 	"github.com/NYTimes/video-transcoding-api/swagger"
 	"github.com/fsouza/ctxlogger"
+	"github.com/gorilla/handlers"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,7 +44,11 @@ func (s *TranscodingService) Prefix() string {
 // compress our responses.
 func (s *TranscodingService) Middleware(h http.Handler) http.Handler {
 	logMiddleware := ctxlogger.ContextLogger(s.logger)
-	return gziphandler.GzipHandler(server.CORSHandler(logMiddleware(h), ""))
+	h = logMiddleware(h)
+	if s.config.Server.HTTPAccessLog == nil {
+		h = handlers.LoggingHandler(s.logger.Writer(), h)
+	}
+	return gziphandler.GzipHandler(server.CORSHandler(h, ""))
 }
 
 // JSONMiddleware provides a JSONEndpoint hook wrapped around all requests.

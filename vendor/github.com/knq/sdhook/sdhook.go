@@ -138,7 +138,7 @@ func (sh *StackdriverHook) Levels() []logrus.Level {
 
 // Fire writes the message to the Stackdriver entry service.
 func (sh *StackdriverHook) Fire(entry *logrus.Entry) error {
-	go func() {
+	go func(entry *logrus.Entry) {
 		var httpReq *logging.HttpRequest
 
 		// convert entry data to labels
@@ -171,9 +171,18 @@ func (sh *StackdriverHook) Fire(entry *logrus.Entry) error {
 		} else {
 			sh.sendLogMessageViaAPI(entry, labels, httpReq)
 		}
-	}()
+	}(sh.copyEntry(entry))
 
 	return nil
+}
+
+func (sh *StackdriverHook) copyEntry(entry *logrus.Entry) *logrus.Entry {
+	e := *entry
+	e.Data = make(logrus.Fields, len(entry.Data))
+	for k, v := range entry.Data {
+		e.Data[k] = v
+	}
+	return &e
 }
 
 func (sh *StackdriverHook) sendLogMessageViaAgent(entry *logrus.Entry, labels map[string]string, httpReq *logging.HttpRequest) {
