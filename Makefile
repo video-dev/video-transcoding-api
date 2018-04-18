@@ -1,6 +1,5 @@
 .PHONY: all testdeps lint test gotest build run checkswagger swagger runswagger
 
-HTTP_ACCESS_LOG ?= access.log
 HTTP_PORT ?= 8080
 LOG_LEVEL ?= debug
 CI_TAG ?= $(shell git describe --tags $(shell git rev-list --tags --max-count=1))
@@ -34,7 +33,7 @@ build:
 	go build
 
 run: build
-	HTTP_PORT=$(HTTP_PORT) HTTP_ACCESS_LOG=$(HTTP_ACCESS_LOG) APP_LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
+	HTTP_PORT=$(HTTP_PORT) APP_LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
 
 swagger:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
