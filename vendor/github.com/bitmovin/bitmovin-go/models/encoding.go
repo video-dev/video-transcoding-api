@@ -108,16 +108,17 @@ type StreamItem struct {
 }
 
 type FMP4Muxing struct {
-	ID              *string                `json:"id,omitempty"`
-	Name            *string                `json:"name,omitempty"`
-	Description     *string                `json:"description,omitempty"`
-	CustomData      map[string]interface{} `json:"customData,omitempty"`
-	Streams         []StreamItem           `json:"streams,omitempty"`
-	Outputs         []Output               `json:"outputs,omitempty"`
-	SegmentLength   *float64               `json:"segmentLength,omitempty"`
-	SegmentNaming   *string                `json:"segmentNaming,omitempty"`
-	InitSegmentName *string                `json:"initSegmentName,omitempty"`
-	AvgBitrate      *int                   `json:"avgBitrate,omitempty"`
+	ID                   *string                     `json:"id,omitempty"`
+	Name                 *string                     `json:"name,omitempty"`
+	Description          *string                     `json:"description,omitempty"`
+	CustomData           map[string]interface{}      `json:"customData,omitempty"`
+	Streams              []StreamItem                `json:"streams,omitempty"`
+	StreamConditionsMode bitmovintypes.ConditionMode `json:"streamConditionsMode,omitempty"`
+	Outputs              []Output                    `json:"outputs,omitempty"`
+	SegmentLength        *float64                    `json:"segmentLength,omitempty"`
+	SegmentNaming        *string                     `json:"segmentNaming,omitempty"`
+	InitSegmentName      *string                     `json:"initSegmentName,omitempty"`
+	AvgBitrate           *int                        `json:"avgBitrate,omitempty"`
 }
 
 type FMP4MuxingData struct {
@@ -157,14 +158,15 @@ type FMP4MuxingListResponse struct {
 }
 
 type TSMuxing struct {
-	ID            *string                `json:"id,omitempty"`
-	Name          *string                `json:"name,omitempty"`
-	Description   *string                `json:"description,omitempty"`
-	CustomData    map[string]interface{} `json:"customData,omitempty"`
-	Streams       []StreamItem           `json:"streams,omitempty"`
-	Outputs       []Output               `json:"outputs,omitempty"`
-	SegmentLength *float64               `json:"segmentLength,omitempty"`
-	SegmentNaming *string                `json:"segmentNaming,omitempty"`
+	ID                   *string                     `json:"id,omitempty"`
+	Name                 *string                     `json:"name,omitempty"`
+	Description          *string                     `json:"description,omitempty"`
+	CustomData           map[string]interface{}      `json:"customData,omitempty"`
+	StreamConditionsMode bitmovintypes.ConditionMode `json:"streamConditionsMode,omitempty"`
+	Streams              []StreamItem                `json:"streams,omitempty"`
+	Outputs              []Output                    `json:"outputs,omitempty"`
+	SegmentLength        *float64                    `json:"segmentLength,omitempty"`
+	SegmentNaming        *string                     `json:"segmentNaming,omitempty"`
 }
 
 type TSMuxingData struct {
@@ -204,14 +206,15 @@ type TSMuxingListResponse struct {
 }
 
 type MP4Muxing struct {
-	ID               *string                `json:"id,omitempty"`
-	Name             *string                `json:"name,omitempty"`
-	Description      *string                `json:"description,omitempty"`
-	CustomData       map[string]interface{} `json:"customData,omitempty"`
-	Streams          []StreamItem           `json:"streams,omitempty"`
-	Outputs          []Output               `json:"outputs,omitempty"`
-	Filename         *string                `json:"filename,omitempty"`
-	FragmentDuration *int64                 `json:"fragmentDuration,omitempty"`
+	ID                   *string                     `json:"id,omitempty"`
+	Name                 *string                     `json:"name,omitempty"`
+	Description          *string                     `json:"description,omitempty"`
+	CustomData           map[string]interface{}      `json:"customData,omitempty"`
+	Streams              []StreamItem                `json:"streams,omitempty"`
+	StreamConditionsMode bitmovintypes.ConditionMode `json:"streamConditionsMode,omitempty"`
+	Outputs              []Output                    `json:"outputs,omitempty"`
+	Filename             *string                     `json:"filename,omitempty"`
+	FragmentDuration     *int64                      `json:"fragmentDuration,omitempty"`
 }
 
 type MP4MuxingData struct {
@@ -296,13 +299,14 @@ type MP4MuxingInformationResponse struct {
 }
 
 type ProgressiveMOVMuxing struct {
-	ID          *string                `json:"id,omitempty"`
-	Name        *string                `json:"name,omitempty"`
-	Description *string                `json:"description,omitempty"`
-	CustomData  map[string]interface{} `json:"customData,omitempty"`
-	Streams     []StreamItem           `json:"streams,omitempty"`
-	Outputs     []Output               `json:"outputs,omitempty"`
-	Filename    *string                `json:"filename,omitempty"`
+	ID                   *string                     `json:"id,omitempty"`
+	Name                 *string                     `json:"name,omitempty"`
+	Description          *string                     `json:"description,omitempty"`
+	CustomData           map[string]interface{}      `json:"customData,omitempty"`
+	Streams              []StreamItem                `json:"streams,omitempty"`
+	StreamConditionsMode bitmovintypes.ConditionMode `json:"streamConditionsMode,omitempty"`
+	Outputs              []Output                    `json:"outputs,omitempty"`
+	Filename             *string                     `json:"filename,omitempty"`
 }
 
 type ProgressiveMOVMuxingData struct {
@@ -371,13 +375,14 @@ type ProgressiveMOVMuxingListResponse struct {
 }
 
 type ProgressiveWebMMuxing struct {
-	ID          *string                `json:"id,omitempty"`
-	Name        *string                `json:"name,omitempty"`
-	Description *string                `json:"description,omitempty"`
-	CustomData  map[string]interface{} `json:"customData,omitempty"`
-	Streams     []StreamItem           `json:"streams,omitempty"`
-	Outputs     []Output               `json:"outputs,omitempty"`
-	Filename    *string                `json:"filename,omitempty"`
+	ID                   *string                     `json:"id,omitempty"`
+	Name                 *string                     `json:"name,omitempty"`
+	Description          *string                     `json:"description,omitempty"`
+	CustomData           map[string]interface{}      `json:"customData,omitempty"`
+	Streams              []StreamItem                `json:"streams,omitempty"`
+	StreamConditionsMode bitmovintypes.ConditionMode `json:"streamConditionsMode,omitempty"`
+	Outputs              []Output                    `json:"outputs,omitempty"`
+	Filename             *string                     `json:"filename,omitempty"`
 }
 
 type ProgressiveWebMMuxingData struct {
@@ -446,7 +451,7 @@ type ProgressiveWebMMuxingInformationResponse struct {
 }
 
 type StartResult struct {
-	ID         *string            `json:"id,omitempty"`
+	ID         *string             `json:"id,omitempty"`
 	Scheduling *EncodingScheduling `json:"scheduling,omitempty"`
 }
 
@@ -534,5 +539,9 @@ type LiveStatusResponse struct {
 }
 
 type StartOptions struct {
-	Scheduling *EncodingScheduling `json:"scheduling,omitempty"`
+	Scheduling           *EncodingScheduling   `json:"scheduling,omitempty"`
+	PreviewDashManifests []PreviewDashManifest `json:"previewDashManifests,omitempty"`
+	PreviewHlsManifests  []PreviewHlsManifest  `json:"previewHlsManifests,omitempty"`
+	VodDashManifests     []VodDashManifest     `json:"vodDashManifests,omitempty"`
+	VodHlsManifests      []VodHlsManifest      `json:"vodHlsManifests,omitempty"`
 }

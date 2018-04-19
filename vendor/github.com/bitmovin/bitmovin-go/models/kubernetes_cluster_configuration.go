@@ -8,8 +8,8 @@ type KubernetesClusterConfigurationRequest struct {
 }
 
 type KubernetesClusterConfigurationDetail struct {
-	ParallelEncodings  int64  `json:"parallelEncodings"`
-	WorkersPerEncoding int64  `json:"workersPerEncoding"`
+	ParallelEncodings  int64 `json:"parallelEncodings"`
+	WorkersPerEncoding int64 `json:"workersPerEncoding"`
 }
 
 type KubernetesClusterConfigurationResponseData struct {

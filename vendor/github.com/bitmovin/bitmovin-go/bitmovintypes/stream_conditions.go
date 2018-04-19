@@ -18,3 +18,10 @@ const (
 	ConditionTypeOr        ConditionType = "OR"
 	ConditionTypeCondition ConditionType = "CONDITION"
 )
+
+type ConditionMode string
+
+const (
+	ConditionModeDropMuxing ConditionMode = "DROP_MUXING"
+	ConditionModeDropStream ConditionMode = "DROP_STREAM"
+)

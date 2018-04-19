@@ -102,8 +102,8 @@
     "models",
     "services"
   ]
-  revision = "057c73b2ab30fe3b22d026fd93410efac2509d4e"
-  version = "v1.8.0"
+  revision = "cd86067e5c86a077a887f6ed91a93b5a2f6eeb50"
+  version = "v1.9.1"
 
 [[projects]]
   branch = "master"
