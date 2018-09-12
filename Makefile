@@ -11,11 +11,8 @@ testdeps:
 	go get github.com/go-swagger/go-swagger/cmd/swagger
 
 lint: testdeps
-	go get github.com/alecthomas/gometalinter
-	gometalinter --install --vendored-linters
-	go build -i
-	go list -f '{{.TestImports}}' ./... | sed -e 's/\[\(.*\)\]/\1/' | tr ' ' '\n' | grep '^.*\..*/.*$$' | xargs go install
-	gometalinter -j 2 --fast --disable=gosec --disable=gotype --disable=gas --disable=gocyclo --deadline=10m --tests --vendor ./...
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	golangci-lint run -D errcheck
 
 gotest: testdeps
 	go test ./...
