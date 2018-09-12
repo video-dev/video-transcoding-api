@@ -107,7 +107,7 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			HTTPAccessLog: &accessLog,
 		},
 		Log: &logging.Config{
-			Level: "debug",
+			Level:                   "debug",
 			StackDriverErrorLogName: "error_log",
 		},
 	}
@@ -206,7 +206,7 @@ func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 			HTTPAccessLog: &accessLog,
 		},
 		Log: &logging.Config{
-			Level: "info",
+			Level:                   "info",
 			StackDriverErrorLogName: "error_log",
 		},
 	}
