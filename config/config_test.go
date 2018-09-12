@@ -107,8 +107,9 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			HTTPAccessLog: &accessLog,
 		},
 		Log: &logging.Config{
-			Level:                   "debug",
 			StackDriverErrorLogName: "error_log",
+
+			Level: "debug",
 		},
 	}
 	diff := cmp.Diff(*cfg, expectedCfg, cmpopts.IgnoreUnexported(server.Config{}))
@@ -206,7 +207,8 @@ func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 			HTTPAccessLog: &accessLog,
 		},
 		Log: &logging.Config{
-			Level:                   "info",
+			Level: "info",
+
 			StackDriverErrorLogName: "error_log",
 		},
 	}
