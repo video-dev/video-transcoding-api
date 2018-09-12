@@ -12,7 +12,7 @@ testdeps:
 
 lint: testdeps
 	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-	golangci-lint run -D errcheck
+	golangci-lint run -D errcheck -E golint -E staticcheck -E misspell -E gofmt
 
 gotest: testdeps
 	go test ./...
