@@ -2,6 +2,7 @@ package bearer
 
 import (
 	"errors"
+	"net/http"
 	"strings"
 	"time"
 )
@@ -64,6 +65,15 @@ func Scope(scopes ...string) Option {
 		if len(scopes) > 0 {
 			return Claim("scope", strings.Join(scopes, " "))(tok)
 		}
+		return nil
+	}
+}
+
+// Transport is an option that sets an underlying client transport to the
+// exchange process.
+func Transport(transport http.RoundTripper) Option {
+	return func(tok *Bearer) error {
+		tok.transport = transport
 		return nil
 	}
 }

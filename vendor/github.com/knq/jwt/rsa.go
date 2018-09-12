@@ -4,8 +4,6 @@ import (
 	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
-	"errors"
-	"fmt"
 	"io"
 )
 
@@ -89,30 +87,30 @@ func NewRSASigner(alg Algorithm, method RSASignerVerifier) func(Store, crypto.Ha
 		// check private key
 		if privRaw, ok = store.PrivateKey(); ok {
 			if priv, ok = privRaw.(*rsa.PrivateKey); !ok {
-				return nil, errors.New("NewRSASigner: private key must be a *rsa.PrivateKey")
+				return nil, ErrInvalidPrivateKey
 			}
 
 			// check private key length
 			if priv.N.BitLen() < RSAMinimumBitLen {
-				return nil, fmt.Errorf("NewRSASigner: private key has length %d, must have minimum length of %d", priv.N.BitLen(), RSAMinimumBitLen)
+				return nil, ErrInvalidPrivateKeySize
 			}
 		}
 
 		// check public key
 		if pubRaw, ok = store.PublicKey(); ok {
 			if pub, ok = pubRaw.(*rsa.PublicKey); !ok {
-				return nil, errors.New("NewRSASigner: public key must be a *rsa.PublicKey")
+				return nil, ErrInvalidPublicKey
 			}
 
 			// check public key length
 			if pub.N.BitLen() < RSAMinimumBitLen {
-				return nil, fmt.Errorf("NewRSASigner: public key has length %d, must have minimum length of %d", pub.N.BitLen(), RSAMinimumBitLen)
+				return nil, ErrInvalidPublicKeySize
 			}
 		}
 
 		// check that either a private or public key has been provided
 		if priv == nil && pub == nil {
-			return nil, errors.New("NewRSASigner: either a private key or a public key must be provided")
+			return nil, ErrMissingPrivateOrPublicKey
 		}
 
 		return &RSASigner{
@@ -131,7 +129,7 @@ func (rs *RSASigner) SignBytes(buf []byte) ([]byte, error) {
 
 	// check rs.priv
 	if rs.priv == nil {
-		return nil, errors.New("RSASigner.Sign: priv cannot be nil")
+		return nil, ErrMissingPrivateKey
 	}
 
 	// hash
@@ -167,7 +165,7 @@ func (rs *RSASigner) VerifyBytes(buf, sig []byte) error {
 
 	// check rs.pub
 	if rs.pub == nil {
-		return errors.New("RSASigner.VerifyBytes: pub cannot be nil")
+		return ErrMissingPublicKey
 	}
 
 	// hash

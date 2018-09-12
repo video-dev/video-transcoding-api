@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net/http"
 	"net/url"
 	"strconv"
 	"time"
@@ -28,9 +29,10 @@ const (
 // This should be wrapped with a oauth2.ReusableTokenSource before using it
 // with oauth2.Transport.
 type Bearer struct {
-	signer   jwt.Signer
-	tokenURL string
-	context  context.Context
+	signer    jwt.Signer
+	tokenURL  string
+	context   context.Context
+	transport http.RoundTripper
 
 	addExpiration bool
 	addIssuedAt   bool
@@ -59,8 +61,7 @@ func NewTokenSource(signer jwt.Signer, tokenURL string, ctxt context.Context, op
 
 	// apply opts
 	for _, o := range opts {
-		err = o(b)
-		if err != nil {
+		if err = o(b); err != nil {
 			return nil, fmt.Errorf("jwt/bearer: %v", err)
 		}
 	}
@@ -101,7 +102,9 @@ func (b *Bearer) Token() (*oauth2.Token, error) {
 		return nil, fmt.Errorf("jwt/bearer: could not encode claims: %v", err)
 	}
 
+	// build client
 	client := oauth2.NewClient(b.context, nil)
+	client.Transport = b.transport
 
 	// create values
 	v := url.Values{}
@@ -165,4 +168,13 @@ func (b *Bearer) Token() (*oauth2.Token, error) {
 	}
 
 	return ret, nil
+}
+
+// Client returns a HTTP client using the bearer token.
+func (b *Bearer) Client() *http.Client {
+	return &http.Client{
+		Transport: &oauth2.Transport{
+			Source: b,
+		},
+	}
 }

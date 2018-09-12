@@ -641,6 +641,24 @@ func (s *EncodingService) Stop(encodingID string) (*models.StartStopResponse, er
 	return &r, nil
 }
 
+func (s *EncodingService) Reschedule(encodingID string, rescheduleEncoding *models.RescheduleEncoding) (*models.StartStopResponse, error) {
+	b, err := json.Marshal(*rescheduleEncoding)
+	if err != nil {
+		return nil, err
+	}
+	path := EncodingEndpoint + "/" + encodingID + "/reschedule"
+	o, err := s.RestService.Create(path, b)
+	if err != nil {
+		return nil, err
+	}
+	var r models.StartStopResponse
+	err = json.Unmarshal(o, &r)
+	if err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
 func (s *EncodingService) RetrieveStatus(encodingID string) (*models.StatusResponse, error) {
 	path := EncodingEndpoint + "/" + encodingID + "/status"
 	o, err := s.RestService.Retrieve(path)

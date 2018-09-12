@@ -38,20 +38,35 @@ type LiveHLSManifest struct {
 	TimeShift  *float64 `json:"timeShift,omitempty"`
 }
 
+type HLSAudioGroupDefinition struct {
+	Name     string `json:"name,omitempty"`
+	Priority *int64 `json:"priority,omitempty"`
+}
+
+type HLSAudioGroupConfig struct {
+	DroppingMode bitmovintypes.HLSVariantStreamDroppingMode `json:"droppingMode,omitempty"`
+	Groups       []HLSAudioGroupDefinition                  `json:"groups,omitempty"`
+}
+
+func (h *HLSAudioGroupConfig) AddGroup(group *HLSAudioGroupDefinition) {
+	h.Groups = append(h.Groups, *group)
+}
+
 type StreamInfo struct {
-	ID                 *string `json:"id,omitempty"`
-	URI                *string `json:"uri,omitempty"`
-	Audio              *string `json:"audio,omitempty"`
-	Video              *string `json:"video,omitempty"`
-	Subtitles          *string `json:"subtitles,omitempty"`
-	ClosedCaptions     *string `json:"closedCaptions,omitempty"`
-	SegmentPath        *string `json:"segmentPath,omitempty"`
-	EncodingID         *string `json:"encodingId,omitempty"`
-	StreamID           *string `json:"streamId,omitempty"`
-	MuxingID           *string `json:"muxingId,omitempty"`
-	DRMID              *string `json:"drmId,omitempty"`
-	StartSegmentNumber *int64  `json:"startSegmentNumber,omitempty"`
-	EndSegmentNumber   *int64  `json:"endSegmentNumber,omitempty"`
+	ID                 *string              `json:"id,omitempty"`
+	URI                *string              `json:"uri,omitempty"`
+	Audio              *string              `json:"audio,omitempty"`
+	AudioGroups        *HLSAudioGroupConfig `json:"audioGroups,omitempty"`
+	Video              *string              `json:"video,omitempty"`
+	Subtitles          *string              `json:"subtitles,omitempty"`
+	ClosedCaptions     *string              `json:"closedCaptions,omitempty"`
+	SegmentPath        *string              `json:"segmentPath,omitempty"`
+	EncodingID         *string              `json:"encodingId,omitempty"`
+	StreamID           *string              `json:"streamId,omitempty"`
+	MuxingID           *string              `json:"muxingId,omitempty"`
+	DRMID              *string              `json:"drmId,omitempty"`
+	StartSegmentNumber *int64               `json:"startSegmentNumber,omitempty"`
+	EndSegmentNumber   *int64               `json:"endSegmentNumber,omitempty"`
 }
 
 type StreamInfoData struct {

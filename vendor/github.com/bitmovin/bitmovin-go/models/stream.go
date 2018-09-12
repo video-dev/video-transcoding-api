@@ -3,14 +3,16 @@ package models
 import "github.com/bitmovin/bitmovin-go/bitmovintypes"
 
 type Stream struct {
-	ID                   *string                `json:"id,omitempty"`
-	Name                 *string                `json:"name,omitempty"`
-	Description          *string                `json:"description,omitempty"`
-	CustomData           map[string]interface{} `json:"customData,omitempty"`
-	InputStreams         []InputStream          `json:"inputStreams,omitempty"`
-	CodecConfigurationID *string                `json:"codecConfigId,omitempty"`
-	Outputs              []Output               `json:"outputs,omitempty"`
-	Conditions           *StreamCondition       `json:"conditions,omitempty"`
+	ID                   *string                         `json:"id,omitempty"`
+	Name                 *string                         `json:"name,omitempty"`
+	Description          *string                         `json:"description,omitempty"`
+	CustomData           map[string]interface{}          `json:"customData,omitempty"`
+	InputStreams         []InputStream                   `json:"inputStreams,omitempty"`
+	CodecConfigurationID *string                         `json:"codecConfigId,omitempty"`
+	Outputs              []Output                        `json:"outputs,omitempty"`
+	DecodingErrorMode    bitmovintypes.DecodingErrorMode `json:"decodingErrorMode,omitempty"`
+	Conditions           *StreamCondition                `json:"conditions,omitempty"`
+	Mode                 bitmovintypes.StreamMode        `json:"mode,omitempty"`
 }
 
 type StreamCondition struct {

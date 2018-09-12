@@ -3,7 +3,6 @@ package jwt
 import (
 	"crypto"
 	"crypto/hmac"
-	"errors"
 )
 
 // HmacSigner provides a HMAC Signer.
@@ -22,12 +21,12 @@ func NewHMACSigner(alg Algorithm) func(Store, crypto.Hash) (Signer, error) {
 
 		// check private key
 		if keyRaw, ok = store.PrivateKey(); !ok {
-			return nil, errors.New("NewHMACSigner: private key must be provided")
+			return nil, ErrMissingPrivateKey
 		}
 
 		// check key type
 		if key, ok = keyRaw.([]byte); !ok {
-			return nil, errors.New("NewHMACSigner: private key must be type []byte")
+			return nil, ErrInvalidPrivateKey
 		}
 
 		return &HmacSigner{
@@ -44,7 +43,7 @@ func (hs *HmacSigner) SignBytes(buf []byte) ([]byte, error) {
 
 	// check hs.key
 	if hs.key == nil {
-		return nil, errors.New("HmacSigner.SignBytes: key cannot be nil")
+		return nil, ErrMissingPrivateKey
 	}
 
 	// hash
@@ -78,7 +77,7 @@ func (hs *HmacSigner) VerifyBytes(buf, sig []byte) error {
 
 	// check hs.key
 	if hs.key == nil {
-		return errors.New("HmacSigner.VerifyBytes: key cannot be nil")
+		return ErrMissingPrivateKey
 	}
 
 	// hash

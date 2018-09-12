@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -13,16 +12,6 @@ var (
 	// b64 is the base64 encoding config used for encoding/decoding jwt
 	// parts.
 	b64 = base64.URLEncoding.WithPadding(base64.NoPadding)
-
-	// ErrInvalidSignature is the error when a signature is invalid.
-	ErrInvalidSignature = errors.New("invalid signature")
-
-	// ErrInvalidAlgorithm is the error when the algorithm used in the header
-	// doesn't match with the Signer's.
-	ErrInvalidAlgorithm = errors.New("invalid algorithm")
-
-	// ErrInvalidToken is the error when the JWT is improperly formatted.
-	ErrInvalidToken = errors.New("invalid token")
 )
 
 // getFieldWithTag lookups jwt tag, with specified tagName on obj, returning

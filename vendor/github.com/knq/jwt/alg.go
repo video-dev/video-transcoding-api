@@ -7,8 +7,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rsa"
-	"errors"
-	"fmt"
 )
 
 // Algorithm is the type for signing algorithms implemented in this package.
@@ -114,12 +112,12 @@ const (
 
 // algSet is the set of Algorithm implementations.
 var algSet = []struct {
-	new  func(Store, crypto.Hash) (Signer, error)
+	init func(Store, crypto.Hash) (Signer, error)
 	hash crypto.Hash
 }{
 	// none
 	NONE: {func(Store, crypto.Hash) (Signer, error) {
-		return nil, errors.New("algorithm none is not implemented")
+		return nil, ErrInvalidAlgorithm
 	}, crypto.SHA256},
 
 	// HS256 is HMAC + SHA-256
@@ -172,7 +170,7 @@ func (alg Algorithm) New(keyset interface{}) (Signer, error) {
 
 	// check hash
 	if !a.hash.Available() {
-		return nil, fmt.Errorf("%s.New: crypto hash unavailable", alg)
+		return nil, ErrInvalidHash
 	}
 
 	var s Store
@@ -200,10 +198,10 @@ func (alg Algorithm) New(keyset interface{}) (Signer, error) {
 		s = &Keystore{PubKey: p}
 
 	default:
-		return nil, fmt.Errorf("%s.New: unknown keyset type", alg)
+		return nil, ErrInvalidKeyset
 	}
 
-	return a.new(s, a.hash)
+	return a.init(s, a.hash)
 }
 
 // Header builds the JWT header for the algorithm.
@@ -269,11 +267,9 @@ func (alg *Algorithm) UnmarshalText(buf []byte) error {
 	case "PS512":
 		*alg = PS512
 
-	// errors
-	case "none":
-		return errors.New("algorithm none not supported")
+	// error
 	default:
-		return errors.New("algorithm not supported")
+		return ErrInvalidAlgorithm
 	}
 
 	return nil

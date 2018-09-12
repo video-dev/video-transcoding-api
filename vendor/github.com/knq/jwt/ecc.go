@@ -5,8 +5,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/elliptic"
 	"crypto/rand"
-	"errors"
-	"fmt"
 	"math/big"
 )
 
@@ -40,25 +38,25 @@ func NewEllipticSigner(alg Algorithm, curve elliptic.Curve) func(Store, crypto.H
 		// check private key
 		if privRaw, ok = store.PrivateKey(); ok {
 			if priv, ok = privRaw.(*ecdsa.PrivateKey); !ok {
-				return nil, errors.New("NewEllipticSigner: private key must be a *ecdsa.PrivateKey")
+				return nil, ErrInvalidPrivateKey
 			}
 
 			// check curve type matches private key curve type
 			if curveBitSize != priv.Curve.Params().BitSize {
-				return nil, fmt.Errorf("NewEllipticSigner: private key have bit size %d", curve.Params().BitSize)
+				return nil, ErrInvalidPrivateKeySize
 			}
 		}
 
 		// check public key
 		if pubRaw, ok = store.PublicKey(); ok {
 			if pub, ok = pubRaw.(*ecdsa.PublicKey); !ok {
-				return nil, errors.New("NewEllipticSigner: public key must be a *ecdsa.PublicKey")
+				return nil, ErrInvalidPublicKey
 			}
 		}
 
 		// check that either a private or public key has been provided
 		if priv == nil && pub == nil {
-			return nil, errors.New("NewEllipticSigner: either a private key or a public key must be provided")
+			return nil, ErrMissingPrivateOrPublicKey
 		}
 
 		return &EccSigner{
@@ -83,14 +81,14 @@ func (es *EccSigner) Mksig(r, s *big.Int) ([]byte, error) {
 	rb := r.Bytes()
 	n = copy(buf[es.keyLen-len(rb):], rb)
 	if n != len(rb) {
-		return nil, fmt.Errorf("EccSigner.Mksig: could not copy r into sig, copied: %d", n)
+		return nil, ErrMismatchedBytesCopied
 	}
 
 	// copy s into buf
 	sb := s.Bytes()
 	n = copy(buf[es.keyLen+(es.keyLen-(len(sb))):], sb)
 	if n != len(sb) {
-		return nil, fmt.Errorf("EccSigner.Mksig: could not copy s into sig, copied: %d", n)
+		return nil, ErrMismatchedBytesCopied
 	}
 
 	return buf, nil
@@ -102,7 +100,7 @@ func (es *EccSigner) SignBytes(buf []byte) ([]byte, error) {
 
 	// check es.priv
 	if es.priv == nil {
-		return nil, errors.New("EccSigner.SignBytes: priv cannot be nil")
+		return nil, ErrInvalidPrivateKey
 	}
 
 	// hash
@@ -143,7 +141,7 @@ func (es *EccSigner) VerifyBytes(buf, sig []byte) error {
 
 	// check es.pub
 	if es.pub == nil {
-		return errors.New("EccSigner.VerifyBytes: pub cannot be nil")
+		return ErrInvalidPublicKey
 	}
 
 	// hash
