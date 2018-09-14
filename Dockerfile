@@ -9,5 +9,4 @@ FROM alpine:latest
 
 WORKDIR /root/
 COPY --from=0 /go/src/github.com/NYTimes/video-transcoding-api/video-transcoding-api .
-expose 8080
 CMD ["./video-transcoding-api"]  
