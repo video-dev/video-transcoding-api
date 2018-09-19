@@ -1,12 +1,12 @@
-FROM golang:alpine
+FROM golang:1.11-alpine AS build
 
-RUN apk add --no-cache ca-certificates build-base git
-WORKDIR /go/src/github.com/NYTimes/video-transcoding-api/
-COPY . / /go/src/github.com/NYTimes/video-transcoding-api/
-RUN make build
+RUN     apk add --no-cache git
+ENV     CGO_ENABLED 0
+ADD     . /code
+WORKDIR /code
+RUN     go build -o /bin/video-transcoding-api
 
-FROM alpine:latest  
+FROM alpine:3.8
 
-WORKDIR /root/
-COPY --from=0 /go/src/github.com/NYTimes/video-transcoding-api/video-transcoding-api .
-CMD ["./video-transcoding-api"]  
+COPY --from=build /bin/video-transcoding-api /bin/video-transcoding-api
+CMD ["/bin/video-transcoding-api"]

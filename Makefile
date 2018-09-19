@@ -8,11 +8,11 @@ TAG_SUFFIX  := $(shell echo $(CI_TAG) | tail -c 3)
 all: test
 
 testdeps:
-	go get github.com/go-swagger/go-swagger/cmd/swagger
+	cd /tmp && go get github.com/go-swagger/go-swagger/cmd/swagger
 
 lint: testdeps
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint
-	golangci-lint run -D errcheck -E golint -E staticcheck -E misspell -E gofmt
+	cd /tmp && go get golang.org/x/lint/golint
+	golint $$(go list ./...)
 
 gotest: testdeps
 	go test ./...
@@ -32,9 +32,8 @@ build:
 run: build
 	HTTP_PORT=$(HTTP_PORT) APP_LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
 
-swagger:
-	go get github.com/go-swagger/go-swagger/cmd/swagger
+swagger: testdeps
 	swagger generate spec -o swagger.json
 
-checkswagger:
+checkswagger: testdeps
 	swagger validate swagger.json

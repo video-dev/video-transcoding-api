@@ -7,19 +7,15 @@ build:
   tests:
     image: mediafactory/video-transcoding-api
     environment:
-      - GOROOT=/usr/local/go
-      - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
     commands:
-      - make testdeps test
+      - make test
     when:
       branch: master
       event: push
   deploy:
     image: mediafactory/video-transcoding-api
     environment:
-      - GOROOT=/usr/local/go
-      - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
       - INFRA_REPO=$$NP_INFRA_REPO
       - NP_PATH=$$NP_PATH_VALUE
@@ -45,8 +41,6 @@ build:
   make_live:
     image: mediafactory/video-transcoding-api
     environment:
-      - GOROOT=/usr/local/go
-      - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
       - INFRA_REPO=$$NP_INFRA_REPO
       - NP_PATH=$$NP_PATH_VALUE

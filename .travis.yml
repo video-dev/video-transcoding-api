@@ -1,14 +1,17 @@
 language: go
 sudo: false
 install: make testdeps
-script: make swagger coverage
+script: make coverage
 after_success: bash <(curl -s https://codecov.io/bash)
+env:
+  global:
+  - GO111MODULE=on
 addons:
   apt:
     packages:
     - redis-server
 go:
-- "1.10"
+- 1.11.x
 - tip
 services:
 - redis-server
