@@ -1,11 +1,13 @@
 language: go
 sudo: false
-install: make testdeps
-script: make coverage
+install:
+  - unset GOPATH
+  - make testdeps
+script:
+  - unset GOPATH
+  - export PATH=$PATH:$(go env GOPATH)/bin
+  - make coverage
 after_success: bash <(curl -s https://codecov.io/bash)
-env:
-  global:
-  - GO111MODULE=on
 addons:
   apt:
     packages:
