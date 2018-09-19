@@ -8,11 +8,10 @@ build:
     image: mediafactory/video-transcoding-api
     environment:
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
-      - GO111MODULE=on
     commands:
+      - unset GOPATH # hack to get go working fine GO111MODULE=auto
       - make test
     when:
-      branch: master
       event: push
   deploy:
     image: mediafactory/video-transcoding-api
