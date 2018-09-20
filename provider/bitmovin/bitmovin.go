@@ -482,11 +482,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	acl := []models.ACLItem{aclEntry}
 
 	cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
-	outputBucketName, prefix, err := parseS3URL(p.config.Destination)
+	outputBucketName, _, err := parseS3URL(p.config.Destination)
 	if err != nil {
 		return nil, err
 	}
-	prefix = path.Join(prefix, job.ID)
 
 	s3OS := services.NewS3OutputService(p.client)
 	s3Output := &models.S3Output{
@@ -561,7 +560,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	hlsService := services.NewHLSManifestService(p.client)
 
 	if outputtingHLS {
-		masterManifestPath = path.Dir(path.Join(prefix, job.StreamingParams.PlaylistFileName))
+		masterManifestPath = path.Dir(path.Join(job.ID, job.StreamingParams.PlaylistFileName))
 		masterManifestFile = path.Base(job.StreamingParams.PlaylistFileName)
 		manifestOutput := models.Output{
 			OutputID:   s3OSResponse.Data.Result.ID,
@@ -738,7 +737,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoStreamInfo := &models.StreamInfo{
 					Audio:       stringToPtr(audioPresetID),
 					SegmentPath: stringToPtr(videoPresetID),
-					URI:         stringToPtr(path.Join(prefix, output.FileName)),
+					URI:         stringToPtr(output.FileName),
 					EncodingID:  encodingResp.Data.Result.ID,
 					StreamID:    videoStreamResp.Data.Result.ID,
 					MuxingID:    videoMuxingResp.Data.Result.ID,
@@ -755,7 +754,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
 					ACL:        acl,
-					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
+					OutputPath: stringToPtr(path.Dir(path.Join(job.ID, output.FileName))),
 				}
 				videoMuxing := &models.MP4Muxing{
 					Filename:             stringToPtr(path.Base(output.FileName)),
@@ -774,7 +773,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
 					ACL:        acl,
-					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
+					OutputPath: stringToPtr(path.Dir(path.Join(job.ID, output.FileName))),
 				}
 				videoMuxing := &models.ProgressiveMOVMuxing{
 					Filename:             stringToPtr(path.Base(output.FileName)),
@@ -861,7 +860,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
 					ACL:        acl,
-					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
+					OutputPath: stringToPtr(path.Dir(path.Join(job.ID, output.FileName))),
 				}
 				videoMuxing := &models.ProgressiveWebMMuxing{
 					Filename:             stringToPtr(path.Base(output.FileName)),
