@@ -1,14 +1,19 @@
 language: go
 sudo: false
-install: make testdeps
-script: make swagger coverage
+install:
+  - unset GOPATH
+  - make testdeps
+script:
+  - unset GOPATH
+  - export PATH=$PATH:$(go env GOPATH)/bin
+  - make coverage
 after_success: bash <(curl -s https://codecov.io/bash)
 addons:
   apt:
     packages:
     - redis-server
 go:
-- "1.10"
+- 1.11.x
 - tip
 services:
 - redis-server

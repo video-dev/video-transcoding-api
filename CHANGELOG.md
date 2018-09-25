@@ -1,3 +1,29 @@
+## Version 1.4.2 (Release date: 2018-04-19)
+([69f9799](https://github.com/nytimes/video-transcoding-api/commit/69f9799)) provider/bitmovin: set StreamConditionsMode 
+
+([f10fef2](https://github.com/nytimes/video-transcoding-api/commit/f10fef2)) Update bitmovin-go 
+
+
+([fc43f30](https://github.com/nytimes/video-transcoding-api/commit/fc43f30)) Makefile: remove HTTP_ACCESS_LOG 
+
+([c05302d](https://github.com/nytimes/video-transcoding-api/commit/c05302d)) bitmovin: encodes only existing audio for vp8 
+
+
+([5b5fe4d](https://github.com/nytimes/video-transcoding-api/commit/5b5fe4d)) bitmovin:encodes audio only when a track is available 
+
+([b1a44ac](https://github.com/nytimes/video-transcoding-api/commit/b1a44ac)) Update dependencies 
+
+([cc0d223](https://github.com/nytimes/video-transcoding-api/commit/cc0d223)) Add support for specifying TwoPass on presets 
+
+([b7fe798](https://github.com/nytimes/video-transcoding-api/commit/b7fe798)) Update dependencies 
+
+([31b869e](https://github.com/nytimes/video-transcoding-api/commit/31b869e)) Remove swagger-ui stuff 
+
+([79d2138](https://github.com/nytimes/video-transcoding-api/commit/79d2138)) db/types: some docs fixes 
+
+
+
+
 ## Version 1.4.1 (Release date: 2018-03-06)
 ([642021a](https://github.com/nytimes/video-transcoding-api/commit/642021a)) Update logging dependencies 
 

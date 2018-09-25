@@ -1301,7 +1301,6 @@ func TestJobStatusReturnsFinishedIfEncodeAndManifestAreFinished(t *testing.T) {
 func TestJobStatusReturnsFinishedIfEncodeIsFinishedAndNoManifestGenerationIsNeeded(t *testing.T) {
 	const (
 		testJobID    = "this_is_a_job_id"
-		manifestID   = "this_is_the_underlying_manifest_id"
 		mp4MuxingID  = "test_mp4_muxing_id"
 		webmMuxingID = "test_webm_muxing_id"
 		movMuxingID  = "test_mov_muxing_id"

@@ -675,10 +675,11 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					ACL:        acl,
 				}
 				audioMuxing := &models.TSMuxing{
-					SegmentLength: floatToPtr(float64(job.StreamingParams.SegmentDuration)),
-					SegmentNaming: stringToPtr("seg_%number%.ts"),
-					Streams:       []models.StreamItem{audioMuxingStream},
-					Outputs:       []models.Output{audioMuxingOutput},
+					SegmentLength:        floatToPtr(float64(job.StreamingParams.SegmentDuration)),
+					SegmentNaming:        stringToPtr("seg_%number%.ts"),
+					Streams:              []models.StreamItem{audioMuxingStream},
+					Outputs:              []models.Output{audioMuxingOutput},
+					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				audioMuxingResp, muxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
 				if muxErr != nil {
@@ -757,9 +758,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
 				}
 				videoMuxing := &models.MP4Muxing{
-					Filename: stringToPtr(path.Base(output.FileName)),
-					Outputs:  []models.Output{videoMuxingOutput},
-					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					Filename:             stringToPtr(path.Base(output.FileName)),
+					Outputs:              []models.Output{videoMuxingOutput},
+					Streams:              []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
 				if err != nil {
@@ -775,9 +777,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
 				}
 				videoMuxing := &models.ProgressiveMOVMuxing{
-					Filename: stringToPtr(path.Base(output.FileName)),
-					Outputs:  []models.Output{videoMuxingOutput},
-					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					Filename:             stringToPtr(path.Base(output.FileName)),
+					Outputs:              []models.Output{videoMuxingOutput},
+					Streams:              []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddProgressiveMOVMuxing(*encodingResp.Data.Result.ID, videoMuxing)
 				if err != nil {
@@ -861,9 +864,10 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					OutputPath: stringToPtr(path.Dir(path.Join(prefix, output.FileName))),
 				}
 				videoMuxing := &models.ProgressiveWebMMuxing{
-					Filename: stringToPtr(path.Base(output.FileName)),
-					Outputs:  []models.Output{videoMuxingOutput},
-					Streams:  []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					Filename:             stringToPtr(path.Base(output.FileName)),
+					Outputs:              []models.Output{videoMuxingOutput},
+					Streams:              []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddProgressiveWebMMuxing(*encodingResp.Data.Result.ID, videoMuxing)
 				if err != nil {

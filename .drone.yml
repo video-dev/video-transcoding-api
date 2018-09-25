@@ -7,19 +7,15 @@ build:
   tests:
     image: mediafactory/video-transcoding-api
     environment:
-      - GOROOT=/usr/local/go
-      - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
     commands:
-      - make testdeps test
+      - unset GOPATH # hack to get go working fine GO111MODULE=auto
+      - make test
     when:
-      branch: master
       event: push
   deploy:
     image: mediafactory/video-transcoding-api
     environment:
-      - GOROOT=/usr/local/go
-      - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
       - INFRA_REPO=$$NP_INFRA_REPO
       - NP_PATH=$$NP_PATH_VALUE
@@ -38,17 +34,13 @@ build:
       - go get github.com/${NP_REPO}
       - np build transcoding-api:dev#$${COMMIT:0:7}
       - np deploy transcoding-api:dev#$${COMMIT:0:7}
-      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-dev-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
       - np deploy transcoding-api:stg#$${COMMIT:0:7}
-      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-stg-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
     when:
       branch: master
       event: push
   make_live:
     image: mediafactory/video-transcoding-api
     environment:
-      - GOROOT=/usr/local/go
-      - GOPATH=/drone
       - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/drone/bin:/usr/local/go/bin
       - INFRA_REPO=$$NP_INFRA_REPO
       - NP_PATH=$$NP_PATH_VALUE
@@ -66,7 +58,6 @@ build:
       - git clone --depth=1 https://$GITHUB_TOKEN@github.com/$INFRA_REPO.git $NP_PATH
       - go get github.com/${NP_REPO}
       - np deploy transcoding-api:prd#$${COMMIT:0:7}
-      - aws autoscaling put-notification-configuration --auto-scaling-group-name transcoding-api-prd-$${COMMIT:0:7}-web --topic-arn ${ASG_TOPIC} --notification-types "autoscaling:EC2_INSTANCE_LAUNCH" "autoscaling:EC2_INSTANCE_LAUNCH_ERROR"
     when:
       event: tag
 notify:
