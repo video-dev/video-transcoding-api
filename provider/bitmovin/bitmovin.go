@@ -881,11 +881,25 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			}
 		}
 	}
-
-	startResp, err := encodingS.Start(*encodingResp.Data.Result.ID)
-	if err != nil {
-		return nil, err
+	startResp := &models.StartStopResponse{}
+	if outputtingHLS {
+		vodHLSManifest := models.VodHlsManifest{
+			ManifestID: manifestID,
+		}
+		startOptions := &models.StartOptions{
+			VodHlsManifests: []models.VodHlsManifest{vodHLSManifest},
+		}
+		startResp, err = encodingS.StartWithOptions(*encodingResp.Data.Result.ID, startOptions)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		startResp, err = encodingS.Start(*encodingResp.Data.Result.ID)
+		if err != nil {
+			return nil, err
+		}
 	}
+
 	if startResp.Status == bitmovinAPIErrorMsg {
 		return nil, errors.New("Error in starting encoding")
 	}
@@ -924,13 +938,6 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}
 
 	if jobStatus.Status == provider.StatusFinished {
-		err = p.addManifestStatusInfo(&jobStatus)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	if jobStatus.Status == provider.StatusFinished {
 		err = p.addSourceInfo(job, &jobStatus)
 		if err != nil {
 			return nil, err
@@ -943,50 +950,6 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}
 
 	return &jobStatus, nil
-}
-
-func (p *bitmovinProvider) addManifestStatusInfo(status *provider.JobStatus) error {
-	encodingS := services.NewEncodingService(p.client)
-	cdResp, err := encodingS.RetrieveCustomData(status.ProviderJobID)
-	if err != nil {
-		return err
-	}
-	if cdResp.Status == bitmovinAPIErrorMsg {
-		return errors.New("No Custom Data on Encoding, there should at least be container information here")
-	}
-	cd := cdResp.Data.Result.CustomData
-	i, ok := cd["manifest"]
-	if !ok {
-		// no manifest requested, no-op
-		return nil
-	}
-	manifestID, ok := i.(string)
-	if !ok {
-		return errors.New("driver error: manifest ID somehow not a string")
-	}
-	manifestS := services.NewHLSManifestService(p.client)
-	manifestStatusResp, err := manifestS.RetrieveStatus(manifestID)
-	if err != nil {
-		return err
-	}
-	status.Status = p.mapStatus(stringValue(manifestStatusResp.Data.Result.Status))
-	status.ProviderStatus["manifestStatus"] = stringValue(manifestStatusResp.Data.Result.Status)
-
-	switch stringValue(manifestStatusResp.Data.Result.Status) {
-	case "CREATED":
-		startResp, err := manifestS.Start(manifestID)
-		if err != nil {
-			return err
-		} else if startResp.Status == bitmovinAPIErrorMsg {
-			status.Status = provider.StatusFailed
-		} else {
-			status.Status = provider.StatusStarted
-		}
-	case "QUEUED", "RUNNING":
-		status.Status = provider.StatusStarted
-	}
-
-	return nil
 }
 
 func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
