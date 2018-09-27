@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"net/url"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/davecgh/go-spew/spew"
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
@@ -602,6 +605,12 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("Error in Encoding Creation")
 	}
 
+	// create a map of audioStreamID's already created, and if they are in there, just don't do a new one
+	// uniqueAudioIDs := make(map[string]struct{})
+	// create a map of audioMuxingStreams referenced by AudioPresetID so they are only created once.
+	uniqueAudioMuxingStreams := make(map[string]models.StreamItem)
+	uniqueAudioStreamResps := make(map[string]*models.StreamResponse)
+
 	for _, output := range job.Outputs {
 		videoPresetID := output.Preset.ProviderMapping[Name]
 		h264VideoResponse, h264Err := h264S.Retrieve(videoPresetID)
@@ -625,20 +634,36 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				return nil, errors.New("Audio ID somehow not a string")
 			}
 
+			_, isRepeatedAudio := uniqueAudioMuxingStreams[audioPresetID]
+
 			var audioStreamID, videoStreamID string
-			audioStream := &models.Stream{
-				CodecConfigurationID: &audioPresetID,
-				InputStreams:         aiss,
-				Conditions:           models.NewAttributeCondition(bitmovintypes.ConditionAttributeInputStream, "==", "true"),
+
+			var audioMuxingStream models.StreamItem
+
+			var audioStreamResp *models.StreamResponse
+
+			if !isRepeatedAudio {
+				audioStream := &models.Stream{
+					CodecConfigurationID: &audioPresetID,
+					InputStreams:         aiss,
+					Conditions:           models.NewAttributeCondition(bitmovintypes.ConditionAttributeInputStream, "==", "true"),
+				}
+				audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
+				if audioErr != nil {
+					return nil, audioErr
+				}
+				if audioStreamResp.Status == bitmovinAPIErrorMsg {
+					return nil, errors.New("Error in adding audio stream to Encoding")
+				}
+				audioStreamID = *audioStreamResp.Data.Result.ID
+
+				audioMuxingStream = models.StreamItem{
+					StreamID: &audioStreamID,
+				}
+				// uniqueAudioIDs[audioPresetID] = struct{}{}
+				uniqueAudioMuxingStreams[audioPresetID] = audioMuxingStream
+				uniqueAudioStreamResps[audioPresetID] = audioStreamResp
 			}
-			audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
-			if audioErr != nil {
-				return nil, audioErr
-			}
-			if audioStreamResp.Status == bitmovinAPIErrorMsg {
-				return nil, errors.New("Error in adding audio stream to Encoding")
-			}
-			audioStreamID = *audioStreamResp.Data.Result.ID
 
 			videoStream := &models.Stream{
 				CodecConfigurationID: &videoPresetID,
@@ -653,9 +678,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			}
 			videoStreamID = *videoStreamResp.Data.Result.ID
 
-			audioMuxingStream := models.StreamItem{
-				StreamID: &audioStreamID,
-			}
 			videoMuxingStream := models.StreamItem{
 				StreamID: &videoStreamID,
 			}
@@ -669,51 +691,56 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				return nil, errors.New("Container type somehow not a string")
 			}
 			if container == "m3u8" {
-				audioMuxingOutput := models.Output{
-					OutputID:   s3OSResponse.Data.Result.ID,
-					OutputPath: stringToPtr(path.Join(masterManifestPath, audioPresetID)),
-					ACL:        acl,
-				}
-				audioMuxing := &models.TSMuxing{
-					SegmentLength:        floatToPtr(float64(job.StreamingParams.SegmentDuration)),
-					SegmentNaming:        stringToPtr("seg_%number%.ts"),
-					Streams:              []models.StreamItem{audioMuxingStream},
-					Outputs:              []models.Output{audioMuxingOutput},
-					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
-				}
-				audioMuxingResp, muxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
-				if muxErr != nil {
-					return nil, muxErr
-				}
-				if audioMuxingResp.Status == bitmovinAPIErrorMsg {
-					return nil, errors.New("Error in adding TS Muxing for audio")
-				}
+				if !isRepeatedAudio {
+					audioMuxingOutput := models.Output{
+						OutputID:   s3OSResponse.Data.Result.ID,
+						OutputPath: stringToPtr(path.Join(masterManifestPath, audioPresetID)),
+						ACL:        acl,
+					}
+					audioMuxing := &models.TSMuxing{
+						SegmentLength:        floatToPtr(float64(job.StreamingParams.SegmentDuration)),
+						SegmentNaming:        stringToPtr("seg_%number%.ts"),
+						Streams:              []models.StreamItem{uniqueAudioMuxingStreams[audioPresetID]},
+						Outputs:              []models.Output{audioMuxingOutput},
+						StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
+					}
 
-				// create the MediaInfo
-				audioMediaInfo := &models.MediaInfo{
-					Type:            bitmovintypes.MediaTypeAudio,
-					URI:             stringToPtr(audioPresetID + ".m3u8"),
-					GroupID:         stringToPtr(audioPresetID),
-					Language:        stringToPtr("en"),
-					Name:            stringToPtr(audioPresetID),
-					IsDefault:       boolToPtr(false),
-					Autoselect:      boolToPtr(false),
-					Forced:          boolToPtr(false),
-					SegmentPath:     stringToPtr(audioPresetID),
-					Characteristics: []string{"public.accessibility.describes-video"},
-					EncodingID:      encodingResp.Data.Result.ID,
-					StreamID:        audioStreamResp.Data.Result.ID,
-					MuxingID:        audioMuxingResp.Data.Result.ID,
-				}
+					// cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
+					audioMuxingResp, muxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
+					if muxErr != nil {
+						return nil, muxErr
+					}
+					if audioMuxingResp.Status == bitmovinAPIErrorMsg {
+						return nil, errors.New("Error in adding TS Muxing for audio")
+					}
 
-				// Add to Master manifest, we will set the m3u8 and segments relative to the master
+					// create the MediaInfo
+					audioMediaInfo := &models.MediaInfo{
+						Type:            bitmovintypes.MediaTypeAudio,
+						URI:             stringToPtr(audioPresetID + ".m3u8"),
+						GroupID:         stringToPtr(audioPresetID),
+						Language:        stringToPtr("en"),
+						Name:            stringToPtr(audioPresetID),
+						IsDefault:       boolToPtr(false),
+						Autoselect:      boolToPtr(false),
+						Forced:          boolToPtr(false),
+						SegmentPath:     stringToPtr(audioPresetID),
+						Characteristics: []string{"public.accessibility.describes-video"},
+						EncodingID:      encodingResp.Data.Result.ID,
+						// StreamID:        audioStreamResp.Data.Result.ID,
+						StreamID: uniqueAudioStreamResps[audioPresetID].Data.Result.ID,
+						MuxingID: audioMuxingResp.Data.Result.ID,
+					}
 
-				audioMediaInfoResp, miErr := hlsService.AddMediaInfo(manifestID, audioMediaInfo)
-				if miErr != nil {
-					return nil, miErr
-				}
-				if audioMediaInfoResp.Status == bitmovinAPIErrorMsg {
-					return nil, errors.New("Error in adding EXT-X-MEDIA")
+					// Add to Master manifest, we will set the m3u8 and segments relative to the master
+
+					audioMediaInfoResp, miErr := hlsService.AddMediaInfo(manifestID, audioMediaInfo)
+					if miErr != nil {
+						return nil, miErr
+					}
+					if audioMediaInfoResp.Status == bitmovinAPIErrorMsg {
+						return nil, errors.New("Error in adding EXT-X-MEDIA")
+					}
 				}
 
 				videoMuxingOutput := models.Output{
@@ -728,17 +755,26 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					Outputs:       []models.Output{videoMuxingOutput},
 				}
 				videoMuxingResp, vmuxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, videoMuxing)
-				if err != nil {
+				if vmuxErr != nil {
 					return nil, vmuxErr
 				}
 				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
 					return nil, errors.New("Error in adding TS Muxing for video")
 				}
 
+				videoManifestURI, err := filepath.Rel(masterManifestPath, path.Join(prefix, output.FileName))
+				if err != nil {
+					return nil, err
+				}
+				videoSegmentPath, err := filepath.Rel(path.Dir(path.Join(prefix, output.FileName)), path.Join(masterManifestPath, videoPresetID))
+				if err != nil {
+					return nil, err
+				}
+
 				videoStreamInfo := &models.StreamInfo{
 					Audio:       stringToPtr(audioPresetID),
-					SegmentPath: stringToPtr(videoPresetID),
-					URI:         stringToPtr(path.Join(prefix, output.FileName)),
+					SegmentPath: stringToPtr(videoSegmentPath),
+					URI:         stringToPtr(videoManifestURI),
 					EncodingID:  encodingResp.Data.Result.ID,
 					StreamID:    videoStreamResp.Data.Result.ID,
 					MuxingID:    videoMuxingResp.Data.Result.ID,
@@ -751,6 +787,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				if videoStreamInfoResp.Status == bitmovinAPIErrorMsg {
 					return nil, errors.New("Error in adding EXT-X-STREAM-INF")
 				}
+
 			} else if container == "mp4" {
 				videoMuxingOutput := models.Output{
 					OutputID:   s3OSResponse.Data.Result.ID,
@@ -760,7 +797,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxing := &models.MP4Muxing{
 					Filename:             stringToPtr(path.Base(output.FileName)),
 					Outputs:              []models.Output{videoMuxingOutput},
-					Streams:              []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					Streams:              []models.StreamItem{videoMuxingStream, uniqueAudioMuxingStreams[audioPresetID]},
 					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
@@ -779,7 +816,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxing := &models.ProgressiveMOVMuxing{
 					Filename:             stringToPtr(path.Base(output.FileName)),
 					Outputs:              []models.Output{videoMuxingOutput},
-					Streams:              []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					Streams:              []models.StreamItem{videoMuxingStream, uniqueAudioMuxingStreams[audioPresetID]},
 					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddProgressiveMOVMuxing(*encodingResp.Data.Result.ID, videoMuxing)
@@ -813,20 +850,33 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				if !ok {
 					return nil, errors.New("Audio ID somehow not a string")
 				}
+
+				_, isRepeatedAudio := uniqueAudioMuxingStreams[audioPresetID]
+
 				var audioStreamID, videoStreamID string
-				audioStream := &models.Stream{
-					CodecConfigurationID: &audioPresetID,
-					InputStreams:         aiss,
-					Conditions:           models.NewAttributeCondition(bitmovintypes.ConditionAttributeInputStream, "==", "true"),
+
+				if !isRepeatedAudio {
+
+					audioStream := &models.Stream{
+						CodecConfigurationID: &audioPresetID,
+						InputStreams:         aiss,
+						Conditions:           models.NewAttributeCondition(bitmovintypes.ConditionAttributeInputStream, "==", "true"),
+					}
+					audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
+					if audioErr != nil {
+						return nil, audioErr
+					}
+					if audioStreamResp.Status == bitmovinAPIErrorMsg {
+						return nil, errors.New("Error in adding audio stream to Encoding")
+					}
+					audioStreamID = *audioStreamResp.Data.Result.ID
+
+					audioMuxingStream := models.StreamItem{
+						StreamID: &audioStreamID,
+					}
+
+					uniqueAudioMuxingStreams[audioPresetID] = audioMuxingStream
 				}
-				audioStreamResp, audioErr := encodingS.AddStream(*encodingResp.Data.Result.ID, audioStream)
-				if audioErr != nil {
-					return nil, audioErr
-				}
-				if audioStreamResp.Status == bitmovinAPIErrorMsg {
-					return nil, errors.New("Error in adding audio stream to Encoding")
-				}
-				audioStreamID = *audioStreamResp.Data.Result.ID
 
 				videoStream := &models.Stream{
 					CodecConfigurationID: &videoPresetID,
@@ -841,9 +891,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				}
 				videoStreamID = *videoStreamResp.Data.Result.ID
 
-				audioMuxingStream := models.StreamItem{
-					StreamID: &audioStreamID,
-				}
 				videoMuxingStream := models.StreamItem{
 					StreamID: &videoStreamID,
 				}
@@ -866,7 +913,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				videoMuxing := &models.ProgressiveWebMMuxing{
 					Filename:             stringToPtr(path.Base(output.FileName)),
 					Outputs:              []models.Output{videoMuxingOutput},
-					Streams:              []models.StreamItem{videoMuxingStream, audioMuxingStream},
+					Streams:              []models.StreamItem{videoMuxingStream, uniqueAudioMuxingStreams[audioPresetID]},
 					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddProgressiveWebMMuxing(*encodingResp.Data.Result.ID, videoMuxing)
