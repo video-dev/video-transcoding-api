@@ -11,8 +11,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
@@ -110,26 +108,14 @@ type bitmovinVP8Preset struct {
 func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	if strings.ToLower(preset.Audio.Codec) == "aac" && strings.ToLower(preset.Video.Codec) == "h264" {
 		aac := services.NewAACCodecConfigurationService(p.client)
-		var audioConfigID string
 		bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
 		if err != nil {
 			return "", err
 		}
-		temp := int64(bitrate)
-		audioConfig := &models.AACCodecConfiguration{
-			Name:         stringToPtr(preset.Name),
-			Bitrate:      &temp,
-			SamplingRate: floatToPtr(48000),
-		}
-		audioResp, err := aac.Create(audioConfig)
+		audioConfigID, err := getAACConfig(aac, bitrate, 48000)
 		if err != nil {
 			return "", err
 		}
-		if audioResp.Status == bitmovinAPIErrorMsg {
-			return "", errors.New("Error in creating audio portion of Preset")
-		}
-
-		audioConfigID = *audioResp.Data.Result.ID
 
 		customData := make(map[string]interface{})
 		customData["audio"] = audioConfigID
@@ -151,26 +137,14 @@ func (p *bitmovinProvider) CreatePreset(preset db.Preset) (string, error) {
 	}
 	if strings.ToLower(preset.Audio.Codec) == "vorbis" && strings.ToLower(preset.Video.Codec) == "vp8" {
 		vorbis := services.NewVorbisCodecConfigurationService(p.client)
-		var audioConfigID string
 		bitrate, err := strconv.Atoi(preset.Audio.Bitrate)
 		if err != nil {
 			return "", err
 		}
-		temp := int64(bitrate)
-		audioConfig := &models.VorbisCodecConfiguration{
-			Name:         stringToPtr(preset.Name),
-			Bitrate:      &temp,
-			SamplingRate: floatToPtr(48000),
-		}
-		audioResp, err := vorbis.Create(audioConfig)
+		audioConfigID, err := getVorbisConfig(vorbis, bitrate, 48000)
 		if err != nil {
 			return "", err
 		}
-		if audioResp.Status == bitmovinAPIErrorMsg {
-			return "", errors.New("Error in creating audio portion of Preset")
-		}
-
-		audioConfigID = *audioResp.Data.Result.ID
 
 		customData := make(map[string]interface{})
 		customData["audio"] = audioConfigID
@@ -605,8 +579,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		return nil, errors.New("Error in Encoding Creation")
 	}
 
-	// create a map of audioStreamID's already created, and if they are in there, just don't do a new one
-	// uniqueAudioIDs := make(map[string]struct{})
 	// create a map of audioMuxingStreams referenced by AudioPresetID so they are only created once.
 	uniqueAudioMuxingStreams := make(map[string]models.StreamItem)
 	uniqueAudioStreamResps := make(map[string]*models.StreamResponse)
@@ -640,8 +612,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 
 			var audioMuxingStream models.StreamItem
 
-			var audioStreamResp *models.StreamResponse
-
 			if !isRepeatedAudio {
 				audioStream := &models.Stream{
 					CodecConfigurationID: &audioPresetID,
@@ -660,7 +630,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				audioMuxingStream = models.StreamItem{
 					StreamID: &audioStreamID,
 				}
-				// uniqueAudioIDs[audioPresetID] = struct{}{}
+
 				uniqueAudioMuxingStreams[audioPresetID] = audioMuxingStream
 				uniqueAudioStreamResps[audioPresetID] = audioStreamResp
 			}
@@ -705,7 +675,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 						StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 					}
 
-					// cloudRegion := bitmovintypes.AWSCloudRegion(p.config.AWSStorageRegion)
 					audioMuxingResp, muxErr := encodingS.AddTSMuxing(*encodingResp.Data.Result.ID, audioMuxing)
 					if muxErr != nil {
 						return nil, muxErr
@@ -727,9 +696,8 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 						SegmentPath:     stringToPtr(audioPresetID),
 						Characteristics: []string{"public.accessibility.describes-video"},
 						EncodingID:      encodingResp.Data.Result.ID,
-						// StreamID:        audioStreamResp.Data.Result.ID,
-						StreamID: uniqueAudioStreamResps[audioPresetID].Data.Result.ID,
-						MuxingID: audioMuxingResp.Data.Result.ID,
+						StreamID:        uniqueAudioStreamResps[audioPresetID].Data.Result.ID,
+						MuxingID:        audioMuxingResp.Data.Result.ID,
 					}
 
 					// Add to Master manifest, we will set the m3u8 and segments relative to the master
@@ -985,6 +953,13 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}
 
 	if jobStatus.Status == provider.StatusFinished {
+		err = p.addManifestStatusInfo(&jobStatus)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if jobStatus.Status == provider.StatusFinished {
 		err = p.addSourceInfo(job, &jobStatus)
 		if err != nil {
 			return nil, err
@@ -997,6 +972,28 @@ func (p *bitmovinProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	}
 
 	return &jobStatus, nil
+}
+
+func (p *bitmovinProvider) addManifestStatusInfo(status *provider.JobStatus) error {
+	encodingS := services.NewEncodingService(p.client)
+	cdResp, err := encodingS.RetrieveCustomData(status.ProviderJobID)
+	if err != nil {
+		return err
+	}
+	if cdResp.Status == bitmovinAPIErrorMsg {
+		return errors.New("No Custom Data on Encoding, there should at least be container information here")
+	}
+	cd := cdResp.Data.Result.CustomData
+	_, ok := cd["manifest"]
+	if !ok {
+		// no manifest requested, no-op
+		return nil
+	}
+
+	status.Status = p.mapStatus("FINISHED")
+	status.ProviderStatus["manifestStatus"] = "FINISHED"
+
+	return nil
 }
 
 func (p *bitmovinProvider) addOutputFilesInfo(job *db.Job, status *provider.JobStatus) error {
@@ -1312,6 +1309,62 @@ func createInput(provider *bitmovinProvider, input string) (inputID string, path
 		return *httpsISResponse.Data.Result.ID, u.Path, nil
 	}
 	return "", "", errors.New("Only S3, http, and https URLS are supported")
+}
+
+func getAACConfig(s *services.AACCodecConfigurationService, bitrate int, samplingRate float64) (string, error) {
+	l, err := s.List(0, 25)
+	if err != nil {
+		return "", err
+	}
+
+	for _, i := range l.Data.Result.Items {
+		if *i.Bitrate == int64(bitrate) && *i.SamplingRate == samplingRate {
+			return *i.ID, nil
+		}
+	}
+
+	audioConfig := &models.AACCodecConfiguration{
+		Name:         stringToPtr("unused"),
+		Bitrate:      intToPtr(int64(bitrate)),
+		SamplingRate: floatToPtr(samplingRate),
+	}
+
+	audioResp, err := s.Create(audioConfig)
+	if err != nil {
+		return "", err
+	}
+	if audioResp.Status == bitmovinAPIErrorMsg {
+		return "", errors.New("Error in creating audio portion of Preset")
+	}
+	return *audioResp.Data.Result.ID, nil
+
+}
+
+func getVorbisConfig(s *services.VorbisCodecConfigurationService, bitrate int, samplingRate float64) (string, error) {
+	l, err := s.List(0, 25)
+	if err != nil {
+		return "", err
+	}
+
+	for _, i := range l.Data.Result.Items {
+		if *i.Bitrate == int64(bitrate) && *i.SamplingRate == samplingRate {
+			return *i.ID, nil
+		}
+	}
+	audioConfig := &models.VorbisCodecConfiguration{
+		Name:         stringToPtr("unused"),
+		Bitrate:      intToPtr(int64(bitrate)),
+		SamplingRate: floatToPtr(samplingRate),
+	}
+
+	audioResp, err := s.Create(audioConfig)
+	if err != nil {
+		return "", err
+	}
+	if audioResp.Status == bitmovinAPIErrorMsg {
+		return "", errors.New("Error in creating audio portion of Preset")
+	}
+	return *audioResp.Data.Result.ID, nil
 }
 
 func floatValue(f *float64) float64 {
