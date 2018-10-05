@@ -1,3 +1,61 @@
+## Version 1.5.0 (Release date: 2018-10-05)
+
+([201804b](https://github.com/nytimes//commit/201804b)) deploy: app name isn't secret 
+
+([2bcb17c](https://github.com/nytimes//commit/2bcb17c)) travis-script/deploy: update to use generic strat 
+
+([da62d10](https://github.com/nytimes//commit/da62d10)) Add build script back 
+
+([6cfcb50](https://github.com/nytimes//commit/6cfcb50)) travis: sudo is not required 
+
+([aa5741a](https://github.com/nytimes//commit/aa5741a)) Remove drone stuff and setup travis to trigger deployment on drone 
+
+([7c74a75](https://github.com/nytimes//commit/7c74a75)) Dockerfile: install ca-certificates 
+
+
+([ede9d11](https://github.com/nytimes//commit/ede9d11)) removing tests now that manifest generation occurs with the encode, everything should be good 
+
+([7e55b08](https://github.com/nytimes//commit/7e55b08)) fixing path issue for hls outputs 
+
+([e9fe31b](https://github.com/nytimes//commit/e9fe31b)) manifest generation is now part of the encode step 
+
+
+([6ba10f0](https://github.com/nytimes//commit/6ba10f0)) travis: fix build 
+
+([779cd3a](https://github.com/nytimes//commit/779cd3a)) drone: fix build 
+
+([f61b061](https://github.com/nytimes//commit/f61b061)) drone: set GO111MODULE to on 
+
+([6f11490](https://github.com/nytimes//commit/6f11490)) Update build script 
+
+([18107aa](https://github.com/nytimes//commit/18107aa)) Bye dep, welcome go mod 
+
+
+([fb1392c](https://github.com/nytimes//commit/fb1392c)) remove expose instruction 
+
+([be8ae34](https://github.com/nytimes//commit/be8ae34)) add dockerfile 
+
+([d22ad46](https://github.com/nytimes//commit/d22ad46)) config: workaround for gofmt issue 
+
+([d8b90aa](https://github.com/nytimes//commit/d8b90aa)) Makefile: add more params for golangci-lint 
+
+([0a1ad60](https://github.com/nytimes//commit/0a1ad60)) config: fix gofmt 
+
+([7251631](https://github.com/nytimes//commit/7251631)) Makefile: migrate from gometalinter to golangci-lint 
+
+([51a30d6](https://github.com/nytimes//commit/51a30d6)) provider/bitmovin: remove unused constant 
+
+([c6d8439](https://github.com/nytimes//commit/c6d8439)) drone: remove autoscaling alert config 
+
+([2524e3b](https://github.com/nytimes//commit/2524e3b)) Makefile/gometalinter: disable gosec 
+
+([73d17ea](https://github.com/nytimes//commit/73d17ea)) Update dependencies 
+
+
+
+
+
+
 ## Version 1.4.2 (Release date: 2018-04-19)
 ([69f9799](https://github.com/nytimes/video-transcoding-api/commit/69f9799)) provider/bitmovin: set StreamConditionsMode 
 
