@@ -31,7 +31,7 @@ update_changelog() {
 bump_version() {
   git tag $1
   git add CHANGELOG.md
-  git commit -m "bump to $1"
+  git commit -m "bump to $1 [CI SKIP]"
   git push origin master --tags
 }
 
