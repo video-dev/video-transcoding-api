@@ -1,4 +1,3 @@
-
 ![video-transcoding-api logo](https://cloud.githubusercontent.com/assets/244265/14191217/ae825932-f764-11e5-8eb3-d070aa8f2676.png)
 
 # Video Transcoding API
