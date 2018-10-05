@@ -21,7 +21,7 @@ function main() {
 
 	install_drone $DRONE_VERSION
 	last_build=$(drone build last --format "{{.Number}}" $DRONE_REPO)
-	drone deploy -p VIDEO_TRANSCODING_API_VERSION=$commit_version $DRONE_REPO $last_build $env
+	drone deploy -p APP_VERSION=$commit_version $DRONE_REPO $last_build $DRONE_APP_NAME-$env
 }
 
 main "$@"
