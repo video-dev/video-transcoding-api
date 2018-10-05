@@ -1,3 +1,10 @@
+## Version 1.5.1 (Release date: 2018-10-05)
+([59a68dd](https://github.com/nytimes/video-transcoding-api/commit/59a68dd)) readme: move logo up 
+
+
+
+
+
 ## Version 1.5.0 (Release date: 2018-10-05)
 
 ([201804b](https://github.com/nytimes//commit/201804b)) deploy: app name isn't secret 
