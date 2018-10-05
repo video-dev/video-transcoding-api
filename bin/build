@@ -1,0 +1,32 @@
+#!/bin/bash -e
+cd $(cd `dirname "$0"`; cd ..; pwd)
+
+if [ -z "$TARBALL" ]; then
+  echo "Error: destination TARBALL must be set"
+  exit 1
+fi
+
+# Create a temporary GOPATH
+export GOTMP=/tmp/video-transcoding-api-$RANDOM
+
+# And a place to dump the output
+export OUTPUT=$GOTMP/output
+
+# Copy the current directory into the GOPATH
+export CODE=$GOTMP/code
+mkdir -p $CODE
+cp -R . $CODE
+
+# Download dependencies and build
+pushd $CODE
+GOARCH=amd64 GOOS=linux CGO_ENABLED=0 go build -o $OUTPUT/video-transcoding-api
+cp swagger.json $OUTPUT/.
+popd
+
+# Create the output tarball
+pushd $OUTPUT
+tar -czf $TARBALL .
+popd
+
+# Clean up the temporary GOPATH
+rm -rf $GOTMP
