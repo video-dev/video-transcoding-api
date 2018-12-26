@@ -11,8 +11,8 @@ testdeps:
 	cd /tmp && go get github.com/go-swagger/go-swagger/cmd/swagger
 
 lint: testdeps
-	cd /tmp && go get golang.org/x/lint/golint
-	golint ./...
+	cd /tmp && go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	golangci-lint run --fast -D errcheck -E megacheck --deadline 5m ./...
 
 gotest: testdeps
 	go test ./...
