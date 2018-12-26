@@ -896,7 +896,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 			}
 		}
 	}
-	startResp := &models.StartStopResponse{}
+	var startResp *models.StartStopResponse
 	if outputtingHLS {
 		vodHLSManifest := models.VodHlsManifest{
 			ManifestID: manifestID,
