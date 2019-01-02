@@ -6,8 +6,10 @@ github.com/DataDog/datadog-go v0.0.0-20180822151419-281ae9f2d895 h1:dmc/C8bpE5Vk
 github.com/DataDog/datadog-go v0.0.0-20180822151419-281ae9f2d895/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4 h1:vdT7QwBhJJEVNFMBNhRSFDRCB6O16T28VhvqRgqFyn8=
 github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4/go.mod h1:SvXOG8ElV28oAiG9zv91SDe5+9PfIr7PPccpr8YyXNs=
-github.com/NYTimes/encoding-wrapper v0.0.0-20170905214245-36fb9db91f13 h1:v3fB8Vv+n6En+nJd5A4O0KS7UFA3pEyALmJSbvbaa10=
-github.com/NYTimes/encoding-wrapper v0.0.0-20170905214245-36fb9db91f13/go.mod h1:JIFRg/OoKfnZcuqLzQM4rUTWP2K5mGN3ROHQ6QEVYW0=
+github.com/NYTimes/encoding-wrapper/elementalconductor v0.0.0-20190102034147-271caccac2db h1:eoLvPOPECghQEmK+ZrJj01VNvlQeo0qUW4bgx5xnYyI=
+github.com/NYTimes/encoding-wrapper/elementalconductor v0.0.0-20190102034147-271caccac2db/go.mod h1:BdGsGSUNBRD6LP3s7au2Y31mwVOCp8z5Ye7QfT9YftM=
+github.com/NYTimes/encoding-wrapper/encodingcom v0.0.0-20190102034147-271caccac2db h1:P2WGWow/Omj6874oxTgVB0JD7ylbQDt4Yl4JqgA54oM=
+github.com/NYTimes/encoding-wrapper/encodingcom v0.0.0-20190102034147-271caccac2db/go.mod h1:xKied8LSyasAWRmvYEWFmZ3Fa2ei2qLSuW3gX/HjlE8=
 github.com/NYTimes/gizmo v0.2.0 h1:9nHdpO4HoM/O6jmwm1MvGniyfo6bT+4mQ4S2m7CQ1r8=
 github.com/NYTimes/gizmo v0.2.0/go.mod h1:tLR/IQtD07ThHGvVJunAMq2i8WoxPLadvfo33fkvp5A=
 github.com/NYTimes/gziphandler v1.0.1 h1:iLrQrdwjDd52kHDA5op2UBJFjmOb9g+7scBan4RN8F0=

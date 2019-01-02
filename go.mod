@@ -3,7 +3,8 @@ module github.com/NYTimes/video-transcoding-api
 require (
 	cloud.google.com/go v0.27.0 // indirect
 	github.com/DataDog/datadog-go v0.0.0-20180822151419-281ae9f2d895 // indirect
-	github.com/NYTimes/encoding-wrapper v0.0.0-20170905214245-36fb9db91f13
+	github.com/NYTimes/encoding-wrapper/elementalconductor v0.0.0-20190102034147-271caccac2db
+	github.com/NYTimes/encoding-wrapper/encodingcom v0.0.0-20190102034147-271caccac2db
 	github.com/NYTimes/gizmo v0.2.0
 	github.com/NYTimes/gziphandler v1.0.1
 	github.com/armon/go-metrics v0.0.0-20180917152333-f0300d1749da // indirect
