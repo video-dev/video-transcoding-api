@@ -8,7 +8,7 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/NYTimes/gizmo/web"
+	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/NYTimes/video-transcoding-api/swagger"
@@ -122,7 +122,7 @@ func (s *TranscodingService) defaultFileName(source string, preset *db.PresetMap
 //       500: genericError
 func (s *TranscodingService) getTranscodeJob(r *http.Request) swagger.GizmoJSONResponse {
 	var params getTranscodeJobInput
-	params.loadParams(web.Vars(r))
+	params.loadParams(server.Vars(r))
 	return s.getJobStatusResponse(s.getTranscodeJobByID(params.JobID))
 }
 
@@ -178,7 +178,7 @@ func (s *TranscodingService) getTranscodeJobByID(jobID string) (*db.Job, *provid
 //       500: genericError
 func (s *TranscodingService) cancelTranscodeJob(r *http.Request) swagger.GizmoJSONResponse {
 	var params cancelTranscodeJobInput
-	params.loadParams(web.Vars(r))
+	params.loadParams(server.Vars(r))
 	job, _, prov, err := s.getTranscodeJobByID(params.JobID)
 	if err != nil {
 		if err == db.ErrJobNotFound {

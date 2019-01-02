@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/NYTimes/gizmo/web"
+	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/NYTimes/video-transcoding-api/swagger"
 )
@@ -31,7 +31,7 @@ func (s *TranscodingService) listProviders(r *http.Request) swagger.GizmoJSONRes
 //       500: genericError
 func (s *TranscodingService) getProvider(r *http.Request) swagger.GizmoJSONResponse {
 	var params getProviderInput
-	params.loadParams(web.Vars(r))
+	params.loadParams(server.Vars(r))
 	description, err := provider.DescribeProvider(params.Name, s.config)
 	switch err {
 	case nil:

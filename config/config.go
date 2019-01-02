@@ -1,10 +1,10 @@
 package config
 
 import (
-	"github.com/NYTimes/gizmo/config"
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/fsouza/gizmo-stackdriver-logging"
+	"github.com/kelseyhightower/envconfig"
 )
 
 // Config is a struct to contain all the needed configuration for the
@@ -91,6 +91,6 @@ type Hybrik struct {
 // LoadConfig loads the configuration of the API using environment variables.
 func LoadConfig() *Config {
 	var cfg Config
-	config.LoadEnvConfig(&cfg)
+	envconfig.Process("", &cfg)
 	return &cfg
 }

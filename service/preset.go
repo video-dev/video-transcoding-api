@@ -6,7 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/NYTimes/gizmo/web"
+	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/NYTimes/video-transcoding-api/swagger"
@@ -23,7 +23,7 @@ import (
 func (s *TranscodingService) deletePreset(r *http.Request) swagger.GizmoJSONResponse {
 	var output deletePresetOutputs
 	var params getPresetMapInput
-	params.loadParams(web.Vars(r))
+	params.loadParams(server.Vars(r))
 
 	output.Results = make(map[string]deletePresetOutput)
 

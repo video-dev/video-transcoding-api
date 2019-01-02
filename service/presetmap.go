@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/NYTimes/gizmo/web"
+	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/swagger"
 )
@@ -45,7 +45,7 @@ func (s *TranscodingService) newPresetMap(r *http.Request) swagger.GizmoJSONResp
 //       500: genericError
 func (s *TranscodingService) getPresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	var params getPresetMapInput
-	params.loadParams(web.Vars(r))
+	params.loadParams(server.Vars(r))
 	preset, err := s.db.GetPresetMap(params.Name)
 
 	switch err {
@@ -70,7 +70,7 @@ func (s *TranscodingService) getPresetMap(r *http.Request) swagger.GizmoJSONResp
 func (s *TranscodingService) updatePresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	defer r.Body.Close()
 	var input updatePresetMapInput
-	presetMap, err := input.PresetMap(web.Vars(r), r.Body)
+	presetMap, err := input.PresetMap(server.Vars(r), r.Body)
 	if err != nil {
 		return newInvalidPresetMapResponse(err)
 	}
@@ -97,7 +97,7 @@ func (s *TranscodingService) updatePresetMap(r *http.Request) swagger.GizmoJSONR
 //       500: genericError
 func (s *TranscodingService) deletePresetMap(r *http.Request) swagger.GizmoJSONResponse {
 	var params getPresetMapInput
-	params.loadParams(web.Vars(r))
+	params.loadParams(server.Vars(r))
 	err := s.db.DeletePresetMap(&db.PresetMap{Name: params.Name})
 
 	switch err {
