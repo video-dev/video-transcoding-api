@@ -1,12 +1,13 @@
-#!/bin/bash
+#!/bin/bash -e
 
 PROJECT=$(git config --local remote.origin.url|sed -n 's#.*/\([^.]*\)\.git#\1#p')
-GH_LOG_TEMPLATE="([%h](https://github.com/nytimes/$PROJECT/commit/%h)) %s %n"
-EMAIL_LOG_TEMPLATE="[<a href=https://github.com/nytimes/$PROJECT/commit/%h>%h</a>] %s - by %an, %ci.<br>"
+GH_LOG_TEMPLATE="([%h](https://github.com/NYTimes/$PROJECT/commit/%h)) %s %n"
+EMAIL_LOG_TEMPLATE="[<a href=https://github.com/NYTimes/$PROJECT/commit/%h>%h</a>] %s - by %an, %ci.<br>"
 RECIPIENT=mediafactory@nytimes.com
 
 increment_version() {
-  arr=(${1//[.,-]/ })
+  digits=$(echo $1 | grep -o '[0-9.]\+')
+  arr=(${digits//[.,-]/ })
   if [ "$2" == "major" ]; then
     ((arr[0]++))
     arr[1]=0
@@ -17,7 +18,8 @@ increment_version() {
   elif [ "$2" == "bugfix" ]; then
     ((arr[2]++))
   fi
-  echo "${arr[0]}.${arr[1]}.${arr[2]}"
+
+  echo "v${arr[0]}.${arr[1]}.${arr[2]}"
 }
 
 update_changelog() {
@@ -53,11 +55,9 @@ send_mail() {
 
 if [ "$1" != "" ]; then
   last_version=$(git describe --tags $(git rev-list --tags --max-count=1))
-  new_version=$(increment_version $last_version $1 $2)
-  read -p "You're about to bump a new version (${new_version}) and push it to master. Is that what you intended? [y|n] " -n 1 -r < /dev/tty
+  new_version=$(increment_version $last_version $1)
+  read -p "You're about to bump a new version ($new_version) and push to master. Is that what you intended? [y|n] " -n 1 -r < /dev/tty
   if echo $REPLY | grep -E '^[Yy]$' > /dev/null; then
-    git checkout master
-    git pull --rebase
     update_changelog $last_version $new_version
     bump_version $new_version
     send_mail $last_version $new_version
@@ -65,6 +65,6 @@ if [ "$1" != "" ]; then
     echo " Bump aborted."
   fi
 else
-  echo "Usage: ./bump.sh (major|minor|bugfix)"
+  echo "Usage: ./bump.sh [major|minor|bugfix]"
 fi
 
