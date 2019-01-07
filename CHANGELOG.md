@@ -1,3 +1,35 @@
+## Version v1.6.0 (Release date: 2019-01-07)
+
+([3f80e5e](https://github.com/NYTimes/video-transcoding-api/commit/3f80e5e)) Update year in license file 
+
+([6bd9398](https://github.com/NYTimes/video-transcoding-api/commit/6bd9398)) Update gizmo to v0.4.0 
+
+([18f1e5a](https://github.com/NYTimes/video-transcoding-api/commit/18f1e5a)) Update deps 
+
+([167792b](https://github.com/NYTimes/video-transcoding-api/commit/167792b)) go.mod: update encoding-wrapper 
+
+([b2036e5](https://github.com/NYTimes/video-transcoding-api/commit/b2036e5)) travis: reformat 
+
+([41506d0](https://github.com/NYTimes/video-transcoding-api/commit/41506d0)) Makefile: install golangci-lint on testdeps 
+
+([adbbf8a](https://github.com/NYTimes/video-transcoding-api/commit/adbbf8a)) provider/bitmovin: make the linter happy 
+
+([0ec50fc](https://github.com/NYTimes/video-transcoding-api/commit/0ec50fc)) Makefile: use golangci-lint for linting 
+
+([fde35f8](https://github.com/NYTimes/video-transcoding-api/commit/fde35f8)) Makefile: simplify lint and coverage targets 
+
+([832c6b4](https://github.com/NYTimes/video-transcoding-api/commit/832c6b4)) Dockerfile: add bzr 
+
+([f62e687](https://github.com/NYTimes/video-transcoding-api/commit/f62e687)) Tidy go.mod and update go.sum 
+
+([83b1faa](https://github.com/NYTimes/video-transcoding-api/commit/83b1faa)) Dockerfile: Go 1.11.4 
+
+([178efff](https://github.com/NYTimes/video-transcoding-api/commit/178efff)) Dockerfile: Go 1.11.3 
+
+
+
+
+
 ## Version 1.5.1 (Release date: 2018-10-05)
 ([59a68dd](https://github.com/nytimes/video-transcoding-api/commit/59a68dd)) readme: move logo up 
 
