@@ -1,7 +1,6 @@
 module github.com/NYTimes/video-transcoding-api
 
 require (
-	cloud.google.com/go v0.34.0 // indirect
 	github.com/NYTimes/encoding-wrapper/elementalconductor v0.0.0-20190102034147-271caccac2db
 	github.com/NYTimes/encoding-wrapper/encodingcom v0.0.0-20190102034147-271caccac2db
 	github.com/NYTimes/gizmo v0.4.0
@@ -9,9 +8,8 @@ require (
 	github.com/aws/aws-sdk-go v1.16.11
 	github.com/bitmovin/bitmovin-go v1.26.0
 	github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382
-	github.com/fluent/fluent-logger-golang v1.4.0 // indirect
 	github.com/fsouza/ctxlogger v1.3.0
-	github.com/fsouza/gizmo-stackdriver-logging v1.1.0
+	github.com/fsouza/gizmo-stackdriver-logging v1.1.1
 	github.com/go-redis/redis v6.15.0+incompatible
 	github.com/google/go-cmp v0.2.0
 	github.com/google/gops v0.0.0-20180903072510-f341a40f99ec
@@ -19,13 +17,6 @@ require (
 	github.com/hybrik/hybrik-sdk-go v0.0.0-20170516091026-c2eee0e66af9
 	github.com/kardianos/osext v0.0.0-20170510131534-ae77be60afb1 // indirect
 	github.com/kelseyhightower/envconfig v1.3.0
-	github.com/knq/pemutil v0.0.0-20181215144041-fb6fad722528 // indirect
-	github.com/knq/sdhook v0.0.0-20181029224735-f9c6ae1bf3ae // indirect
 	github.com/kr/pretty v0.1.0
-	github.com/sirupsen/logrus v1.2.0
-	github.com/tinylib/msgp v1.1.0 // indirect
-	golang.org/x/oauth2 v0.0.0-20181203162652-d668ce993890 // indirect
-	google.golang.org/api v0.0.0-20181229000844-f26a60c56f14 // indirect
-	google.golang.org/appengine v1.4.0 // indirect
-	gopkg.in/yaml.v2 v2.2.2 // indirect
+	github.com/sirupsen/logrus v1.3.0
 )
