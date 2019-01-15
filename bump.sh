@@ -42,7 +42,7 @@ send_mail() {
 
   TITLE="[$PROJECT] New version released: $2"
 
-  HEADER="<img src=http://flv.io/mf.png><h2>Changelog</h2>"
+  HEADER="<img src=https://static01.nyt.com/video-static/etc/oss/mf.png><h2>Changelog</h2>"
   BODY=$(cat .tmp_mail)
   FOOTER="You can also see the full changelog on <a href=https://github.com/NYTimes/$PROJECT/blob/master/CHANGELOG.md>GitHub</a>.<br><br>Media Factory Team."
   MESSAGE="${HEADER}<br>${BODY}<br>${FOOTER}"
