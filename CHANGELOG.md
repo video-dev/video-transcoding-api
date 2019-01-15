@@ -1,3 +1,18 @@
+## Version v1.6.1 (Release date: 2019-01-15)
+([40deeff](https://github.com/NYTimes/video-transcoding-api/commit/40deeff)) Refresh logging dependencies 
+
+([34c1858](https://github.com/NYTimes/video-transcoding-api/commit/34c1858)) go.mod: update gizmo-stackdriver-logging 
+
+([7786115](https://github.com/NYTimes/video-transcoding-api/commit/7786115)) Fix Stackdriver logging 
+
+([b566c6f](https://github.com/NYTimes/video-transcoding-api/commit/b566c6f)) Update bitmovin-go 
+
+([e7773ff](https://github.com/NYTimes/video-transcoding-api/commit/e7773ff)) bin: simplify build script 
+
+
+
+
+
 ## Version v1.6.0 (Release date: 2019-01-07)
 
 ([3f80e5e](https://github.com/NYTimes/video-transcoding-api/commit/3f80e5e)) Update year in license file 
