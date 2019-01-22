@@ -5,7 +5,7 @@ require (
 	github.com/NYTimes/encoding-wrapper/encodingcom v0.0.0-20190102034147-271caccac2db
 	github.com/NYTimes/gizmo v0.4.1
 	github.com/NYTimes/gziphandler v1.0.1
-	github.com/aws/aws-sdk-go v1.16.22
+	github.com/aws/aws-sdk-go v1.16.23
 	github.com/bitmovin/bitmovin-go v1.26.0
 	github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382
 	github.com/fsouza/ctxlogger v1.3.2
