@@ -1,4 +1,4 @@
-FROM golang:1.11.4-alpine AS build
+FROM golang:1.11.5-alpine AS build
 
 RUN     apk add --no-cache git bzr
 ENV     CGO_ENABLED 0
