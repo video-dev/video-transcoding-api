@@ -1,3 +1,17 @@
+## Version v1.6.2 (Release date: 2019-01-29)
+([a1dc966](https://github.com/NYTimes/video-transcoding-api/commit/a1dc966)) Dockerfile: go 1.11.5 
+
+([6c82e91](https://github.com/NYTimes/video-transcoding-api/commit/6c82e91)) readme: move things around and have better separation between sections 
+
+([d191184](https://github.com/NYTimes/video-transcoding-api/commit/d191184)) Upgrade aws-sdk-go 
+
+([b4b18fd](https://github.com/NYTimes/video-transcoding-api/commit/b4b18fd)) Update gizmo and logging dependencies 
+
+
+
+
+
+
 ## Version v1.6.1 (Release date: 2019-01-15)
 ([40deeff](https://github.com/NYTimes/video-transcoding-api/commit/40deeff)) Refresh logging dependencies 
 
