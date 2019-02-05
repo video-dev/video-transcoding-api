@@ -7,8 +7,8 @@ CI_TAG ?= $(shell git describe --tags $(shell git rev-list --tags --max-count=1)
 all: test
 
 testdeps:
-	cd /tmp && go get github.com/go-swagger/go-swagger/cmd/swagger
-	cd /tmp && go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	GO111MODULE=off go get github.com/go-swagger/go-swagger/cmd/swagger
+	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	go mod download
 
 lint: testdeps
