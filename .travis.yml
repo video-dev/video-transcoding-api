@@ -9,10 +9,10 @@ services:
   - redis-server
 env:
   global:
-    - GO_FOR_RELEASE=1.11.x
+    - GO_FOR_RELEASE=1.x
     - CGO_ENABLED=0
 go:
-  - 1.11.x
+  - 1.x
   - tip
 install:
   - unset GOPATH
@@ -32,13 +32,13 @@ deploy:
     on:
       repo: NYTimes/video-transcoding-api
       branch: master
-      go: 1.11.x
+      go: 1.x
   - provider: script
     skip_cleanup: true
     script: travis-scripts/deploy.bash prd
     on:
       repo: NYTimes/video-transcoding-api
       tags: true
-      go: 1.11.x
+      go: 1.x
 notifications:
   email: false
