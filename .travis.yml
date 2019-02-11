@@ -5,21 +5,23 @@ addons:
     packages:
       - redis-server
       - docker-ce
+cache:
+  directories:
+    - $GOPATH/pkg
+    - $GOPATH/bin
 services:
   - redis-server
 env:
   global:
+    - GO111MODULE=on
     - GO_FOR_RELEASE=1.x
     - CGO_ENABLED=0
 go:
   - 1.x
   - tip
 install:
-  - unset GOPATH
   - make testdeps
 script:
-  - unset GOPATH
-  - export PATH=$PATH:$(go env GOPATH)/bin
   - make coverage
   - go build -o video-transcoding-api
 after_success:

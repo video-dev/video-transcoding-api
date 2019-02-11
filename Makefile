@@ -8,7 +8,7 @@ all: test
 
 testdeps:
 	GO111MODULE=off go get github.com/go-swagger/go-swagger/cmd/swagger
-	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	go get github.com/golangci/golangci-lint/cmd/golangci-lint@master
 	go mod download
 
 lint: testdeps
