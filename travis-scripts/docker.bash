@@ -23,7 +23,7 @@ fi
 IMAGE_NAME=nytimes/video-transcoding-api
 
 docker login -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-docker build -t ${IMAGE_NAME}:latest .
+docker build -t ${IMAGE_NAME}:latest -f Dockerfile.ci .
 
 if [ -n "${TRAVIS_TAG}" ]; then
 	docker tag ${IMAGE_NAME}:latest ${IMAGE_NAME}:${TRAVIS_TAG}
