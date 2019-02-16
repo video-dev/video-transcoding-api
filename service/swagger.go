@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func (s *TranscodingService) swaggerManifest(w http.ResponseWriter, r *http.Request) {
+func (s *TranscodingService) swaggerManifest(w http.ResponseWriter, _ *http.Request) {
 	data, err := ioutil.ReadFile(s.config.SwaggerManifest)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

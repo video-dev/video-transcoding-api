@@ -86,12 +86,12 @@ func (z *zencoderProvider) buildOutputs(job *db.Job) ([]*zencoder.OutputSettings
 	for _, output := range job.Outputs {
 		localPresetOutput, err := z.GetPreset(output.Preset.Name)
 		if err != nil {
-			return nil, fmt.Errorf("Error getting localpreset: %s", err.Error())
+			return nil, fmt.Errorf("error getting localpreset: %s", err)
 		}
 		localPresetStruct := localPresetOutput.(*db.LocalPreset)
 		zencoderOutput, err := z.buildOutput(job, localPresetStruct.Preset, output.FileName)
 		if err != nil {
-			return nil, fmt.Errorf("Error building output: %s", err.Error())
+			return nil, fmt.Errorf("error building output: %s", err)
 		}
 		if zencoderOutput.Format == "ts" {
 			hlsOutputs++
@@ -107,7 +107,7 @@ func (z *zencoderProvider) buildOutputs(job *db.Job) ([]*zencoder.OutputSettings
 		copy(outputsWithHLSPlaylist, optimizedOutputs)
 		hlsPlaylist, err := z.buildHLSPlaylist(optimizedOutputs, hlsOutputs, job)
 		if err != nil {
-			return nil, fmt.Errorf("Error building hls master playlist: %s", err.Error())
+			return nil, fmt.Errorf("error building hls master playlist: %s", err)
 		}
 		outputsWithHLSPlaylist[len(optimizedOutputs)] = &hlsPlaylist
 		return outputsWithHLSPlaylist, nil
@@ -403,7 +403,7 @@ func zencoderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
 	client := zencoder.NewZencoder(cfg.Zencoder.APIKey)
 	dbRepo, err := redis.NewRepository(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error initializing zencoder wrapper: %s", err)
+		return nil, fmt.Errorf("error initializing zencoder wrapper: %s", err)
 	}
 	return &zencoderProvider{client: client, db: dbRepo, config: cfg}, nil
 }

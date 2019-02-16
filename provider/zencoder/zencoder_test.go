@@ -583,6 +583,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.Description, func(t *testing.T) {
 			cleanLocalPresets()
 			for _, preset := range test.Presets {
@@ -781,6 +782,7 @@ func TestZencoderBuildOutput(t *testing.T) {
 	}
 
 	for _, test := range tests {
+		test := test
 		t.Run(test.Description, func(t *testing.T) {
 			prov.config = &config.Config{
 				Zencoder: &config.Zencoder{

@@ -198,10 +198,10 @@ func (p *elementalConductorProvider) statusMap(elementalConductorStatus string) 
 
 func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputLocation elementalconductor.Location, job db.Job) ([]elementalconductor.OutputGroup, []elementalconductor.StreamAssembly, error) {
 	var streamingOutputList []elementalconductor.Output
-	var streamAssemblyList []elementalconductor.StreamAssembly
 	var outputGroupList []elementalconductor.OutputGroup
 	var outputGroupOrder int
 	var streamingGroupOrder int
+	streamAssemblyList := make([]elementalconductor.StreamAssembly, len(job.Outputs))
 	for index, output := range job.Outputs {
 		indexString := strconv.Itoa(index)
 		streamAssemblyName := "stream_" + indexString
@@ -241,7 +241,7 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 			Name:   streamAssemblyName,
 			Preset: presetID,
 		}
-		streamAssemblyList = append(streamAssemblyList, streamAssembly)
+		streamAssemblyList[index] = streamAssembly
 	}
 	if len(streamingOutputList) > 0 {
 		playlistFileName := job.StreamingParams.PlaylistFileName

@@ -8,11 +8,22 @@ all: test
 
 testdeps:
 	GO111MODULE=off go get github.com/go-swagger/go-swagger/cmd/swagger
-	go get github.com/golangci/golangci-lint/cmd/golangci-lint@master
+	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	go mod download
 
 lint: testdeps
-	golangci-lint run --fast -D errcheck -E megacheck --deadline 5m ./...
+	golangci-lint run \
+		--enable-all \
+		-D errcheck \
+		-D lll \
+		-D gochecknoglobals \
+		-D goconst \
+		-D gocyclo \
+		-D dupl \
+		-D gocritic \
+		-D gochecknoinits \
+		-D unparam \
+		--deadline 5m ./...
 
 gotest: testdeps
 	go test ./...

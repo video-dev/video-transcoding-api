@@ -246,6 +246,7 @@ func TestListJobs(t *testing.T) {
 	}
 	expectedJobs := make([]db.Job, len(jobs))
 	for i, job := range jobs {
+		job := job
 		err = repo.CreateJob(&job)
 		if err != nil {
 			t.Fatal(err)
@@ -297,6 +298,7 @@ func TestListJobsLimit(t *testing.T) {
 	limit := 2
 	expectedJobs := make([]db.Job, limit)
 	for i, job := range jobs {
+		job := job
 		err = repo.CreateJob(&job)
 		if err != nil {
 			t.Fatal(err)
@@ -352,6 +354,7 @@ func TestListJobsInconsistency(t *testing.T) {
 	redisRepo.storage.RedisClient().ZAddNX("some-weird-id2", redis.Z{Member: jobs[1], Score: math.Inf(0)})
 	expectedJobs := make([]db.Job, len(jobs))
 	for i, job := range jobs {
+		job := job
 		err = repo.CreateJob(&job)
 		if err != nil {
 			t.Fatal(err)
@@ -409,6 +412,7 @@ func TestListJobsFiltering(t *testing.T) {
 	since := now.Add(-59 * time.Minute)
 	redisRepo := repo.(*redisRepository)
 	for _, job := range jobs {
+		job := job
 		err = redisRepo.saveJob(&job)
 		if err != nil {
 			t.Fatal(err)
@@ -469,6 +473,7 @@ func TestListJobsFilteringAndLimit(t *testing.T) {
 	since := now.Add(-59 * time.Minute)
 	redisRepo := repo.(*redisRepository)
 	for _, job := range jobs {
+		job := job
 		err = redisRepo.saveJob(&job)
 		if err != nil {
 			t.Fatal(err)

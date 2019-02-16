@@ -1393,7 +1393,7 @@ func TestHealthcheck(t *testing.T) {
 				StatusCode: "queue_slow",
 				Incident:   "Our encoding queue is processing slower than normal.  Check back for updates.",
 			},
-			"Status code: queue_slow.\nIncident: Our encoding queue is processing slower than normal.  Check back for updates.\nStatus: Investigation",
+			"status code: queue_slow.\nIncident: Our encoding queue is processing slower than normal.  Check back for updates.\nStatus: Investigation",
 		},
 		{
 			encodingcom.APIStatusResponse{
@@ -1401,7 +1401,7 @@ func TestHealthcheck(t *testing.T) {
 				StatusCode: "deploy",
 				Incident:   "We are currently working within a scheduled maintenance window.  Check back for updates.",
 			},
-			"Status code: deploy.\nIncident: We are currently working within a scheduled maintenance window.  Check back for updates.\nStatus: Maintenance",
+			"status code: deploy.\nIncident: We are currently working within a scheduled maintenance window.  Check back for updates.\nStatus: Maintenance",
 		},
 	}
 	for _, test := range tests {
