@@ -180,7 +180,7 @@ func (p *awsProvider) createVideoPreset(preset db.Preset) *elastictranscoder.Vid
 	return &videoPreset
 }
 
-func (p *awsProvider) createThumbsPreset(preset db.Preset) *elastictranscoder.Thumbnails {
+func (p *awsProvider) createThumbsPreset() *elastictranscoder.Thumbnails {
 	thumbsPreset := &elastictranscoder.Thumbnails{
 		PaddingPolicy: aws.String("Pad"),
 		Format:        aws.String("png"),
@@ -225,7 +225,7 @@ func (p *awsProvider) CreatePreset(preset db.Preset) (string, error) {
 	}
 	presetInput.Video = p.createVideoPreset(preset)
 	presetInput.Audio = p.createAudioPreset(preset)
-	presetInput.Thumbnails = p.createThumbsPreset(preset)
+	presetInput.Thumbnails = p.createThumbsPreset()
 	presetOutput, err := p.c.CreatePreset(&presetInput)
 	if err != nil {
 		return "", err

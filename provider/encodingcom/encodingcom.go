@@ -396,7 +396,7 @@ func (e *encodingComProvider) Healthcheck() error {
 		return err
 	}
 	if !status.OK() {
-		return fmt.Errorf("Status code: %s.\nIncident: %s\nStatus: %s", status.StatusCode, status.Incident, status.Status)
+		return fmt.Errorf("status code: %s.\nIncident: %s\nStatus: %s", status.StatusCode, status.Incident, status.Status)
 	}
 	return nil
 }

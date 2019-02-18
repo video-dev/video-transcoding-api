@@ -160,24 +160,22 @@ func (s *Storage) structToFieldList(value reflect.Value, prefixes ...string) (ma
 			default:
 				return nil, errors.New("can only expand structs and maps")
 			}
-		} else {
-			if parts[0] != "" {
-				key := strings.Join(append(prefixes, parts[0]), "_")
-				var strValue string
-				iface := fieldValue.Interface()
-				switch v := iface.(type) {
-				case time.Time:
-					strValue = v.Format(time.RFC3339Nano)
-				case []string:
-					strValue = strings.Join(v, "%%%")
-				default:
-					strValue = fmt.Sprintf("%v", v)
-				}
-				if parts[len(parts)-1] == "omitempty" && strValue == "" {
-					continue
-				}
-				fields[key] = strValue
+		} else if parts[0] != "" {
+			key := strings.Join(append(prefixes, parts[0]), "_")
+			var strValue string
+			iface := fieldValue.Interface()
+			switch v := iface.(type) {
+			case time.Time:
+				strValue = v.Format(time.RFC3339Nano)
+			case []string:
+				strValue = strings.Join(v, "%%%")
+			default:
+				strValue = fmt.Sprintf("%v", v)
 			}
+			if parts[len(parts)-1] == "omitempty" && strValue == "" {
+				continue
+			}
+			fields[key] = strValue
 		}
 	}
 	return fields, nil

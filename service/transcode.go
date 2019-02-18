@@ -31,7 +31,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	}
 	providerObj, err := providerFactory(s.config)
 	if err != nil {
-		formattedErr := fmt.Errorf("Error initializing provider %s for new job: %v %s", input.Payload.Provider, providerObj, err)
+		formattedErr := fmt.Errorf("error initializing provider %s for new job: %v %s", input.Payload.Provider, providerObj, err)
 		if _, ok := err.(provider.InvalidConfigError); ok {
 			return newInvalidJobResponse(formattedErr)
 		}
@@ -74,7 +74,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		return newInvalidJobResponse(err)
 	}
 	if err != nil {
-		providerError := fmt.Errorf("Error with provider %q: %s", input.Payload.Provider, err)
+		providerError := fmt.Errorf("error with provider %q: %s", input.Payload.Provider, err)
 		return swagger.NewErrorResponse(providerError)
 	}
 	jobStatus.ProviderName = input.Payload.Provider
@@ -132,7 +132,7 @@ func (s *TranscodingService) getJobStatusResponse(job *db.Job, status *provider.
 			return newJobNotFoundResponse(err)
 		}
 		if p != nil {
-			providerError := fmt.Errorf("Error with provider %q when trying to retrieve job id %q: %s", job.ProviderName, job.ID, err)
+			providerError := fmt.Errorf("error with provider %q when trying to retrieve job id %q: %s", job.ProviderName, job.ID, err)
 			if _, ok := err.(provider.JobNotFoundError); ok {
 				return newJobNotFoundProviderResponse(providerError)
 			}

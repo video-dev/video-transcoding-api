@@ -28,7 +28,7 @@ type TranscodingService struct {
 func NewTranscodingService(cfg *config.Config, logger *logrus.Logger) (*TranscodingService, error) {
 	dbRepo, err := redis.NewRepository(cfg)
 	if err != nil {
-		return nil, fmt.Errorf("Error initializing Redis client: %s", err)
+		return nil, fmt.Errorf("error initializing Redis client: %s", err)
 	}
 	return &TranscodingService{config: cfg, db: dbRepo, logger: logger}, nil
 }

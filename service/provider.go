@@ -16,7 +16,7 @@ import (
 //     Responses:
 //       200: listProviders
 //       500: genericError
-func (s *TranscodingService) listProviders(r *http.Request) swagger.GizmoJSONResponse {
+func (s *TranscodingService) listProviders(*http.Request) swagger.GizmoJSONResponse {
 	return newListProvidersResponse(provider.ListProviders(s.config))
 }
 

@@ -98,6 +98,6 @@ func (p *fakeProvider) Capabilities() provider.Capabilities {
 	}
 }
 
-func fakeProviderFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
+func fakeProviderFactory(_ *config.Config) (provider.TranscodingProvider, error) {
 	return &fprovider, nil
 }

@@ -117,7 +117,7 @@ func (s *TranscodingService) deletePresetMap(r *http.Request) swagger.GizmoJSONR
 //     Responses:
 //       200: listPresetMaps
 //       500: genericError
-func (s *TranscodingService) listPresetMaps(r *http.Request) swagger.GizmoJSONResponse {
+func (s *TranscodingService) listPresetMaps(*http.Request) swagger.GizmoJSONResponse {
 	presetsMap, err := s.db.ListPresetMaps()
 	if err != nil {
 		return swagger.NewErrorResponse(err)

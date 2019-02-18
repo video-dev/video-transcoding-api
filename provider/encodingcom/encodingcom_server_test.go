@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -110,12 +111,12 @@ func (s *encodingComFakeServer) ServeHTTP(w http.ResponseWriter, r *http.Request
 	}
 }
 
-func (s *encodingComFakeServer) apiStatus(w http.ResponseWriter, r *http.Request) {
+func (s *encodingComFakeServer) apiStatus(w http.ResponseWriter, _ *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(s.status)
 }
 
-func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) addMedia(w io.Writer, req request) {
 	id := generateID()
 	created := time.Now().UTC()
 	s.medias[id] = &fakeMedia{
@@ -132,7 +133,7 @@ func (s *encodingComFakeServer) addMedia(w http.ResponseWriter, req request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) cancelMedia(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) cancelMedia(w io.Writer, req request) {
 	media, err := s.getMedia(req.MediaID)
 	if err != nil {
 		s.Error(w, err.Error())
@@ -145,7 +146,7 @@ func (s *encodingComFakeServer) cancelMedia(w http.ResponseWriter, req request) 
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) getMediaInfo(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) getMediaInfo(w io.Writer, req request) {
 	media, err := s.getMedia(req.MediaID)
 	if err != nil {
 		s.Error(w, err.Error())
@@ -163,7 +164,7 @@ func (s *encodingComFakeServer) getMediaInfo(w http.ResponseWriter, req request)
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) getStatus(w io.Writer, req request) {
 	media, err := s.getMedia(req.MediaID)
 	if err != nil {
 		s.Error(w, err.Error())
@@ -216,7 +217,7 @@ func (s *encodingComFakeServer) getStatus(w http.ResponseWriter, req request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) savePreset(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) savePreset(w io.Writer, req request) {
 	presetName := req.Name
 	if presetName == "" {
 		presetName = generateID()
@@ -230,7 +231,7 @@ func (s *encodingComFakeServer) savePreset(w http.ResponseWriter, req request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) getPreset(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) getPreset(w io.Writer, req request) {
 	preset, ok := s.presets[req.Name]
 	if !ok {
 		s.Error(w, req.Name+" preset not found")
@@ -247,7 +248,7 @@ func (s *encodingComFakeServer) getPreset(w http.ResponseWriter, req request) {
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) deletePreset(w http.ResponseWriter, req request) {
+func (s *encodingComFakeServer) deletePreset(w io.Writer, req request) {
 	if _, ok := s.presets[req.Name]; !ok {
 		s.Error(w, "preset not found")
 		return
@@ -257,7 +258,7 @@ func (s *encodingComFakeServer) deletePreset(w http.ResponseWriter, req request)
 	json.NewEncoder(w).Encode(resp)
 }
 
-func (s *encodingComFakeServer) Error(w http.ResponseWriter, message string) {
+func (s *encodingComFakeServer) Error(w io.Writer, message string) {
 	m := map[string]errorResponse{"response": {
 		Errors: errorList{Error: message},
 	}}

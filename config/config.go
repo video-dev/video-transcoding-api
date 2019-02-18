@@ -3,7 +3,7 @@ package config
 import (
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
-	"github.com/fsouza/gizmo-stackdriver-logging"
+	logging "github.com/fsouza/gizmo-stackdriver-logging"
 	"github.com/kelseyhightower/envconfig"
 )
 

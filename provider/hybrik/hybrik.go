@@ -2,6 +2,7 @@ package hybrik
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"path"
 	"strconv"
@@ -27,18 +28,19 @@ const (
 
 var (
 	// ErrBitrateNan is an error returned when the bitrate field of db.Preset is not a valid number
-	ErrBitrateNan = fmt.Errorf("bitrate not a number")
+	ErrBitrateNan = errors.New("bitrate not a number")
 
 	// ErrPresetOutputMatch represents an error in the hybrik encoding-wrapper provider.
-	ErrPresetOutputMatch = fmt.Errorf("preset retrieved does not map to hybrik.Preset struct")
+	ErrPresetOutputMatch = errors.New("preset retrieved does not map to hybrik.Preset struct")
 
 	// ErrVideoWidthNan is an error returned when the preset video width of db.Preset is not a valid number
-	ErrVideoWidthNan = fmt.Errorf("preset video width not a number")
+	ErrVideoWidthNan = errors.New("preset video width not a number")
+
 	// ErrVideoHeightNan is an error returned when the preset video height of db.Preset is not a valid number
-	ErrVideoHeightNan = fmt.Errorf("preset video height not a number")
+	ErrVideoHeightNan = errors.New("preset video height not a number")
 
 	// ErrUnsupportedContainer is returned when the container format is not present in the provider's capabilities list
-	ErrUnsupportedContainer = fmt.Errorf("container format unsupported. Hybrik provider capabilities may need to be updated")
+	ErrUnsupportedContainer = errors.New("container format unsupported. Hybrik provider capabilities may need to be updated")
 )
 
 func init() {
@@ -91,7 +93,7 @@ func (hp *hybrikProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	}, nil
 }
 
-func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, destination string, duration uint, preset hwrapper.Preset) (hwrapper.Element, error) {
+func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, destination string, duration uint, preset hwrapper.Preset) hwrapper.Element {
 	var e hwrapper.Element
 	var subLocation *hwrapper.TranscodeLocation
 
@@ -133,7 +135,7 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 		},
 	}
 
-	return e, nil
+	return e
 }
 
 type presetResult struct {
@@ -195,7 +197,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		res := <-presetCh
 		err, isErr := res.preset.(error)
 		if isErr {
-			return "", fmt.Errorf("Error getting preset info: %s", err.Error())
+			return "", fmt.Errorf("error getting preset info: %s", err)
 		}
 
 		presets[res.presetID] = res.preset
@@ -203,7 +205,6 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 
 	// create transcode elements for each target
 	// TODO: This can be optimized further with regards to combining tasks so that they run in the same machine. Requires some discussion
-	elementID := 0
 	for _, output := range job.Outputs {
 		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
@@ -212,7 +213,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 
 		presetOutput, ok := presets[presetID]
 		if !ok {
-			return "", fmt.Errorf("Hybrik preset not found in preset results")
+			return "", errors.New("hybrik preset not found in preset results")
 		}
 
 		preset, ok := presetOutput.(hwrapper.Preset)
@@ -223,24 +224,18 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		var segmentDur uint
 		// track the hls outputs so we can later connect them to a manifest creator task
 		if len(preset.Payload.Targets) > 0 && preset.Payload.Targets[0].Container.Kind == hls {
-			hlsElementIds = append(hlsElementIds, elementID)
+			hlsElementIds = append(hlsElementIds, len(elements))
 			segmentDur = job.StreamingParams.SegmentDuration
 		}
 
-		e, err := hp.mountTranscodeElement(strconv.Itoa(elementID), job.ID, output.FileName, hp.config.Destination, segmentDur, preset)
-		if err != nil {
-			return "", err
-		}
-
+		e := hp.mountTranscodeElement(strconv.Itoa(len(elements)), job.ID, output.FileName, hp.config.Destination, segmentDur, preset)
 		elements = append(elements, e)
-
-		elementID++
 	}
 
 	// connect the source element to each of the transcode elements
-	var transcodeSuccessConnections []hwrapper.ToSuccess
-	for i := 0; i < elementID; i++ {
-		transcodeSuccessConnections = append(transcodeSuccessConnections, hwrapper.ToSuccess{Element: "transcode_task" + strconv.Itoa(i)})
+	transcodeSuccessConnections := make([]hwrapper.ToSuccess, len(elements))
+	for i := range elements {
+		transcodeSuccessConnections[i] = hwrapper.ToSuccess{Element: "transcode_task" + strconv.Itoa(i)}
 	}
 
 	// create the full job structure
