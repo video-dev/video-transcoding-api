@@ -68,23 +68,23 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		"/jobs": {
 			"POST": swagger.HandlerToJSONEndpoint(s.newTranscodeJob),
 		},
-		"/jobs/:jobId": {
+		"/jobs/{jobId}": {
 			"GET": swagger.HandlerToJSONEndpoint(s.getTranscodeJob),
 		},
-		"/jobs/:jobId/cancel": {
+		"/jobs/{jobId}/cancel": {
 			"POST": swagger.HandlerToJSONEndpoint(s.cancelTranscodeJob),
 		},
 		"/presets": {
 			"POST": swagger.HandlerToJSONEndpoint(s.newPreset),
 		},
-		"/presets/:name": {
+		"/presets/{name}": {
 			"DELETE": swagger.HandlerToJSONEndpoint(s.deletePreset),
 		},
 		"/presetmaps": {
 			"POST": swagger.HandlerToJSONEndpoint(s.newPresetMap),
 			"GET":  swagger.HandlerToJSONEndpoint(s.listPresetMaps),
 		},
-		"/presetmaps/:name": {
+		"/presetmaps/{name}": {
 			"GET":    swagger.HandlerToJSONEndpoint(s.getPresetMap),
 			"PUT":    swagger.HandlerToJSONEndpoint(s.updatePresetMap),
 			"DELETE": swagger.HandlerToJSONEndpoint(s.deletePresetMap),
@@ -92,7 +92,7 @@ func (s *TranscodingService) JSONEndpoints() map[string]map[string]server.JSONEn
 		"/providers": {
 			"GET": swagger.HandlerToJSONEndpoint(s.listProviders),
 		},
-		"/providers/:name": {
+		"/providers/{name}": {
 			"GET": swagger.HandlerToJSONEndpoint(s.getProvider),
 		},
 	}

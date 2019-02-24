@@ -117,7 +117,7 @@ func TestNewPreset(t *testing.T) {
 
 	for _, test := range tests {
 		name := test.givenRequestData["preset"].(map[string]interface{})["name"].(string)
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(false)
 		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
 		if err != nil {
@@ -193,7 +193,7 @@ func TestNewPresetWithExistentPresetMap(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+	srvr := server.NewSimpleServer(&server.Config{})
 	service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
 	if err != nil {
 		t.Fatal(err)
@@ -250,7 +250,7 @@ func TestDeletePreset(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeProviderMapping := make(map[string]string)
 		fakeProviderMapping["fake"] = "presetID_here"
