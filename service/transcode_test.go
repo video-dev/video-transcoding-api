@@ -196,7 +196,7 @@ func TestTranscode(t *testing.T) {
 
 	for _, test := range tests {
 		fprovider.jobs = nil
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDBObj.CreatePresetMap(&db.PresetMap{
 			Name:            "mp4_1080p",
@@ -319,7 +319,7 @@ func TestGetTranscodeJob(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDBObj.CreateJob(&db.Job{
 			ID:            "job-123",
@@ -418,7 +418,7 @@ func TestCancelTranscodeJob(t *testing.T) {
 	defer func() { fprovider.canceledJobs = nil }()
 	for _, test := range tests {
 		fprovider.canceledJobs = nil
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDBObj := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDBObj.CreateJob(&db.Job{
 			ID:            "job-123",

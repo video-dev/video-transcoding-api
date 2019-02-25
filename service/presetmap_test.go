@@ -132,7 +132,7 @@ func TestNewPresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(test.givenTriggerDBError)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "abc-321"})
 		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
@@ -190,7 +190,7 @@ func TestGetPresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
 		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
@@ -259,7 +259,7 @@ func TestUpdatePresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{
 			Name: "preset-1",
@@ -317,7 +317,7 @@ func TestDeletePresetMap(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(false)
 		fakeDB.CreatePresetMap(&db.PresetMap{Name: "preset-1"})
 		service, err := NewTranscodingService(&config.Config{Server: &server.Config{}}, logrus.New())
@@ -389,7 +389,7 @@ func TestListPresetMaps(t *testing.T) {
 		},
 	}
 	for _, test := range tests {
-		srvr := server.NewSimpleServer(&server.Config{RouterType: "fast"})
+		srvr := server.NewSimpleServer(&server.Config{})
 		fakeDB := dbtest.NewFakeRepository(false)
 		for i := range test.givenPresetMaps {
 			fakeDB.CreatePresetMap(&test.givenPresetMaps[i])

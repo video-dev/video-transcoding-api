@@ -20,9 +20,6 @@ func main() {
 	agent.Listen(agent.Options{})
 	defer agent.Close()
 	cfg := config.LoadConfig()
-	if cfg.Server.RouterType == "" {
-		cfg.Server.RouterType = "fast"
-	}
 	server.Init("video-transcoding-api", cfg.Server)
 	server.Log.Out = ioutil.Discard
 
