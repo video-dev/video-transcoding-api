@@ -23,7 +23,6 @@ install:
   - export GOCACHE=$GOPATH/pkg/cache
   - make testdeps
 script:
-  - export GOCACHE=$GOPATH/pkg/cache
   - make coverage
   - go build -o video-transcoding-api
 after_success:
