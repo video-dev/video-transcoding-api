@@ -2,12 +2,12 @@ module github.com/NYTimes/video-transcoding-api
 
 require (
 	github.com/NYTimes/encoding-wrapper v0.2.0
-	github.com/NYTimes/gizmo v1.2.1
+	github.com/NYTimes/gizmo v1.2.2
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/aws/aws-sdk-go v1.17.4
+	github.com/aws/aws-sdk-go v1.17.9
 	github.com/bitmovin/bitmovin-go v1.26.0
 	github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382
-	github.com/fsouza/ctxlogger v1.5.1
+	github.com/fsouza/ctxlogger v1.5.2
 	github.com/fsouza/gizmo-stackdriver-logging v1.2.0
 	github.com/go-redis/redis v6.15.1+incompatible
 	github.com/google/go-cmp v0.2.0
@@ -19,4 +19,5 @@ require (
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/sirupsen/logrus v1.3.0
+	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9 // indirect
 )
