@@ -2,7 +2,6 @@ package zencoder
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 	"reflect"
 	"testing"
@@ -145,8 +144,8 @@ func TestCreatePresetError(t *testing.T) {
 	}
 
 	_, err = provider.CreatePreset(preset)
-	if !reflect.DeepEqual(err, errors.New("preset name missing")) {
-		t.Errorf("Got wrong error. Want %#v. Got %#v", errors.New("preset name missing"), err)
+	if expectedMsg := "preset name missing"; err.Error() != expectedMsg {
+		t.Errorf("got wrong error message\nwant %q\ngot  %q", expectedMsg, err.Error())
 	}
 }
 
