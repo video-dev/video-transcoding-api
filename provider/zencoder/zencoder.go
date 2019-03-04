@@ -13,7 +13,7 @@
 //         factory, err := provider.GetProviderFactory(Zencoder.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package zencoder
+package zencoder // import "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 
 import (
 	"fmt"

@@ -1,4 +1,4 @@
-package provider
+package provider // import "github.com/NYTimes/video-transcoding-api/provider"
 
 import (
 	"errors"

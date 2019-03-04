@@ -1,4 +1,4 @@
-package bitmovin
+package bitmovin // import "github.com/NYTimes/video-transcoding-api/provider/bitmovin"
 
 import (
 	"errors"

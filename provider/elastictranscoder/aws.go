@@ -13,7 +13,7 @@
 //         factory, err := provider.GetProviderFactory(elastictranscoder.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package elastictranscoder
+package elastictranscoder // import "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
 
 import (
 	"errors"

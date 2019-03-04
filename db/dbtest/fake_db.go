@@ -1,4 +1,4 @@
-package dbtest
+package dbtest // import "github.com/NYTimes/video-transcoding-api/db/dbtest"
 
 import (
 	"errors"

@@ -13,7 +13,7 @@
 //         factory, err := provider.GetProviderFactory(encodingcom.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package encodingcom
+package encodingcom // import "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
 
 import (
 	"errors"

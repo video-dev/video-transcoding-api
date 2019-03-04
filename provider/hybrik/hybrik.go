@@ -1,4 +1,4 @@
-package hybrik
+package hybrik // import "github.com/NYTimes/video-transcoding-api/provider/hybrik"
 
 import (
 	"encoding/json"
