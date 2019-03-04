@@ -1,4 +1,4 @@
-package redis
+package redis // import "github.com/NYTimes/video-transcoding-api/db/redis"
 
 import (
 	"github.com/NYTimes/video-transcoding-api/config"

@@ -1,4 +1,4 @@
-package config
+package config // import "github.com/NYTimes/video-transcoding-api/config"
 
 import (
 	"github.com/NYTimes/gizmo/server"

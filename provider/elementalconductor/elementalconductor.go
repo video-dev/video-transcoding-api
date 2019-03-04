@@ -13,7 +13,7 @@
 //         factory, err := provider.GetProviderFactory(elementalconductor.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package elementalconductor
+package elementalconductor // import "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
 
 import (
 	"encoding/xml"

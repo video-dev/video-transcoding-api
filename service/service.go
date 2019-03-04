@@ -1,4 +1,4 @@
-package service
+package service // import "github.com/NYTimes/video-transcoding-api/service"
 
 import (
 	"fmt"
