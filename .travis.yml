@@ -33,14 +33,14 @@ deploy:
     skip_cleanup: true
     script: travis-scripts/deploy.bash dev-stg
     on:
-      repo: NYTimes/video-transcoding-api
+      repo: nytimes/video-transcoding-api
       branch: master
       go: 1.x
   - provider: script
     skip_cleanup: true
     script: travis-scripts/deploy.bash prd
     on:
-      repo: NYTimes/video-transcoding-api
+      repo: nytimes/video-transcoding-api
       tags: true
       go: 1.x
 notifications:
