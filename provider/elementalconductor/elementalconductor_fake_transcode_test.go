@@ -3,9 +3,9 @@ package elementalconductor
 import (
 	"strings"
 
-	"github.com/NYTimes/encoding-wrapper/elementalconductor"
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/encoding-wrapper/elementalconductor"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/provider"
 )
 
 type fakeElementalConductorClient struct {

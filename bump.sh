@@ -1,8 +1,8 @@
 #!/bin/bash -e
 
 PROJECT=$(git config --local remote.origin.url|sed -n 's#.*/\([^.]*\)\.git#\1#p')
-GH_LOG_TEMPLATE="([%h](https://github.com/NYTimes/$PROJECT/commit/%h)) %s %n"
-EMAIL_LOG_TEMPLATE="[<a href=https://github.com/NYTimes/$PROJECT/commit/%h>%h</a>] %s - by %an, %ci.<br>"
+GH_LOG_TEMPLATE="([%h](https://github.com/nytimes/$PROJECT/commit/%h)) %s %n"
+EMAIL_LOG_TEMPLATE="[<a href=https://github.com/nytimes/$PROJECT/commit/%h>%h</a>] %s - by %an, %ci.<br>"
 RECIPIENT=mediafactory@nytimes.com
 
 increment_version() {
@@ -44,7 +44,7 @@ send_mail() {
 
   HEADER="<img src=https://static01.nyt.com/video-static/etc/oss/mf.png><h2>Changelog</h2>"
   BODY=$(cat .tmp_mail)
-  FOOTER="You can also see the full changelog on <a href=https://github.com/NYTimes/$PROJECT/blob/master/CHANGELOG.md>GitHub</a>.<br><br>Media Factory Team."
+  FOOTER="You can also see the full changelog on <a href=https://github.com/nytimes/$PROJECT/blob/master/CHANGELOG.md>GitHub</a>.<br><br>Media Factory Team."
   MESSAGE="${HEADER}<br>${BODY}<br>${FOOTER}"
 
   SUBJECT="$TITLE\nFrom: Media Factory <mediafactory@nytimes.com>\nContent-Type: text/html\n"

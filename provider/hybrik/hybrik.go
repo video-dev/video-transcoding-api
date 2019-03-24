@@ -1,4 +1,4 @@
-package hybrik // import "github.com/NYTimes/video-transcoding-api/provider/hybrik"
+package hybrik // import "github.com/nytimes/video-transcoding-api/provider/hybrik"
 
 import (
 	"encoding/json"
@@ -8,9 +8,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 	hwrapper "github.com/hybrik/hybrik-sdk-go"
 )
 

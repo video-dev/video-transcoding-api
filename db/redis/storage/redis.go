@@ -1,5 +1,5 @@
 // Package storage provides a type for storing Go objects in Redis.
-package storage // import "github.com/NYTimes/video-transcoding-api/db/redis/storage"
+package storage // import "github.com/nytimes/video-transcoding-api/db/redis/storage"
 
 import (
 	"errors"

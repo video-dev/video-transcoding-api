@@ -3,7 +3,7 @@ package service
 import (
 	"net/http"
 
-	"github.com/NYTimes/video-transcoding-api/swagger"
+	"github.com/nytimes/video-transcoding-api/swagger"
 )
 
 type newPresetResponse struct {

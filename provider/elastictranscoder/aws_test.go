@@ -8,9 +8,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/elastictranscoder"

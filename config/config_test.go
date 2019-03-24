@@ -4,8 +4,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/nytimes/gizmo/server"
+	"github.com/nytimes/video-transcoding-api/db/redis/storage"
 	logging "github.com/fsouza/gizmo-stackdriver-logging"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"

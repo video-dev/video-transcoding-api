@@ -3,8 +3,8 @@ package redis
 import (
 	"errors"
 
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/db/redis/storage"
 	"github.com/go-redis/redis"
 )
 

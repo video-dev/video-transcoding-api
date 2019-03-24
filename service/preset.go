@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/NYTimes/video-transcoding-api/swagger"
+	"github.com/nytimes/gizmo/server"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
+	"github.com/nytimes/video-transcoding-api/swagger"
 )
 
 // swagger:route DELETE /presets/{name} presets deletePreset

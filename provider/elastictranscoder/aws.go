@@ -5,15 +5,15 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/NYTimes/video-transcoding-api/provider"
-//         "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
+//         "github.com/nytimes/video-transcoding-api/provider"
+//         "github.com/nytimes/video-transcoding-api/provider/elastictranscoder"
 //     )
 //
 //     func UseProvider() {
 //         factory, err := provider.GetProviderFactory(elastictranscoder.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package elastictranscoder // import "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
+package elastictranscoder // import "github.com/nytimes/video-transcoding-api/provider/elastictranscoder"
 
 import (
 	"errors"
@@ -24,9 +24,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"

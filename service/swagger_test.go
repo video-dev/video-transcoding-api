@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/nytimes/gizmo/server"
+	"github.com/nytimes/video-transcoding-api/config"
 	"github.com/sirupsen/logrus"
 )
 

@@ -1,4 +1,4 @@
-package provider // import "github.com/NYTimes/video-transcoding-api/provider"
+package provider // import "github.com/nytimes/video-transcoding-api/provider"
 
 import (
 	"errors"
@@ -6,8 +6,8 @@ import (
 	"sort"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
 )
 
 var (

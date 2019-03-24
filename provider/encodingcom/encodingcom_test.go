@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/encoding-wrapper/encodingcom"
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/encoding-wrapper/encodingcom"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 	"github.com/kr/pretty"
 )
 

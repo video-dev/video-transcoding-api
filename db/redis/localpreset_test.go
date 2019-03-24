@@ -4,9 +4,9 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/db/redis/storage"
 )
 
 func TestCreateLocalPreset(t *testing.T) {

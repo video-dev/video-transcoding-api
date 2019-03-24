@@ -1,10 +1,10 @@
-package dbtest // import "github.com/NYTimes/video-transcoding-api/db/dbtest"
+package dbtest // import "github.com/nytimes/video-transcoding-api/db/dbtest"
 
 import (
 	"errors"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/db"
 )
 
 type fakeRepository struct {

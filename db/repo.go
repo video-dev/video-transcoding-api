@@ -1,4 +1,4 @@
-package db // import "github.com/NYTimes/video-transcoding-api/db"
+package db // import "github.com/nytimes/video-transcoding-api/db"
 
 import (
 	"errors"

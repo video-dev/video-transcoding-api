@@ -380,7 +380,7 @@
           "x-go-name": "OutputFormats"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "Description": {
       "description": "It contains the name of the provider, along with its current heath status\nand its capabilities.",
@@ -404,7 +404,7 @@
           "x-go-name": "Name"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "Duration": {
       "description": "A Duration represents the elapsed time between two instants\nas an int64 nanosecond count. The representation limits the\nlargest representable duration to approximately 290 years.",
@@ -422,7 +422,7 @@
           "x-go-name": "Message"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/swagger"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/swagger"
     },
     "Health": {
       "description": "Health describes the current health status of the provider. If indicates\nwhether the provider is healthy or not, and if it's not healthy, it includes\na message explaining what's wrong.",
@@ -437,7 +437,7 @@
           "x-go-name": "OK"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "JobOutput": {
       "type": "object",
@@ -455,7 +455,7 @@
           "x-go-name": "Files"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "JobStatus": {
       "description": "JobStatus is the representation of the status as the provide sees it. The\nprovider is able to add customized information in the ProviderStatus field.",
@@ -498,7 +498,7 @@
           "x-go-name": "StatusMessage"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "NewTranscodeJobInputPayload": {
       "description": "NewTranscodeJobInputPayload makes up the parameters available for\nspecifying a new transcoding job",
@@ -538,7 +538,7 @@
           "$ref": "#/definitions/StreamingParams"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/service"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/service"
     },
     "OutputFile": {
       "type": "object",
@@ -572,7 +572,7 @@
           "x-go-name": "Width"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "OutputOptions": {
       "description": "This type includes only configuration parameters that are not defined in\nproviders (like the extension of the output file).",
@@ -588,7 +588,7 @@
           "x-go-name": "Extension"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/db"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/db"
     },
     "PartialJob": {
       "description": "PartialJob is the simple response given to an API\ncall that creates a new transcoding job",
@@ -601,7 +601,7 @@
           "x-go-name": "JobID"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/service"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/service"
     },
     "PresetMap": {
       "description": "Each presetmap is just an aggregator of provider presets, where each preset in\nthe API maps to a preset on each provider",
@@ -633,7 +633,7 @@
           "x-go-name": "ProviderMapping"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/db"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/db"
     },
     "SourceInfo": {
       "description": "SourceInfo contains information about media transcoded using the Transcoding\nAPI.",
@@ -661,12 +661,12 @@
           "x-go-name": "Width"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "Status": {
       "type": "string",
       "title": "Status is the status of a transcoding job.",
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/provider"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/provider"
     },
     "StreamingParams": {
       "description": "StreamingParams represents the params necessary to create Adaptive Streaming jobs",
@@ -694,7 +694,7 @@
           "x-go-name": "SegmentDuration"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/db"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/db"
     },
     "deletePresetOutput": {
       "type": "object",
@@ -708,7 +708,7 @@
           "x-go-name": "PresetID"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/service"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/service"
     },
     "newPresetOutput": {
       "type": "object",
@@ -720,7 +720,7 @@
           "type": "string"
         }
       },
-      "x-go-package": "github.com/NYTimes/video-transcoding-api/service"
+      "x-go-package": "github.com/nytimes/video-transcoding-api/service"
     }
   },
   "responses": {

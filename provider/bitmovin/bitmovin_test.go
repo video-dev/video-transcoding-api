@@ -10,9 +10,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 	"github.com/bitmovin/bitmovin-go/bitmovin"
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"

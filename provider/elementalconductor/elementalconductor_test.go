@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/encoding-wrapper/elementalconductor"
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/encoding-wrapper/elementalconductor"
+	"github.com/nytimes/video-transcoding-api/config"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {

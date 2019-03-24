@@ -1,9 +1,9 @@
-package swagger // import "github.com/NYTimes/video-transcoding-api/swagger"
+package swagger // import "github.com/nytimes/video-transcoding-api/swagger"
 
 import (
 	"net/http"
 
-	"github.com/NYTimes/gizmo/server"
+	"github.com/nytimes/gizmo/server"
 )
 
 // GizmoJSONResponse represents a response type that can be converted to

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"io"
 
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/nytimes/video-transcoding-api/db"
+	"github.com/nytimes/video-transcoding-api/provider"
 )
 
 // NewTranscodeJobInputPayload makes up the parameters available for
