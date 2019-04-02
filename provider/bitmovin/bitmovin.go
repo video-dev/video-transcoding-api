@@ -769,7 +769,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddMP4Muxing(*encodingResp.Data.Result.ID, videoMuxing)
-				if err != nil {
+				if vmErr != nil {
 					return nil, vmErr
 				}
 				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
@@ -788,7 +788,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddProgressiveMOVMuxing(*encodingResp.Data.Result.ID, videoMuxing)
-				if err != nil {
+				if vmErr != nil {
 					return nil, vmErr
 				}
 				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
@@ -885,7 +885,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					StreamConditionsMode: bitmovintypes.ConditionModeDropStream,
 				}
 				videoMuxingResp, vmErr := encodingS.AddProgressiveWebMMuxing(*encodingResp.Data.Result.ID, videoMuxing)
-				if err != nil {
+				if vmErr != nil {
 					return nil, vmErr
 				}
 				if videoMuxingResp.Status == bitmovinAPIErrorMsg {
