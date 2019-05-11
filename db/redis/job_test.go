@@ -102,7 +102,7 @@ func TestCreateJobIsSafe(t *testing.T) {
 			if err != nil && err != redis.TxFailedErr {
 				t.Error(err)
 			}
-		}(jobs[i % len(jobs)])
+		}(jobs[i%len(jobs)])
 	}
 	wg.Wait()
 }
