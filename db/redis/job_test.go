@@ -94,15 +94,15 @@ func TestCreateJobIsSafe(t *testing.T) {
 		t.Fatal(err)
 	}
 	var wg sync.WaitGroup
-	for i := 0; i < 8; i++ {
+	for i := 0; i < len(jobs)*2; i++ {
 		wg.Add(1)
-		go func(i int) {
+		go func(job db.Job) {
 			defer wg.Done()
-			err := repo.CreateJob(&jobs[i])
+			err := repo.CreateJob(&job)
 			if err != nil && err != redis.TxFailedErr {
 				t.Error(err)
 			}
-		}(i % len(jobs))
+		}(jobs[i%len(jobs)])
 	}
 	wg.Wait()
 }
