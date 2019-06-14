@@ -7,8 +7,8 @@ import (
 
 	"github.com/bitmovin/bitmovin-api-sdk-go/model"
 
-	"github.com/bitmovin/bitmovin-api-sdk-go"
 	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/bitmovin/bitmovin-api-sdk-go"
 
 	"github.com/pkg/errors"
 )

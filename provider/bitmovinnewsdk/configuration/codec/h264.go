@@ -9,8 +9,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/bitmovin/bitmovin-api-sdk-go/model"
 	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/bitmovin/bitmovin-api-sdk-go/model"
 )
 
 var h264Levels = []model.LevelH264{

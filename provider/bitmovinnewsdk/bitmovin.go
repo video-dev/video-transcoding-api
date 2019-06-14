@@ -5,10 +5,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/bitmovin/bitmovin-api-sdk-go"
-	"github.com/bitmovin/bitmovin-api-sdk-go/common"
-	"github.com/bitmovin/bitmovin-api-sdk-go/model"
-	"github.com/bitmovin/bitmovin-api-sdk-go/query"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
@@ -17,6 +13,10 @@ import (
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/input"
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/output"
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/status"
+	"github.com/bitmovin/bitmovin-api-sdk-go"
+	"github.com/bitmovin/bitmovin-api-sdk-go/common"
+	"github.com/bitmovin/bitmovin-api-sdk-go/model"
+	"github.com/bitmovin/bitmovin-api-sdk-go/query"
 	"github.com/pkg/errors"
 )
 
