@@ -39,8 +39,8 @@ func (c *H264AAC) Create(preset db.Preset) (string, error) {
 // Get retrieves audio / video configuration with a presetID
 // the function will return a boolean indicating whether the video
 // configuration was found, a config object and an optional error
-func (c *H264AAC) Get(presetID string) (bool, Details, error) {
-	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(presetID)
+func (c *H264AAC) Get(cfgID string) (bool, Details, error) {
+	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(cfgID)
 	if err != nil {
 		return false, Details{}, err
 	}
@@ -59,8 +59,8 @@ func (c *H264AAC) Get(presetID string) (bool, Details, error) {
 }
 
 // Delete removes the audio / video configurations
-func (c *H264AAC) Delete(presetID string) (found bool, e error) {
-	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(presetID)
+func (c *H264AAC) Delete(cfgID string) (found bool, e error) {
+	customData, err := c.vidCustomDataFrom(cfgID)
 	if err != nil {
 		return found, err
 	}
@@ -81,7 +81,7 @@ func (c *H264AAC) Delete(presetID string) (found bool, e error) {
 		return found, errors.Wrap(err, "removing the audio config")
 	}
 
-	_, err = c.api.Encoding.Configurations.Video.H264.Delete(vidCfg.Id)
+	_, err = c.api.Encoding.Configurations.Video.H264.Delete(cfgID)
 	if err != nil {
 		return found, errors.Wrap(err, "removing the video config")
 	}
@@ -95,10 +95,19 @@ func (c *H264AAC) vidConfigWithCustomDataFrom(cfgID string) (*model.H264VideoCon
 		return nil, nil, errors.Wrap(err, "retrieving configuration with config ID")
 	}
 
-	data, err := c.api.Encoding.Configurations.Video.H264.Customdata.Get(vidCfg.Id)
+	data, err := c.vidCustomDataFrom(vidCfg.Id)
 	if err != nil {
-		return nil, nil, errors.Wrap(err, "retrieving custom data with config ID")
+		return nil, nil, err
 	}
 
-	return vidCfg, data.CustomData, nil
+	return vidCfg, data, nil
+}
+
+func (c *H264AAC) vidCustomDataFrom(cfgID string) (types.CustomData, error) {
+	data, err := c.api.Encoding.Configurations.Video.H264.Customdata.Get(cfgID)
+	if err != nil {
+		return nil, errors.Wrap(err, "retrieving custom data with config ID")
+	}
+
+	return data.CustomData, nil
 }
