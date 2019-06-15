@@ -16,14 +16,15 @@ import (
 
 const (
 	// Name describes the name of the transcoder
-	Name          = "hybrik"
-	queued        = "queued"
-	active        = "active"
-	completed     = "completed"
-	failed        = "failed"
-	activeRunning = "running"
-	activeWaiting = "waiting"
-	hls           = "hls"
+	Name                      = "hybrik"
+	queued                    = "queued"
+	active                    = "active"
+	completed                 = "completed"
+	failed                    = "failed"
+	activeRunning             = "running"
+	activeWaiting             = "waiting"
+	hls                       = "hls"
+	transcodeElementIDTempate = "transcode_task_%s"
 )
 
 var (
@@ -110,7 +111,7 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 
 	// create the transcode element
 	e = hwrapper.Element{
-		UID:  "transcode_task" + elementID,
+		UID:  fmt.Sprintf(transcodeElementIDTempate, elementID),
 		Kind: "transcode",
 		Task: &hwrapper.ElementTaskOptions{
 			Name: "Transcode - " + preset.Name,
@@ -158,6 +159,7 @@ func makeGetPresetRequest(hp *hybrikProvider, presetID string, ch chan *presetRe
 
 func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 	elements := []hwrapper.Element{}
+	transcodeElementIds := []string{}
 	var hlsElementIds []int
 
 	// create a source element
@@ -224,18 +226,21 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		var segmentDur uint
 		// track the hls outputs so we can later connect them to a manifest creator task
 		if len(preset.Payload.Targets) > 0 && preset.Payload.Targets[0].Container.Kind == hls {
-			hlsElementIds = append(hlsElementIds, len(elements))
+			hlsElementIds = append(hlsElementIds, len(transcodeElementIds))
 			segmentDur = job.StreamingParams.SegmentDuration
 		}
 
-		e := hp.mountTranscodeElement(strconv.Itoa(len(elements)), job.ID, output.FileName, hp.config.Destination, segmentDur, preset)
+		taskIndex := strconv.Itoa(len(transcodeElementIds))
+		e := hp.mountTranscodeElement(taskIndex, job.ID, output.FileName, hp.config.Destination, segmentDur, preset)
+
+		transcodeElementIds = append(transcodeElementIds, fmt.Sprintf(transcodeElementIDTempate, taskIndex))
 		elements = append(elements, e)
 	}
 
 	// connect the source element to each of the transcode elements
-	transcodeSuccessConnections := make([]hwrapper.ToSuccess, len(elements))
-	for i := range elements {
-		transcodeSuccessConnections[i] = hwrapper.ToSuccess{Element: "transcode_task" + strconv.Itoa(i)}
+	transcodeSuccessConnections := make([]hwrapper.ToSuccess, len(transcodeElementIds))
+	for i, id := range transcodeElementIds {
+		transcodeSuccessConnections[i] = hwrapper.ToSuccess{Element: id}
 	}
 
 	// create the full job structure
@@ -285,7 +290,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 
 		var manifestFromConnections []hwrapper.ConnectionFrom
 		for _, hlsElementID := range hlsElementIds {
-			manifestFromConnections = append(manifestFromConnections, hwrapper.ConnectionFrom{Element: "transcode_task" + strconv.Itoa(hlsElementID)})
+			manifestFromConnections = append(manifestFromConnections, hwrapper.ConnectionFrom{Element: fmt.Sprintf(transcodeElementIDTempate, strconv.Itoa(hlsElementID))})
 		}
 
 		cj.Payload.Connections = append(cj.Payload.Connections,
