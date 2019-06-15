@@ -2,6 +2,8 @@ package configuration
 
 import (
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/configuration/codec"
+	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/types"
+	"github.com/bitmovin/bitmovin-api-sdk-go/model"
 
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/bitmovin/bitmovin-api-sdk-go"
@@ -35,17 +37,12 @@ func (c *VP8Vorbis) Create(preset db.Preset) (string, error) {
 
 // Get retrieves audio / video configuration with a presetID
 func (c *VP8Vorbis) Get(presetID string) (bool, Details, error) {
-	vidCfg, err := c.api.Encoding.Configurations.Video.Vp8.Get(presetID)
+	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(presetID)
 	if err != nil {
-		return false, Details{}, errors.Wrap(err, "retrieving configuration with presetID")
+		return false, Details{}, err
 	}
 
-	dataResp, err := c.api.Encoding.Configurations.Video.Vp8.Customdata.Get(vidCfg.Id)
-	if err != nil {
-		return false, Details{}, errors.Wrap(err, "retrieving custom data with config ID")
-	}
-
-	audCfgID, err := AudCfgIDFrom(dataResp.CustomData)
+	audCfgID, err := AudCfgIDFrom(customData)
 	if err != nil {
 		return false, Details{}, err
 	}
@@ -55,17 +52,17 @@ func (c *VP8Vorbis) Get(presetID string) (bool, Details, error) {
 		return false, Details{}, errors.Wrapf(err, "getting the audio config with ID %q", audCfgID)
 	}
 
-	return true, Details{vidCfg, audCfg, dataResp.CustomData}, nil
+	return true, Details{vidCfg, audCfg, customData}, nil
 }
 
 // Delete removes the audio / video configurations
 func (c *VP8Vorbis) Delete(presetID string) (found bool, e error) {
-	vidCfg, err := c.api.Encoding.Configurations.Video.Vp8.Get(presetID)
+	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(presetID)
 	if err != nil {
-		return found, errors.Wrap(err, "retrieving video configuration with presetID")
+		return found, err
 	}
 
-	audCfgID, err := AudCfgIDFrom(vidCfg.CustomData)
+	audCfgID, err := AudCfgIDFrom(customData)
 	if err != nil {
 		return found, err
 	}
@@ -87,4 +84,18 @@ func (c *VP8Vorbis) Delete(presetID string) (found bool, e error) {
 	}
 
 	return found, nil
+}
+
+func (c *VP8Vorbis) vidConfigWithCustomDataFrom(cfgID string) (*model.Vp8VideoConfiguration, types.CustomData, error) {
+	vidCfg, err := c.api.Encoding.Configurations.Video.Vp8.Get(cfgID)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "retrieving configuration with config ID")
+	}
+
+	data, err := c.api.Encoding.Configurations.Video.Vp8.Customdata.Get(vidCfg.Id)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "retrieving custom data with config ID")
+	}
+
+	return vidCfg, data.CustomData, nil
 }

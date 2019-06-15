@@ -2,6 +2,8 @@ package configuration
 
 import (
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/configuration/codec"
+	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/types"
+	"github.com/bitmovin/bitmovin-api-sdk-go/model"
 
 	"github.com/bitmovin/bitmovin-api-sdk-go"
 
@@ -38,17 +40,12 @@ func (c *H264AAC) Create(preset db.Preset) (string, error) {
 // the function will return a boolean indicating whether the video
 // configuration was found, a config object and an optional error
 func (c *H264AAC) Get(presetID string) (bool, Details, error) {
-	vidCfg, err := c.api.Encoding.Configurations.Video.H264.Get(presetID)
+	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(presetID)
 	if err != nil {
-		return false, Details{}, errors.Wrap(err, "retrieving configuration with config ID")
+		return false, Details{}, err
 	}
 
-	dataResp, err := c.api.Encoding.Configurations.Video.H264.Customdata.Get(vidCfg.Id)
-	if err != nil {
-		return false, Details{}, errors.Wrap(err, "retrieving custom data with config ID")
-	}
-
-	audCfgID, err := AudCfgIDFrom(dataResp.CustomData)
+	audCfgID, err := AudCfgIDFrom(customData)
 	if err != nil {
 		return false, Details{}, err
 	}
@@ -58,17 +55,17 @@ func (c *H264AAC) Get(presetID string) (bool, Details, error) {
 		return false, Details{}, errors.Wrapf(err, "getting the audio configuration with ID %q", audCfgID)
 	}
 
-	return true, Details{vidCfg, audCfg, dataResp.CustomData}, nil
+	return true, Details{vidCfg, audCfg, customData}, nil
 }
 
 // Delete removes the audio / video configurations
 func (c *H264AAC) Delete(presetID string) (found bool, e error) {
-	vidCfg, err := c.api.Encoding.Configurations.Video.H264.Get(presetID)
+	vidCfg, customData, err := c.vidConfigWithCustomDataFrom(presetID)
 	if err != nil {
-		return found, errors.Wrap(err, "retrieving video configuration with presetID")
+		return found, err
 	}
 
-	audCfgID, err := AudCfgIDFrom(vidCfg.CustomData)
+	audCfgID, err := AudCfgIDFrom(customData)
 	if err != nil {
 		return found, err
 	}
@@ -90,4 +87,18 @@ func (c *H264AAC) Delete(presetID string) (found bool, e error) {
 	}
 
 	return found, nil
+}
+
+func (c *H264AAC) vidConfigWithCustomDataFrom(cfgID string) (*model.H264VideoConfiguration, types.CustomData, error) {
+	vidCfg, err := c.api.Encoding.Configurations.Video.H264.Get(cfgID)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "retrieving configuration with config ID")
+	}
+
+	data, err := c.api.Encoding.Configurations.Video.H264.Customdata.Get(vidCfg.Id)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "retrieving custom data with config ID")
+	}
+
+	return vidCfg, data.CustomData, nil
 }
