@@ -16,15 +16,15 @@ import (
 
 const (
 	// Name describes the name of the transcoder
-	Name                      = "hybrik"
-	queued                    = "queued"
-	active                    = "active"
-	completed                 = "completed"
-	failed                    = "failed"
-	activeRunning             = "running"
-	activeWaiting             = "waiting"
-	hls                       = "hls"
-	transcodeElementIDTempate = "transcode_task_%s"
+	Name                       = "hybrik"
+	queued                     = "queued"
+	active                     = "active"
+	completed                  = "completed"
+	failed                     = "failed"
+	activeRunning              = "running"
+	activeWaiting              = "waiting"
+	hls                        = "hls"
+	transcodeElementIDTemplate = "transcode_task_%s"
 )
 
 var (
@@ -111,7 +111,7 @@ func (hp *hybrikProvider) mountTranscodeElement(elementID, id, outputFilename, d
 
 	// create the transcode element
 	e = hwrapper.Element{
-		UID:  fmt.Sprintf(transcodeElementIDTempate, elementID),
+		UID:  fmt.Sprintf(transcodeElementIDTemplate, elementID),
 		Kind: "transcode",
 		Task: &hwrapper.ElementTaskOptions{
 			Name: "Transcode - " + preset.Name,
@@ -233,7 +233,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 		taskIndex := strconv.Itoa(len(transcodeElementIds))
 		e := hp.mountTranscodeElement(taskIndex, job.ID, output.FileName, hp.config.Destination, segmentDur, preset)
 
-		transcodeElementIds = append(transcodeElementIds, fmt.Sprintf(transcodeElementIDTempate, taskIndex))
+		transcodeElementIds = append(transcodeElementIds, e.UID)
 		elements = append(elements, e)
 	}
 
@@ -290,7 +290,7 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 
 		var manifestFromConnections []hwrapper.ConnectionFrom
 		for _, hlsElementID := range hlsElementIds {
-			manifestFromConnections = append(manifestFromConnections, hwrapper.ConnectionFrom{Element: fmt.Sprintf(transcodeElementIDTempate, strconv.Itoa(hlsElementID))})
+			manifestFromConnections = append(manifestFromConnections, hwrapper.ConnectionFrom{Element: fmt.Sprintf(transcodeElementIDTemplate, strconv.Itoa(hlsElementID))})
 		}
 
 		cj.Payload.Connections = append(cj.Payload.Connections,
