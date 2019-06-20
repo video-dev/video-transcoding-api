@@ -5,12 +5,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/bitmovin/bitmovin-api-sdk-go"
-
-	"github.com/pkg/errors"
-
 	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/bitmovin/bitmovin-api-sdk-go"
 	"github.com/bitmovin/bitmovin-api-sdk-go/model"
+	"github.com/pkg/errors"
 )
 
 var h264Levels = []model.LevelH264{

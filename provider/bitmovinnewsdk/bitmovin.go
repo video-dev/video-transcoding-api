@@ -48,9 +48,6 @@ const (
 	vp8Vorbis cfgStore = "vp8vorbis"
 )
 
-// Just to double check the interface is properly implemented
-var _ provider.TranscodingProvider = (*bitmovinProvider)(nil)
-
 func init() {
 	_ = provider.Register(Name, bitmovinFactory)
 }

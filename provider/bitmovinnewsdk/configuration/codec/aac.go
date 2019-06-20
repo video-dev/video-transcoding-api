@@ -9,9 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	defaultAACSampleRate float64 = 48000
-)
+const defaultAACSampleRate = 48000
 
 // NewAAC creates a AAC codec configuration and returns its ID
 func NewAAC(api *bitmovin.BitmovinApi, bitrate string) (string, error) {
@@ -35,7 +33,7 @@ func aacConfigFrom(bitrate string) (model.AacAudioConfiguration, error) {
 	}
 
 	return model.AacAudioConfiguration{
-		Name:    fmt.Sprintf("aac_%s_%.0f", bitrate, defaultAACSampleRate),
+		Name:    fmt.Sprintf("aac_%s_%d", bitrate, defaultAACSampleRate),
 		Bitrate: &convertedBitrate,
 		Rate:    floatToPtr(defaultAACSampleRate),
 	}, nil

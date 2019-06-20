@@ -1,13 +1,11 @@
 package configuration
 
 import (
+	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/configuration/codec"
 	"github.com/NYTimes/video-transcoding-api/provider/bitmovinnewsdk/types"
-	"github.com/bitmovin/bitmovin-api-sdk-go/model"
-
 	"github.com/bitmovin/bitmovin-api-sdk-go"
-
-	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/bitmovin/bitmovin-api-sdk-go/model"
 	"github.com/pkg/errors"
 )
 

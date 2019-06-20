@@ -5,10 +5,9 @@ import (
 	"path"
 
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/bitmovin/bitmovin-api-sdk-go/query"
-
 	"github.com/bitmovin/bitmovin-api-sdk-go"
 	"github.com/bitmovin/bitmovin-api-sdk-go/model"
+	"github.com/bitmovin/bitmovin-api-sdk-go/query"
 	"github.com/pkg/errors"
 )
 

@@ -9,9 +9,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-const (
-	defaultVorbisSampleRate float64 = 48000
-)
+const defaultVorbisSampleRate = 48000
 
 // NewVorbis creates a Vorbis codec configuration and returns its ID
 func NewVorbis(api *bitmovin.BitmovinApi, bitrate string) (string, error) {
@@ -35,7 +33,7 @@ func vorbisConfigFrom(bitrate string) (model.VorbisAudioConfiguration, error) {
 	}
 
 	return model.VorbisAudioConfiguration{
-		Name:    fmt.Sprintf("vorbis_%s_%.0f", bitrate, defaultVorbisSampleRate),
+		Name:    fmt.Sprintf("vorbis_%s_%d", bitrate, defaultVorbisSampleRate),
 		Bitrate: &convertedBitrate,
 		Rate:    floatToPtr(defaultVorbisSampleRate),
 	}, nil
