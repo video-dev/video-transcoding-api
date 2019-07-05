@@ -14,7 +14,7 @@ require (
 	github.com/google/gops v0.3.6
 	github.com/gorilla/handlers v1.4.0
 	github.com/hybrik/hybrik-sdk-go v0.0.0-20170516091026-c2eee0e66af9
-	github.com/kelseyhightower/envconfig v1.3.0
+	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pretty v0.1.0
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
