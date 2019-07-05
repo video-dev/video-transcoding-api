@@ -2,7 +2,7 @@ module github.com/NYTimes/video-transcoding-api
 
 require (
 	github.com/NYTimes/encoding-wrapper v0.2.0
-	github.com/NYTimes/gizmo v1.2.7
+	github.com/NYTimes/gizmo v1.2.8
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aws/aws-sdk-go v1.19.28
 	github.com/bitmovin/bitmovin-go v1.28.0
