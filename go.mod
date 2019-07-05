@@ -18,7 +18,7 @@ require (
 	github.com/kr/pretty v0.1.0
 	github.com/onsi/ginkgo v1.7.0 // indirect
 	github.com/onsi/gomega v1.4.3 // indirect
-	github.com/sirupsen/logrus v1.4.1
+	github.com/sirupsen/logrus v1.4.2
 )
 
 go 1.12
