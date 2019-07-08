@@ -40,6 +40,8 @@ github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLM
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bitmovin/bitmovin-go v1.28.0 h1:0Oro1v1SJgYXJzEGXXUAWIRdoVU/9X997lLEYh1M8Jg=
 github.com/bitmovin/bitmovin-go v1.28.0/go.mod h1:FnQ++AxR0BZAH5UpAPU10bpSzeV4a7Gu5Sazpkpr7cE=
+github.com/bitmovin/bitmovin-go v1.29.0 h1:xhTvsSRLTHy3KPl3wBD5X6c9nVelF5YPyJbQt2KlAAk=
+github.com/bitmovin/bitmovin-go v1.29.0/go.mod h1:FnQ++AxR0BZAH5UpAPU10bpSzeV4a7Gu5Sazpkpr7cE=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 h1:DDGfHa7BWjL4YnC6+E63dPcxHo2sUxDIu8g3QgEJdRY=
 github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869/go.mod h1:Ekp36dRnpXw/yCqJaO+ZrUyxD+3VXMFFr56k5XYrpB4=
 github.com/bradfitz/go-smtpd v0.0.0-20170404230938-deb6d6237625/go.mod h1:HYsPBTaaSFSlLx/70C2HPIMNZpVV8+vt/A+FMnYP11g=
