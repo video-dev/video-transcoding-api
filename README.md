@@ -16,6 +16,7 @@ providers:
 - [Encoding.com](http://encoding.com)
 - [Hybrik](https://www.hybrik.com)
 - [Zencoder](http://zencoder.com)
+- [MediaConvert](https://aws.amazon.com/mediaconvert)
 
 ## Setting Up
 
@@ -92,6 +93,18 @@ stored in. If not specified, it will default to
 ```
 export ZENCODER_API_KEY=your.api.key
 export ZENCODER_DESTINATION=http://access.key.id:secret.access.key@your-s3-bucket.s3.amazonaws.com/
+```
+
+#### For [MediaConvert](https://aws.amazon.com/mediaconvert/)
+
+```
+export MEDIACONVERT_AWS_ACCESS_KEY_ID=your.access.key.id
+export MEDIACONVERT_AWS_SECRET_ACCESS_KEY=your.secret.access.key
+export MEDIACONVERT_AWS_REGION="us-east-1"
+export MEDIACONVERT_ENDPOINT=your.mediaconvert.endpoint
+export MEDIACONVERT_QUEUE_ARN=your.queue.arn
+export MEDIACONVERT_ROLE_ARN=your.iam.role.arn
+export MEDIACONVERT_DESTINATION=s3://your-s3-bucket
 ```
 
 ### Database configuration
