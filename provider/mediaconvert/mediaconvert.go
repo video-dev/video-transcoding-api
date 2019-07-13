@@ -368,8 +368,7 @@ func (p *mcProvider) Capabilities() provider.Capabilities {
 }
 
 func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	if cfg.MediaConvert.AccessKeyID == "" || cfg.MediaConvert.SecretAccessKey == "" || cfg.MediaConvert.Endpoint == "" ||
-		cfg.MediaConvert.Queue == "" || cfg.MediaConvert.Region == "" {
+	if cfg.MediaConvert.Endpoint == "" || cfg.MediaConvert.Queue == "" || cfg.MediaConvert.Role == "" {
 		return nil, errors.New("incomplete MediaConvert config")
 	}
 
@@ -378,11 +377,17 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		return nil, errors.Wrap(err, "loading default aws config")
 	}
 
-	mcCfg.Region = cfg.MediaConvert.Region
-	mcCfg.Credentials = &aws.StaticCredentialsProvider{Value: aws.Credentials{
-		AccessKeyID:     cfg.MediaConvert.AccessKeyID,
-		SecretAccessKey: cfg.MediaConvert.SecretAccessKey,
-	}}
+	if cfg.MediaConvert.AccessKeyID != "" && cfg.MediaConvert.SecretAccessKey != "" {
+		mcCfg.Credentials = &aws.StaticCredentialsProvider{Value: aws.Credentials{
+			AccessKeyID:     cfg.MediaConvert.AccessKeyID,
+			SecretAccessKey: cfg.MediaConvert.SecretAccessKey,
+		}}
+	}
+
+	if cfg.MediaConvert.Region != "" {
+		mcCfg.Region = cfg.MediaConvert.Region
+	}
+
 	mcCfg.EndpointResolver = &aws.ResolveWithEndpoint{
 		URL: cfg.MediaConvert.Endpoint,
 	}
