@@ -377,7 +377,7 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		return nil, errors.Wrap(err, "loading default aws config")
 	}
 
-	if cfg.MediaConvert.AccessKeyID != "" && cfg.MediaConvert.SecretAccessKey != "" {
+	if cfg.MediaConvert.AccessKeyID+cfg.MediaConvert.SecretAccessKey != "" {
 		mcCfg.Credentials = &aws.StaticCredentialsProvider{Value: aws.Credentials{
 			AccessKeyID:     cfg.MediaConvert.AccessKeyID,
 			SecretAccessKey: cfg.MediaConvert.SecretAccessKey,
