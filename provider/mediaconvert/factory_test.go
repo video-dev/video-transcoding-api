@@ -133,6 +133,6 @@ func setenvReset(name, val string) (resetEnv func(), rerr error) {
 		return nil, err
 	}
 	return func() {
-		_ = os.Setenv(name, cached)
+		os.Setenv(name, cached)
 	}, nil
 }
