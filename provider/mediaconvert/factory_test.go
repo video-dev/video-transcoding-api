@@ -71,6 +71,11 @@ func Test_mediaconvertFactory(t *testing.T) {
 			},
 			wantRegion: "us-north-1",
 		},
+		{
+			name:       "an incomplete cfg results in an error returned",
+			cfg:        config.Config{MediaConvert: &config.MediaConvert{}},
+			wantErrMsg: "incomplete MediaConvert config",
+		},
 	}
 
 	for _, tt := range tests {
@@ -86,8 +91,10 @@ func Test_mediaconvertFactory(t *testing.T) {
 
 			cfg := tt.cfg
 			provider, err := mediaconvertFactory(&cfg)
-			if err != nil && tt.wantErrMsg != err.Error() {
-				t.Errorf("mcProvider.CreatePreset() error = %v, wantErr %q", err, tt.wantErrMsg)
+			if err != nil {
+				if tt.wantErrMsg != err.Error() {
+					t.Errorf("mcProvider.CreatePreset() error = %v, wantErr %q", err, tt.wantErrMsg)
+				}
 				return
 			}
 
