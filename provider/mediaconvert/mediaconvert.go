@@ -24,7 +24,7 @@ const (
 )
 
 func init() {
-	_ = provider.Register(Name, mediaconvertFactory)
+	provider.Register(Name, mediaconvertFactory)
 }
 
 type mediaconvertClient interface {
@@ -43,11 +43,52 @@ type mcProvider struct {
 }
 
 func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
+	presets, err := p.outputPresetsFrom(job.Outputs)
+	if err != nil {
+		return nil, errors.Wrap(err, "building map of output presetID to MediaConvert preset")
+	}
+
+	outputGroups, err := p.outputGroupsFrom(job, presets)
+	if err != nil {
+		return nil, errors.Wrap(err, "generating Mediaconvert output groups")
+	}
+
+	createJobInput := mediaconvert.CreateJobInput{
+		Queue: aws.String(p.cfg.Queue),
+		Role:  aws.String(p.cfg.Role),
+		Settings: &mediaconvert.JobSettings{
+			Inputs: []mediaconvert.Input{
+				{
+					FileInput: aws.String(job.SourceMedia),
+					AudioSelectors: map[string]mediaconvert.AudioSelector{
+						"Audio Selector 1": {DefaultSelection: mediaconvert.AudioDefaultSelectionDefault},
+					},
+					VideoSelector: &mediaconvert.VideoSelector{
+						ColorSpace: mediaconvert.ColorSpaceFollow,
+					},
+				},
+			},
+			OutputGroups: outputGroups,
+		},
+	}
+
+	resp, err := p.client.CreateJobRequest(&createJobInput).Send(context.Background())
+	if err != nil {
+		return nil, err
+	}
+	return &provider.JobStatus{
+		ProviderName:  Name,
+		ProviderJobID: aws.StringValue(resp.Job.Id),
+		Status:        provider.StatusQueued,
+	}, nil
+}
+
+func (p *mcProvider) outputPresetsFrom(outputs []db.TranscodeOutput) (map[string]mediaconvert.Preset, error) {
 	presetCh := make(chan *presetResult)
 	presets := map[string]mediaconvert.Preset{}
 
 	var wg sync.WaitGroup
-	for _, output := range job.Outputs {
+	for _, output := range outputs {
 		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
 			return nil, provider.ErrPresetMapNotFound
@@ -70,6 +111,10 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		presets[res.presetID] = res.preset
 	}
 
+	return presets, nil
+}
+
+func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]mediaconvert.Preset) ([]mediaconvert.OutputGroup, error) {
 	outputGroups := map[mediaconvert.ContainerType][]db.TranscodeOutput{}
 	for _, output := range job.Outputs {
 		presetID, ok := output.Preset.ProviderMapping[Name]
@@ -139,34 +184,7 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		mcOutputGroups = append(mcOutputGroups, mcOutputGroup)
 	}
 
-	createJobInput := mediaconvert.CreateJobInput{
-		Queue: aws.String(p.cfg.Queue),
-		Role:  aws.String(p.cfg.Role),
-		Settings: &mediaconvert.JobSettings{
-			Inputs: []mediaconvert.Input{
-				{
-					FileInput: aws.String(job.SourceMedia),
-					AudioSelectors: map[string]mediaconvert.AudioSelector{
-						"Audio Selector 1": {DefaultSelection: mediaconvert.AudioDefaultSelectionDefault},
-					},
-					VideoSelector: &mediaconvert.VideoSelector{
-						ColorSpace: mediaconvert.ColorSpaceFollow,
-					},
-				},
-			},
-			OutputGroups: mcOutputGroups,
-		},
-	}
-
-	resp, err := p.client.CreateJobRequest(&createJobInput).Send(context.Background())
-	if err != nil {
-		return nil, err
-	}
-	return &provider.JobStatus{
-		ProviderName:  Name,
-		ProviderJobID: aws.StringValue(resp.Job.Id),
-		Status:        provider.StatusQueued,
-	}, nil
+	return mcOutputGroups, nil
 }
 
 func destinationPathFrom(destBase string, jobID string) string {

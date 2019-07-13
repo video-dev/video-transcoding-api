@@ -1,7 +1,6 @@
 package mediaconvert
 
 import (
-	"net/http"
 	"reflect"
 	"testing"
 
@@ -278,7 +277,10 @@ func Test_mcProvider_GetPreset(t *testing.T) {
 	presetID := "some_preset"
 	client := &testMediaConvertClient{t: t}
 	p := &mcProvider{client: client}
-	_, _ = p.GetPreset(presetID)
+	_, err := p.GetPreset(presetID)
+	if err != nil {
+		t.Fatalf("expected GetPreset() not to return an error, got: %v", err)
+	}
 
 	if g, e := client.getPresetCalledWith, presetID; g != e {
 		t.Fatalf("got %q, expected %q", g, e)
@@ -289,7 +291,10 @@ func Test_mcProvider_DeletePreset(t *testing.T) {
 	presetID := "some_preset_id"
 	client := &testMediaConvertClient{t: t}
 	p := &mcProvider{client: client}
-	_ = p.DeletePreset(presetID)
+	err := p.DeletePreset(presetID)
+	if err != nil {
+		t.Fatalf("expected DeletePreset() not to return an error, got: %v", err)
+	}
 
 	if g, e := client.deletePresetCalledWith, presetID; g != e {
 		t.Fatalf("got %q, expected %q", g, e)
@@ -432,7 +437,10 @@ func Test_mcProvider_CancelJob(t *testing.T) {
 	jobID := "some_job_id"
 	client := &testMediaConvertClient{t: t}
 	p := &mcProvider{client: client}
-	_ = p.CancelJob(jobID)
+	err := p.CancelJob(jobID)
+	if err != nil {
+		t.Fatalf("expected CancelJob() not to return an error, got: %v", err)
+	}
 
 	if g, e := client.cancelJobCalledWith, jobID; g != e {
 		t.Fatalf("got %q, expected %q", g, e)
@@ -443,7 +451,10 @@ func Test_mcProvider_Healthcheck(t *testing.T) {
 	client := &testMediaConvertClient{t: t}
 	p := &mcProvider{client: client}
 
-	_ = p.Healthcheck()
+	err := p.Healthcheck()
+	if err != nil {
+		t.Fatalf("expected Healthcheck() not to return an error, got: %v", err)
+	}
 
 	if !client.listJobsCalled {
 		t.Fatal("expected Healthcheck() to call ListJobs")
@@ -549,95 +560,4 @@ func Test_mcProvider_JobStatus(t *testing.T) {
 			}
 		})
 	}
-}
-
-type testMediaConvertClient struct {
-	t *testing.T
-
-	createPresetCalledWith *mediaconvert.CreatePresetInput
-	getPresetCalledWith    string
-	deletePresetCalledWith string
-	createJobCalledWith    mediaconvert.CreateJobInput
-	cancelJobCalledWith    string
-	listJobsCalled         bool
-
-	jobReturnedByGetJob      mediaconvert.Job
-	jobIDReturnedByCreateJob string
-	getPresetContainerType   mediaconvert.ContainerType
-}
-
-func (c *testMediaConvertClient) CreatePresetRequest(input *mediaconvert.CreatePresetInput) mediaconvert.CreatePresetRequest {
-	c.createPresetCalledWith = input
-	return mediaconvert.CreatePresetRequest{
-		Request: &aws.Request{HTTPRequest: &http.Request{}, Data: &mediaconvert.CreatePresetOutput{
-			Preset: &mediaconvert.Preset{
-				Name: input.Name,
-				Settings: &mediaconvert.PresetSettings{
-					ContainerSettings: &mediaconvert.ContainerSettings{
-						Container: input.Settings.ContainerSettings.Container,
-					},
-				},
-			}},
-		},
-	}
-}
-
-func (c *testMediaConvertClient) GetJobRequest(*mediaconvert.GetJobInput) mediaconvert.GetJobRequest {
-	return mediaconvert.GetJobRequest{Request: &aws.Request{
-		HTTPRequest: &http.Request{},
-		Data: &mediaconvert.GetJobOutput{
-			Job: &c.jobReturnedByGetJob,
-		},
-	}}
-}
-
-func (c *testMediaConvertClient) ListJobsRequest(*mediaconvert.ListJobsInput) mediaconvert.ListJobsRequest {
-	c.listJobsCalled = true
-	return mediaconvert.ListJobsRequest{Request: &aws.Request{
-		HTTPRequest: &http.Request{},
-		Data:        &mediaconvert.ListJobsOutput{},
-	}}
-}
-
-func (c *testMediaConvertClient) CreateJobRequest(input *mediaconvert.CreateJobInput) mediaconvert.CreateJobRequest {
-	c.createJobCalledWith = *input
-	return mediaconvert.CreateJobRequest{
-		Request: &aws.Request{HTTPRequest: &http.Request{}, Data: &mediaconvert.CreateJobOutput{
-			Job: &mediaconvert.Job{
-				Id: aws.String(c.jobIDReturnedByCreateJob),
-			},
-		}},
-	}
-}
-
-func (c *testMediaConvertClient) CancelJobRequest(input *mediaconvert.CancelJobInput) mediaconvert.CancelJobRequest {
-	c.cancelJobCalledWith = *input.Id
-	return mediaconvert.CancelJobRequest{Request: &aws.Request{
-		HTTPRequest: &http.Request{},
-		Data:        &mediaconvert.CancelJobOutput{},
-	}}
-}
-
-func (c *testMediaConvertClient) GetPresetRequest(input *mediaconvert.GetPresetInput) mediaconvert.GetPresetRequest {
-	c.getPresetCalledWith = *input.Name
-	return mediaconvert.GetPresetRequest{
-		Request: &aws.Request{HTTPRequest: &http.Request{}, Data: &mediaconvert.GetPresetOutput{
-			Preset: &mediaconvert.Preset{
-				Name: input.Name,
-				Settings: &mediaconvert.PresetSettings{
-					ContainerSettings: &mediaconvert.ContainerSettings{
-						Container: c.getPresetContainerType,
-					},
-				},
-			}},
-		},
-	}
-}
-
-func (c *testMediaConvertClient) DeletePresetRequest(input *mediaconvert.DeletePresetInput) mediaconvert.DeletePresetRequest {
-	c.deletePresetCalledWith = *input.Name
-	return mediaconvert.DeletePresetRequest{Request: &aws.Request{
-		HTTPRequest: &http.Request{},
-		Data:        &mediaconvert.DeletePresetOutput{},
-	}}
 }
