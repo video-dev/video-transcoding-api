@@ -89,8 +89,7 @@ func Test_mediaconvertFactory(t *testing.T) {
 				defer resetFunc()
 			}
 
-			cfg := tt.cfg
-			provider, err := mediaconvertFactory(&cfg)
+			provider, err := mediaconvertFactory(&tt.cfg)
 			if err != nil {
 				if tt.wantErrMsg != err.Error() {
 					t.Errorf("mcProvider.CreatePreset() error = %v, wantErr %q", err, tt.wantErrMsg)
