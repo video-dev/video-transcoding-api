@@ -20,6 +20,7 @@ type Config struct {
 	Hybrik                 *Hybrik
 	Zencoder               *Zencoder
 	Bitmovin               *Bitmovin
+	MediaConvert           *MediaConvert
 	Log                    *logging.Config
 }
 
@@ -86,6 +87,18 @@ type Hybrik struct {
 	AuthSecret     string `envconfig:"HYBRIK_AUTH_SECRET"`
 	Destination    string `envconfig:"HYBRIK_DESTINATION"`
 	PresetPath     string `envconfig:"HYBRIK_PRESET_PATH" default:"transcoding-api-presets"`
+}
+
+// MediaConvert represents the set of configurations for the MediaConvert
+// provider.
+type MediaConvert struct {
+	AccessKeyID     string `envconfig:"MEDIACONVERT_AWS_ACCESS_KEY_ID"`
+	SecretAccessKey string `envconfig:"MEDIACONVERT_AWS_SECRET_ACCESS_KEY"`
+	Region          string `envconfig:"MEDIACONVERT_AWS_REGION"`
+	Endpoint        string `envconfig:"MEDIACONVERT_ENDPOINT"`
+	Queue           string `envconfig:"MEDIACONVERT_QUEUE_ARN"`
+	Role            string `envconfig:"MEDIACONVERT_ROLE_ARN"`
+	Destination     string `envconfig:"MEDIACONVERT_DESTINATION"`
 }
 
 // LoadConfig loads the configuration of the API using environment variables.

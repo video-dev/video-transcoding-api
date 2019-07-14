@@ -11,6 +11,7 @@ import (
 	_ "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
 	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
 	_ "github.com/NYTimes/video-transcoding-api/provider/hybrik"
+	_ "github.com/NYTimes/video-transcoding-api/provider/mediaconvert"
 	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
 	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/google/gops/agent"
