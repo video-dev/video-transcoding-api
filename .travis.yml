@@ -15,7 +15,6 @@ env:
     - GOPROXY=https://proxy.golang.org
 go:
   - 1.x
-  - tip
 install:
   - make testdeps
 script:
@@ -41,7 +40,5 @@ deploy:
       go: 1.x
 matrix:
   fast_finish: true
-  allow_failures:
-    - go: tip
 notifications:
   email: false
