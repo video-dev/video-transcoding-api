@@ -13,7 +13,7 @@ require (
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/google/go-cmp v0.3.0
 	github.com/google/gops v0.3.6
-	github.com/gorilla/handlers v1.4.1
+	github.com/gorilla/handlers v1.4.2
 	github.com/hybrik/hybrik-sdk-go v0.0.0-20170516091026-c2eee0e66af9
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pretty v0.1.0
