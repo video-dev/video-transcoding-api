@@ -5,7 +5,7 @@ require (
 	github.com/NYTimes/gizmo v1.2.9
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aws/aws-sdk-go v1.21.4
-	github.com/aws/aws-sdk-go-v2 v0.9.0
+	github.com/aws/aws-sdk-go-v2 v0.10.0
 	github.com/bitmovin/bitmovin-go v1.29.0
 	github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382
 	github.com/fsouza/ctxlogger v1.5.6
