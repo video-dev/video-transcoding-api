@@ -282,7 +282,7 @@ func Test_mcProvider_GetPreset(t *testing.T) {
 		t.Fatalf("expected GetPreset() not to return an error, got: %v", err)
 	}
 
-	if g, e := client.getPresetCalledWith, presetID; g != e {
+	if g, e := *client.getPresetCalledWith, presetID; g != e {
 		t.Fatalf("got %q, expected %q", g, e)
 	}
 }

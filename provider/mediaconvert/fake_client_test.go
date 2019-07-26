@@ -2,7 +2,9 @@ package mediaconvert
 
 import (
 	"net/http"
+	"sync/atomic"
 	"testing"
+	"unsafe"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
@@ -14,7 +16,7 @@ type testMediaConvertClient struct {
 	t *testing.T
 
 	createPresetCalledWith *mediaconvert.CreatePresetInput
-	getPresetCalledWith    string
+	getPresetCalledWith    *string
 	deletePresetCalledWith string
 	createJobCalledWith    mediaconvert.CreateJobInput
 	cancelJobCalledWith    string
@@ -78,7 +80,10 @@ func (c *testMediaConvertClient) CancelJobRequest(input *mediaconvert.CancelJobI
 }
 
 func (c *testMediaConvertClient) GetPresetRequest(input *mediaconvert.GetPresetInput) mediaconvert.GetPresetRequest {
-	c.getPresetCalledWith = *input.Name
+	// atomically set the value of getPresetCalledWith to avoid data races,
+	// should probably take a different approach?
+	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&c.getPresetCalledWith)), unsafe.Pointer(input.Name))
+
 	return mediaconvert.GetPresetRequest{
 		Request: &aws.Request{HTTPRequest: &http.Request{}, Data: &mediaconvert.GetPresetOutput{
 			Preset: &mediaconvert.Preset{
