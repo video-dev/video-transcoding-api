@@ -5,7 +5,7 @@
 [![Build Status](https://cloud.drone.io/api/badges/video-dev/video-transcoding-api/status.svg)](https://cloud.drone.io/video-dev/video-transcoding-api)
 [![codecov](https://codecov.io/gh/video-dev/video-transcoding-api/branch/master/graph/badge.svg)](https://codecov.io/gh/video-dev/video-transcoding-api)
 [![Go Report Card](https://goreportcard.com/badge/github.com/video-dev/video-transcoding-api)](https://goreportcard.com/report/github.com/video-dev/video-transcoding-api)
-[![Docker Pulls](https://img.shields.io/docker/pulls/videodev/video-transcoding-api?style=for-the-badge)](https://hub.docker.com/r/videodev/video-transcoding-api)
+[![Docker Pulls](https://img.shields.io/docker/pulls/videodev/video-transcoding-api?color=green)](https://hub.docker.com/r/videodev/video-transcoding-api)
 
 The Video Transcoding API provides an agnostic API to transcode media assets
 across different cloud services. Currently, it supports the following
