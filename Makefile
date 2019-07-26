@@ -1,8 +1,7 @@
-.PHONY: all testdeps lint test gotest build run
+.PHONY: all testdeps lint runlint test gotest coverage gocoverage build run
 
 HTTP_PORT ?= 8080
 LOG_LEVEL ?= debug
-CI_TAG ?= $(shell git describe --tags $(shell git rev-list --tags --max-count=1))
 
 all: test
 
@@ -10,7 +9,9 @@ testdeps:
 	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
 	go mod download
 
-lint: testdeps
+lint: testdeps runlint
+
+runlint:
 	golangci-lint run \
 		--enable-all \
 		-D errcheck \
@@ -24,16 +25,18 @@ lint: testdeps
 		-D unparam \
 		--deadline 5m ./...
 
-gotest: testdeps
-	go test ./...
+gotest:
+	go test -vet=all -mod=readonly $(GO_TEST_EXTRA_FLAGS) ./...
 
-test: lint gotest
+test: lint testdeps gotest
 
-coverage: lint
-	go test -coverprofile=coverage.txt -covermode=atomic ./...
+coverage: lint gocoverage
+
+gocoverage:
+	make gotest GO_TEST_EXTRA_FLAGS="-coverprofile=coverage.txt -covermode=atomic"
 
 build:
-	go build
+	go build -mod=readonly
 
 run: build
 	HTTP_PORT=$(HTTP_PORT) APP_LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
