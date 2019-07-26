@@ -5,7 +5,6 @@ ARG GOPROXY=https://proxy.golang.org
 ENV  CGO_ENABLED 0
 WORKDIR /code
 ADD  . ./
-RUN  go test ./...
 RUN  go install
 
 FROM alpine:3.10.1
