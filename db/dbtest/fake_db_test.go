@@ -440,7 +440,7 @@ func TestCreateLocalPresetEmptyName(t *testing.T) {
 	if err == nil {
 		t.Fatal("got unexpected <nil> error")
 	}
-	expectedMsg := "invalid local preset name"
+	const expectedMsg = "preset name missing"
 	if err.Error() != expectedMsg {
 		t.Errorf("CreateLocalPreset: wrong error message. Want %q. Got %q", expectedMsg, err.Error())
 	}
