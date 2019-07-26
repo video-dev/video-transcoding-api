@@ -32,8 +32,6 @@ github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMx
 github.com/StackExchange/wmi v0.0.0-20170410192909-ea383cf3ba6e/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/anmitsu/go-shlex v0.0.0-20161002113705-648efa622239/go.mod h1:2FmKhYUyUczH0OGQWaF5ceTx0UBShxjsH6f8oGKYe2c=
 github.com/aws/aws-sdk-go v1.15.31/go.mod h1:mFuSZ37Z9YOHbQEwBWztmVzqXrEkub65tZoCYDt7FT0=
-github.com/aws/aws-sdk-go v1.21.5 h1:Z3u6BJ0XYn5uY3Acwy7FMF3XfDEm0FZyWk9vYojqZns=
-github.com/aws/aws-sdk-go v1.21.5/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go v1.21.6 h1:3GuIm55Uls52aQIDGBnSEZbk073jpasfQyeM5eZU61Q=
 github.com/aws/aws-sdk-go v1.21.6/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
 github.com/aws/aws-sdk-go-v2 v0.10.0 h1:qxZ7TyWFEIucMPQR2qymRx7JZ+hWF0N8HyCWh0XKh6Q=
