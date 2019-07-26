@@ -8,7 +8,6 @@ import (
 	"github.com/google/gops/agent"
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	_ "github.com/video-dev/video-transcoding-api/v2/provider/bitmovin"
-	_ "github.com/video-dev/video-transcoding-api/v2/provider/elastictranscoder"
 	_ "github.com/video-dev/video-transcoding-api/v2/provider/elementalconductor"
 	_ "github.com/video-dev/video-transcoding-api/v2/provider/encodingcom"
 	_ "github.com/video-dev/video-transcoding-api/v2/provider/hybrik"

@@ -15,7 +15,6 @@ type Config struct {
 	DefaultSegmentDuration uint   `envconfig:"DEFAULT_SEGMENT_DURATION" default:"5"`
 	Redis                  *storage.Config
 	EncodingCom            *EncodingCom
-	ElasticTranscoder      *ElasticTranscoder
 	ElementalConductor     *ElementalConductor
 	Hybrik                 *Hybrik
 	Zencoder               *Zencoder
@@ -39,15 +38,6 @@ type EncodingCom struct {
 type Zencoder struct {
 	APIKey      string `envconfig:"ZENCODER_API_KEY"`
 	Destination string `envconfig:"ZENCODER_DESTINATION"`
-}
-
-// ElasticTranscoder represents the set of configurations for the Elastic
-// Transcoder provider.
-type ElasticTranscoder struct {
-	AccessKeyID     string `envconfig:"AWS_ACCESS_KEY_ID"`
-	SecretAccessKey string `envconfig:"AWS_SECRET_ACCESS_KEY"`
-	Region          string `envconfig:"AWS_REGION"`
-	PipelineID      string `envconfig:"ELASTICTRANSCODER_PIPELINE_ID"`
 }
 
 // ElementalConductor represents the set of configurations for the Elemental
