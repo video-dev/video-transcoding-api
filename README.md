@@ -2,9 +2,9 @@
 
 # Video Transcoding API
 
-[![Build Status](https://travis-ci.org/nytimes/video-transcoding-api.svg?branch=master)](https://travis-ci.org/nytimes/video-transcoding-api)
-[![codecov](https://codecov.io/gh/nytimes/video-transcoding-api/branch/master/graph/badge.svg)](https://codecov.io/gh/nytimes/video-transcoding-api)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nytimes/video-transcoding-api)](https://goreportcard.com/report/github.com/nytimes/video-transcoding-api)
+[![Build Status](https://cloud.drone.io/api/badges/video-dev/video-transcoding-api/status.svg)](https://cloud.drone.io/video-dev/video-transcoding-api)
+[![codecov](https://codecov.io/gh/video-dev/video-transcoding-api/branch/master/graph/badge.svg)](https://codecov.io/gh/video-dev/video-transcoding-api)
+[![Go Report Card](https://goreportcard.com/badge/github.com/video-dev/video-transcoding-api)](https://goreportcard.com/report/github.com/video-dev/video-transcoding-api)
 
 The Video Transcoding API provides an agnostic API to transcode media assets
 across different cloud services. Currently, it supports the following
@@ -126,7 +126,7 @@ With all environment variables set and redis up and running, clone this
 repository and run:
 
 ```
-$ git clone https://github.com/NYTimes/video-transcoding-api.git
+$ git clone https://github.com/video-dev/video-transcoding-api.git
 $ make run
 ```
 
@@ -139,7 +139,7 @@ $ make test
 ## Using the API
 
 Check out on our Wiki [how
-to](https://github.com/NYTimes/video-transcoding-api/wiki/Using-Video-Transcoding-API)
+to](https://github.com/video-dev/video-transcoding-api/wiki/Using-Video-Transcoding-API)
 use this API.
 
 ## Contributing
@@ -153,7 +153,7 @@ use this API.
 ## License
 
 - This code is under [Apache 2.0
-  license](https://github.com/NYTimes/video-transcoding-api/blob/master/LICENSE).
+  license](https://github.com/video-dev/video-transcoding-api/blob/master/LICENSE).
 - The video-transcoding-api logo is a variation on the Go gopher that was
   designed by Renee French and copyrighted under the [Creative Commons
   Attribution 3.0 license](https://creativecommons.org/licenses/by/3.0/).
