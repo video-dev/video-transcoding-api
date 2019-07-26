@@ -100,7 +100,7 @@ local build(go_version) = {
 local coverage_report = {
   name: 'codecov-report',
   image: 'golang',
-  commands: ['bash <(curl -s https://codecov.io/bash)'],
+  commands: ['curl -s https://codecov.io/bash | bash'],
   depends_on: ['coverage'],
 };
 

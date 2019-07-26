@@ -34,7 +34,7 @@ steps:
 - name: codecov-report
   image: golang
   commands:
-  - bash <(curl -s https://codecov.io/bash)
+  - "curl -s https://codecov.io/bash | bash"
   depends_on:
   - coverage
 
@@ -149,7 +149,7 @@ steps:
 - name: codecov-report
   image: golang
   commands:
-  - bash <(curl -s https://codecov.io/bash)
+  - "curl -s https://codecov.io/bash | bash"
   depends_on:
   - coverage
 
@@ -218,7 +218,7 @@ steps:
 - name: codecov-report
   image: golang
   commands:
-  - bash <(curl -s https://codecov.io/bash)
+  - "curl -s https://codecov.io/bash | bash"
   depends_on:
   - coverage
 
