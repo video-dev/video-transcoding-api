@@ -25,6 +25,8 @@ steps:
   commands:
   - apt update
   - apt install -y redis-server
+  - "redis-server &>/dev/null &"
+  - "timeout 10 sh -c \"while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done\""
   - make gocoverage
   depends_on:
   - mod-download
@@ -138,6 +140,8 @@ steps:
   commands:
   - apt update
   - apt install -y redis-server
+  - "redis-server &>/dev/null &"
+  - "timeout 10 sh -c \"while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done\""
   - make gocoverage
   depends_on:
   - mod-download
@@ -205,6 +209,8 @@ steps:
   commands:
   - apt update
   - apt install -y redis-server
+  - "redis-server &>/dev/null &"
+  - "timeout 10 sh -c \"while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done\""
   - make gocoverage
   depends_on:
   - mod-download

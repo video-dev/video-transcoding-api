@@ -65,12 +65,17 @@ local mod_download(go_version) = {
   depends_on: ['clone'],
 };
 
+// TODO(fsouza): run redis as a service in Drone. This actually requires a
+// change to our test suite, because it requires Redis to be running on
+// localhost and that's not how Drone works.
 local coverage(go_version) = {
   name: 'coverage',
   image: 'golang:%(go_version)s' % { go_version: go_version },
   commands: [
     'apt update',
     'apt install -y redis-server',
+    'redis-server &>/dev/null &',
+    'timeout 10 sh -c "while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done"',
     'make gocoverage',
   ],
   depends_on: ['mod-download'],
