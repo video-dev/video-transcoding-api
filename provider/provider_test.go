@@ -5,7 +5,7 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/NYTimes/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/v2/config"
 )
 
 func noopFactory(*config.Config) (TranscodingProvider, error) {

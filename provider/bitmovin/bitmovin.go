@@ -1,4 +1,4 @@
-package bitmovin // import "github.com/NYTimes/video-transcoding-api/provider/bitmovin"
+package bitmovin
 
 import (
 	"errors"
@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/bitmovin/bitmovin-go/bitmovin"
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"
 	"github.com/bitmovin/bitmovin-go/services"
+	"github.com/video-dev/video-transcoding-api/v2/config"
+	"github.com/video-dev/video-transcoding-api/v2/db"
+	"github.com/video-dev/video-transcoding-api/v2/provider"
 )
 
 // Name is the name used for registering the bitmovin provider in the

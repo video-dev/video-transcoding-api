@@ -5,9 +5,9 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/go-redis/redis"
+	"github.com/video-dev/video-transcoding-api/v2/db"
+	"github.com/video-dev/video-transcoding-api/v2/db/redis/storage"
 )
 
 const jobsSetKey = "jobs"

@@ -1,4 +1,4 @@
-package swagger // import "github.com/NYTimes/video-transcoding-api/swagger"
+package swagger
 
 import (
 	"net/http"

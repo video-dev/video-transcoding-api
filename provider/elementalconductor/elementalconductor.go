@@ -5,15 +5,15 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/NYTimes/video-transcoding-api/provider"
-//         "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
+//         "github.com/video-dev/video-transcoding-api/v2/provider"
+//         "github.com/video-dev/video-transcoding-api/v2/provider/elementalconductor"
 //     )
 //
 //     func UseProvider() {
 //         factory, err := provider.GetProviderFactory(elementalconductor.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package elementalconductor // import "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
+package elementalconductor
 
 import (
 	"encoding/xml"
@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/video-dev/go-elementalconductor"
+	"github.com/video-dev/video-transcoding-api/v2/config"
+	"github.com/video-dev/video-transcoding-api/v2/db"
+	"github.com/video-dev/video-transcoding-api/v2/provider"
 )
 
 // Name is the name used for registering the Elemental Conductor provider in the

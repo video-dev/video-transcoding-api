@@ -3,9 +3,9 @@ package elementalconductor
 import (
 	"strings"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/video-dev/go-elementalconductor"
+	"github.com/video-dev/video-transcoding-api/v2/config"
+	"github.com/video-dev/video-transcoding-api/v2/provider"
 )
 
 type fakeElementalConductorClient struct {

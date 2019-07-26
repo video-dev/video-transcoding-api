@@ -5,15 +5,15 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/NYTimes/video-transcoding-api/provider"
-//         "github.com/NYTimes/video-transcoding-api/provider/zencoder"
+//         "github.com/video-dev/video-transcoding-api/v2/provider"
+//         "github.com/video-dev/video-transcoding-api/v2/provider/zencoder"
 //     )
 //
 //     func UseProvider() {
 //         factory, err := provider.GetProviderFactory(Zencoder.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package zencoder // import "github.com/NYTimes/video-transcoding-api/provider/zencoder"
+package zencoder
 
 import (
 	"fmt"
@@ -25,10 +25,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis"
-	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/video-dev/video-transcoding-api/v2/config"
+	"github.com/video-dev/video-transcoding-api/v2/db"
+	"github.com/video-dev/video-transcoding-api/v2/db/redis"
+	"github.com/video-dev/video-transcoding-api/v2/provider"
 	"github.com/video-dev/zencoder"
 )
 

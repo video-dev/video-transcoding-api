@@ -1,4 +1,4 @@
-module github.com/NYTimes/video-transcoding-api
+module github.com/video-dev/video-transcoding-api/v2
 
 require (
 	github.com/NYTimes/gizmo v1.2.14
