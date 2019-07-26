@@ -8,11 +8,9 @@ import (
 
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/NYTimes/video-transcoding-api/db/dbtest"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/flavioribeiro/zencoder"
-	redisDriver "github.com/go-redis/redis"
 	"github.com/kr/pretty"
 )
 
@@ -24,11 +22,7 @@ func TestFactoryIsRegistered(t *testing.T) {
 }
 
 func TestZencoderFactory(t *testing.T) {
-	cfg := config.Config{
-		Zencoder: &config.Zencoder{
-			APIKey: "api-key-here",
-		},
-	}
+	cfg := config.Config{Zencoder: &config.Zencoder{APIKey: "api-key-here"}}
 	prov, err := zencoderFactory(&cfg)
 	if err != nil {
 		t.Fatal(err)
@@ -80,11 +74,6 @@ func TestZencoderCapabilities(t *testing.T) {
 }
 
 func TestZencoderCreatePreset(t *testing.T) {
-	cleanLocalPresets()
-	cfg := config.Config{
-		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
-	}
 	preset := db.Preset{
 		Audio: db.AudioPreset{
 			Bitrate: "128000",
@@ -104,16 +93,7 @@ func TestZencoderCreatePreset(t *testing.T) {
 			Height:       "1080",
 		},
 	}
-	provider, err := zencoderFactory(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	repo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	provider, repo := testProvider(t)
 	presetName, err := provider.CreatePreset(preset)
 	if err != nil {
 		t.Fatal(err)
@@ -132,29 +112,16 @@ func TestZencoderCreatePreset(t *testing.T) {
 }
 
 func TestCreatePresetError(t *testing.T) {
-	cleanLocalPresets()
-	cfg := config.Config{
-		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
-	}
 	preset := db.Preset{}
-	provider, err := zencoderFactory(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	provider, _ := testProvider(t)
 
-	_, err = provider.CreatePreset(preset)
+	_, err := provider.CreatePreset(preset)
 	if expectedMsg := "preset name missing"; err.Error() != expectedMsg {
 		t.Errorf("got wrong error message\nwant %q\ngot  %q", expectedMsg, err.Error())
 	}
 }
 
 func TestGetPreset(t *testing.T) {
-	cleanLocalPresets()
-	cfg := config.Config{
-		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
-	}
 	preset := db.Preset{
 		Name: "get_preset",
 		Video: db.VideoPreset{
@@ -169,11 +136,7 @@ func TestGetPreset(t *testing.T) {
 			Codec:   "aac",
 		},
 	}
-	provider, err := zencoderFactory(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	provider, _ := testProvider(t)
 	presetName, err := provider.CreatePreset(preset)
 	if err != nil {
 		t.Fatal(err)
@@ -192,11 +155,6 @@ func TestGetPreset(t *testing.T) {
 }
 
 func TestZencoderDeletePreset(t *testing.T) {
-	cleanLocalPresets()
-	cfg := config.Config{
-		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
-	}
 	preset := db.Preset{
 		Name: "get_preset",
 		Video: db.VideoPreset{
@@ -211,10 +169,7 @@ func TestZencoderDeletePreset(t *testing.T) {
 			Codec:   "aac",
 		},
 	}
-	prov, err := zencoderFactory(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	prov, _ := testProvider(t)
 	presetName, err := prov.CreatePreset(preset)
 	if err != nil {
 		t.Fatal(err)
@@ -230,16 +185,11 @@ func TestZencoderDeletePreset(t *testing.T) {
 }
 
 func TestZencoderTranscode(t *testing.T) {
-	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
@@ -265,7 +215,7 @@ func TestZencoderTranscode(t *testing.T) {
 			Width:        "720",
 		},
 	}
-	_, err = prov.CreatePreset(preset)
+	_, err := prov.CreatePreset(preset)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -297,16 +247,11 @@ func TestZencoderTranscode(t *testing.T) {
 }
 
 func TestZencoderBuildOutputs(t *testing.T) {
-	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here", Destination: "https://log:pass@s3.here.com"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
@@ -584,7 +529,6 @@ func TestZencoderBuildOutputs(t *testing.T) {
 	for _, test := range tests {
 		test := test
 		t.Run(test.Description, func(t *testing.T) {
-			cleanLocalPresets()
 			for _, preset := range test.Presets {
 				_, err := prov.CreatePreset(preset)
 				if err != nil {
@@ -808,20 +752,16 @@ func TestZencoderBuildOutput(t *testing.T) {
 func TestZencoderHealthcheck(t *testing.T) {
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
 
-	err = prov.Healthcheck()
+	err := prov.Healthcheck()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -830,20 +770,16 @@ func TestZencoderHealthcheck(t *testing.T) {
 func TestZencoderCancelJob(t *testing.T) {
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
 
-	err = prov.CancelJob("123")
+	err := prov.CancelJob("123")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -852,13 +788,9 @@ func TestZencoderCancelJob(t *testing.T) {
 func TestZencoderJobStatus(t *testing.T) {
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
@@ -1022,13 +954,9 @@ func TestZencoderJobStatus(t *testing.T) {
 func TestZencoderStatusMap(t *testing.T) {
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
@@ -1053,16 +981,11 @@ func TestZencoderStatusMap(t *testing.T) {
 	}
 }
 func TestZencoderGetResolution(t *testing.T) {
-	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
@@ -1092,16 +1015,11 @@ func TestZencoderGetResolution(t *testing.T) {
 }
 
 func TestGetJobOutputs(t *testing.T) {
-	cleanLocalPresets()
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here", Destination: "s3://login:pass@aws.com"},
-		Redis:    new(storage.Config),
 	}
 	fakeZencoder := &FakeZencoder{}
-	dbRepo, err := redis.NewRepository(&cfg)
-	if err != nil {
-		t.Fatal(err)
-	}
+	dbRepo := dbtest.NewFakeRepository(false)
 	prov := &zencoderProvider{
 		config: &cfg,
 		client: fakeZencoder,
@@ -1135,25 +1053,17 @@ func TestGetJobOutputs(t *testing.T) {
 	}
 }
 
-func cleanLocalPresets() error {
-	client := redisDriver.NewClient(&redisDriver.Options{Addr: "127.0.0.1:6379"})
-	defer client.Close()
-	err := deleteKeys("localpreset:*", client)
+func testProvider(t *testing.T) (*zencoderProvider, db.Repository) {
+	t.Helper()
+	cfg := config.Config{Zencoder: &config.Zencoder{APIKey: "api-key-here"}}
+	p, err := zencoderFactory(&cfg)
 	if err != nil {
-		return err
+		t.Fatal(err)
 	}
 
-	err = deleteKeys("localpresets", client)
-	return err
-}
+	repo := dbtest.NewFakeRepository(false)
+	provider := p.(*zencoderProvider)
+	provider.db = repo
 
-func deleteKeys(pattern string, client *redisDriver.Client) error {
-	keys, err := client.Keys(pattern).Result()
-	if err != nil {
-		return err
-	}
-	if len(keys) > 0 {
-		_, err = client.Del(keys...).Result()
-	}
-	return err
+	return provider, repo
 }

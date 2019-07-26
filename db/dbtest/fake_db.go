@@ -157,7 +157,7 @@ func (d *fakeRepository) CreateLocalPreset(preset *db.LocalPreset) error {
 		return errors.New("database error")
 	}
 	if preset.Name == "" {
-		return errors.New("invalid local preset name")
+		return errors.New("preset name missing")
 	}
 	if _, ok := d.localpresets[preset.Name]; ok {
 		return db.ErrLocalPresetAlreadyExists
