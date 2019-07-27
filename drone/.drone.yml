@@ -34,7 +34,10 @@ steps:
 - name: codecov-report
   image: golang
   commands:
-  - "curl -s https://codecov.io/bash | bash"
+  - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
+  environment:
+    CODECOV_TOKEN:
+      from_secret: codecov_token
   depends_on:
   - coverage
 
@@ -153,7 +156,10 @@ steps:
 - name: codecov-report
   image: golang
   commands:
-  - "curl -s https://codecov.io/bash | bash"
+  - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
+  environment:
+    CODECOV_TOKEN:
+      from_secret: codecov_token
   depends_on:
   - coverage
 
@@ -226,7 +232,10 @@ steps:
 - name: codecov-report
   image: golang
   commands:
-  - "curl -s https://codecov.io/bash | bash"
+  - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
+  environment:
+    CODECOV_TOKEN:
+      from_secret: codecov_token
   depends_on:
   - coverage
 
