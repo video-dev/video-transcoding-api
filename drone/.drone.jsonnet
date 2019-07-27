@@ -95,6 +95,9 @@ local build(go_version) = {
   commands: ['make build'],
   environment: { CGO_ENABLED: '0' },
   depends_on: ['mod-download'],
+  when: {
+    event: ['pull_request', 'push'],
+  },
 };
 
 local coverage_report = {
