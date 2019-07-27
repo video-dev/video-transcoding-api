@@ -36,7 +36,7 @@ gocoverage:
 	make gotest GO_TEST_EXTRA_FLAGS="-coverprofile=coverage.txt -covermode=atomic"
 
 build:
-	go build -mod=readonly
+	go build -mod=readonly -o video-transcoding-api
 
 run: build
 	HTTP_PORT=$(HTTP_PORT) APP_LOG_LEVEL=$(LOG_LEVEL) ./video-transcoding-api
