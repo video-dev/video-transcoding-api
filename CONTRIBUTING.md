@@ -1,7 +1,8 @@
 # Contributing to video-transcoding-api
 
-video-transcoding-api is an open source project started by a handful of
-developers at The New York Times and open to the entire open source community.
+video-transcoding-api is an open source project originally started by a handful
+of developers at The New York Times and open to the entire open source video
+community.
 
 We really appreciate your help!
 
