@@ -10,8 +10,8 @@ import (
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/db/dbtest"
 	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/flavioribeiro/zencoder"
 	"github.com/kr/pretty"
+	"github.com/video-dev/zencoder"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {

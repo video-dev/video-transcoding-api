@@ -55,8 +55,6 @@ github.com/eapache/go-xerial-snappy v0.0.0-20180814174437-776d5712da21/go.mod h1
 github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFPTqq+I=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 h1:JWuenKqqX8nojtoVVWjGfOF9635RETekkoH6Cc9SX0A=
 github.com/facebookgo/stack v0.0.0-20160209184415-751773369052/go.mod h1:UbMTZqLaRiH3MsBH8va0n7s1pQYcu3uTb8G4tygF4Zg=
-github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382 h1:+5whYpO1i1NM7MhHqWqghzPQlv/lbSbONP6GL6AWUCQ=
-github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382/go.mod h1:Fy7DEjkmg9hNcGy7T5x/Rcp05A/BJNITD8BMHPUy39Y=
 github.com/fluent/fluent-logger-golang v1.4.0 h1:uT1Lzz5yFV16YvDwWbjX6s3AYngnJz8byTCsMTIS0tU=
 github.com/fluent/fluent-logger-golang v1.4.0/go.mod h1:2/HCT/jTy78yGyeNGQLGQsjF3zzzAuy6Xlk6FCMV5eU=
 github.com/flynn/go-shlex v0.0.0-20150515145356-3f9db97f8568/go.mod h1:xEzjJPgXI435gkrCt3MPfRiAkVrwSbHsst4LCFVfpJc=
@@ -241,6 +239,8 @@ github.com/video-dev/go-elementalconductor v1.0.0 h1:vnWf1sAXgdTKhsHhAWOwKMBCPA+
 github.com/video-dev/go-elementalconductor v1.0.0/go.mod h1:DwQxx5JUDRY0+/6OcAROOaOEUW6/FnOCDBkTVnWuJTM=
 github.com/video-dev/go-encodingcom v1.0.0 h1:OiVfdy9qUrKGfOID5TYwoBzvObNx9EQNI041ZA0kZ38=
 github.com/video-dev/go-encodingcom v1.0.0/go.mod h1:7O86jGr922w65EzPw83u2w36Mm+S90zdy4stfYFxelg=
+github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382 h1:n83HJM7e1ECRGC6Q9Wb28Jmh/GwT973/r7x71QGyJrc=
+github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382/go.mod h1:g2dR9hNY37gibhlC+b7noeckKKQ4yyTFAKb6V28oRZA=
 github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6 h1:YdYsPAZ2pC6Tow/nPZOPQ96O3hm/ToAkGsPLzedXERk=
 github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6/go.mod h1:ce1O1j6UtZfjr22oyGxGLbauSBp2YVXpARAosm7dHBg=
 go.opencensus.io v0.15.0/go.mod h1:UffZAU+4sDEINUGP/B7UfBBkq4fqLu9zXAX7ke6CHW0=

@@ -6,7 +6,6 @@ require (
 	github.com/aws/aws-sdk-go v1.21.6
 	github.com/aws/aws-sdk-go-v2 v0.10.0
 	github.com/bitmovin/bitmovin-go v1.29.0
-	github.com/flavioribeiro/zencoder v0.0.0-20161215190743-745874544382
 	github.com/fsouza/ctxlogger v1.5.6
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.0
 	github.com/go-redis/redis v6.15.2+incompatible
@@ -22,6 +21,7 @@ require (
 	github.com/sirupsen/logrus v1.4.2
 	github.com/video-dev/go-elementalconductor v1.0.0
 	github.com/video-dev/go-encodingcom v1.0.0
+	github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382
 )
 
 go 1.12

@@ -1,6 +1,6 @@
 package zencoder
 
-import "github.com/flavioribeiro/zencoder"
+import "github.com/video-dev/zencoder"
 
 type FakeZencoder struct {
 }
