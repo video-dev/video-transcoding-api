@@ -24,10 +24,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/video-dev/go-encodingcom"
 )
 
 // Name is the name used for registering the Encoding.com provider in the

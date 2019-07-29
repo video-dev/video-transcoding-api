@@ -121,7 +121,7 @@ func TestDescribeProvider(t *testing.T) {
 		"factory-err":       getFactory(errors.New("invalid config"), nil, cap),
 		"cap-and-healthy":   getFactory(nil, nil, cap),
 	}
-	var tests = []struct {
+	tests := []struct {
 		input    string
 		expected Description
 	}{

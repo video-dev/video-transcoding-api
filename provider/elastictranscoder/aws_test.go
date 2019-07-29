@@ -94,7 +94,7 @@ func TestElasticTranscoderProviderDefaultRegion(t *testing.T) {
 }
 
 func TestElasticTranscoderProviderValidation(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		accessKeyID     string
 		secretAccessKey string
 		pipelineID      string
@@ -837,7 +837,7 @@ func TestCreateVideoPreset(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	var tests = []struct {
+	tests := []struct {
 		givenTestCase       string
 		givenPreset         db.Preset
 		expectedVideoParams *elastictranscoder.VideoParameters
@@ -966,7 +966,7 @@ func TestCreateAudioPreset(t *testing.T) {
 			PipelineID:      "mypipeline",
 		},
 	}
-	var tests = []struct {
+	tests := []struct {
 		givenTestCase       string
 		givenPreset         db.Preset
 		expectedAudioParams *elastictranscoder.AudioParameters
@@ -1056,7 +1056,7 @@ func TestAWSJobStatusInternalError(t *testing.T) {
 }
 
 func TestAWSStatusMap(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		input  string
 		output provider.Status
 	}{

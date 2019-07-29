@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/video-dev/go-elementalconductor"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {
@@ -51,7 +51,7 @@ func TestElementalConductorFactory(t *testing.T) {
 }
 
 func TestElementalConductorFactoryValidation(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		host        string
 		userLogin   string
 		apiKey      string
@@ -647,7 +647,7 @@ func TestElementalNewJobPresetNotFound(t *testing.T) {
 }
 
 func TestJobStatusOutputDestination(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		job            db.Job
 		destinationCfg string
 		expected       string
@@ -695,7 +695,7 @@ func TestJobStatusOutputDestination(t *testing.T) {
 }
 
 func TestJobStatusMap(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		elementalConductorStatus string
 		expected                 provider.Status
 	}{
@@ -1102,7 +1102,7 @@ func TestHealthcheck(t *testing.T) {
 	prov := elementalConductorProvider{
 		client: elementalconductor.NewClient(server.URL, "", "", 0, "", "", ""),
 	}
-	var tests = []struct {
+	tests := []struct {
 		minNodes    int
 		nodes       []elementalconductor.Node
 		expectedMsg string

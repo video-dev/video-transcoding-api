@@ -1,7 +1,6 @@
 module github.com/NYTimes/video-transcoding-api
 
 require (
-	github.com/NYTimes/encoding-wrapper v0.2.0
 	github.com/NYTimes/gizmo v1.2.10
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aws/aws-sdk-go v1.21.6
@@ -21,6 +20,8 @@ require (
 	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
+	github.com/video-dev/go-elementalconductor v1.0.0
+	github.com/video-dev/go-encodingcom v1.0.0
 )
 
 go 1.12

@@ -30,15 +30,17 @@ type testMediaConvertClient struct {
 func (c *testMediaConvertClient) CreatePresetRequest(input *mediaconvert.CreatePresetInput) mediaconvert.CreatePresetRequest {
 	c.createPresetCalledWith = input
 	return mediaconvert.CreatePresetRequest{
-		Request: &aws.Request{HTTPRequest: &http.Request{}, Data: &mediaconvert.CreatePresetOutput{
-			Preset: &mediaconvert.Preset{
-				Name: input.Name,
-				Settings: &mediaconvert.PresetSettings{
-					ContainerSettings: &mediaconvert.ContainerSettings{
-						Container: input.Settings.ContainerSettings.Container,
+		Request: &aws.Request{
+			HTTPRequest: &http.Request{}, Data: &mediaconvert.CreatePresetOutput{
+				Preset: &mediaconvert.Preset{
+					Name: input.Name,
+					Settings: &mediaconvert.PresetSettings{
+						ContainerSettings: &mediaconvert.ContainerSettings{
+							Container: input.Settings.ContainerSettings.Container,
+						},
 					},
 				},
-			}},
+			},
 		},
 	}
 }
@@ -85,15 +87,17 @@ func (c *testMediaConvertClient) GetPresetRequest(input *mediaconvert.GetPresetI
 	atomic.StorePointer((*unsafe.Pointer)(unsafe.Pointer(&c.getPresetCalledWith)), unsafe.Pointer(input.Name))
 
 	return mediaconvert.GetPresetRequest{
-		Request: &aws.Request{HTTPRequest: &http.Request{}, Data: &mediaconvert.GetPresetOutput{
-			Preset: &mediaconvert.Preset{
-				Name: input.Name,
-				Settings: &mediaconvert.PresetSettings{
-					ContainerSettings: &mediaconvert.ContainerSettings{
-						Container: c.getPresetContainerType,
+		Request: &aws.Request{
+			HTTPRequest: &http.Request{}, Data: &mediaconvert.GetPresetOutput{
+				Preset: &mediaconvert.Preset{
+					Name: input.Name,
+					Settings: &mediaconvert.PresetSettings{
+						ContainerSettings: &mediaconvert.ContainerSettings{
+							Container: c.getPresetContainerType,
+						},
 					},
 				},
-			}},
+			},
 		},
 	}
 }

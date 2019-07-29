@@ -1,6 +1,6 @@
 package elementalconductor
 
-import "github.com/NYTimes/encoding-wrapper/elementalconductor"
+import "github.com/video-dev/go-elementalconductor"
 
 type clientInterface interface {
 	GetPreset(presetID string) (*elementalconductor.Preset, error)

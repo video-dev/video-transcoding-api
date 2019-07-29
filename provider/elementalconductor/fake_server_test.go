@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/NYTimes/encoding-wrapper/elementalconductor"
+	"github.com/video-dev/go-elementalconductor"
 )
 
 type nodeList struct {

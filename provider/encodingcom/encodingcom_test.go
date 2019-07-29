@@ -6,11 +6,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/encoding-wrapper/encodingcom"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/kr/pretty"
+	"github.com/video-dev/go-encodingcom"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {
@@ -49,7 +49,7 @@ func TestEncodingComFactory(t *testing.T) {
 }
 
 func TestEncodingComFactoryValidation(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		userID  string
 		userKey string
 	}{
@@ -276,7 +276,6 @@ func TestEncodingComTranscode(t *testing.T) {
 	if !reflect.DeepEqual([]string{source}, media.Request.Source) {
 		t.Errorf("Wrong source. Want %v. Got %v.", []string{source}, media.Request.Source)
 	}
-
 }
 
 func TestEncodingComS3Input(t *testing.T) {
@@ -859,7 +858,7 @@ func TestJobStatusInvalidSourceInfo(t *testing.T) {
 		Finished: now.Add(time.Hour),
 	}
 	server.medias["media3"] = &media3
-	var tests = []struct {
+	tests := []struct {
 		testCase string
 		mediaID  string
 		errMsg   string
@@ -925,7 +924,7 @@ func TestJobStatusMediaNotFound(t *testing.T) {
 }
 
 func TestJobStatusMap(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		encodingComStatus string
 		expected          provider.Status
 	}{
@@ -1110,7 +1109,7 @@ func TestCreatePresetTwoPass(t *testing.T) {
 
 func TestPresetToFormat(t *testing.T) {
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
-	var tests = []struct {
+	tests := []struct {
 		givenTestCase  string
 		givenPreset    db.Preset
 		expectedFormat encodingcom.Format
@@ -1379,7 +1378,7 @@ func TestHealthcheck(t *testing.T) {
 			EncodingCom: &config.EncodingCom{StatusEndpoint: server.URL},
 		},
 	}
-	var tests = []struct {
+	tests := []struct {
 		apiStatus   encodingcom.APIStatusResponse
 		expectedMsg string
 	}{

@@ -258,7 +258,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		db:     dbRepo,
 	}
 
-	var tests = []struct {
+	tests := []struct {
 		Description string
 		Job         *db.Job
 		Presets     []db.Preset
@@ -266,7 +266,8 @@ func TestZencoderBuildOutputs(t *testing.T) {
 	}{
 		{
 			"Test with a single mp4 preset",
-			&db.Job{ID: "1234567890",
+			&db.Job{
+				ID:          "1234567890",
 				SourceMedia: "http://nyt-bucket/source_here.mov",
 				Outputs: []db.TranscodeOutput{
 					{
@@ -429,7 +430,8 @@ func TestZencoderBuildOutputs(t *testing.T) {
 		},
 		{
 			"Test with a mix of HLS and MP4 outputs",
-			&db.Job{ID: "1234567890",
+			&db.Job{
+				ID:          "1234567890",
 				SourceMedia: "http://nyt-bucket/source_here.mov",
 				Outputs: []db.TranscodeOutput{
 					{
@@ -558,7 +560,7 @@ func TestZencoderBuildOutputs(t *testing.T) {
 
 func TestZencoderBuildOutput(t *testing.T) {
 	prov := &zencoderProvider{}
-	var tests = []struct {
+	tests := []struct {
 		Description    string
 		OutputFileName string
 		Destination    string
@@ -796,7 +798,7 @@ func TestZencoderJobStatus(t *testing.T) {
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
-	var tests = []struct {
+	tests := []struct {
 		ProviderJobID string
 		Expected      map[string]interface{}
 	}{
@@ -962,7 +964,7 @@ func TestZencoderStatusMap(t *testing.T) {
 		client: fakeZencoder,
 		db:     dbRepo,
 	}
-	var tests = []struct {
+	tests := []struct {
 		Input    zencoder.JobState
 		Expected provider.Status
 	}{
@@ -980,6 +982,7 @@ func TestZencoderStatusMap(t *testing.T) {
 		}
 	}
 }
+
 func TestZencoderGetResolution(t *testing.T) {
 	cfg := config.Config{
 		Zencoder: &config.Zencoder{APIKey: "api-key-here"},
@@ -992,7 +995,7 @@ func TestZencoderGetResolution(t *testing.T) {
 		db:     dbRepo,
 	}
 
-	var tests = []struct {
+	tests := []struct {
 		preset db.Preset
 		width  int32
 		height int32

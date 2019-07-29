@@ -1840,7 +1840,6 @@ func TestCancelJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
 }
 
 func TestCancelJobFailsOnAPIError(t *testing.T) {

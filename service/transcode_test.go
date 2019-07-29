@@ -355,7 +355,7 @@ func TestGetTranscodeJob(t *testing.T) {
 }
 
 func TestCancelTranscodeJob(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		givenTestCase       string
 		givenJobID          string
 		givenTriggerDBError bool

@@ -82,7 +82,8 @@ var h264Levels = []bitmovintypes.H264Level{
 	bitmovintypes.H264Level4_2,
 	bitmovintypes.H264Level5,
 	bitmovintypes.H264Level5_1,
-	bitmovintypes.H264Level5_2}
+	bitmovintypes.H264Level5_2,
+}
 
 var errBitmovinInvalidConfig = provider.InvalidConfigError("Invalid configuration")
 
@@ -270,7 +271,7 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	h264Response, err := h264.Retrieve(presetID)
 	if err == nil {
 		if h264Response.Status == bitmovinAPIErrorMsg {
-			//if it were merely to not exist, then the err would not be nil
+			// if it were merely to not exist, then the err would not be nil
 			return errors.New("api error")
 		}
 		cdResp, cdErr := h264.RetrieveCustomData(presetID)
@@ -317,7 +318,7 @@ func (p *bitmovinProvider) DeletePreset(presetID string) error {
 	vp8Response, err := vp8.Retrieve(presetID)
 	if err == nil {
 		if vp8Response.Status == bitmovinAPIErrorMsg {
-			//if it were merely to not exist, then the err would not be nil
+			// if it were merely to not exist, then the err would not be nil
 			return errors.New("api error")
 		}
 		cdResp, err := vp8.RetrieveCustomData(presetID)
@@ -508,7 +509,7 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	outputtingHLS := false
 	manifestID := ""
 
-	//create the master manifest if needed so we can add it to the customData of the encoding response
+	// create the master manifest if needed so we can add it to the customData of the encoding response
 	for _, output := range job.Outputs {
 		if output.Preset.OutputOpts.Extension != "webm" {
 			videoPresetID := output.Preset.ProviderMapping[Name]
@@ -1351,7 +1352,6 @@ func getAACConfig(s *services.AACCodecConfigurationService, bitrate int, samplin
 		return "", errors.New("error in creating audio portion of preset")
 	}
 	return *audioResp.Data.Result.ID, nil
-
 }
 
 func getVorbisConfig(s *services.VorbisCodecConfigurationService, bitrate int, samplingRate float64) (string, error) {

@@ -37,7 +37,7 @@ func TestListProviders(t *testing.T) {
 }
 
 func TestGetProvider(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		testCase string
 		name     string
 

@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/NYTimes/encoding-wrapper/encodingcom"
+	"github.com/video-dev/go-encodingcom"
 )
 
 const encodingComDateFormat = "2006-01-02 15:04:05"

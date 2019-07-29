@@ -23,10 +23,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/NYTimes/encoding-wrapper/elementalconductor"
 	"github.com/NYTimes/video-transcoding-api/config"
 	"github.com/NYTimes/video-transcoding-api/db"
 	"github.com/NYTimes/video-transcoding-api/provider"
+	"github.com/video-dev/go-elementalconductor"
 )
 
 // Name is the name used for registering the Elemental Conductor provider in the

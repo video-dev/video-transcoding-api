@@ -6,7 +6,7 @@ import (
 )
 
 func TestOutputOptionsValidation(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		testCase string
 		opts     OutputOptions
 		errMsg   string

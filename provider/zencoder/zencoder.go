@@ -319,7 +319,7 @@ func (z *zencoderProvider) statusMap(zencoderState zencoder.JobState) provider.S
 }
 
 func (z *zencoderProvider) S3Url(input string) string {
-	var httpS3Regexp = regexp.MustCompile(`https?://([^/_.]+)\.s3\.amazonaws\.com/(.+)$`)
+	httpS3Regexp := regexp.MustCompile(`https?://([^/_.]+)\.s3\.amazonaws\.com/(.+)$`)
 	parts := httpS3Regexp.FindStringSubmatch(input)
 	return fmt.Sprintf("s3://%s/%s", parts[1], parts[2])
 }

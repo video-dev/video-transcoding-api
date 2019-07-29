@@ -192,7 +192,7 @@ func TestSaveMap(t *testing.T) {
 }
 
 func TestSaveErrors(t *testing.T) {
-	var tests = []struct {
+	tests := []struct {
 		input  interface{}
 		errMsg string
 	}{
@@ -238,7 +238,7 @@ func TestFieldMap(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	var tests = []struct {
+	tests := []struct {
 		description string
 		hash        interface{}
 		expected    map[string]interface{}
@@ -399,7 +399,7 @@ func TestLoadMap(t *testing.T) {
 func TestLoadErrors(t *testing.T) {
 	var n int
 	var invalidMap map[string]int
-	var tests = []struct {
+	tests := []struct {
 		key    string
 		output interface{}
 		errMsg string
