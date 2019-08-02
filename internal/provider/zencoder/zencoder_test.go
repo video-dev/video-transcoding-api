@@ -10,7 +10,7 @@ import (
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	"github.com/video-dev/video-transcoding-api/v2/db"
 	"github.com/video-dev/video-transcoding-api/v2/db/dbtest"
-	"github.com/video-dev/video-transcoding-api/v2/provider"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
 	"github.com/video-dev/zencoder"
 )
 

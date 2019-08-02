@@ -5,8 +5,8 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/video-dev/video-transcoding-api/v2/provider"
-//         "github.com/video-dev/video-transcoding-api/v2/provider/encodingcom"
+//         "github.com/video-dev/video-transcoding-api/v2/internal/provider"
+//         "github.com/video-dev/video-transcoding-api/v2/internal/provider/encodingcom"
 //     )
 //
 //     func UseProvider() {
@@ -27,7 +27,7 @@ import (
 	"github.com/video-dev/go-encodingcom"
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	"github.com/video-dev/video-transcoding-api/v2/db"
-	"github.com/video-dev/video-transcoding-api/v2/provider"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
 )
 
 // Name is the name used for registering the Encoding.com provider in the

@@ -17,7 +17,7 @@ import (
 	"github.com/bitmovin/bitmovin-go/services"
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	"github.com/video-dev/video-transcoding-api/v2/db"
-	"github.com/video-dev/video-transcoding-api/v2/provider"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
 )
 
 // Name is the name used for registering the bitmovin provider in the

@@ -5,8 +5,8 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/video-dev/video-transcoding-api/v2/provider"
-//         "github.com/video-dev/video-transcoding-api/v2/provider/zencoder"
+//         "github.com/video-dev/video-transcoding-api/v2/internal/provider"
+//         "github.com/video-dev/video-transcoding-api/v2/internal/provider/zencoder"
 //     )
 //
 //     func UseProvider() {
@@ -28,7 +28,7 @@ import (
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	"github.com/video-dev/video-transcoding-api/v2/db"
 	"github.com/video-dev/video-transcoding-api/v2/db/redis"
-	"github.com/video-dev/video-transcoding-api/v2/provider"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
 	"github.com/video-dev/zencoder"
 )
 

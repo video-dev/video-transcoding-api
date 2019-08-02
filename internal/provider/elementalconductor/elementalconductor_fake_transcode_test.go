@@ -5,7 +5,7 @@ import (
 
 	"github.com/video-dev/go-elementalconductor"
 	"github.com/video-dev/video-transcoding-api/v2/config"
-	"github.com/video-dev/video-transcoding-api/v2/provider"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
 )
 
 type fakeElementalConductorClient struct {

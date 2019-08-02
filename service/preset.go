@@ -8,7 +8,7 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/video-dev/video-transcoding-api/v2/db"
-	"github.com/video-dev/video-transcoding-api/v2/provider"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
 	"github.com/video-dev/video-transcoding-api/v2/swagger"
 )
 
