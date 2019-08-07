@@ -1,7 +1,7 @@
 module github.com/NYTimes/video-transcoding-api
 
 require (
-	github.com/NYTimes/gizmo v1.2.12
+	github.com/NYTimes/gizmo v1.2.13
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aws/aws-sdk-go v1.22.0
 	github.com/aws/aws-sdk-go-v2 v0.10.0
@@ -15,8 +15,8 @@ require (
 	github.com/hybrik/hybrik-sdk-go v0.0.0-20170516091026-c2eee0e66af9
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/kr/pretty v0.1.0
-	github.com/onsi/ginkgo v1.7.0 // indirect
-	github.com/onsi/gomega v1.4.3 // indirect
+	github.com/onsi/ginkgo v1.8.0 // indirect
+	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/sirupsen/logrus v1.4.2
 	github.com/video-dev/go-elementalconductor v1.0.0
