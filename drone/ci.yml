@@ -1,4 +1,6 @@
 ---
+# DO NOT MODIFY - AUTO GENERATED
+
 kind: pipeline
 name: go-1.12.7
 
@@ -11,106 +13,106 @@ workspace:
   path: video-transcoding-api
 
 steps:
-  - name: mod-download
-    image: golang:1.12.7
-    commands:
-      - go mod download
-    environment:
-      GOPROXY: https://proxy.golang.org
-    depends_on:
-      - clone
+- name: mod-download
+  image: golang:1.12.7
+  commands:
+  - go mod download
+  environment:
+    GOPROXY: https://proxy.golang.org
+  depends_on:
+  - clone
 
-  - name: coverage
-    image: golang:1.12.7
-    commands:
-      - apt update
-      - apt install -y redis-server
-      - "redis-server &>/dev/null &"
-      - 'timeout 10 sh -c "while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done"'
-      - make gocoverage
-    depends_on:
-      - mod-download
+- name: coverage
+  image: golang:1.12.7
+  commands:
+  - apt update
+  - apt install -y redis-server
+  - "redis-server &>/dev/null &"
+  - "timeout 10 sh -c \"while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done\""
+  - make gocoverage
+  depends_on:
+  - mod-download
 
-  - name: lint
-    pull: always
-    image: golangci/golangci-lint
-    commands:
-      - make runlint
-    depends_on:
-      - mod-download
+- name: lint
+  pull: always
+  image: golangci/golangci-lint
+  commands:
+  - make runlint
+  depends_on:
+  - mod-download
 
-  - name: build
-    image: golang:1.12.7
-    commands:
-      - make build
-    environment:
-      CGO_ENABLED: 0
-    when:
-      event:
-        - pull_request
-        - push
-    depends_on:
-      - mod-download
+- name: build
+  image: golang:1.12.7
+  commands:
+  - make build
+  environment:
+    CGO_ENABLED: 0
+  when:
+    event:
+    - pull_request
+    - push
+  depends_on:
+  - mod-download
 
-  - name: test-ci-dockerfile
-    image: plugins/docker
-    settings:
-      dockerfile: drone/Dockerfile
-      dry_run: true
-      repo: videodev/video-transcoding-api
-    when:
-      event:
-        - pull_request
-    depends_on:
-      - build
+- name: test-ci-dockerfile
+  image: plugins/docker
+  settings:
+    dockerfile: drone/Dockerfile
+    dry_run: true
+    repo: videodev/video-transcoding-api
+  when:
+    event:
+    - pull_request
+  depends_on:
+  - build
 
-  - name: test-dockerfile
-    image: plugins/docker
-    settings:
-      build_args:
-        - GOPROXY=https://proxy.golang.org
-      dry_run: true
-      repo: videodev/video-transcoding-api
-    when:
-      event:
-        - push
-        - pull_request
-    depends_on:
-      - clone
+- name: test-dockerfile
+  image: plugins/docker
+  settings:
+    build_args:
+    - GOPROXY=https://proxy.golang.org
+    dry_run: true
+    repo: videodev/video-transcoding-api
+  when:
+    event:
+    - push
+    - pull_request
+  depends_on:
+  - clone
 
-  - name: build-and-push-to-dockerhub
-    image: plugins/docker
-    settings:
-      auto_tag: true
-      dockerfile: drone/Dockerfile
-      password:
-        from_secret: docker_password
-      repo: videodev/video-transcoding-api
-      username:
-        from_secret: docker_username
-    when:
-      ref:
-        - "refs/tags/*"
-        - refs/heads/master
-    depends_on:
-      - coverage
-      - lint
-      - build
+- name: build-and-push-to-dockerhub
+  image: plugins/docker
+  settings:
+    auto_tag: true
+    dockerfile: drone/Dockerfile
+    password:
+      from_secret: docker_password
+    repo: videodev/video-transcoding-api
+    username:
+      from_secret: docker_username
+  when:
+    ref:
+    - "refs/tags/*"
+    - refs/heads/master
+  depends_on:
+  - coverage
+  - lint
+  - build
 
-  - name: goreleaser
-    image: goreleaser/goreleaser
-    commands:
-      - git fetch --tags
-      - goreleaser release
-    environment:
-      GITHUB_TOKEN:
-        from_secret: github_token
-    when:
-      event:
-        - tag
-    depends_on:
-      - coverage
-      - lint
+- name: goreleaser
+  image: goreleaser/goreleaser
+  commands:
+  - git fetch --tags
+  - goreleaser release
+  environment:
+    GITHUB_TOKEN:
+      from_secret: github_token
+  when:
+    event:
+    - tag
+  depends_on:
+  - coverage
+  - lint
 
 ---
 kind: pipeline
@@ -125,58 +127,58 @@ workspace:
   path: video-transcoding-api
 
 steps:
-  - name: mod-download
-    image: golang:1.11.12
-    commands:
-      - go mod download
-    environment:
-      GOPROXY: https://proxy.golang.org
-    depends_on:
-      - clone
+- name: mod-download
+  image: golang:1.11.12
+  commands:
+  - go mod download
+  environment:
+    GOPROXY: https://proxy.golang.org
+  depends_on:
+  - clone
 
-  - name: coverage
-    image: golang:1.11.12
-    commands:
-      - apt update
-      - apt install -y redis-server
-      - "redis-server &>/dev/null &"
-      - 'timeout 10 sh -c "while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done"'
-      - make gocoverage
-    depends_on:
-      - mod-download
+- name: coverage
+  image: golang:1.11.12
+  commands:
+  - apt update
+  - apt install -y redis-server
+  - "redis-server &>/dev/null &"
+  - "timeout 10 sh -c \"while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done\""
+  - make gocoverage
+  depends_on:
+  - mod-download
 
-  - name: lint
-    pull: always
-    image: golangci/golangci-lint
-    commands:
-      - make runlint
-    depends_on:
-      - mod-download
+- name: lint
+  pull: always
+  image: golangci/golangci-lint
+  commands:
+  - make runlint
+  depends_on:
+  - mod-download
 
-  - name: build
-    image: golang:1.11.12
-    commands:
-      - make build
-    environment:
-      CGO_ENABLED: 0
-    when:
-      event:
-        - pull_request
-        - push
-    depends_on:
-      - mod-download
+- name: build
+  image: golang:1.11.12
+  commands:
+  - make build
+  environment:
+    CGO_ENABLED: 0
+  when:
+    event:
+    - pull_request
+    - push
+  depends_on:
+  - mod-download
 
-  - name: test-ci-dockerfile
-    image: plugins/docker
-    settings:
-      dockerfile: drone/Dockerfile
-      dry_run: true
-      repo: videodev/video-transcoding-api
-    when:
-      event:
-        - pull_request
-    depends_on:
-      - build
+- name: test-ci-dockerfile
+  image: plugins/docker
+  settings:
+    dockerfile: drone/Dockerfile
+    dry_run: true
+    repo: videodev/video-transcoding-api
+  when:
+    event:
+    - pull_request
+  depends_on:
+  - build
 
 ---
 kind: pipeline
@@ -191,55 +193,57 @@ workspace:
   path: video-transcoding-api
 
 steps:
-  - name: mod-download
-    image: golang:1.13beta1
-    commands:
-      - go mod download
-    environment:
-      GOPROXY: https://proxy.golang.org
-    depends_on:
-      - clone
+- name: mod-download
+  image: golang:1.13beta1
+  commands:
+  - go mod download
+  environment:
+    GOPROXY: https://proxy.golang.org
+  depends_on:
+  - clone
 
-  - name: coverage
-    image: golang:1.13beta1
-    commands:
-      - apt update
-      - apt install -y redis-server
-      - "redis-server &>/dev/null &"
-      - 'timeout 10 sh -c "while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done"'
-      - make gocoverage
-    depends_on:
-      - mod-download
+- name: coverage
+  image: golang:1.13beta1
+  commands:
+  - apt update
+  - apt install -y redis-server
+  - "redis-server &>/dev/null &"
+  - "timeout 10 sh -c \"while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done\""
+  - make gocoverage
+  depends_on:
+  - mod-download
 
-  - name: lint
-    pull: always
-    image: golangci/golangci-lint
-    commands:
-      - make runlint
-    depends_on:
-      - mod-download
+- name: lint
+  pull: always
+  image: golangci/golangci-lint
+  commands:
+  - make runlint
+  depends_on:
+  - mod-download
 
-  - name: build
-    image: golang:1.13beta1
-    commands:
-      - make build
-    environment:
-      CGO_ENABLED: 0
-    when:
-      event:
-        - pull_request
-        - push
-    depends_on:
-      - mod-download
+- name: build
+  image: golang:1.13beta1
+  commands:
+  - make build
+  environment:
+    CGO_ENABLED: 0
+  when:
+    event:
+    - pull_request
+    - push
+  depends_on:
+  - mod-download
 
-  - name: test-ci-dockerfile
-    image: plugins/docker
-    settings:
-      dockerfile: drone/Dockerfile
-      dry_run: true
-      repo: videodev/video-transcoding-api
-    when:
-      event:
-        - pull_request
-    depends_on:
-      - build
+- name: test-ci-dockerfile
+  image: plugins/docker
+  settings:
+    dockerfile: drone/Dockerfile
+    dry_run: true
+    repo: videodev/video-transcoding-api
+  when:
+    event:
+    - pull_request
+  depends_on:
+  - build
+
+...
