@@ -1,6 +1,8 @@
 // the first version is used to build the binary that gets shipped to Docker Hub.
 local go_versions = ['1.12.7', '1.11.12', '1.13beta1'];
 
+local goproxy = 'https://goproxy.io';
+
 local test_dockerfile = {
   name: 'test-dockerfile',
   image: 'plugins/docker',
@@ -8,7 +10,7 @@ local test_dockerfile = {
     repo: 'videodev/video-transcoding-api',
     dry_run: true,
     build_args: [
-      'GOPROXY=https://goproxy.io',
+      'GOPROXY=' + goproxy,
     ],
   },
   when: {
@@ -64,7 +66,7 @@ local mod_download(go_version) = {
   name: 'mod-download',
   image: 'golang:%(go_version)s' % { go_version: go_version },
   commands: ['go mod download'],
-  environment: { GOPROXY: 'https://goproxy.io' },
+  environment: { GOPROXY: goproxy },
   depends_on: ['clone'],
 };
 
