@@ -107,6 +107,7 @@ local coverage_report = {
   name: 'codecov-report',
   image: 'golang',
   commands: ['curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}'],
+  detach: true,
   environment: {
     CODECOV_TOKEN: {
       from_secret: 'codecov_token',
