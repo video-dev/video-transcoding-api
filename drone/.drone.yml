@@ -16,7 +16,7 @@ steps:
   commands:
   - go mod download
   environment:
-    GOPROXY: https://proxy.golang.org
+    GOPROXY: https://goproxy.io
   depends_on:
   - clone
 
@@ -33,6 +33,7 @@ steps:
 
 - name: codecov-report
   image: golang
+  detach: true
   commands:
   - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
   environment:
@@ -77,6 +78,8 @@ steps:
 - name: test-dockerfile
   image: plugins/docker
   settings:
+    build_args:
+    - GOPROXY=https://goproxy.io
     dry_run: true
     repo: videodev/video-transcoding-api
   when:
@@ -138,7 +141,7 @@ steps:
   commands:
   - go mod download
   environment:
-    GOPROXY: https://proxy.golang.org
+    GOPROXY: https://goproxy.io
   depends_on:
   - clone
 
@@ -155,6 +158,7 @@ steps:
 
 - name: codecov-report
   image: golang
+  detach: true
   commands:
   - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
   environment:
@@ -214,7 +218,7 @@ steps:
   commands:
   - go mod download
   environment:
-    GOPROXY: https://proxy.golang.org
+    GOPROXY: https://goproxy.io
   depends_on:
   - clone
 
@@ -231,6 +235,7 @@ steps:
 
 - name: codecov-report
   image: golang
+  detach: true
   commands:
   - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
   environment:

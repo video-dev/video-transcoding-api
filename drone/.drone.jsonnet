@@ -7,6 +7,9 @@ local test_dockerfile = {
   settings: {
     repo: 'videodev/video-transcoding-api',
     dry_run: true,
+    build_args: [
+      'GOPROXY=https://goproxy.io',
+    ],
   },
   when: {
     event: ['push', 'pull_request'],
@@ -61,7 +64,7 @@ local mod_download(go_version) = {
   name: 'mod-download',
   image: 'golang:%(go_version)s' % { go_version: go_version },
   commands: ['go mod download'],
-  environment: { GOPROXY: 'https://proxy.golang.org' },
+  environment: { GOPROXY: 'https://goproxy.io' },
   depends_on: ['clone'],
 };
 
@@ -104,6 +107,7 @@ local coverage_report = {
   name: 'codecov-report',
   image: 'golang',
   commands: ['curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}'],
+  detach: true,
   environment: {
     CODECOV_TOKEN: {
       from_secret: 'codecov_token',
