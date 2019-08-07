@@ -77,6 +77,8 @@ steps:
 - name: test-dockerfile
   image: plugins/docker
   settings:
+    build_args:
+    - GOPROXY=https://goproxy.io
     dry_run: true
     repo: videodev/video-transcoding-api
   when:

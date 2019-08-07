@@ -7,6 +7,9 @@ local test_dockerfile = {
   settings: {
     repo: 'videodev/video-transcoding-api',
     dry_run: true,
+    build_args: [
+      'GOPROXY=https://goproxy.io',
+    ],
   },
   when: {
     event: ['push', 'pull_request'],
