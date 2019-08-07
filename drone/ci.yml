@@ -1,3 +1,5 @@
+# DO NOT MODIFY - AUTO GENERATED
+
 ---
 kind: pipeline
 name: go-1.12.7
@@ -16,7 +18,7 @@ steps:
   commands:
   - go mod download
   environment:
-    GOPROXY: https://goproxy.io
+    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
@@ -68,7 +70,7 @@ steps:
   image: plugins/docker
   settings:
     build_args:
-    - GOPROXY=https://goproxy.io
+    - GOPROXY=https://proxy.golang.org
     dry_run: true
     repo: videodev/video-transcoding-api
   when:
@@ -130,7 +132,7 @@ steps:
   commands:
   - go mod download
   environment:
-    GOPROXY: https://goproxy.io
+    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
@@ -196,7 +198,7 @@ steps:
   commands:
   - go mod download
   environment:
-    GOPROXY: https://goproxy.io
+    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
