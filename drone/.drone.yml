@@ -31,17 +31,6 @@ steps:
   depends_on:
   - mod-download
 
-- name: codecov-report
-  image: golang
-  detach: true
-  commands:
-  - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
-  environment:
-    CODECOV_TOKEN:
-      from_secret: codecov_token
-  depends_on:
-  - coverage
-
 - name: lint
   pull: always
   image: golangci/golangci-lint
@@ -156,17 +145,6 @@ steps:
   depends_on:
   - mod-download
 
-- name: codecov-report
-  image: golang
-  detach: true
-  commands:
-  - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
-  environment:
-    CODECOV_TOKEN:
-      from_secret: codecov_token
-  depends_on:
-  - coverage
-
 - name: lint
   pull: always
   image: golangci/golangci-lint
@@ -232,17 +210,6 @@ steps:
   - make gocoverage
   depends_on:
   - mod-download
-
-- name: codecov-report
-  image: golang
-  detach: true
-  commands:
-  - "curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}"
-  environment:
-    CODECOV_TOKEN:
-      from_secret: codecov_token
-  depends_on:
-  - coverage
 
 - name: lint
   pull: always

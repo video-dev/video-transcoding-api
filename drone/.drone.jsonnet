@@ -103,19 +103,6 @@ local build(go_version) = {
   },
 };
 
-local coverage_report = {
-  name: 'codecov-report',
-  image: 'golang',
-  commands: ['curl -s https://codecov.io/bash | bash -s -- -t ${CODECOV_TOKEN}'],
-  detach: true,
-  environment: {
-    CODECOV_TOKEN: {
-      from_secret: 'codecov_token',
-    },
-  },
-  depends_on: ['coverage'],
-};
-
 local test_ci_dockerfile = {
   name: 'test-ci-dockerfile',
   image: 'plugins/docker',
@@ -140,7 +127,6 @@ local pipeline(go_version) = {
   steps: [
     mod_download(go_version),
     coverage(go_version),
-    coverage_report,
     lint,
     build(go_version),
     test_ci_dockerfile,
