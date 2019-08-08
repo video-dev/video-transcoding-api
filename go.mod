@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go v1.22.0
 	github.com/aws/aws-sdk-go-v2 v0.10.0
 	github.com/bitmovin/bitmovin-go v1.29.0
-	github.com/fsouza/ctxlogger v1.5.7
+	github.com/fsouza/ctxlogger v1.5.8
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.0
 	github.com/go-redis/redis v6.15.2+incompatible
 	github.com/google/go-cmp v0.3.0
