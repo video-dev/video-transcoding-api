@@ -1,4 +1,4 @@
-FROM golang:1.12.7-alpine AS build
+FROM golang:1.13beta1-alpine AS build
 
 ARG GOPROXY=https://proxy.golang.org
 
