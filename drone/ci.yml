@@ -2,7 +2,7 @@
 # DO NOT MODIFY - AUTO GENERATED
 
 kind: pipeline
-name: go-1.12.8
+name: go-1.12.9
 
 platform:
   os: linux
@@ -14,7 +14,7 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.12.8
+  image: golang:1.12.9
   commands:
   - go mod download
   environment:
@@ -23,7 +23,7 @@ steps:
   - clone
 
 - name: coverage
-  image: golang:1.12.8
+  image: golang:1.12.9
   commands:
   - apt update
   - apt install -y redis-server
@@ -42,7 +42,7 @@ steps:
   - mod-download
 
 - name: build
-  image: golang:1.12.8
+  image: golang:1.12.9
   commands:
   - make build
   environment:
