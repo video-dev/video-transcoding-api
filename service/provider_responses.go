@@ -3,8 +3,8 @@ package service
 import (
 	"net/http"
 
-	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/NYTimes/video-transcoding-api/swagger"
+	"github.com/video-dev/video-transcoding-api/v2/internal/provider"
+	"github.com/video-dev/video-transcoding-api/v2/swagger"
 )
 
 // response for the listProviders operation. Contains the list of providers

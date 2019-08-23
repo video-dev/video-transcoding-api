@@ -1,8 +1,8 @@
 package provider
 
 import (
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/v2/config"
+	"github.com/video-dev/video-transcoding-api/v2/db"
 )
 
 type fakeProvider struct {

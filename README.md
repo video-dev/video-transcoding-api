@@ -10,7 +10,6 @@ The Video Transcoding API provides an agnostic API to transcode media assets
 across different cloud services. Currently, it supports the following
 providers:
 
-- [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
 - [Bitmovin](http://bitmovin.com)
 - [Elemental Conductor](http://www.elementaltechnologies.com/products/elemental-conductor)
 - [Encoding.com](http://encoding.com)
@@ -24,19 +23,6 @@ With [latest Go](https://golang.org/dl/) installed, make sure to export the foll
 environment variables:
 
 ### Providers configuration
-
-#### For [Amazon Elastic Transcoder](https://aws.amazon.com/elastictranscoder/)
-
-```
-export AWS_ACCESS_KEY_ID=your.access.key.id
-export AWS_SECRET_ACCESS_KEY=your.secret.access.key
-export AWS_REGION="us-east-1"
-export ELASTICTRANSCODER_PIPELINE_ID="yourpipeline-id"
-```
-
-Please notice that for Elastic Transcoder you don't specify the destination
-bucket, as it is [defined in the Elastic Transcoder
-Pipeline](https://docs.aws.amazon.com/elastictranscoder/latest/developerguide/pipeline-settings.html#pipeline-settings-configure-transcoded-bucket).
 
 #### For [Bitmovin](http://bitmovin.com)
 

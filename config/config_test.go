@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	logging "github.com/fsouza/gizmo-stackdriver-logging"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/video-dev/video-transcoding-api/v2/db/redis/storage"
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {
@@ -29,7 +29,6 @@ func TestLoadConfigFromEnv(t *testing.T) {
 		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
 		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
 		"AWS_REGION":                               "us-east-1",
-		"ELASTICTRANSCODER_PIPELINE_ID":            "mypipeline",
 		"ELEMENTALCONDUCTOR_HOST":                  "elemental-server",
 		"ELEMENTALCONDUCTOR_USER_LOGIN":            "myuser",
 		"ELEMENTALCONDUCTOR_API_KEY":               "secret-key",
@@ -83,12 +82,6 @@ func TestLoadConfigFromEnv(t *testing.T) {
 			PresetPath:     "transcoding-api-presets",
 		},
 		Zencoder: &Zencoder{},
-		ElasticTranscoder: &ElasticTranscoder{
-			AccessKeyID:     "AKIANOTREALLY",
-			SecretAccessKey: "secret-key",
-			Region:          "us-east-1",
-			PipelineID:      "mypipeline",
-		},
 		ElementalConductor: &ElementalConductor{
 			Host:            "elemental-server",
 			UserLogin:       "myuser",
@@ -151,7 +144,6 @@ func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 		"AWS_ACCESS_KEY_ID":                        "AKIANOTREALLY",
 		"AWS_SECRET_ACCESS_KEY":                    "secret-key",
 		"AWS_REGION":                               "us-east-1",
-		"ELASTICTRANSCODER_PIPELINE_ID":            "mypipeline",
 		"ELEMENTALCONDUCTOR_HOST":                  "elemental-server",
 		"ELEMENTALCONDUCTOR_USER_LOGIN":            "myuser",
 		"ELEMENTALCONDUCTOR_API_KEY":               "secret-key",
@@ -186,12 +178,6 @@ func TestLoadConfigFromEnvWithDefaults(t *testing.T) {
 			UserKey:        "secret-key",
 			Destination:    "https://safe-stuff",
 			StatusEndpoint: "http://status.encoding.com",
-		},
-		ElasticTranscoder: &ElasticTranscoder{
-			AccessKeyID:     "AKIANOTREALLY",
-			SecretAccessKey: "secret-key",
-			Region:          "us-east-1",
-			PipelineID:      "mypipeline",
 		},
 		ElementalConductor: &ElementalConductor{
 			Host:            "elemental-server",

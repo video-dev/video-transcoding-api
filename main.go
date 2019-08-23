@@ -5,16 +5,15 @@ import (
 	"log"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/config"
-	_ "github.com/NYTimes/video-transcoding-api/provider/bitmovin"
-	_ "github.com/NYTimes/video-transcoding-api/provider/elastictranscoder"
-	_ "github.com/NYTimes/video-transcoding-api/provider/elementalconductor"
-	_ "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
-	_ "github.com/NYTimes/video-transcoding-api/provider/hybrik"
-	_ "github.com/NYTimes/video-transcoding-api/provider/mediaconvert"
-	_ "github.com/NYTimes/video-transcoding-api/provider/zencoder"
-	"github.com/NYTimes/video-transcoding-api/service"
 	"github.com/google/gops/agent"
+	"github.com/video-dev/video-transcoding-api/v2/config"
+	_ "github.com/video-dev/video-transcoding-api/v2/internal/provider/bitmovin"
+	_ "github.com/video-dev/video-transcoding-api/v2/internal/provider/elementalconductor"
+	_ "github.com/video-dev/video-transcoding-api/v2/internal/provider/encodingcom"
+	_ "github.com/video-dev/video-transcoding-api/v2/internal/provider/hybrik"
+	_ "github.com/video-dev/video-transcoding-api/v2/internal/provider/mediaconvert"
+	_ "github.com/video-dev/video-transcoding-api/v2/internal/provider/zencoder"
+	"github.com/video-dev/video-transcoding-api/v2/service"
 )
 
 func main() {
