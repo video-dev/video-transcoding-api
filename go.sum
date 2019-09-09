@@ -10,6 +10,8 @@ github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4 h1:vdT7QwBh
 github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4/go.mod h1:SvXOG8ElV28oAiG9zv91SDe5+9PfIr7PPccpr8YyXNs=
 github.com/NYTimes/gizmo v1.2.14 h1:JvS7HxJI8QRgifnxPyCDof8tGYy0nz6eO93UWqZ2ypo=
 github.com/NYTimes/gizmo v1.2.14/go.mod h1:gb8iDOhy/u7Go0HsGgc7rQ9m3tA7bgbUndgeX4my1Ns=
+github.com/NYTimes/gizmo v1.2.15 h1:UhzIueyIlEG+uLC6JtBr+V71mJqs5QoCWmgRLuRoYr8=
+github.com/NYTimes/gizmo v1.2.15/go.mod h1:VrLp1P5VCMp2EKhePiIpbwtAEtofUL2HsrD220/BCL4=
 github.com/NYTimes/gziphandler v1.1.1 h1:ZUDjpQae29j0ryrS0u/B8HZfJBtBQHjqw2rQ2cqUQ3I=
 github.com/NYTimes/gziphandler v1.1.1/go.mod h1:n/CVRwUEOgIxrgPvAQhUUr9oeUtvrhMomdKFjzJNB0c=
 github.com/NYTimes/logrotate v1.0.0 h1:6jFGbon6jOtpy3t3kwZZKS4Gdmf1C/Wv5J4ll4Xn5yk=
@@ -49,6 +51,7 @@ github.com/fsouza/gizmo-stackdriver-logging v1.3.1 h1:/Ly7X0CWRN+VwLOctlewtt9Bvg
 github.com/fsouza/gizmo-stackdriver-logging v1.3.1/go.mod h1:cvIA5UbpvKN+pZir82dMhwPouAmytECQHrCDfdXbpow=
 github.com/go-kit/kit v0.8.0 h1:Wz+5lgoB0kkuqLEc6NVmwRknTKP6dTGbSqvhZtBI/j0=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
+github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-logfmt/logfmt v0.4.0 h1:MP4Eh7ZCb31lleYCFuwm0oe4/YGak+5l1vA2NOE80nA=
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-ole/go-ole v1.2.1/go.mod h1:7FAglXiTm7HKlQRDeOQ6ZNUHidzCWXuZWq/1dTyBNF8=
