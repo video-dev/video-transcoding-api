@@ -10,10 +10,6 @@ github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4 h1:vdT7QwBh
 github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4/go.mod h1:SvXOG8ElV28oAiG9zv91SDe5+9PfIr7PPccpr8YyXNs=
 github.com/NYTimes/gizmo v1.2.14 h1:JvS7HxJI8QRgifnxPyCDof8tGYy0nz6eO93UWqZ2ypo=
 github.com/NYTimes/gizmo v1.2.14/go.mod h1:gb8iDOhy/u7Go0HsGgc7rQ9m3tA7bgbUndgeX4my1Ns=
-github.com/NYTimes/gizmo v1.2.15 h1:UhzIueyIlEG+uLC6JtBr+V71mJqs5QoCWmgRLuRoYr8=
-github.com/NYTimes/gizmo v1.2.15/go.mod h1:VrLp1P5VCMp2EKhePiIpbwtAEtofUL2HsrD220/BCL4=
-github.com/NYTimes/gizmo v1.2.16 h1:YdnzVuuvJ34+j09abIgSVQqSWcLzbWQrBjczFT3cTMc=
-github.com/NYTimes/gizmo v1.2.16/go.mod h1:VrLp1P5VCMp2EKhePiIpbwtAEtofUL2HsrD220/BCL4=
 github.com/NYTimes/gizmo v1.2.17 h1:C++NxpLrnBmPxFSLAj8EmJorFIRFriIHfuShHKuhbFk=
 github.com/NYTimes/gizmo v1.2.17/go.mod h1:VrLp1P5VCMp2EKhePiIpbwtAEtofUL2HsrD220/BCL4=
 github.com/NYTimes/gziphandler v1.1.1 h1:ZUDjpQae29j0ryrS0u/B8HZfJBtBQHjqw2rQ2cqUQ3I=
@@ -24,8 +20,6 @@ github.com/Shopify/sarama v1.23.1/go.mod h1:XLH1GYJnLVE0XCr6KdJGVJRTwY30moWNJ4sE
 github.com/Shopify/toxiproxy v2.1.4+incompatible/go.mod h1:OXgGpZ6Cli1/URJOF1DMxUHB2q5Ap20/P/eIdh4G0pI=
 github.com/StackExchange/wmi v0.0.0-20170410192909-ea383cf3ba6e/go.mod h1:3eOhrUMpNV+6aFIbp5/iudMxNCF27Vw2OZgy4xEx0Fg=
 github.com/aws/aws-sdk-go v1.19.18/go.mod h1:KmX6BPdI08NWTb3/sm4ZGu5ShLoqVDhKgpiN924inxo=
-github.com/aws/aws-sdk-go-v2 v0.10.0 h1:qxZ7TyWFEIucMPQR2qymRx7JZ+hWF0N8HyCWh0XKh6Q=
-github.com/aws/aws-sdk-go-v2 v0.10.0/go.mod h1:cpXCmy3BB+lqwGweJjdawczHW3a+g8QgcFHcoOVoHao=
 github.com/aws/aws-sdk-go-v2 v0.11.0 h1:TMUl791B9lF/R8t3msh7id+mHxOXrQY6DAqLNEpre8w=
 github.com/aws/aws-sdk-go-v2 v0.11.0/go.mod h1:cpXCmy3BB+lqwGweJjdawczHW3a+g8QgcFHcoOVoHao=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
@@ -59,8 +53,6 @@ github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2
 github.com/go-logfmt/logfmt v0.4.0 h1:MP4Eh7ZCb31lleYCFuwm0oe4/YGak+5l1vA2NOE80nA=
 github.com/go-logfmt/logfmt v0.4.0/go.mod h1:3RMwSq7FuexP4Kalkev3ejPJsZTpXXBr9+V4qmtdjCk=
 github.com/go-ole/go-ole v1.2.1/go.mod h1:7FAglXiTm7HKlQRDeOQ6ZNUHidzCWXuZWq/1dTyBNF8=
-github.com/go-redis/redis v6.15.2+incompatible h1:9SpNVG76gr6InJGxoZ6IuuxaCOQwDAhzyXg+Bs+0Sb4=
-github.com/go-redis/redis v6.15.2+incompatible/go.mod h1:NAIEuMOZ/fxfXJIrKDQDz8wamY7mA7PouImQ2Jvg6kA=
 github.com/go-redis/redis v6.15.5+incompatible h1:pLky8I0rgiblWfa8C1EV7fPEUv0aH6vKRaYHc/YRHVk=
 github.com/go-redis/redis v6.15.5+incompatible/go.mod h1:NAIEuMOZ/fxfXJIrKDQDz8wamY7mA7PouImQ2Jvg6kA=
 github.com/go-sql-driver/mysql v1.4.0/go.mod h1:zAC/RDZ24gD3HViQzih4MyKcchzm+sOG5ZlKdlhCg5w=
