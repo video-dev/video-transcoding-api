@@ -825,7 +825,6 @@ func (p *bitmovinProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 				var audioStreamID, videoStreamID string
 
 				if !isRepeatedAudio {
-
 					audioStream := &models.Stream{
 						CodecConfigurationID: &audioPresetID,
 						InputStreams:         aiss,
