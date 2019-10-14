@@ -467,6 +467,7 @@ func startSentinels(ports []string) (func(), error) {
 		fmt.Fprintf(f, string(configTemplate), port)
 		f.Close()
 		tempFiles[i] = f.Name()
+		//nolint:gosec
 		cmd := exec.Command("redis-server", f.Name(), "--sentinel")
 		cmd.Dir = os.TempDir()
 		err = cmd.Start()

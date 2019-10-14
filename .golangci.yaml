@@ -1,0 +1,18 @@
+run:
+  deadline: 5m
+
+linters:
+  enable-all: true
+  disable:
+    - dupl
+    - errcheck
+    - funlen
+    - gochecknoglobals
+    - gochecknoinits
+    - gocognit
+    - goconst
+    - gocritic
+    - gocyclo
+    - lll
+    - unparam
+    - wsl
