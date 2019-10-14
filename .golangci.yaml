@@ -9,8 +9,10 @@ linters:
     - funlen
     - gochecknoglobals
     - gochecknoinits
+    - gocognit
     - goconst
     - gocritic
     - gocyclo
     - lll
     - unparam
+    - wsl
