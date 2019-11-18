@@ -36,6 +36,8 @@ github.com/aws/aws-sdk-go-v2 v0.14.0 h1:GE6BJJLTfsv1VqwwnY2KcUlrgQ8GtZAM83jeQChg
 github.com/aws/aws-sdk-go-v2 v0.14.0/go.mod h1:pFLIN9LDjOEwHfruGweAXEq0XaD6uRkY8FsRkxhuBIg=
 github.com/aws/aws-sdk-go-v2 v0.15.0 h1:mQCV2MV4I0L02Nwi1xs0HM7yWbrcWjjUOy1UAv27sw8=
 github.com/aws/aws-sdk-go-v2 v0.15.0/go.mod h1:pFLIN9LDjOEwHfruGweAXEq0XaD6uRkY8FsRkxhuBIg=
+github.com/aws/aws-sdk-go-v2 v0.16.0 h1:X5pkFnjRNdDEX18NwDGWMaWL5ocNQX0qIYEhEcsTy64=
+github.com/aws/aws-sdk-go-v2 v0.16.0/go.mod h1:pFLIN9LDjOEwHfruGweAXEq0XaD6uRkY8FsRkxhuBIg=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973 h1:xJ4a3vCFaGF/jqvzLMYoU8P317H5OQ+Via4RmuPwCS0=
 github.com/beorn7/perks v0.0.0-20180321164747-3a771d992973/go.mod h1:Dwedo/Wpr24TaqPxmxbtue+5NUziq4I4S80YR8gNf3Q=
 github.com/bitmovin/bitmovin-go v1.29.0 h1:xhTvsSRLTHy3KPl3wBD5X6c9nVelF5YPyJbQt2KlAAk=
