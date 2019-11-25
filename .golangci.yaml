@@ -13,6 +13,8 @@ linters:
     - goconst
     - gocritic
     - gocyclo
+    - godox
+    - gomnd
     - lll
     - unparam
     - wsl

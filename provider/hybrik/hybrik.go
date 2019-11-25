@@ -303,7 +303,6 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 				},
 			},
 		)
-
 	}
 
 	resp, err := json.Marshal(cj)

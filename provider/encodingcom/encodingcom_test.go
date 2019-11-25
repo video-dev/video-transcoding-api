@@ -1001,7 +1001,6 @@ func TestCreatePreset(t *testing.T) {
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		pretty.Fdiff(os.Stderr, fakePreset.Request.Format[0], expectedFormat)
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
-
 	}
 }
 
@@ -1103,7 +1102,6 @@ func TestCreatePresetTwoPass(t *testing.T) {
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		pretty.Fdiff(os.Stderr, fakePreset.Request.Format[0], expectedFormat)
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
-
 	}
 }
 
