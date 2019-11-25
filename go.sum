@@ -63,6 +63,8 @@ github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV
 github.com/fsnotify/fsnotify v1.4.7/go.mod h1:jwhsz4b93w/PPRr/qN1Yymfu8t87LnFCMoQvtojpjFo=
 github.com/fsouza/ctxlogger v1.5.8 h1:WeCzJZNkXx2QbQn4ae3tVU58zBcPGMA+o7ykYqhU74o=
 github.com/fsouza/ctxlogger v1.5.8/go.mod h1:lZ2fh22JdnuMCgYmJOZqq32peZgwhEL+R6X3+MILHvc=
+github.com/fsouza/ctxlogger v1.5.9 h1:eAAwzLfEP7KVcIWMcH4rjAkgqKjPdVm/wOg9vagKi8w=
+github.com/fsouza/ctxlogger v1.5.9/go.mod h1:NVINFpvPGVH8Y9tPzRI1xKVjZkQvVrFiGmowTgKAtjM=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.1 h1:/Ly7X0CWRN+VwLOctlewtt9Bvg+OwtFd/76VPEAyj/M=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.1/go.mod h1:cvIA5UbpvKN+pZir82dMhwPouAmytECQHrCDfdXbpow=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.2 h1:CEiwM8W3wqhB9BQxZrZJzVt6p9Nd3TgW3XxXLdm+mOs=
