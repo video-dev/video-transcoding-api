@@ -65,6 +65,8 @@ github.com/fsouza/ctxlogger v1.5.8 h1:WeCzJZNkXx2QbQn4ae3tVU58zBcPGMA+o7ykYqhU74
 github.com/fsouza/ctxlogger v1.5.8/go.mod h1:lZ2fh22JdnuMCgYmJOZqq32peZgwhEL+R6X3+MILHvc=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.1 h1:/Ly7X0CWRN+VwLOctlewtt9Bvg+OwtFd/76VPEAyj/M=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.1/go.mod h1:cvIA5UbpvKN+pZir82dMhwPouAmytECQHrCDfdXbpow=
+github.com/fsouza/gizmo-stackdriver-logging v1.3.2 h1:CEiwM8W3wqhB9BQxZrZJzVt6p9Nd3TgW3XxXLdm+mOs=
+github.com/fsouza/gizmo-stackdriver-logging v1.3.2/go.mod h1:cvIA5UbpvKN+pZir82dMhwPouAmytECQHrCDfdXbpow=
 github.com/go-kit/kit v0.8.0 h1:Wz+5lgoB0kkuqLEc6NVmwRknTKP6dTGbSqvhZtBI/j0=
 github.com/go-kit/kit v0.8.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
 github.com/go-kit/kit v0.9.0/go.mod h1:xBxKIO96dXMWWy0MnWVtmwkA9/13aqxPnvrjFYMA2as=
