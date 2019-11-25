@@ -3,7 +3,7 @@ module github.com/video-dev/video-transcoding-api/v2
 require (
 	github.com/NYTimes/gizmo v1.3.4
 	github.com/NYTimes/gziphandler v1.1.1
-	github.com/aws/aws-sdk-go-v2 v0.16.0
+	github.com/aws/aws-sdk-go-v2 v0.17.0
 	github.com/bitmovin/bitmovin-go v1.29.0
 	github.com/fsouza/ctxlogger v1.5.9
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.2
