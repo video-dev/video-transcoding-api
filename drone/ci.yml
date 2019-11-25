@@ -51,6 +51,7 @@ steps:
     event:
     - pull_request
     - push
+    - tag
   depends_on:
   - mod-download
 
@@ -165,6 +166,7 @@ steps:
     event:
     - pull_request
     - push
+    - tag
   depends_on:
   - mod-download
 
