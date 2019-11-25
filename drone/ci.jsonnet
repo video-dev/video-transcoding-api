@@ -101,7 +101,7 @@ local build(go_version) = {
   environment: { CGO_ENABLED: '0' },
   depends_on: ['mod-download'],
   when: {
-    event: ['pull_request', 'push'],
+    event: ['pull_request', 'push', 'tag'],
   },
 };
 
