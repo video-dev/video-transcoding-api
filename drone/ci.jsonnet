@@ -1,5 +1,5 @@
 // the first version is used to build the binary that gets shipped to Docker Hub.
-local go_versions = ['1.13.3', '1.12.12'];
+local go_versions = ['1.13.4', '1.12.13'];
 
 local goproxy = 'https://proxy.golang.org';
 

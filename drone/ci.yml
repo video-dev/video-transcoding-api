@@ -2,7 +2,7 @@
 # DO NOT MODIFY - AUTO GENERATED
 
 kind: pipeline
-name: go-1.13.3
+name: go-1.13.4
 
 platform:
   os: linux
@@ -14,7 +14,7 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.13.3
+  image: golang:1.13.4
   commands:
   - go mod download
   environment:
@@ -23,7 +23,7 @@ steps:
   - clone
 
 - name: coverage
-  image: golang:1.13.3
+  image: golang:1.13.4
   commands:
   - apt update
   - apt install -y redis-server
@@ -42,7 +42,7 @@ steps:
   - mod-download
 
 - name: build
-  image: golang:1.13.3
+  image: golang:1.13.4
   commands:
   - make build
   environment:
@@ -116,7 +116,7 @@ steps:
 
 ---
 kind: pipeline
-name: go-1.12.12
+name: go-1.12.13
 
 platform:
   os: linux
@@ -128,7 +128,7 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.12.12
+  image: golang:1.12.13
   commands:
   - go mod download
   environment:
@@ -137,7 +137,7 @@ steps:
   - clone
 
 - name: coverage
-  image: golang:1.12.12
+  image: golang:1.12.13
   commands:
   - apt update
   - apt install -y redis-server
@@ -156,7 +156,7 @@ steps:
   - mod-download
 
 - name: build
-  image: golang:1.12.12
+  image: golang:1.12.13
   commands:
   - make build
   environment:
