@@ -1,10 +1,10 @@
-package config // import "github.com/NYTimes/video-transcoding-api/config"
+package config // import "github.com/video-dev/video-transcoding-api/config"
 
 import (
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	logging "github.com/fsouza/gizmo-stackdriver-logging"
 	"github.com/kelseyhightower/envconfig"
+	"github.com/video-dev/video-transcoding-api/db/redis/storage"
 )
 
 // Config is a struct to contain all the needed configuration for the

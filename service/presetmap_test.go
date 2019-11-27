@@ -9,10 +9,10 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/dbtest"
 	"github.com/sirupsen/logrus"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db/dbtest"
 )
 
 func TestNewPresetMap(t *testing.T) {

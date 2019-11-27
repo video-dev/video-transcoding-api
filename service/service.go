@@ -1,4 +1,4 @@
-package service // import "github.com/NYTimes/video-transcoding-api/service"
+package service // import "github.com/video-dev/video-transcoding-api/service"
 
 import (
 	"fmt"
@@ -6,13 +6,13 @@ import (
 
 	"github.com/NYTimes/gizmo/server"
 	"github.com/NYTimes/gziphandler"
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis"
-	"github.com/NYTimes/video-transcoding-api/swagger"
 	"github.com/fsouza/ctxlogger"
 	"github.com/gorilla/handlers"
 	"github.com/sirupsen/logrus"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db/redis"
+	"github.com/video-dev/video-transcoding-api/swagger"
 )
 
 // TranscodingService will implement server.JSONService and handle all requests

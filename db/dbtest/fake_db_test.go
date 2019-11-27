@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db"
 )
 
 const dbErrorMsg = "database error"

@@ -10,12 +10,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/bitmovin/bitmovin-go/bitmovin"
 	"github.com/bitmovin/bitmovin-go/bitmovintypes"
 	"github.com/bitmovin/bitmovin-go/models"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/provider"
 )
 
 func TestFactoryIsRegistered(t *testing.T) {
