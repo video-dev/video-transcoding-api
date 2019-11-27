@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/NYTimes/gizmo/server"
+	"github.com/google/gops/agent"
 	"github.com/video-dev/video-transcoding-api/config"
 	_ "github.com/video-dev/video-transcoding-api/provider/bitmovin"
 	_ "github.com/video-dev/video-transcoding-api/provider/elastictranscoder"
@@ -14,7 +15,6 @@ import (
 	_ "github.com/video-dev/video-transcoding-api/provider/mediaconvert"
 	_ "github.com/video-dev/video-transcoding-api/provider/zencoder"
 	"github.com/video-dev/video-transcoding-api/service"
-	"github.com/google/gops/agent"
 )
 
 func main() {
