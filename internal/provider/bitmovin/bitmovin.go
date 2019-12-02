@@ -228,6 +228,13 @@ func (p *bitmovinProvider) createH264VideoPreset(preset db.Preset, customData ma
 		}
 		h264.MaxGOP = intToPtr(int64(gopSize))
 	}
+	if preset.Video.BFrames != "" {
+		bFrames, err := strconv.Atoi(preset.Video.BFrames)
+		if err != nil {
+			return nil, err
+		}
+		h264.BFrames = intToPtr(int64(bFrames))
+	}
 
 	return h264, nil
 }

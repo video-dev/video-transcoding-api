@@ -236,6 +236,14 @@ func (z *zencoderProvider) buildOutput(job *db.Job, preset db.Preset, filename s
 	if preset.Video.Codec == "h264" {
 		zencoderOutput.H264Profile = strings.ToLower(preset.Video.Profile)
 		zencoderOutput.H264Level = strings.ToLower(preset.Video.ProfileLevel)
+
+		if preset.Video.BFrames != "" {
+			bframes, err := strconv.ParseInt(preset.Video.BFrames, 10, 32)
+			if err != nil {
+				return zencoder.OutputSettings{}, fmt.Errorf("error converting preset bframes (%q): %s ", preset.Video.BFrames, err)
+			}
+			zencoderOutput.H264Bframes = int32(bframes)
+		}
 	}
 	if preset.RateControl == "CBR" {
 		zencoderOutput.ConstantBitrate = true

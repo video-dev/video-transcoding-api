@@ -1216,7 +1216,7 @@ func TestPresetToFormat(t *testing.T) {
 	}
 	var p encodingComProvider
 	for _, test := range tests {
-		resultingFormat := p.presetToFormat(test.givenPreset)
+		resultingFormat, _ := p.presetToFormat(test.givenPreset)
 		if !reflect.DeepEqual(resultingFormat, test.expectedFormat) {
 			t.Errorf("%s: presetToFormat: wrong value. Want %#v. Got %#v", test.givenTestCase, test.expectedFormat, resultingFormat)
 			pretty.Fdiff(os.Stderr, resultingFormat, test.expectedFormat)
