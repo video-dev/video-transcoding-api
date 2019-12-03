@@ -6,11 +6,11 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/dbtest"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/kr/pretty"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db/dbtest"
+	"github.com/video-dev/video-transcoding-api/provider"
 	"github.com/video-dev/zencoder"
 )
 

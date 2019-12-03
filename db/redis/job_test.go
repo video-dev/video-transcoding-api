@@ -8,11 +8,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	"github.com/go-redis/redis"
 	"github.com/kr/pretty"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db/redis/storage"
 )
 
 func TestCreateJob(t *testing.T) {

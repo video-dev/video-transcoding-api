@@ -5,10 +5,10 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
 	logging "github.com/fsouza/gizmo-stackdriver-logging"
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/video-dev/video-transcoding-api/db/redis/storage"
 )
 
 func TestLoadConfigFromEnv(t *testing.T) {

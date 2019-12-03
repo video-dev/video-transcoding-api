@@ -5,11 +5,11 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
 	"github.com/pkg/errors"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/provider"
 )
 
 func providerStatusFrom(status mediaconvert.JobStatus) provider.Status {

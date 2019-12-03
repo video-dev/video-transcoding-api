@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/provider"
-	"github.com/NYTimes/video-transcoding-api/swagger"
+	"github.com/video-dev/video-transcoding-api/provider"
+	"github.com/video-dev/video-transcoding-api/swagger"
 )
 
 // swagger:route GET /providers providers listProviders

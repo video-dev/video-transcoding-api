@@ -5,15 +5,15 @@
 // import this package and then grab the factory from the provider package:
 //
 //     import (
-//         "github.com/NYTimes/video-transcoding-api/provider"
-//         "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
+//         "github.com/video-dev/video-transcoding-api/provider"
+//         "github.com/video-dev/video-transcoding-api/provider/encodingcom"
 //     )
 //
 //     func UseProvider() {
 //         factory, err := provider.GetProviderFactory(encodingcom.Name)
 //         // handle err and use factory to get an instance of the provider.
 //     }
-package encodingcom // import "github.com/NYTimes/video-transcoding-api/provider/encodingcom"
+package encodingcom // import "github.com/video-dev/video-transcoding-api/provider/encodingcom"
 
 import (
 	"errors"
@@ -24,10 +24,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/video-dev/go-encodingcom"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/provider"
 )
 
 // Name is the name used for registering the Encoding.com provider in the

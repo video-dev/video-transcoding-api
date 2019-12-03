@@ -10,11 +10,11 @@ import (
 	"testing"
 
 	"github.com/NYTimes/gizmo/server"
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/dbtest"
-	"github.com/NYTimes/video-transcoding-api/provider"
 	"github.com/sirupsen/logrus"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db/dbtest"
+	"github.com/video-dev/video-transcoding-api/provider"
 )
 
 func TestTranscode(t *testing.T) {

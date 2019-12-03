@@ -1,9 +1,9 @@
-package redis // import "github.com/NYTimes/video-transcoding-api/db/redis"
+package redis // import "github.com/video-dev/video-transcoding-api/db/redis"
 
 import (
-	"github.com/NYTimes/video-transcoding-api/config"
-	"github.com/NYTimes/video-transcoding-api/db"
-	"github.com/NYTimes/video-transcoding-api/db/redis/storage"
+	"github.com/video-dev/video-transcoding-api/config"
+	"github.com/video-dev/video-transcoding-api/db"
+	"github.com/video-dev/video-transcoding-api/db/redis/storage"
 )
 
 // NewRepository creates a new Repository that uses Redis for persistence.
