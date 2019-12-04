@@ -182,16 +182,27 @@ func videoPresetFrom(preset db.Preset) (*mediaconvert.VideoDescription, error) {
 			tuning = mediaconvert.H264QualityTuningLevelMultiPassHq
 		}
 
+		var bframes *int64
+		if preset.Video.BFrames != "" {
+			b, err := strconv.ParseInt(preset.Video.BFrames, 10, 64)
+
+			if err != nil {
+				return nil, errors.Wrapf(err, "parsing bframes %q to int64", preset.Video.BFrames)
+			}
+			bframes = &b
+		}
+
 		videoPreset.CodecSettings = &mediaconvert.VideoCodecSettings{
 			Codec: mediaconvert.VideoCodecH264,
 			H264Settings: &mediaconvert.H264Settings{
-				Bitrate:            aws.Int64(bitrate),
-				GopSize:            aws.Float64(gopSize),
-				RateControlMode:    rateControl,
-				CodecProfile:       profile,
-				CodecLevel:         level,
-				InterlaceMode:      interlaceMode,
-				QualityTuningLevel: tuning,
+				Bitrate:                             aws.Int64(bitrate),
+				GopSize:                             aws.Float64(gopSize),
+				RateControlMode:                     rateControl,
+				CodecProfile:                        profile,
+				CodecLevel:                          level,
+				InterlaceMode:                       interlaceMode,
+				QualityTuningLevel:                  tuning,
+				NumberBFramesBetweenReferenceFrames: bframes,
 			},
 		}
 	default:

@@ -130,6 +130,7 @@ func TestGetPreset(t *testing.T) {
 			GopMode: "fixed",
 			GopSize: "90",
 			Height:  "1080",
+			BFrames: "4",
 		},
 		Audio: db.AudioPreset{
 			Bitrate: "128000",
@@ -163,6 +164,7 @@ func TestZencoderDeletePreset(t *testing.T) {
 			GopMode: "fixed",
 			GopSize: "90",
 			Height:  "1080",
+			BFrames: "3",
 		},
 		Audio: db.AudioPreset{
 			Bitrate: "128000",

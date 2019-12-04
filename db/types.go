@@ -119,6 +119,7 @@ type VideoPreset struct {
 	GopSize       string `json:"gopSize,omitempty" redis-hash:"gopsize,omitempty"`
 	GopMode       string `json:"gopMode,omitempty" redis-hash:"gopmode,omitempty"`
 	InterlaceMode string `json:"interlaceMode,omitempty" redis-hash:"interlacemode,omitempty"`
+	BFrames       string `json:"bframes,omitempty" redis-hash:"bframes,omitempty"`
 }
 
 // AudioPreset defines the set of parameters for audio on a given preset
