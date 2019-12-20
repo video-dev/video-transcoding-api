@@ -7,7 +7,7 @@ WORKDIR /code
 ADD  . ./
 RUN  go install
 
-FROM alpine:3.10.3
+FROM alpine:3.11.0
 RUN apk add --no-cache ca-certificates
 COPY --from=build /go/bin/video-transcoding-api /usr/bin/video-transcoding-api
 ENTRYPOINT ["/usr/bin/video-transcoding-api"]
