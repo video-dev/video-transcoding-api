@@ -10,6 +10,8 @@ github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4 h1:vdT7QwBh
 github.com/Gurpartap/logrus-stack v0.0.0-20170710170904-89c00d8a28f4/go.mod h1:SvXOG8ElV28oAiG9zv91SDe5+9PfIr7PPccpr8YyXNs=
 github.com/NYTimes/gizmo v1.3.4 h1:W4Sf97ftUzcLL4ia9wYFdeNgCNbS91HqMFKWq3x1Bds=
 github.com/NYTimes/gizmo v1.3.4/go.mod h1:VrLp1P5VCMp2EKhePiIpbwtAEtofUL2HsrD220/BCL4=
+github.com/NYTimes/gizmo v1.3.5 h1:IMIq8d6xNwYbzMJ5+NInRYKhVO3AGbUFc+K6BYD0MZE=
+github.com/NYTimes/gizmo v1.3.5/go.mod h1:VrLp1P5VCMp2EKhePiIpbwtAEtofUL2HsrD220/BCL4=
 github.com/NYTimes/gziphandler v1.1.1 h1:ZUDjpQae29j0ryrS0u/B8HZfJBtBQHjqw2rQ2cqUQ3I=
 github.com/NYTimes/gziphandler v1.1.1/go.mod h1:n/CVRwUEOgIxrgPvAQhUUr9oeUtvrhMomdKFjzJNB0c=
 github.com/NYTimes/logrotate v1.0.0 h1:6jFGbon6jOtpy3t3kwZZKS4Gdmf1C/Wv5J4ll4Xn5yk=
