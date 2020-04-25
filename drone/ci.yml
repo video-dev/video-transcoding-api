@@ -2,7 +2,7 @@
 # DO NOT MODIFY - AUTO GENERATED
 
 kind: pipeline
-name: go-1.13.4
+name: go-1.14.2
 
 platform:
   os: linux
@@ -14,16 +14,14 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.13.4
+  image: golang:1.14.2
   commands:
   - go mod download
-  environment:
-    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
 - name: coverage
-  image: golang:1.13.4
+  image: golang:1.14.2
   commands:
   - apt update
   - apt install -y redis-server
@@ -34,15 +32,14 @@ steps:
   - mod-download
 
 - name: lint
-  pull: always
-  image: golangci/golangci-lint:v1.21
+  image: golangci/golangci-lint:v1.25.0
   commands:
   - make runlint
   depends_on:
   - mod-download
 
 - name: build
-  image: golang:1.13.4
+  image: golang:1.14.2
   commands:
   - make build
   environment:
@@ -55,6 +52,18 @@ steps:
   depends_on:
   - mod-download
 
+- name: test-dockerfile
+  image: plugins/docker
+  settings:
+    dry_run: true
+    repo: videodev/video-transcoding-api
+  when:
+    event:
+    - push
+    - pull_request
+  depends_on:
+  - clone
+
 - name: test-ci-dockerfile
   image: plugins/docker
   settings:
@@ -66,20 +75,6 @@ steps:
     - pull_request
   depends_on:
   - build
-
-- name: test-dockerfile
-  image: plugins/docker
-  settings:
-    build_args:
-    - GOPROXY=https://proxy.golang.org
-    dry_run: true
-    repo: videodev/video-transcoding-api
-  when:
-    event:
-    - push
-    - pull_request
-  depends_on:
-  - clone
 
 - name: build-and-push-to-dockerhub
   image: plugins/docker
@@ -117,7 +112,7 @@ steps:
 
 ---
 kind: pipeline
-name: go-1.12.13
+name: go-1.13.10
 
 platform:
   os: linux
@@ -129,16 +124,14 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.12.13
+  image: golang:1.13.10
   commands:
   - go mod download
-  environment:
-    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
 - name: coverage
-  image: golang:1.12.13
+  image: golang:1.13.10
   commands:
   - apt update
   - apt install -y redis-server
@@ -149,15 +142,14 @@ steps:
   - mod-download
 
 - name: lint
-  pull: always
-  image: golangci/golangci-lint:v1.21
+  image: golangci/golangci-lint:v1.25.0
   commands:
   - make runlint
   depends_on:
   - mod-download
 
 - name: build
-  image: golang:1.12.13
+  image: golang:1.13.10
   commands:
   - make build
   environment:
@@ -169,17 +161,5 @@ steps:
     - tag
   depends_on:
   - mod-download
-
-- name: test-ci-dockerfile
-  image: plugins/docker
-  settings:
-    dockerfile: drone/Dockerfile
-    dry_run: true
-    repo: videodev/video-transcoding-api
-  when:
-    event:
-    - pull_request
-  depends_on:
-  - build
 
 ...

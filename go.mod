@@ -7,7 +7,7 @@ require (
 	github.com/bitmovin/bitmovin-go v1.29.0
 	github.com/fsouza/ctxlogger v1.5.9
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.2
-	github.com/go-redis/redis v6.15.6+incompatible
+	github.com/go-redis/redis v6.15.7+incompatible
 	github.com/google/go-cmp v0.4.0
 	github.com/google/gops v0.3.7
 	github.com/gorilla/handlers v1.4.2
@@ -23,4 +23,4 @@ require (
 	github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382
 )
 
-go 1.12
+go 1.14
