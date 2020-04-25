@@ -2,7 +2,7 @@
 # DO NOT MODIFY - AUTO GENERATED
 
 kind: pipeline
-name: go-1.13.4
+name: go-1.14.2
 
 platform:
   os: linux
@@ -14,16 +14,14 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.13.4
+  image: golang:1.14.2
   commands:
   - go mod download
-  environment:
-    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
 - name: coverage
-  image: golang:1.13.4
+  image: golang:1.14.2
   commands:
   - apt update
   - apt install -y redis-server
@@ -35,14 +33,14 @@ steps:
 
 - name: lint
   pull: always
-  image: golangci/golangci-lint:v1.21
+  image: golangci/golangci-lint
   commands:
   - make runlint
   depends_on:
   - mod-download
 
 - name: build
-  image: golang:1.13.4
+  image: golang:1.14.2
   commands:
   - make build
   environment:
@@ -70,8 +68,6 @@ steps:
 - name: test-dockerfile
   image: plugins/docker
   settings:
-    build_args:
-    - GOPROXY=https://proxy.golang.org
     dry_run: true
     repo: videodev/video-transcoding-api
   when:
@@ -117,7 +113,7 @@ steps:
 
 ---
 kind: pipeline
-name: go-1.12.13
+name: go-1.13.10
 
 platform:
   os: linux
@@ -129,16 +125,14 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.12.13
+  image: golang:1.13.10
   commands:
   - go mod download
-  environment:
-    GOPROXY: https://proxy.golang.org
   depends_on:
   - clone
 
 - name: coverage
-  image: golang:1.12.13
+  image: golang:1.13.10
   commands:
   - apt update
   - apt install -y redis-server
@@ -150,14 +144,14 @@ steps:
 
 - name: lint
   pull: always
-  image: golangci/golangci-lint:v1.21
+  image: golangci/golangci-lint
   commands:
   - make runlint
   depends_on:
   - mod-download
 
 - name: build
-  image: golang:1.12.13
+  image: golang:1.13.10
   commands:
   - make build
   environment:
