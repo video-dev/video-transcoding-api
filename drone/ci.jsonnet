@@ -82,8 +82,7 @@ local coverage(go_version) = {
 
 local lint = {
   name: 'lint',
-  image: 'golangci/golangci-lint',
-  pull: 'always',
+  image: 'golangci/golangci-lint:v1.25.0',
   commands: ['make runlint'],
   depends_on: ['mod-download'],
 };

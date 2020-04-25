@@ -32,8 +32,7 @@ steps:
   - mod-download
 
 - name: lint
-  pull: always
-  image: golangci/golangci-lint
+  image: golangci/golangci-lint:v1.25.0
   commands:
   - make runlint
   depends_on:
@@ -143,8 +142,7 @@ steps:
   - mod-download
 
 - name: lint
-  pull: always
-  image: golangci/golangci-lint
+  image: golangci/golangci-lint:v1.25.0
   commands:
   - make runlint
   depends_on:
