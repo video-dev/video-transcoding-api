@@ -267,7 +267,7 @@ func (p *elementalConductorProvider) buildOutputGroupAndStreamAssemblies(outputL
 	return outputGroupList, streamAssemblyList, nil
 }
 
-// newJob constructs a job spec from the given source and presets
+// newJob constructs a job spec from the given source and presets.
 func (p *elementalConductorProvider) newJob(job *db.Job) (*elementalconductor.Job, error) {
 	inputLocation := elementalconductor.Location{
 		URI:      job.SourceMedia,

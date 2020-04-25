@@ -13,6 +13,9 @@ linters:
     - goconst
     - gocritic
     - gocyclo
+    - gomnd
     - lll
+    - nestif
+    - testpackage
     - unparam
     - wsl
