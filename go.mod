@@ -23,4 +23,4 @@ require (
 	github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382
 )
 
-go 1.12
+go 1.14
