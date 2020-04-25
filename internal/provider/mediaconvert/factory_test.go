@@ -1,6 +1,7 @@
 package mediaconvert
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
@@ -109,7 +110,7 @@ func Test_mediaconvertFactory(t *testing.T) {
 				return
 			}
 
-			creds, err := client.Credentials.Retrieve()
+			creds, err := client.Credentials.Retrieve(context.TODO())
 			if err != nil {
 				t.Errorf("error retrieving aws credentials: %v", err)
 			}
@@ -119,7 +120,7 @@ func Test_mediaconvertFactory(t *testing.T) {
 					e, g, cmp.Diff(e, g))
 			}
 
-			if g, e := client.Region, tt.wantRegion; g != e {
+			if g, e := client.Config.Region, tt.wantRegion; g != e {
 				t.Errorf("expected region %q, got %q", e, g)
 			}
 		})
