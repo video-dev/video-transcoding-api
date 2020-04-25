@@ -52,18 +52,6 @@ steps:
   depends_on:
   - mod-download
 
-- name: test-ci-dockerfile
-  image: plugins/docker
-  settings:
-    dockerfile: drone/Dockerfile
-    dry_run: true
-    repo: videodev/video-transcoding-api
-  when:
-    event:
-    - pull_request
-  depends_on:
-  - build
-
 - name: test-dockerfile
   image: plugins/docker
   settings:
@@ -75,6 +63,18 @@ steps:
     - pull_request
   depends_on:
   - clone
+
+- name: test-ci-dockerfile
+  image: plugins/docker
+  settings:
+    dockerfile: drone/Dockerfile
+    dry_run: true
+    repo: videodev/video-transcoding-api
+  when:
+    event:
+    - pull_request
+  depends_on:
+  - build
 
 - name: build-and-push-to-dockerhub
   image: plugins/docker
@@ -161,17 +161,5 @@ steps:
     - tag
   depends_on:
   - mod-download
-
-- name: test-ci-dockerfile
-  image: plugins/docker
-  settings:
-    dockerfile: drone/Dockerfile
-    dry_run: true
-    repo: videodev/video-transcoding-api
-  when:
-    event:
-    - pull_request
-  depends_on:
-  - build
 
 ...

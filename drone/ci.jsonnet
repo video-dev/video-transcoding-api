@@ -14,6 +14,20 @@ local test_dockerfile = {
   depends_on: ['clone'],
 };
 
+local test_ci_dockerfile = {
+  name: 'test-ci-dockerfile',
+  image: 'plugins/docker',
+  settings: {
+    repo: 'videodev/video-transcoding-api',
+    dockerfile: 'drone/Dockerfile',
+    dry_run: true,
+  },
+  when: {
+    event: ['pull_request'],
+  },
+  depends_on: ['build'],
+};
+
 local push_to_dockerhub = {
   name: 'build-and-push-to-dockerhub',
   image: 'plugins/docker',
@@ -53,6 +67,7 @@ local goreleaser = {
 
 local release_steps = [
   test_dockerfile,
+  test_ci_dockerfile,
   push_to_dockerhub,
   goreleaser,
 ];
@@ -98,20 +113,6 @@ local build(go_version) = {
   },
 };
 
-local test_ci_dockerfile = {
-  name: 'test-ci-dockerfile',
-  image: 'plugins/docker',
-  settings: {
-    repo: 'videodev/video-transcoding-api',
-    dockerfile: 'drone/Dockerfile',
-    dry_run: true,
-  },
-  when: {
-    event: ['pull_request'],
-  },
-  depends_on: ['build'],
-};
-
 local pipeline(go_version) = {
   kind: 'pipeline',
   name: 'go-%(go_version)s' % { go_version: go_version },
@@ -124,7 +125,6 @@ local pipeline(go_version) = {
     coverage(go_version),
     lint,
     build(go_version),
-    test_ci_dockerfile,
   ] + if go_version == go_versions[0] then release_steps else [],
 };
 
