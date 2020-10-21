@@ -229,6 +229,7 @@ func (p *bitmovinProvider) createH264VideoPreset(preset db.Preset, customData ma
 		h264.MaxGOP = intToPtr(int64(gopSize))
 		if preset.Video.GopMode == "fixed" {
 			h264.MinGOP = intToPtr(int64(gopSize))
+			h264.SceneCutThreshold = intToPtr(int64(0))
 		}
 	}
 	if preset.Video.BFrames != "" {
