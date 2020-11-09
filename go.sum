@@ -150,6 +150,7 @@ github.com/google/gops v0.3.11 h1:TJThjZOyavVoT7C+tkjLMzcUGud9WiWHKPLRCcd2Sro=
 github.com/google/gops v0.3.11/go.mod h1:38bMPVKFh+1X106CPpbLAWtZIR1+xwgzT9gew0kn6w4=
 github.com/google/gops v0.3.12 h1:aDEe2KOOYPOOcvhmCzmlrO9YJbLVJIe0ilqlzDrH+eA=
 github.com/google/gops v0.3.12/go.mod h1:38bMPVKFh+1X106CPpbLAWtZIR1+xwgzT9gew0kn6w4=
+github.com/google/gops v0.3.13/go.mod h1:38bMPVKFh+1X106CPpbLAWtZIR1+xwgzT9gew0kn6w4=
 github.com/google/martian v2.1.0+incompatible/go.mod h1:9I4somxYTbIHy5NJKHRl3wXiIaQGbYVAs8BPL6v8lEs=
 github.com/google/pprof v0.0.0-20181206194817-3ea8567a2e57/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
 github.com/google/pprof v0.0.0-20190515194954-54271f7e092f/go.mod h1:zfwlbNMJ+OItoe0UupaVj+oy1omPYYDuagoSzA8v9mc=
