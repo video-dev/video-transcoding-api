@@ -8,7 +8,7 @@ require (
 	github.com/fsouza/ctxlogger v1.5.9
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.2
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/google/go-cmp v0.5.2
+	github.com/google/go-cmp v0.5.4
 	github.com/google/gops v0.3.12
 	github.com/gorilla/handlers v1.5.1
 	github.com/hybrik/hybrik-sdk-go v0.0.0-20170516091026-c2eee0e66af9
