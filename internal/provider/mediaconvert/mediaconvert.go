@@ -8,7 +8,8 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
 	"github.com/pkg/errors"
 	"github.com/video-dev/video-transcoding-api/v2/config"
@@ -28,7 +29,7 @@ func init() {
 }
 
 type mediaconvertClient interface {
-	CreateJobRequest(*mediaconvert.CreateJobInput) mediaconvert.CreateJobRequest
+	CreateJob(*mediaconvert.CreateJobInput) mediaconvert.CreateJobRequest
 	GetJobRequest(*mediaconvert.GetJobInput) mediaconvert.GetJobRequest
 	ListJobsRequest(*mediaconvert.ListJobsInput) mediaconvert.ListJobsRequest
 	CancelJobRequest(*mediaconvert.CancelJobInput) mediaconvert.CancelJobRequest
@@ -72,7 +73,7 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		},
 	}
 
-	resp, err := p.client.CreateJobRequest(&createJobInput).Send(context.Background())
+	resp, err := p.client.CreateJob(&createJobInput).Send(context.Background())
 	if err != nil {
 		return nil, err
 	}
@@ -372,13 +373,13 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		return nil, errors.New("incomplete MediaConvert config")
 	}
 
-	mcCfg, err := external.LoadDefaultAWSConfig()
+	mcCfg, err := awsConfig.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, errors.Wrap(err, "loading default aws config")
 	}
 
 	if cfg.MediaConvert.AccessKeyID+cfg.MediaConvert.SecretAccessKey != "" {
-		mcCfg.Credentials = &aws.StaticCredentialsProvider{Value: aws.Credentials{
+		mcCfg.Credentials = &credentials.StaticCredentialsProvider{Value: aws.Credentials{
 			AccessKeyID:     cfg.MediaConvert.AccessKeyID,
 			SecretAccessKey: cfg.MediaConvert.SecretAccessKey,
 		}}

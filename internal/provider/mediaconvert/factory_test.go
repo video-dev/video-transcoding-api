@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
 	"github.com/google/go-cmp/cmp"
 	"github.com/video-dev/video-transcoding-api/v2/config"
@@ -68,7 +68,6 @@ func Test_mediaconvertFactory(t *testing.T) {
 			wantCreds: aws.Credentials{
 				AccessKeyID:     "env_access_key_id",
 				SecretAccessKey: "env_secret_access_key",
-				Source:          external.CredentialsSourceName,
 			},
 			wantRegion: "us-north-1",
 		},
