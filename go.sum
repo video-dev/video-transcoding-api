@@ -97,6 +97,7 @@ github.com/fsouza/ctxlogger v1.5.9 h1:eAAwzLfEP7KVcIWMcH4rjAkgqKjPdVm/wOg9vagKi8
 github.com/fsouza/ctxlogger v1.5.9/go.mod h1:NVINFpvPGVH8Y9tPzRI1xKVjZkQvVrFiGmowTgKAtjM=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.2 h1:CEiwM8W3wqhB9BQxZrZJzVt6p9Nd3TgW3XxXLdm+mOs=
 github.com/fsouza/gizmo-stackdriver-logging v1.3.2/go.mod h1:cvIA5UbpvKN+pZir82dMhwPouAmytECQHrCDfdXbpow=
+github.com/fsouza/gizmo-stackdriver-logging v1.3.3/go.mod h1:2fxEJqLee5WN45HJ0AvLIF/4Xhibi1quELjm6N3i7Nk=
 github.com/go-gl/glfw v0.0.0-20190409004039-e6da0acd62b1/go.mod h1:vR7hzQXu2zJy9AVAgeJqvqgH9Q5CA+iKCZ2gyEVpxRU=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20191125211704-12ad95a8df72/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
 github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200222043503-6f7a984d4dc4/go.mod h1:tQ2UAYgL5IevRw8kRxooKSPJfGvJ9fJQFa0TUsXzTg8=
@@ -146,6 +147,7 @@ github.com/google/go-cmp v0.4.0/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/
 github.com/google/go-cmp v0.4.1/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/go-cmp v0.5.2 h1:X2ev0eStA3AbceY54o37/0PQ/UWqKEiiO2dKL5OPaFM=
 github.com/google/go-cmp v0.5.2/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
+github.com/google/go-cmp v0.5.4/go.mod h1:v8dTdLbMG2kIc/vJvl+f65V22dbkXbowE6jgT/gNBxE=
 github.com/google/gops v0.3.11 h1:TJThjZOyavVoT7C+tkjLMzcUGud9WiWHKPLRCcd2Sro=
 github.com/google/gops v0.3.11/go.mod h1:38bMPVKFh+1X106CPpbLAWtZIR1+xwgzT9gew0kn6w4=
 github.com/google/gops v0.3.12 h1:aDEe2KOOYPOOcvhmCzmlrO9YJbLVJIe0ilqlzDrH+eA=
