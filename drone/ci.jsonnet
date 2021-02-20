@@ -1,19 +1,6 @@
 // the first version is used to build the binary that gets shipped to Docker Hub.
 local go_versions = ['1.16', '1.15.8'];
 
-local test_dockerfile = {
-  name: 'test-dockerfile',
-  image: 'plugins/docker',
-  settings: {
-    repo: 'videodev/video-transcoding-api',
-    dry_run: true,
-  },
-  when: {
-    event: ['push', 'pull_request'],
-  },
-  depends_on: ['clone'],
-};
-
 local test_ci_dockerfile = {
   name: 'test-ci-dockerfile',
   image: 'plugins/docker',
@@ -66,7 +53,6 @@ local goreleaser = {
 };
 
 local release_steps = [
-  test_dockerfile,
   test_ci_dockerfile,
   push_to_dockerhub,
   goreleaser,

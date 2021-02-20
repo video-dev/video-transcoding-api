@@ -52,18 +52,6 @@ steps:
   depends_on:
   - mod-download
 
-- name: test-dockerfile
-  image: plugins/docker
-  settings:
-    dry_run: true
-    repo: videodev/video-transcoding-api
-  when:
-    event:
-    - push
-    - pull_request
-  depends_on:
-  - clone
-
 - name: test-ci-dockerfile
   image: plugins/docker
   settings:
