@@ -5,7 +5,7 @@ require (
 	github.com/NYTimes/gziphandler v1.1.1
 	github.com/aws/aws-sdk-go-v2 v0.24.0
 	github.com/bitmovin/bitmovin-go v1.29.0
-	github.com/fsouza/ctxlogger v1.5.11
+	github.com/fsouza/ctxlogger v1.5.12
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.3
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/google/go-cmp v0.5.4
@@ -17,7 +17,7 @@ require (
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.7.0
+	github.com/sirupsen/logrus v1.7.1
 	github.com/video-dev/go-elementalconductor v1.1.0
 	github.com/video-dev/go-encodingcom v1.0.0
 	github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382
