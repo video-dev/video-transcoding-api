@@ -1,6 +1,8 @@
 ---
+# DO NOT MODIFY - AUTO GENERATED
+
 kind: pipeline
-name: go-1.15
+name: go-1.16
 
 platform:
   os: linux
@@ -12,14 +14,14 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.15
+  image: golang:1.16
   commands:
   - go mod download
   depends_on:
   - clone
 
 - name: coverage
-  image: golang:1.15
+  image: golang:1.16
   commands:
   - apt update
   - apt install -y redis-server
@@ -37,7 +39,7 @@ steps:
   - mod-download
 
 - name: build
-  image: golang:1.15
+  image: golang:1.16
   commands:
   - make build
   environment:
@@ -110,7 +112,7 @@ steps:
 
 ---
 kind: pipeline
-name: go-1.14.7
+name: go-1.15.8
 
 platform:
   os: linux
@@ -122,14 +124,14 @@ workspace:
 
 steps:
 - name: mod-download
-  image: golang:1.14.7
+  image: golang:1.15.8
   commands:
   - go mod download
   depends_on:
   - clone
 
 - name: coverage
-  image: golang:1.14.7
+  image: golang:1.15.8
   commands:
   - apt update
   - apt install -y redis-server
@@ -147,7 +149,7 @@ steps:
   - mod-download
 
 - name: build
-  image: golang:1.14.7
+  image: golang:1.15.8
   commands:
   - make build
   environment:
