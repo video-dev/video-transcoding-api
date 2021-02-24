@@ -8,8 +8,10 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
+	awsConfig "github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
+	"github.com/aws/aws-sdk-go-v2/service/mediaconvert/types"
 	"github.com/pkg/errors"
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	"github.com/video-dev/video-transcoding-api/v2/db"
@@ -28,13 +30,13 @@ func init() {
 }
 
 type mediaconvertClient interface {
-	CreateJobRequest(*mediaconvert.CreateJobInput) mediaconvert.CreateJobRequest
-	GetJobRequest(*mediaconvert.GetJobInput) mediaconvert.GetJobRequest
-	ListJobsRequest(*mediaconvert.ListJobsInput) mediaconvert.ListJobsRequest
-	CancelJobRequest(*mediaconvert.CancelJobInput) mediaconvert.CancelJobRequest
-	CreatePresetRequest(*mediaconvert.CreatePresetInput) mediaconvert.CreatePresetRequest
-	GetPresetRequest(*mediaconvert.GetPresetInput) mediaconvert.GetPresetRequest
-	DeletePresetRequest(*mediaconvert.DeletePresetInput) mediaconvert.DeletePresetRequest
+	CreateJob(context.Context, *mediaconvert.CreateJobInput, ...func(*mediaconvert.Options)) (*mediaconvert.CreateJobOutput, error)
+	GetJob(context.Context, *mediaconvert.GetJobInput, ...func(*mediaconvert.Options)) (*mediaconvert.GetJobOutput, error)
+	ListJobs(context.Context, *mediaconvert.ListJobsInput, ...func(*mediaconvert.Options)) (*mediaconvert.ListJobsOutput, error)
+	CancelJob(context.Context, *mediaconvert.CancelJobInput, ...func(*mediaconvert.Options)) (*mediaconvert.CancelJobOutput, error)
+	CreatePreset(context.Context, *mediaconvert.CreatePresetInput, ...func(*mediaconvert.Options)) (*mediaconvert.CreatePresetOutput, error)
+	GetPreset(context.Context, *mediaconvert.GetPresetInput, ...func(*mediaconvert.Options)) (*mediaconvert.GetPresetOutput, error)
+	DeletePreset(context.Context, *mediaconvert.DeletePresetInput, ...func(*mediaconvert.Options)) (*mediaconvert.DeletePresetOutput, error)
 }
 
 type mcProvider struct {
@@ -56,15 +58,15 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	createJobInput := mediaconvert.CreateJobInput{
 		Queue: aws.String(p.cfg.Queue),
 		Role:  aws.String(p.cfg.Role),
-		Settings: &mediaconvert.JobSettings{
-			Inputs: []mediaconvert.Input{
+		Settings: &types.JobSettings{
+			Inputs: []types.Input{
 				{
 					FileInput: aws.String(job.SourceMedia),
-					AudioSelectors: map[string]mediaconvert.AudioSelector{
-						"Audio Selector 1": {DefaultSelection: mediaconvert.AudioDefaultSelectionDefault},
+					AudioSelectors: map[string]types.AudioSelector{
+						"Audio Selector 1": {DefaultSelection: types.AudioDefaultSelectionDefault},
 					},
-					VideoSelector: &mediaconvert.VideoSelector{
-						ColorSpace: mediaconvert.ColorSpaceFollow,
+					VideoSelector: &types.VideoSelector{
+						ColorSpace: types.ColorSpaceFollow,
 					},
 				},
 			},
@@ -72,20 +74,20 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 		},
 	}
 
-	resp, err := p.client.CreateJobRequest(&createJobInput).Send(context.Background())
+	resp, err := p.client.CreateJob(context.Background(), &createJobInput)
 	if err != nil {
 		return nil, err
 	}
 	return &provider.JobStatus{
 		ProviderName:  Name,
-		ProviderJobID: aws.StringValue(resp.Job.Id),
+		ProviderJobID: *resp.Job.Id,
 		Status:        provider.StatusQueued,
 	}, nil
 }
 
-func (p *mcProvider) outputPresetsFrom(outputs []db.TranscodeOutput) (map[string]mediaconvert.Preset, error) {
+func (p *mcProvider) outputPresetsFrom(outputs []db.TranscodeOutput) (map[string]types.Preset, error) {
 	presetCh := make(chan *presetResult)
-	presets := map[string]mediaconvert.Preset{}
+	presets := map[string]types.Preset{}
 
 	var wg sync.WaitGroup
 	for _, output := range outputs {
@@ -114,8 +116,8 @@ func (p *mcProvider) outputPresetsFrom(outputs []db.TranscodeOutput) (map[string
 	return presets, nil
 }
 
-func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]mediaconvert.Preset) ([]mediaconvert.OutputGroup, error) {
-	outputGroups := map[mediaconvert.ContainerType][]db.TranscodeOutput{}
+func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]types.Preset) ([]types.OutputGroup, error) {
+	outputGroups := map[types.ContainerType][]db.TranscodeOutput{}
 	for _, output := range job.Outputs {
 		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
@@ -131,11 +133,11 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]mediaconve
 		outputGroups[container] = append(outputGroups[container], output)
 	}
 
-	mcOutputGroups := []mediaconvert.OutputGroup{}
+	mcOutputGroups := []types.OutputGroup{}
 	for container, outputs := range outputGroups {
-		mcOutputGroup := mediaconvert.OutputGroup{}
+		mcOutputGroup := types.OutputGroup{}
 
-		var mcOutputs []mediaconvert.Output
+		var mcOutputs []types.Output
 		for _, output := range outputs {
 			presetID, ok := output.Preset.ProviderMapping[Name]
 			if !ok {
@@ -146,7 +148,7 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]mediaconve
 			filename := strings.Replace(path.Base(output.FileName), rawExtension, "", 1)
 			extension := strings.Replace(rawExtension, ".", "", -1)
 
-			mcOutputs = append(mcOutputs, mediaconvert.Output{
+			mcOutputs = append(mcOutputs, types.Output{
 				Preset:       aws.String(presetID),
 				NameModifier: aws.String(filename),
 				Extension:    aws.String(extension),
@@ -157,23 +159,23 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]mediaconve
 		destination := destinationPathFrom(p.cfg.Destination, job.ID)
 
 		switch container {
-		case mediaconvert.ContainerTypeM3u8:
-			mcOutputGroup.OutputGroupSettings = &mediaconvert.OutputGroupSettings{
-				Type: mediaconvert.OutputGroupTypeHlsGroupSettings,
-				HlsGroupSettings: &mediaconvert.HlsGroupSettings{
+		case types.ContainerTypeM3u8:
+			mcOutputGroup.OutputGroupSettings = &types.OutputGroupSettings{
+				Type: types.OutputGroupTypeHlsGroupSettings,
+				HlsGroupSettings: &types.HlsGroupSettings{
 					Destination:            aws.String(destination),
-					SegmentLength:          aws.Int64(int64(job.StreamingParams.SegmentDuration)),
-					MinSegmentLength:       aws.Int64(0),
-					DirectoryStructure:     mediaconvert.HlsDirectoryStructureSingleDirectory,
-					ManifestDurationFormat: mediaconvert.HlsManifestDurationFormatFloatingPoint,
-					OutputSelection:        mediaconvert.HlsOutputSelectionManifestsAndSegments,
-					SegmentControl:         mediaconvert.HlsSegmentControlSegmentedFiles,
+					SegmentLength:          int32(job.StreamingParams.SegmentDuration),
+					MinSegmentLength:       0,
+					DirectoryStructure:     types.HlsDirectoryStructureSingleDirectory,
+					ManifestDurationFormat: types.HlsManifestDurationFormatFloatingPoint,
+					OutputSelection:        types.HlsOutputSelectionManifestsAndSegments,
+					SegmentControl:         types.HlsSegmentControlSegmentedFiles,
 				},
 			}
-		case mediaconvert.ContainerTypeMp4:
-			mcOutputGroup.OutputGroupSettings = &mediaconvert.OutputGroupSettings{
-				Type: mediaconvert.OutputGroupTypeFileGroupSettings,
-				FileGroupSettings: &mediaconvert.FileGroupSettings{
+		case types.ContainerTypeMp4:
+			mcOutputGroup.OutputGroupSettings = &types.OutputGroupSettings{
+				Type: types.OutputGroupTypeFileGroupSettings,
+				FileGroupSettings: &types.FileGroupSettings{
 					Destination: aws.String(destination),
 				},
 			}
@@ -193,7 +195,7 @@ func destinationPathFrom(destBase string, jobID string) string {
 
 type presetResult struct {
 	presetID string
-	preset   mediaconvert.Preset
+	preset   types.Preset
 	err      error
 }
 
@@ -231,16 +233,16 @@ func (p *mcProvider) CreatePreset(preset db.Preset) (string, error) {
 	presetInput := mediaconvert.CreatePresetInput{
 		Name:        &preset.Name,
 		Description: &preset.Description,
-		Settings: &mediaconvert.PresetSettings{
-			ContainerSettings: &mediaconvert.ContainerSettings{
+		Settings: &types.PresetSettings{
+			ContainerSettings: &types.ContainerSettings{
 				Container: container,
 			},
 			VideoDescription:  videoPreset,
-			AudioDescriptions: []mediaconvert.AudioDescription{*audioPreset},
+			AudioDescriptions: []types.AudioDescription{*audioPreset},
 		},
 	}
 
-	resp, err := p.client.CreatePresetRequest(&presetInput).Send(context.Background())
+	resp, err := p.client.CreatePreset(context.Background(), &presetInput)
 	if err != nil {
 		return "", err
 	}
@@ -260,32 +262,32 @@ func (p *mcProvider) GetPreset(presetID string) (interface{}, error) {
 	return preset, err
 }
 
-func (p *mcProvider) fetchPreset(presetID string) (mediaconvert.Preset, error) {
-	preset, err := p.client.GetPresetRequest(&mediaconvert.GetPresetInput{
+func (p *mcProvider) fetchPreset(presetID string) (types.Preset, error) {
+	preset, err := p.client.GetPreset(context.Background(), &mediaconvert.GetPresetInput{
 		Name: aws.String(presetID),
-	}).Send(context.Background())
+	})
 	if err != nil {
-		return mediaconvert.Preset{}, err
+		return types.Preset{}, err
 	}
 	if preset == nil || preset.Preset == nil {
-		return mediaconvert.Preset{}, fmt.Errorf("unexpected response from MediaConvert: %v", preset)
+		return types.Preset{}, fmt.Errorf("unexpected response from MediaConvert: %v", preset)
 	}
 
 	return *preset.Preset, err
 }
 
 func (p *mcProvider) DeletePreset(presetID string) error {
-	_, err := p.client.DeletePresetRequest(&mediaconvert.DeletePresetInput{
+	_, err := p.client.DeletePreset(context.Background(), &mediaconvert.DeletePresetInput{
 		Name: aws.String(presetID),
-	}).Send(context.Background())
+	})
 
 	return err
 }
 
 func (p *mcProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
-	jobResp, err := p.client.GetJobRequest(&mediaconvert.GetJobInput{
+	jobResp, err := p.client.GetJob(context.Background(), &mediaconvert.GetJobInput{
 		Id: aws.String(job.ProviderJobID),
-	}).Send(context.Background())
+	})
 	if err != nil {
 		return &provider.JobStatus{}, errors.Wrap(err, "fetching job info with the mediaconvert API")
 	}
@@ -293,7 +295,7 @@ func (p *mcProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	return p.jobStatusFrom(job.ProviderJobID, job.ID, jobResp.Job), nil
 }
 
-func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *mediaconvert.Job) *provider.JobStatus {
+func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *types.Job) *provider.JobStatus {
 	status := &provider.JobStatus{
 		ProviderJobID: providerJobID,
 		ProviderName:  Name,
@@ -306,8 +308,8 @@ func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *medi
 
 	if status.Status == provider.StatusFinished {
 		status.Progress = 100
-	} else if p := job.JobPercentComplete; p != nil {
-		status.Progress = float64(*p)
+	} else {
+		status.Progress = float64(job.JobPercentComplete)
 	}
 
 	var files []provider.OutputFile
@@ -317,17 +319,10 @@ func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *medi
 				continue
 			}
 
-			file := provider.OutputFile{}
-
-			if height := outputDetails.VideoDetails.HeightInPx; height != nil {
-				file.Height = *height
-			}
-
-			if width := outputDetails.VideoDetails.WidthInPx; width != nil {
-				file.Width = *width
-			}
-
-			files = append(files, file)
+			files = append(files, provider.OutputFile{
+				Height: int64(outputDetails.VideoDetails.HeightInPx),
+				Width:  int64(outputDetails.VideoDetails.WidthInPx),
+			})
 		}
 	}
 	status.Output.Files = files
@@ -335,7 +330,7 @@ func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *medi
 	return status
 }
 
-func statusMsgFrom(job *mediaconvert.Job) string {
+func statusMsgFrom(job *types.Job) string {
 	if job.ErrorMessage != nil {
 		return *job.ErrorMessage
 	}
@@ -344,15 +339,15 @@ func statusMsgFrom(job *mediaconvert.Job) string {
 }
 
 func (p *mcProvider) CancelJob(id string) error {
-	_, err := p.client.CancelJobRequest(&mediaconvert.CancelJobInput{
+	_, err := p.client.CancelJob(context.Background(), &mediaconvert.CancelJobInput{
 		Id: aws.String(id),
-	}).Send(context.Background())
+	})
 
 	return err
 }
 
 func (p *mcProvider) Healthcheck() error {
-	_, err := p.client.ListJobsRequest(nil).Send(context.Background())
+	_, err := p.client.ListJobs(context.Background(), nil)
 	if err != nil {
 		return errors.Wrap(err, "listing jobs")
 	}
@@ -372,13 +367,13 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		return nil, errors.New("incomplete MediaConvert config")
 	}
 
-	mcCfg, err := external.LoadDefaultAWSConfig()
+	mcCfg, err := awsConfig.LoadDefaultConfig(context.Background())
 	if err != nil {
 		return nil, errors.Wrap(err, "loading default aws config")
 	}
 
 	if cfg.MediaConvert.AccessKeyID+cfg.MediaConvert.SecretAccessKey != "" {
-		mcCfg.Credentials = &aws.StaticCredentialsProvider{Value: aws.Credentials{
+		mcCfg.Credentials = &credentials.StaticCredentialsProvider{Value: aws.Credentials{
 			AccessKeyID:     cfg.MediaConvert.AccessKeyID,
 			SecretAccessKey: cfg.MediaConvert.SecretAccessKey,
 		}}
@@ -388,12 +383,11 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		mcCfg.Region = cfg.MediaConvert.Region
 	}
 
-	mcCfg.EndpointResolver = &aws.ResolveWithEndpoint{
-		URL: cfg.MediaConvert.Endpoint,
-	}
-
 	return &mcProvider{
-		client: mediaconvert.New(mcCfg),
-		cfg:    cfg.MediaConvert,
+		client: mediaconvert.New(mediaconvert.Options{
+			EndpointResolver: mediaconvert.EndpointResolverFromURL(cfg.MediaConvert.Endpoint),
+			Region:           cfg.MediaConvert.Region,
+		}),
+		cfg: cfg.MediaConvert,
 	}, nil
 }

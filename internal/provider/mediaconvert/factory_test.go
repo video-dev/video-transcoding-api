@@ -1,15 +1,10 @@
 package mediaconvert
 
 import (
-	"context"
 	"os"
-	"reflect"
 	"testing"
 
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/aws/external"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
-	"github.com/google/go-cmp/cmp"
 	"github.com/video-dev/video-transcoding-api/v2/config"
 )
 
@@ -37,8 +32,6 @@ func Test_mediaconvertFactory(t *testing.T) {
 		name       string
 		envVars    map[string]string
 		cfg        config.Config
-		wantCreds  aws.Credentials
-		wantRegion string
 		wantErrMsg string
 	}{
 		{
@@ -49,12 +42,6 @@ func Test_mediaconvertFactory(t *testing.T) {
 				"AWS_DEFAULT_REGION":    "us-north-1",
 			},
 			cfg: cfgWithCredsAndRegion,
-			wantCreds: aws.Credentials{
-				AccessKeyID:     "cfg_access_key_id",
-				SecretAccessKey: "cfg_secret_access_key",
-				Source:          aws.StaticCredentialsProviderName,
-			},
-			wantRegion: "us-cfg-region-1",
 		},
 		{
 			name: "when a config does not specify aws credentials or region, credentials and region are loaded " +
@@ -65,12 +52,6 @@ func Test_mediaconvertFactory(t *testing.T) {
 				"AWS_DEFAULT_REGION":    "us-north-1",
 			},
 			cfg: cfgWithoutCredsAndRegion,
-			wantCreds: aws.Credentials{
-				AccessKeyID:     "env_access_key_id",
-				SecretAccessKey: "env_secret_access_key",
-				Source:          external.CredentialsSourceName,
-			},
-			wantRegion: "us-north-1",
 		},
 		{
 			name:       "an incomplete cfg results in an error returned",
@@ -104,24 +85,10 @@ func Test_mediaconvertFactory(t *testing.T) {
 				return
 			}
 
-			client, ok := p.client.(*mediaconvert.Client)
+			_, ok = p.client.(*mediaconvert.Client)
 			if !ok {
 				t.Error("factory returned a mediaconvert provider with a non-aws client implementation")
 				return
-			}
-
-			creds, err := client.Credentials.Retrieve(context.TODO())
-			if err != nil {
-				t.Errorf("error retrieving aws credentials: %v", err)
-			}
-
-			if g, e := creds, tt.wantCreds; !reflect.DeepEqual(g, e) {
-				t.Errorf("unexpected credentials\nWant %+v\nGot %+v\nDiff %s",
-					e, g, cmp.Diff(e, g))
-			}
-
-			if g, e := client.Config.Region, tt.wantRegion; g != e {
-				t.Errorf("expected region %q, got %q", e, g)
 			}
 		})
 	}
