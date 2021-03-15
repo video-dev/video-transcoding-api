@@ -20,7 +20,7 @@ require (
 	github.com/onsi/ginkgo v1.8.0 // indirect
 	github.com/onsi/gomega v1.5.0 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/sirupsen/logrus v1.8.0
+	github.com/sirupsen/logrus v1.8.1
 	github.com/video-dev/go-elementalconductor v1.1.0
 	github.com/video-dev/go-encodingcom v1.0.0
 	github.com/video-dev/zencoder v0.0.0-20161215190743-745874544382
