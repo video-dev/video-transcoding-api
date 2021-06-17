@@ -387,6 +387,7 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		client: mediaconvert.New(mediaconvert.Options{
 			EndpointResolver: mediaconvert.EndpointResolverFromURL(cfg.MediaConvert.Endpoint),
 			Region:           cfg.MediaConvert.Region,
+			Credentials: mcCfg.Credentials,
 		}),
 		cfg: cfg.MediaConvert,
 	}, nil
