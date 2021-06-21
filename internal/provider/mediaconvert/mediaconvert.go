@@ -150,7 +150,7 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]types.Pres
 
 			mcOutputs = append(mcOutputs, types.Output{
 				Preset:       aws.String(presetID),
-				NameModifier: aws.String(filename),
+				NameModifier: aws.String("_" + filename),
 				Extension:    aws.String(extension),
 			})
 		}
@@ -163,9 +163,9 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]types.Pres
 			mcOutputGroup.OutputGroupSettings = &types.OutputGroupSettings{
 				Type: types.OutputGroupTypeHlsGroupSettings,
 				HlsGroupSettings: &types.HlsGroupSettings{
-					Destination:            aws.String(destination),
+					Destination:            aws.String(destination + "/hls/video"),
 					SegmentLength:          int32(job.StreamingParams.SegmentDuration),
-					MinSegmentLength:       0,
+					MinSegmentLength:       1,
 					DirectoryStructure:     types.HlsDirectoryStructureSingleDirectory,
 					ManifestDurationFormat: types.HlsManifestDurationFormatFloatingPoint,
 					OutputSelection:        types.HlsOutputSelectionManifestsAndSegments,
@@ -288,6 +288,7 @@ func (p *mcProvider) JobStatus(job *db.Job) (*provider.JobStatus, error) {
 	jobResp, err := p.client.GetJob(context.Background(), &mediaconvert.GetJobInput{
 		Id: aws.String(job.ProviderJobID),
 	})
+
 	if err != nil {
 		return &provider.JobStatus{}, errors.Wrap(err, "fetching job info with the mediaconvert API")
 	}
@@ -322,6 +323,7 @@ func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *type
 			files = append(files, provider.OutputFile{
 				Height: int64(outputDetails.VideoDetails.HeightInPx),
 				Width:  int64(outputDetails.VideoDetails.WidthInPx),
+				Path:   jobID + "/hls/index.m3u8",
 			})
 		}
 	}
@@ -387,6 +389,7 @@ func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, erro
 		client: mediaconvert.New(mediaconvert.Options{
 			EndpointResolver: mediaconvert.EndpointResolverFromURL(cfg.MediaConvert.Endpoint),
 			Region:           cfg.MediaConvert.Region,
+			Credentials: mcCfg.Credentials,
 		}),
 		cfg: cfg.MediaConvert,
 	}, nil
