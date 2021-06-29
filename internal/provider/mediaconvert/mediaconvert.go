@@ -163,7 +163,7 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]types.Pres
 			mcOutputGroup.OutputGroupSettings = &types.OutputGroupSettings{
 				Type: types.OutputGroupTypeHlsGroupSettings,
 				HlsGroupSettings: &types.HlsGroupSettings{
-					Destination:            aws.String(destination + "/hls/video"),
+					Destination:            aws.String(destination + "/hls/index"),
 					SegmentLength:          int32(job.StreamingParams.SegmentDuration),
 					MinSegmentLength:       1,
 					DirectoryStructure:     types.HlsDirectoryStructureSingleDirectory,
@@ -177,6 +177,13 @@ func (p *mcProvider) outputGroupsFrom(job *db.Job, presets map[string]types.Pres
 				Type: types.OutputGroupTypeFileGroupSettings,
 				FileGroupSettings: &types.FileGroupSettings{
 					Destination: aws.String(destination),
+				},
+			}
+		case types.ContainerTypeRaw:
+			mcOutputGroup.OutputGroupSettings = &types.OutputGroupSettings{
+				Type: types.OutputGroupTypeFileGroupSettings,
+				FileGroupSettings: &types.FileGroupSettings{
+					Destination: aws.String(destination + "/thumb/thumbnail"),
 				},
 			}
 		default:
@@ -215,6 +222,19 @@ func (p *mcProvider) makeGetPresetRequest(presetID string, ch chan *presetResult
 }
 
 func (p *mcProvider) CreatePreset(preset db.Preset) (string, error) {
+
+	if preset.Video != (db.VideoPreset{}) {
+		// call video function
+		return p.CreateVideoPreset(preset)
+	} else if preset.Thumbnail != (db.ThumbnailPreset{}) {
+		return p.CreateThumbnailPreset(preset)
+	}
+
+	return "", fmt.Errorf("missing video description settings")
+}
+
+func (p *mcProvider) CreateVideoPreset(preset db.Preset) (string, error) {
+	
 	container, err := containerFrom(preset.Container)
 	if err != nil {
 		return "", errors.Wrap(err, "mapping preset container to MediaConvert container")
@@ -224,7 +244,7 @@ func (p *mcProvider) CreatePreset(preset db.Preset) (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "generating video preset")
 	}
-
+	
 	audioPreset, err := audioPresetFrom(preset)
 	if err != nil {
 		return "", errors.Wrap(err, "generating audio preset")
@@ -251,7 +271,44 @@ func (p *mcProvider) CreatePreset(preset db.Preset) (string, error) {
 	}
 
 	return *resp.Preset.Name, nil
+	
+
 }
+
+func (p *mcProvider) CreateThumbnailPreset(preset db.Preset) (string, error) {
+
+	container, err := containerFrom(preset.Container)
+	if err != nil {
+		return "", errors.Wrap(err, "mapping preset container to MediaConvert container")
+	}
+
+	thumbnailPreset, err := thumbnailPresetFrom(preset)
+	if err != nil {
+		return "", errors.Wrap(err, "generating thumbnail preset")
+	}
+
+	presetInput := mediaconvert.CreatePresetInput{
+						Name:        &preset.Name,
+						Description: &preset.Description,
+						Settings: &types.PresetSettings{
+							ContainerSettings: &types.ContainerSettings{
+								Container: container,
+							},
+							VideoDescription:  thumbnailPreset,
+						},
+					}
+
+	resp, err := p.client.CreatePreset(context.Background(), &presetInput)
+	if err != nil {
+		return "", err
+	}
+	if resp == nil || resp.Preset == nil || resp.Preset.Name == nil {
+		return "", fmt.Errorf("unexpected response from MediaConvert: %v", resp)
+	}
+
+	return *resp.Preset.Name, nil
+}
+
 
 func (p *mcProvider) GetPreset(presetID string) (interface{}, error) {
 	preset, err := p.fetchPreset(presetID)
@@ -321,9 +378,10 @@ func (p *mcProvider) jobStatusFrom(providerJobID string, jobID string, job *type
 			}
 
 			files = append(files, provider.OutputFile{
-				Height: int64(outputDetails.VideoDetails.HeightInPx),
-				Width:  int64(outputDetails.VideoDetails.WidthInPx),
-				Path:   jobID + "/hls/index.m3u8",
+				Height: 	int64(outputDetails.VideoDetails.HeightInPx),
+				Width:  	int64(outputDetails.VideoDetails.WidthInPx),
+				Path:   	jobID + "/hls/index.m3u8",
+				Thumbnail:  jobID + "/thumb/thumbnail_",
 			})
 		}
 	}

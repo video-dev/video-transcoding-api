@@ -35,6 +35,8 @@ func containerFrom(container string) (types.ContainerType, error) {
 		return types.ContainerTypeM3u8, nil
 	case "mp4":
 		return types.ContainerTypeMp4, nil
+	case "none":
+		return types.ContainerTypeRaw, nil
 	default:
 		return "", fmt.Errorf("container %q not supported with mediaconvert", container)
 	}
@@ -117,6 +119,65 @@ func h264InterlaceModeFrom(mode string) (types.H264InterlaceMode, error) {
 	default:
 		return "", fmt.Errorf("h264 interlace mode %q is not supported with mediaconvert", mode)
 	}
+}
+
+func thumbnailPresetFrom(preset db.Preset) (*types.VideoDescription, error) {
+
+	thumbnailPreset := types.VideoDescription{}
+	
+	if preset.Thumbnail.Width != "" {
+		width, err := strconv.ParseInt(preset.Thumbnail.Width, 10, 32)
+		if err != nil {
+			return nil, errors.Wrapf(err, "parsing thumbnail width %q to int32", preset.Thumbnail.Width)
+		}
+		thumbnailPreset.Width = int32(width)
+	}
+
+	if preset.Thumbnail.Height != "" {
+		height, err := strconv.ParseInt(preset.Thumbnail.Height, 10, 32)
+		if err != nil {
+			return nil, errors.Wrapf(err, "parsing thumbnail width %q to int32", preset.Thumbnail.Height)
+		}
+		thumbnailPreset.Height = int32(height)
+	}
+
+	codec := strings.ToLower(preset.Thumbnail.Codec)
+	switch(codec){
+		case "frame_capture":
+			numerator, err := strconv.ParseInt(preset.Thumbnail.FrameCaptureNumerator, 10, 32)
+			if err != nil {
+				return nil, errors.Wrapf(err, "parsing video numerator %q to int32", preset.Thumbnail.FrameCaptureNumerator)
+			}
+
+			denominator, err := strconv.ParseInt(preset.Thumbnail.FrameCaptureDenominator, 10, 32)
+			if err != nil {
+				return nil, errors.Wrapf(err, "parsing video denominator %q to int32", preset.Thumbnail.FrameCaptureDenominator)
+			}
+
+			maxCaptures, err := strconv.ParseInt(preset.Thumbnail.MaxCaptures, 10, 32)
+			if err != nil {
+				return nil, errors.Wrapf(err, "parsing video maxCaptures %q to int32", preset.Thumbnail.MaxCaptures)
+			}
+
+			quality, err := strconv.ParseInt(preset.Thumbnail.Quality, 10, 32)
+			if err != nil {
+				return nil, errors.Wrapf(err, "parsing video quality %q to int32", preset.Thumbnail.Quality)
+			}
+
+			thumbnailPreset.CodecSettings = &types.VideoCodecSettings{
+				Codec: types.VideoCodecFrameCapture,
+				FrameCaptureSettings: &types.FrameCaptureSettings{
+					FramerateNumerator: int32(numerator),
+					FramerateDenominator: int32(denominator),
+					MaxCaptures: int32(maxCaptures),
+					Quality: int32(quality),
+				},
+			}
+		default:
+			return nil, fmt.Errorf("thumbnail codec %q is not yet supported with mediaconvert", codec)
+	}
+	
+	return &thumbnailPreset, nil
 }
 
 func videoPresetFrom(preset db.Preset) (*types.VideoDescription, error) {

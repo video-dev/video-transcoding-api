@@ -99,13 +99,14 @@ type LocalPreset struct {
 
 // Preset defines the set of parameters of a given preset
 type Preset struct {
-	Name        string      `json:"name,omitempty" redis-hash:"name"`
-	Description string      `json:"description,omitempty" redis-hash:"description,omitempty"`
-	Container   string      `json:"container,omitempty" redis-hash:"container,omitempty"`
-	RateControl string      `json:"rateControl,omitempty" redis-hash:"ratecontrol,omitempty"`
-	TwoPass     bool        `json:"twoPass" redis-hash:"twopass"`
-	Video       VideoPreset `json:"video" redis-hash:"video,expand"`
-	Audio       AudioPreset `json:"audio" redis-hash:"audio,expand"`
+	Name        string      		`json:"name,omitempty" redis-hash:"name"`
+	Description string      	`json:"description,omitempty" redis-hash:"description,omitempty"`
+	Container   string      	`json:"container,omitempty" redis-hash:"container,omitempty"`
+	RateControl string      	`json:"rateControl,omitempty" redis-hash:"ratecontrol,omitempty"`
+	TwoPass     bool        	`json:"twoPass" redis-hash:"twopass"`
+	Video       VideoPreset 	`json:"video" redis-hash:"video,expand"`
+	Audio       AudioPreset 	`json:"audio" redis-hash:"audio,expand"`
+	Thumbnail   ThumbnailPreset `json:"thumbnail" redis-hash:"thumbnail,expand"`
 }
 
 // VideoPreset defines the set of parameters for video on a given preset
@@ -126,6 +127,16 @@ type VideoPreset struct {
 type AudioPreset struct {
 	Codec   string `json:"codec,omitempty" redis-hash:"codec,omitempty"`
 	Bitrate string `json:"bitrate,omitempty" redis-hash:"bitrate,omitempty"`
+}
+
+type ThumbnailPreset struct {
+	Codec         			string `json:"codec,omitempty" redis-hash:"codec,omitempty"`
+	Width         			string `json:"width,omitempty" redis-hash:"width,omitempty"`
+	Height        			string `json:"height,omitempty" redis-hash:"height,omitempty"`
+	FrameCaptureNumerator   string `json:"frameCaptureNumerator,omitempty" redish-hash,omitempty`
+	FrameCaptureDenominator string `json:"frameCaptureDenominator,omitempty" redish-hash,omitempty`
+	Quality   				string `json:"frameCaptureQuality,omitempty" redish-hash,omitempty`
+	MaxCaptures   			string `json:"maxCaptures,omitempty" redish-hash,omitempty`
 }
 
 // PresetMap represents the preset that is persisted in the repository of the
