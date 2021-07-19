@@ -206,7 +206,6 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 	}
 
 	// create transcode elements for each target
-	// TODO: This can be optimized further with regards to combining tasks so that they run in the same machine. Requires some discussion
 	for _, output := range job.Outputs {
 		presetID, ok := output.Preset.ProviderMapping[Name]
 		if !ok {
@@ -303,7 +302,6 @@ func (hp *hybrikProvider) presetsToTranscodeJob(job *db.Job) (string, error) {
 				},
 			},
 		)
-
 	}
 
 	resp, err := json.Marshal(cj)
@@ -408,8 +406,6 @@ func (hp *hybrikProvider) CreatePreset(preset db.Preset) (string, error) {
 	videoProfile := strings.ToLower(preset.Video.Profile)
 	videoLevel := preset.Video.ProfileLevel
 
-	// TODO: Understand video-transcoding-api profile + level settings in relation to vp8
-	// For now, we will omit and leave to encoder defaults
 	if preset.Video.Codec == "vp8" {
 		videoProfile = ""
 		videoLevel = ""

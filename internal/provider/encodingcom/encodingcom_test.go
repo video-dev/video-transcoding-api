@@ -1001,7 +1001,6 @@ func TestCreatePreset(t *testing.T) {
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		pretty.Fdiff(os.Stderr, fakePreset.Request.Format[0], expectedFormat)
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
-
 	}
 }
 
@@ -1103,7 +1102,6 @@ func TestCreatePresetTwoPass(t *testing.T) {
 	if !reflect.DeepEqual(fakePreset.Request.Format[0], expectedFormat) {
 		pretty.Fdiff(os.Stderr, fakePreset.Request.Format[0], expectedFormat)
 		t.Errorf("wrong format provided\nWant %#v\nGot  %#v", expectedFormat, fakePreset.Request.Format[0])
-
 	}
 }
 
@@ -1218,7 +1216,12 @@ func TestPresetToFormat(t *testing.T) {
 	}
 	var p encodingComProvider
 	for _, test := range tests {
-		resultingFormat := p.presetToFormat(test.givenPreset)
+		resultingFormat, err := p.presetToFormat(test.givenPreset)
+
+		if err != nil {
+			t.Fatalf("Failed to convert preset to format: %#v", test.givenPreset)
+		}
+
 		if !reflect.DeepEqual(resultingFormat, test.expectedFormat) {
 			t.Errorf("%s: presetToFormat: wrong value. Want %#v. Got %#v", test.givenTestCase, test.expectedFormat, resultingFormat)
 			pretty.Fdiff(os.Stderr, resultingFormat, test.expectedFormat)

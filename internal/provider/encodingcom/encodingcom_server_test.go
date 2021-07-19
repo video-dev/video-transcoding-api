@@ -321,7 +321,7 @@ func convertFormat(format encodingcom.Format) encodingcom.PresetFormat {
 		Bframes:                 format.Bframes,
 		Gop:                     format.Gop,
 		Metadata:                format.Metadata,
-		SegmentDuration:         string(format.SegmentDuration),
+		SegmentDuration:         strconv.FormatUint(uint64(format.SegmentDuration), 10),
 		Logo:                    format.Logo,
 		VideoCodecParameters:    string(videoCodecParams),
 		Profile:                 format.Profile,

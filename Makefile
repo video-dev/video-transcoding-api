@@ -6,24 +6,13 @@ LOG_LEVEL ?= debug
 all: test
 
 testdeps:
-	GO111MODULE=off go get github.com/golangci/golangci-lint/cmd/golangci-lint
+	cd /tmp && GO111MODULE=on go get github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 	go mod download
 
 lint: testdeps runlint
 
 runlint:
-	golangci-lint run \
-		--enable-all \
-		-D errcheck \
-		-D lll \
-		-D gochecknoglobals \
-		-D goconst \
-		-D gocyclo \
-		-D dupl \
-		-D gocritic \
-		-D gochecknoinits \
-		-D unparam \
-		--deadline 5m ./...
+	golangci-lint run
 
 gotest:
 	go test -race -vet=all -mod=readonly $(GO_TEST_EXTRA_FLAGS) ./...

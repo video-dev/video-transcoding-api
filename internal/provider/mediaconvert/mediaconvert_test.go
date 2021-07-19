@@ -6,6 +6,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/mediaconvert"
+	"github.com/aws/aws-sdk-go-v2/service/mediaconvert/types"
 	"github.com/google/go-cmp/cmp"
 	"github.com/video-dev/video-transcoding-api/v2/config"
 	"github.com/video-dev/video-transcoding-api/v2/db"
@@ -28,6 +29,7 @@ var (
 			Bitrate:       "400000",
 			GopSize:       "120",
 			InterlaceMode: "progressive",
+			BFrames:       "3",
 		},
 		Audio: db.AudioPreset{
 			Codec:   "aac",
@@ -78,40 +80,41 @@ func Test_mcProvider_CreatePreset(t *testing.T) {
 			wantPresetReq: mediaconvert.CreatePresetInput{
 				Name:        aws.String("preset_name"),
 				Description: aws.String("test_desc"),
-				Settings: &mediaconvert.PresetSettings{
-					ContainerSettings: &mediaconvert.ContainerSettings{
-						Container: mediaconvert.ContainerTypeMp4,
+				Settings: &types.PresetSettings{
+					ContainerSettings: &types.ContainerSettings{
+						Container: types.ContainerTypeMp4,
 					},
-					VideoDescription: &mediaconvert.VideoDescription{
-						Height:            aws.Int64(400),
-						Width:             aws.Int64(300),
-						RespondToAfd:      mediaconvert.RespondToAfdNone,
-						ScalingBehavior:   mediaconvert.ScalingBehaviorDefault,
-						TimecodeInsertion: mediaconvert.VideoTimecodeInsertionDisabled,
-						AntiAlias:         mediaconvert.AntiAliasEnabled,
-						CodecSettings: &mediaconvert.VideoCodecSettings{
-							Codec: mediaconvert.VideoCodecH264,
-							H264Settings: &mediaconvert.H264Settings{
-								Bitrate:            aws.Int64(400000),
-								CodecLevel:         mediaconvert.H264CodecLevelLevel41,
-								CodecProfile:       mediaconvert.H264CodecProfileHigh,
-								InterlaceMode:      mediaconvert.H264InterlaceModeProgressive,
-								QualityTuningLevel: mediaconvert.H264QualityTuningLevelMultiPassHq,
-								RateControlMode:    mediaconvert.H264RateControlModeVbr,
-								GopSize:            aws.Float64(120),
+					VideoDescription: &types.VideoDescription{
+						Height:            400,
+						Width:             300,
+						RespondToAfd:      types.RespondToAfdNone,
+						ScalingBehavior:   types.ScalingBehaviorDefault,
+						TimecodeInsertion: types.VideoTimecodeInsertionDisabled,
+						AntiAlias:         types.AntiAliasEnabled,
+						CodecSettings: &types.VideoCodecSettings{
+							Codec: types.VideoCodecH264,
+							H264Settings: &types.H264Settings{
+								Bitrate:                             400000,
+								CodecLevel:                          types.H264CodecLevelLevel41,
+								CodecProfile:                        types.H264CodecProfileHigh,
+								InterlaceMode:                       types.H264InterlaceModeProgressive,
+								QualityTuningLevel:                  types.H264QualityTuningLevelMultiPassHq,
+								RateControlMode:                     types.H264RateControlModeVbr,
+								GopSize:                             120.,
+								NumberBFramesBetweenReferenceFrames: 3,
 							},
 						},
 					},
-					AudioDescriptions: []mediaconvert.AudioDescription{
+					AudioDescriptions: []types.AudioDescription{
 						{
-							CodecSettings: &mediaconvert.AudioCodecSettings{
-								Codec: mediaconvert.AudioCodecAac,
-								AacSettings: &mediaconvert.AacSettings{
-									Bitrate:         aws.Int64(20000),
-									CodecProfile:    mediaconvert.AacCodecProfileLc,
-									CodingMode:      mediaconvert.AacCodingModeCodingMode20,
-									RateControlMode: mediaconvert.AacRateControlModeCbr,
-									SampleRate:      aws.Int64(defaultAudioSampleRate),
+							CodecSettings: &types.AudioCodecSettings{
+								Codec: types.AudioCodecAac,
+								AacSettings: &types.AacSettings{
+									Bitrate:         20000,
+									CodecProfile:    types.AacCodecProfileLc,
+									CodingMode:      types.AacCodingModeCodingMode20,
+									RateControlMode: types.AacRateControlModeCbr,
+									SampleRate:      defaultAudioSampleRate,
 								},
 							},
 						},
@@ -153,7 +156,7 @@ func Test_mcProvider_CreatePreset_fields(t *testing.T) {
 				return p
 			},
 			assertion: func(input *mediaconvert.CreatePresetInput, t *testing.T) {
-				if g, e := input.Settings.ContainerSettings.Container, mediaconvert.ContainerTypeM3u8; g != e {
+				if g, e := input.Settings.ContainerSettings.Container, types.ContainerTypeM3u8; g != e {
 					t.Fatalf("got %q, expected %q", g, e)
 				}
 			},
@@ -196,7 +199,7 @@ func Test_mcProvider_CreatePreset_fields(t *testing.T) {
 				p.Video.Width = "s"
 				return p
 			},
-			wantErrMsg: `generating video preset: parsing video width "s" to int64: strconv.ParseInt: parsing "s": invalid syntax`,
+			wantErrMsg: `generating video preset: parsing video width "s" to int32: strconv.ParseInt: parsing "s": invalid syntax`,
 		},
 		{
 			name: "bad video height returns an error",
@@ -204,7 +207,7 @@ func Test_mcProvider_CreatePreset_fields(t *testing.T) {
 				p.Video.Height = "h"
 				return p
 			},
-			wantErrMsg: `generating video preset: parsing video height "h" to int64: strconv.ParseInt: parsing "h": invalid syntax`,
+			wantErrMsg: `generating video preset: parsing video height "h" to int32: strconv.ParseInt: parsing "h": invalid syntax`,
 		},
 		{
 			name: "bad video bitrate returns an error",
@@ -212,7 +215,7 @@ func Test_mcProvider_CreatePreset_fields(t *testing.T) {
 				p.Video.Bitrate = "bitrate"
 				return p
 			},
-			wantErrMsg: `generating video preset: parsing video bitrate "bitrate" to int64: strconv.ParseInt: parsing "bitrate": invalid syntax`,
+			wantErrMsg: `generating video preset: parsing video bitrate "bitrate" to int32: strconv.ParseInt: parsing "bitrate": invalid syntax`,
 		},
 		{
 			name: "bad video gop size returns an error",
@@ -220,7 +223,7 @@ func Test_mcProvider_CreatePreset_fields(t *testing.T) {
 				p.Video.GopSize = "gop"
 				return p
 			},
-			wantErrMsg: `generating video preset: parsing gop size "gop" to int64: strconv.ParseFloat: parsing "gop": invalid syntax`,
+			wantErrMsg: `generating video preset: parsing gop size "gop" to float64: strconv.ParseFloat: parsing "gop": invalid syntax`,
 		},
 		{
 			name: "unrecognized rate control mode returns an error",
@@ -244,7 +247,7 @@ func Test_mcProvider_CreatePreset_fields(t *testing.T) {
 				p.Audio.Bitrate = "aud_bitrate"
 				return p
 			},
-			wantErrMsg: `generating audio preset: parsing audio bitrate "aud_bitrate" to int64: strconv.ParseInt: parsing "aud_bitrate": invalid syntax`,
+			wantErrMsg: `generating audio preset: parsing audio bitrate "aud_bitrate" to int32: strconv.ParseInt: parsing "aud_bitrate": invalid syntax`,
 		},
 		{
 			name: "unrecognized audio codec returns an error",
@@ -305,7 +308,7 @@ func Test_mcProvider_Transcode(t *testing.T) {
 	tests := []struct {
 		name                string
 		job                 *db.Job
-		presetContainerType mediaconvert.ContainerType
+		presetContainerType types.ContainerType
 		destination         string
 		wantJobReq          mediaconvert.CreateJobInput
 		wantErr             bool
@@ -313,34 +316,34 @@ func Test_mcProvider_Transcode(t *testing.T) {
 		{
 			name:                "a valid mp4 transcode job is mapped correctly to a mediaconvert job input",
 			job:                 &defaultJob,
-			presetContainerType: mediaconvert.ContainerTypeMp4,
+			presetContainerType: types.ContainerTypeMp4,
 			destination:         "s3://some/destination",
 			wantJobReq: mediaconvert.CreateJobInput{
 				Role:  aws.String(""),
 				Queue: aws.String(""),
-				Settings: &mediaconvert.JobSettings{
-					Inputs: []mediaconvert.Input{
+				Settings: &types.JobSettings{
+					Inputs: []types.Input{
 						{
-							AudioSelectors: map[string]mediaconvert.AudioSelector{
+							AudioSelectors: map[string]types.AudioSelector{
 								"Audio Selector 1": {
-									DefaultSelection: mediaconvert.AudioDefaultSelectionDefault,
+									DefaultSelection: types.AudioDefaultSelectionDefault,
 								},
 							},
 							FileInput: aws.String("s3://some/path.mp4"),
-							VideoSelector: &mediaconvert.VideoSelector{
-								ColorSpace: mediaconvert.ColorSpaceFollow,
+							VideoSelector: &types.VideoSelector{
+								ColorSpace: types.ColorSpaceFollow,
 							},
 						},
 					},
-					OutputGroups: []mediaconvert.OutputGroup{
+					OutputGroups: []types.OutputGroup{
 						{
-							OutputGroupSettings: &mediaconvert.OutputGroupSettings{
-								Type: mediaconvert.OutputGroupTypeFileGroupSettings,
-								FileGroupSettings: &mediaconvert.FileGroupSettings{
+							OutputGroupSettings: &types.OutputGroupSettings{
+								Type: types.OutputGroupTypeFileGroupSettings,
+								FileGroupSettings: &types.FileGroupSettings{
 									Destination: aws.String("s3://some/destination/jobID/"),
 								},
 							},
-							Outputs: []mediaconvert.Output{
+							Outputs: []types.Output{
 								{
 									NameModifier: aws.String("file1"),
 									Preset:       aws.String("preset1"),
@@ -360,40 +363,40 @@ func Test_mcProvider_Transcode(t *testing.T) {
 		{
 			name:                "a valid hls transcode job is mapped correctly to a mediaconvert job input",
 			job:                 &defaultJob,
-			presetContainerType: mediaconvert.ContainerTypeM3u8,
+			presetContainerType: types.ContainerTypeM3u8,
 			destination:         "s3://some/destination",
 			wantJobReq: mediaconvert.CreateJobInput{
 				Role:  aws.String(""),
 				Queue: aws.String(""),
-				Settings: &mediaconvert.JobSettings{
-					Inputs: []mediaconvert.Input{
+				Settings: &types.JobSettings{
+					Inputs: []types.Input{
 						{
-							AudioSelectors: map[string]mediaconvert.AudioSelector{
+							AudioSelectors: map[string]types.AudioSelector{
 								"Audio Selector 1": {
-									DefaultSelection: mediaconvert.AudioDefaultSelectionDefault,
+									DefaultSelection: types.AudioDefaultSelectionDefault,
 								},
 							},
 							FileInput: aws.String("s3://some/path.mp4"),
-							VideoSelector: &mediaconvert.VideoSelector{
-								ColorSpace: mediaconvert.ColorSpaceFollow,
+							VideoSelector: &types.VideoSelector{
+								ColorSpace: types.ColorSpaceFollow,
 							},
 						},
 					},
-					OutputGroups: []mediaconvert.OutputGroup{
+					OutputGroups: []types.OutputGroup{
 						{
-							OutputGroupSettings: &mediaconvert.OutputGroupSettings{
-								Type: mediaconvert.OutputGroupTypeHlsGroupSettings,
-								HlsGroupSettings: &mediaconvert.HlsGroupSettings{
+							OutputGroupSettings: &types.OutputGroupSettings{
+								Type: types.OutputGroupTypeHlsGroupSettings,
+								HlsGroupSettings: &types.HlsGroupSettings{
 									Destination:            aws.String("s3://some/destination/jobID/"),
-									SegmentLength:          aws.Int64(6),
-									MinSegmentLength:       aws.Int64(0),
-									DirectoryStructure:     mediaconvert.HlsDirectoryStructureSingleDirectory,
-									ManifestDurationFormat: mediaconvert.HlsManifestDurationFormatFloatingPoint,
-									OutputSelection:        mediaconvert.HlsOutputSelectionManifestsAndSegments,
-									SegmentControl:         mediaconvert.HlsSegmentControlSegmentedFiles,
+									SegmentLength:          6,
+									MinSegmentLength:       0,
+									DirectoryStructure:     types.HlsDirectoryStructureSingleDirectory,
+									ManifestDurationFormat: types.HlsManifestDurationFormatFloatingPoint,
+									OutputSelection:        types.HlsOutputSelectionManifestsAndSegments,
+									SegmentControl:         types.HlsSegmentControlSegmentedFiles,
 								},
 							},
-							Outputs: []mediaconvert.Output{
+							Outputs: []types.Output{
 								{
 									NameModifier: aws.String("file1"),
 									Preset:       aws.String("preset1"),
@@ -465,15 +468,15 @@ func Test_mcProvider_JobStatus(t *testing.T) {
 	tests := []struct {
 		name        string
 		destination string
-		mcJob       mediaconvert.Job
+		mcJob       types.Job
 		wantStatus  provider.JobStatus
 		wantErr     bool
 	}{
 		{
 			name:        "a job that has been queued returns the correct status",
 			destination: "s3://some/destination",
-			mcJob: mediaconvert.Job{
-				Status: mediaconvert.JobStatusSubmitted,
+			mcJob: types.Job{
+				Status: types.JobStatusSubmitted,
 			},
 			wantStatus: provider.JobStatus{
 				Status:       provider.StatusQueued,
@@ -486,9 +489,9 @@ func Test_mcProvider_JobStatus(t *testing.T) {
 		{
 			name:        "a job that is currently transcoding returns the correct status",
 			destination: "s3://some/destination",
-			mcJob: mediaconvert.Job{
-				Status:             mediaconvert.JobStatusProgressing,
-				JobPercentComplete: aws.Int64(42),
+			mcJob: types.Job{
+				Status:             types.JobStatusProgressing,
+				JobPercentComplete: 42,
 			},
 			wantStatus: provider.JobStatus{
 				Status:       provider.StatusStarted,
@@ -502,20 +505,20 @@ func Test_mcProvider_JobStatus(t *testing.T) {
 		{
 			name:        "a job that has finished transcoding returns the correct status",
 			destination: "s3://some/destination",
-			mcJob: mediaconvert.Job{
-				Status: mediaconvert.JobStatusComplete,
-				OutputGroupDetails: []mediaconvert.OutputGroupDetail{{
-					OutputDetails: []mediaconvert.OutputDetail{
+			mcJob: types.Job{
+				Status: types.JobStatusComplete,
+				OutputGroupDetails: []types.OutputGroupDetail{{
+					OutputDetails: []types.OutputDetail{
 						{
-							VideoDetails: &mediaconvert.VideoDetail{
-								HeightInPx: aws.Int64(2160),
-								WidthInPx:  aws.Int64(3840),
+							VideoDetails: &types.VideoDetail{
+								HeightInPx: 2160,
+								WidthInPx:  3840,
 							},
 						},
 						{
-							VideoDetails: &mediaconvert.VideoDetail{
-								HeightInPx: aws.Int64(1080),
-								WidthInPx:  aws.Int64(1920),
+							VideoDetails: &types.VideoDetail{
+								HeightInPx: 1080,
+								WidthInPx:  1920,
 							},
 						},
 					},

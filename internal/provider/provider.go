@@ -90,6 +90,7 @@ type JobOutput struct {
 // OutputFile represents an output file in a given job.
 type OutputFile struct {
 	Path       string `json:"path"`
+	Thumbnail  string `json:"thumbnail"`
 	Container  string `json:"container"`
 	VideoCodec string `json:"videoCodec"`
 	Height     int64  `json:"height"`

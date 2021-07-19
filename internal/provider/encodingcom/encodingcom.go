@@ -56,10 +56,12 @@ type encodingComProvider struct {
 func (e *encodingComProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	formats, err := e.presetsToFormats(job)
 	if err != nil {
+		//nolint:stylecheck
 		return nil, fmt.Errorf("Error converting presets to formats on Transcode operation: %s", err.Error())
 	}
 	resp, err := e.client.AddMedia([]string{e.sourceMedia(job.SourceMedia)}, formats, e.config.EncodingCom.Region)
 	if err != nil {
+		//nolint:stylecheck
 		return nil, fmt.Errorf("Error making AddMedia request for Transcode operation: %s", err.Error())
 	}
 	return &provider.JobStatus{
@@ -70,7 +72,12 @@ func (e *encodingComProvider) Transcode(job *db.Job) (*provider.JobStatus, error
 }
 
 func (e *encodingComProvider) CreatePreset(preset db.Preset) (string, error) {
-	resp, err := e.client.SavePreset(preset.Name, e.presetToFormat(preset))
+	format, err := e.presetToFormat(preset)
+	if err != nil {
+		return "", err
+	}
+
+	resp, err := e.client.SavePreset(preset.Name, format)
 	if err != nil {
 		return "", err
 	}
@@ -89,7 +96,7 @@ func (e *encodingComProvider) sourceMedia(original string) string {
 	return original
 }
 
-func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Format {
+func (e *encodingComProvider) presetToFormat(preset db.Preset) (encodingcom.Format, error) {
 	falseYesNoBoolean := encodingcom.YesNoBoolean(false)
 	format := encodingcom.Format{
 		Output:      []string{preset.Container},
@@ -110,8 +117,18 @@ func (e *encodingComProvider) presetToFormat(preset db.Preset) encodingcom.Forma
 		format.AudioCodec = e.getNormalizedCodec(preset.Audio.Codec)
 		format.VideoCodec = e.getNormalizedCodec(preset.Video.Codec)
 		format.Size = e.getSize(preset.Video.Width, preset.Video.Height)
+
+		if preset.Video.BFrames != "" {
+			bframes, err := strconv.Atoi(preset.Video.BFrames)
+			if err != nil {
+				return format, err
+			}
+
+			format.Bframes = bframes
+		}
 	}
-	return format
+
+	return format, nil
 }
 
 func (e *encodingComProvider) buildStream(preset db.Preset) []encodingcom.Stream {
@@ -184,6 +201,7 @@ func (e *encodingComProvider) presetsToFormats(job *db.Job) ([]encodingcom.Forma
 		}
 		presetOutput, err := e.GetPreset(presetID)
 		if err != nil {
+			//nolint:stylecheck
 			return nil, fmt.Errorf("Error getting preset info: %s", err.Error())
 		}
 		presetStruct := presetOutput.(*encodingcom.Preset)

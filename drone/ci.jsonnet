@@ -1,22 +1,18 @@
 // the first version is used to build the binary that gets shipped to Docker Hub.
-local go_versions = ['1.13rc1', '1.12.9', '1.11.13'];
+local go_versions = ['1.16', '1.15.8'];
 
-local goproxy = 'https://proxy.golang.org';
-
-local test_dockerfile = {
-  name: 'test-dockerfile',
+local test_ci_dockerfile = {
+  name: 'test-ci-dockerfile',
   image: 'plugins/docker',
   settings: {
     repo: 'videodev/video-transcoding-api',
+    dockerfile: 'drone/Dockerfile',
     dry_run: true,
-    build_args: [
-      'GOPROXY=' + goproxy,
-    ],
   },
   when: {
-    event: ['push', 'pull_request'],
+    event: ['pull_request'],
   },
-  depends_on: ['clone'],
+  depends_on: ['build'],
 };
 
 local push_to_dockerhub = {
@@ -57,7 +53,7 @@ local goreleaser = {
 };
 
 local release_steps = [
-  test_dockerfile,
+  test_ci_dockerfile,
   push_to_dockerhub,
   goreleaser,
 ];
@@ -66,7 +62,6 @@ local mod_download(go_version) = {
   name: 'mod-download',
   image: 'golang:%(go_version)s' % { go_version: go_version },
   commands: ['go mod download'],
-  environment: { GOPROXY: goproxy },
   depends_on: ['clone'],
 };
 
@@ -88,8 +83,7 @@ local coverage(go_version) = {
 
 local lint = {
   name: 'lint',
-  image: 'golangci/golangci-lint',
-  pull: 'always',
+  image: 'golangci/golangci-lint:v1.25.0',
   commands: ['make runlint'],
   depends_on: ['mod-download'],
 };
@@ -101,22 +95,8 @@ local build(go_version) = {
   environment: { CGO_ENABLED: '0' },
   depends_on: ['mod-download'],
   when: {
-    event: ['pull_request', 'push'],
+    event: ['pull_request', 'push', 'tag'],
   },
-};
-
-local test_ci_dockerfile = {
-  name: 'test-ci-dockerfile',
-  image: 'plugins/docker',
-  settings: {
-    repo: 'videodev/video-transcoding-api',
-    dockerfile: 'drone/Dockerfile',
-    dry_run: true,
-  },
-  when: {
-    event: ['pull_request'],
-  },
-  depends_on: ['build'],
 };
 
 local pipeline(go_version) = {
@@ -131,7 +111,6 @@ local pipeline(go_version) = {
     coverage(go_version),
     lint,
     build(go_version),
-    test_ci_dockerfile,
   ] + if go_version == go_versions[0] then release_steps else [],
 };
 
