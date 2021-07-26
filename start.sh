@@ -9,8 +9,10 @@ cd /home/forge/ssm-cli
 # Run pipenv
 pipenv install
 # Gets all video-transcoding-api secrets and stores them in secrets/video-transcoding-api-stage.env
+# TODO: Make this dynamic, and not hard coded to "stage"
 pipenv run python spr get -e stage -r ECS -s video-transcoding-api --secure
 # Export all the secrets as env variables
+# TODO: Make this dynamic, and not hard coded to "stage"
 export $(cat secrets/video-transcoding-api-stage.env | xargs)
 
 # Change to project dir
