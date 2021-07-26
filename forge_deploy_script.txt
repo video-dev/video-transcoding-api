@@ -1,0 +1,14 @@
+##
+# Deployed to https://forge.laravel.com/servers/481386/sites/1399925#/application
+# Repo location: https://github.com/sportsrecruits/video-transcoding-api
+# When making any changes, please update this file on Forge and in Bitbucket
+##
+
+# Go to forge home
+cd /home/forge/video-transcoding-api.sportsrecruits.com
+# Pull latest code from repo
+git pull origin $FORGE_SITE_BRANCH
+# Build and start the goland server to start transcoding
+make build
+# Restart the service
+sudo systemctl restart video-transcoding-api && echo "Service restarted at $(date)"
