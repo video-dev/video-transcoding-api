@@ -37,9 +37,11 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 		}
 		return swagger.NewErrorResponse(formattedErr)
 	}
+
 	job := db.Job{
 		SourceMedia:     input.Payload.Source,
 		StreamingParams: input.Payload.StreamingParams,
+		QueueType: 	     input.Payload.QueueType,
 	}
 	outputs := make([]db.TranscodeOutput, len(input.Payload.Outputs))
 	for i, output := range input.Payload.Outputs {
