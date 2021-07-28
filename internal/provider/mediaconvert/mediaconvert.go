@@ -54,10 +54,10 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating Mediaconvert output groups")
 	}
-
 	createJobInput := mediaconvert.CreateJobInput{
 		Queue: aws.String(p.cfg.Queue),
 		Role:  aws.String(p.cfg.Role),
+		Priority: int32(job.QueuePriority),
 		Settings: &types.JobSettings{
 			Inputs: []types.Input{
 				{
