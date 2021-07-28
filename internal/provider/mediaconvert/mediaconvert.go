@@ -54,14 +54,10 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "generating Mediaconvert output groups")
 	}
-	queue := p.cfg.DefaultQueue
-	if job.QueueType == "Reserved" {
-		queue = p.cfg.ReservedQueue
-	}
-
 	createJobInput := mediaconvert.CreateJobInput{
-		Queue: aws.String(queue),
+		Queue: aws.String(p.cfg.Queue),
 		Role:  aws.String(p.cfg.Role),
+		Priority: int32(job.QueuePriority),
 		Settings: &types.JobSettings{
 			Inputs: []types.Input{
 				{
@@ -427,7 +423,7 @@ func (p *mcProvider) Capabilities() provider.Capabilities {
 }
 
 func mediaconvertFactory(cfg *config.Config) (provider.TranscodingProvider, error) {
-	if cfg.MediaConvert.Endpoint == "" || cfg.MediaConvert.DefaultQueue == "" || cfg.MediaConvert.Role == "" || cfg.MediaConvert.ReservedQueue == "" {
+	if cfg.MediaConvert.Endpoint == "" || cfg.MediaConvert.Queue == "" || cfg.MediaConvert.Role == "" {
 		return nil, errors.New("incomplete MediaConvert config")
 	}
 

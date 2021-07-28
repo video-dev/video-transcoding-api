@@ -41,7 +41,7 @@ func (s *TranscodingService) newTranscodeJob(r *http.Request) swagger.GizmoJSONR
 	job := db.Job{
 		SourceMedia:     input.Payload.Source,
 		StreamingParams: input.Payload.StreamingParams,
-		QueueType: 	     input.Payload.QueueType,
+		QueuePriority: 	 input.Payload.QueuePriority,
 	}
 	outputs := make([]db.TranscodeOutput, len(input.Payload.Outputs))
 	for i, output := range input.Payload.Outputs {
@@ -147,6 +147,7 @@ func (s *TranscodingService) getJobStatusResponse(job *db.Job, status *provider.
 
 func (s *TranscodingService) getTranscodeJobByID(jobID string) (*db.Job, *provider.JobStatus, provider.TranscodingProvider, error) {
 	job, err := s.db.GetJob(jobID)
+
 	if err != nil {
 		if err == db.ErrJobNotFound {
 			return nil, nil, nil, err

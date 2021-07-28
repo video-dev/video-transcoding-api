@@ -42,7 +42,7 @@ type Job struct {
 	// required: true
 	SourceMedia string `redis-hash:"source" json:"source"`
 
-	QueueType string `redis-hash:"queueType" json:"queueType"`
+	QueuePriority int `redis-hash:"queuePriority" json:"queuePriority"`
 
 	// Output list of the given job
 	//
