@@ -15,7 +15,7 @@ type NewTranscodeJobInputPayload struct {
 	// source media for the transcoding job.
 	Source string `json:"source"`
 
-	QueueType string `json:"queueType"`
+	QueuePriority int `json:"queuePriority"`
 
 	// list of outputs in this job
 	Outputs []struct {
