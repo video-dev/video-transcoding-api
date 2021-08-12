@@ -67,6 +67,8 @@ func (p *mcProvider) Transcode(job *db.Job) (*provider.JobStatus, error) {
 					},
 					VideoSelector: &types.VideoSelector{
 						ColorSpace: types.ColorSpaceFollow,
+						Rotate: "AUTO",
+
 					},
 				},
 			},
