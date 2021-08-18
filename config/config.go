@@ -86,10 +86,10 @@ type MediaConvert struct {
 	SecretAccessKey string `envconfig:"MEDIACONVERT_AWS_SECRET_ACCESS_KEY"`
 	Region          string `envconfig:"MEDIACONVERT_AWS_REGION"`
 	Endpoint        string `envconfig:"MEDIACONVERT_ENDPOINT"`
-	Queue    		string `envconfig:"MEDIACONVERT_QUEUE_ARN"`
+	DefaultQueue    string `envconfig:"MEDIACONVERT_DEFAULT_QUEUE_ARN"`
+	ReservedQueue   string `envconfig:"MEDIACONVERT_RESERVED_QUEUE_ARN"`
 	Role            string `envconfig:"MEDIACONVERT_ROLE_ARN"`
 	Destination     string `envconfig:"MEDIACONVERT_DESTINATION"`
-
 }
 
 // LoadConfig loads the configuration of the API using environment variables.
