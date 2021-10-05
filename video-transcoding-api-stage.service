@@ -1,0 +1,11 @@
+[Unit]
+Description=STAGE Video Transcoding API Service
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=5s
+ExecStart=/home/forge/video-transcoding-api.stage.sportsrecruits.com/start-stage.sh
+
+[Install]
+WantedBy=multi-user.target
