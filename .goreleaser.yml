@@ -3,6 +3,7 @@ builds:
       - CGO_ENABLED=0
     goarch:
       - amd64
+      - arm64
 archive:
   replacements:
     darwin: Darwin
