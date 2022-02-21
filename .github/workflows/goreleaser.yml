@@ -20,4 +20,4 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           entrypoint: bash
-          args: -c "goreleaser release -f ci/.goreleaser.yml"
+          args: -c "goreleaser release -f .goreleaser.yml"
