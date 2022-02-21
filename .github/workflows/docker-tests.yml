@@ -25,5 +25,5 @@ jobs:
         with:
           context: .
           push: false
-          tags: fsouza/fake-gcs-server:latest
+          tags: videodev/video-transcoding-api:latest
           platforms: linux/amd64,linux/arm64
