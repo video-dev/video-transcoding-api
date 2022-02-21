@@ -1,0 +1,83 @@
+name: Build
+on:
+  push:
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    strategy:
+      matrix:
+        go_version:
+          - 1.16
+          - 1.17
+        os:
+          - macos
+          - ubuntu
+        arch:
+          - 386
+          - amd64
+        exclude:
+          - os: macos
+            arch: 386
+
+    name: tests (${{ matrix.os }}/go-${{ matrix.go_version }}-${{ matrix.arch }})
+    runs-on: ${{ matrix.os }}-latest
+    steps:
+      - uses: actions/setup-go@v2.2.0
+        id: go
+        with:
+          stable: false
+          go-version: ${{ matrix.go_version }}
+
+      - uses: actions/checkout@v2.4.0
+
+      - name: run-tests-race
+        if: ${{ matrix.arch == 'amd64' }}
+        env:
+          GOARCH: "${{ matrix.arch }}"
+        run: go test -race -vet all -mod readonly ./...
+
+      - name: run-tests
+        if: ${{ matrix.arch == '386' }}
+        env:
+          GOARCH: "${{ matrix.arch }}"
+        run: go test -vet all -mod readonly ./...
+
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.4.0
+
+      - uses: golangci/golangci-lint-action@v2.5.2
+
+  build-artifact:
+    name: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2.4.0
+
+      - uses: actions/setup-go@v2.2.0
+        id: go
+        with:
+          go-version: 1.17
+
+      - name: go-build
+        run: go build -o video-transcoding-api
+        env:
+          CGO_ENABLED: 0
+
+  unblock-pr:
+    name: unblock-pr
+    runs-on: ubuntu-latest
+    needs:
+      - build-artifact
+      - lint
+      - test
+    steps:
+      - run: "true"
