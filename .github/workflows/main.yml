@@ -36,13 +36,13 @@ jobs:
 
       - uses: actions/checkout@v2.4.0
 
-      - name: install redis (macos)
+      - name: install build deps (macos)
         if: ${{ matrix.os == 'macos' }}
         run: |
           brew update
-          brew install redis
+          brew install coreutils redis
 
-      - name: install redis (ubuntu)
+      - name: install build deps (ubuntu)
         if: ${{ matrix.os == 'ubuntu' }}
         run: |
           sudo apt update -y
