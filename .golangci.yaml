@@ -2,20 +2,7 @@ run:
   deadline: 5m
 
 linters:
-  enable-all: true
-  disable:
-    - dupl
-    - errcheck
-    - funlen
-    - gochecknoglobals
-    - gochecknoinits
-    - gocognit
-    - goconst
-    - gocritic
-    - gocyclo
-    - gomnd
-    - lll
-    - nestif
-    - testpackage
-    - unparam
-    - wsl
+  disable-all: true
+  enable:
+    - gofmt
+    - goimports
