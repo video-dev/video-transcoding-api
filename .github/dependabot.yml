@@ -1,0 +1,17 @@
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 99
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 99
+  - package-ecosystem: docker
+    directory: "/drone"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 99
