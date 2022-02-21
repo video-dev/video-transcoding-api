@@ -2,7 +2,7 @@
 
 # Video Transcoding API
 
-[![Build Status](https://cloud.drone.io/api/badges/video-dev/video-transcoding-api/status.svg)](https://cloud.drone.io/video-dev/video-transcoding-api)
+[![Build Status](https://github.com/video-dev/video-transcoding-api/actions/workflows/main.yml/badge.svg)](https://github.com/video-dev/video-transcoding-api/actions/workflows/main.yml)
 [![Go Report Card](https://goreportcard.com/badge/github.com/video-dev/video-transcoding-api)](https://goreportcard.com/report/github.com/video-dev/video-transcoding-api)
 [![Docker Pulls](https://img.shields.io/docker/pulls/videodev/video-transcoding-api?color=green)](https://hub.docker.com/r/videodev/video-transcoding-api)
 
