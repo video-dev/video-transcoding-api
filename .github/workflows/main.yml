@@ -27,6 +27,14 @@ jobs:
 
     name: tests (${{ matrix.os }}/go-${{ matrix.go_version }}-${{ matrix.arch }})
     runs-on: ${{ matrix.os }}-latest
+    services:
+      redis:
+        image: redis
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - uses: actions/setup-go@v2.2.0
         id: go
@@ -40,12 +48,14 @@ jobs:
         if: ${{ matrix.arch == 'amd64' }}
         env:
           GOARCH: "${{ matrix.arch }}"
+          REDIS_HOST: redis
         run: go test -race -vet all -mod readonly ./...
 
       - name: run-tests
         if: ${{ matrix.arch == '386' }}
         env:
           GOARCH: "${{ matrix.arch }}"
+          REDIS_HOST: redis
         run: go test -vet all -mod readonly ./...
 
   lint:
