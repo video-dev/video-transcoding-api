@@ -4,7 +4,6 @@ package storage
 import (
 	"errors"
 	"fmt"
-	"os"
 	"reflect"
 	"strconv"
 	"strings"
@@ -59,7 +58,7 @@ func (c *Config) RedisClient() *redis.Client {
 	}
 	redisAddr := c.RedisAddr
 	if redisAddr == "" {
-		redisAddr = redisHost() + ":6379"
+		redisAddr = "127.0.0.1:6379"
 	}
 	return redis.NewClient(&redis.Options{
 		Addr:               redisAddr,
@@ -69,14 +68,6 @@ func (c *Config) RedisClient() *redis.Client {
 		IdleTimeout:        time.Duration(c.IdleTimeout) * time.Second,
 		IdleCheckFrequency: time.Duration(c.IdleCheckFrequency) * time.Second,
 	})
-}
-
-func redisHost() string {
-	host := os.Getenv("REDIS_HOST")
-	if host != "" {
-		return host
-	}
-	return "127.0.0.1"
 }
 
 // NewStorage returns a new instance of storage with the given configuration.

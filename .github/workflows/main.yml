@@ -27,14 +27,6 @@ jobs:
 
     name: tests (${{ matrix.os }}/go-${{ matrix.go_version }}-${{ matrix.arch }})
     runs-on: ${{ matrix.os }}-latest
-    services:
-      redis:
-        image: redis
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - uses: actions/setup-go@v2.2.0
         id: go
@@ -43,6 +35,22 @@ jobs:
           go-version: ${{ matrix.go_version }}
 
       - uses: actions/checkout@v2.4.0
+
+      - name: install redis (macos)
+        if: ${{ matrix.os == 'macos' }}
+        run: |
+          brew update
+          brew install redis
+
+      - name: install redis (ubuntu)
+        if: ${{ matrix.os == 'ubuntu' }}
+        run: |
+          sudo apt update -y
+          sudo apt install -y redis-server
+
+      - name: start redis
+        run: |
+          timeout 10 sh -c "while ! redis-cli ping; do echo waiting for redis-server to start; sleep 1; done"
 
       - name: run-tests-race
         if: ${{ matrix.arch == 'amd64' }}
