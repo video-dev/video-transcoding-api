@@ -28,7 +28,7 @@ jobs:
     name: tests (${{ matrix.os }}/go-${{ matrix.go_version }}-${{ matrix.arch }})
     runs-on: ${{ matrix.os }}-latest
     steps:
-      - uses: actions/setup-go@v2.2.0
+      - uses: actions/setup-go@v3.0.0
         id: go
         with:
           stable: false
@@ -83,7 +83,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.4.0
 
-      - uses: actions/setup-go@v2.2.0
+      - uses: actions/setup-go@v3.0.0
         id: go
         with:
           go-version: 1.17
