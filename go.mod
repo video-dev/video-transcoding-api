@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.14.0
 	github.com/aws/aws-sdk-go-v2/config v1.13.1
 	github.com/aws/aws-sdk-go-v2/credentials v1.9.0
-	github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.19.0
+	github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.20.0
 	github.com/bitmovin/bitmovin-go v1.29.0
 	github.com/fsouza/ctxlogger v1.5.12
 	github.com/fsouza/gizmo-stackdriver-logging v1.3.3

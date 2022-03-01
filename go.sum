@@ -70,8 +70,8 @@ github.com/aws/aws-sdk-go-v2/internal/ini v1.3.5/go.mod h1:R3sWUqPcfXSiF/LSFJhjy
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.7.0/go.mod h1:K/qPe6AP2TGYv4l6n7c88zh9jWBDf6nHhvg1fx/EWfU=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.8.0 h1:JNMALY8/ZnFsfAzBHtC4gq8JeZPANmIoI2VaBgYzbf8=
 github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.8.0/go.mod h1:rBDLgXDAwHOfxZKLRDl8OGTPzFDC+a2pLqNNj8+QwfI=
-github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.19.0 h1:7a+Q1rLbMNd+1WVe2QoxcMrOFQncLmq2baI/4FQMcvc=
-github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.19.0/go.mod h1:ZRMa5uH6JHhkAOxO5fLIoYksME2bGobaJyI3IMojcto=
+github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.20.0 h1:9WE6efWhglGvWLcoblWvOWpXS5m7ZVm9aq5GWJVc8ZU=
+github.com/aws/aws-sdk-go-v2/service/mediaconvert v1.20.0/go.mod h1:UKD8j1wlYJx4xVL8MH1ar4C3juSWzZyifEYVK+nstt0=
 github.com/aws/aws-sdk-go-v2/service/sso v1.9.0/go.mod h1:vCV4glupK3tR7pw7ks7Y4jYRL86VvxS+g5qk04YeWrU=
 github.com/aws/aws-sdk-go-v2/service/sso v1.10.0 h1:qCuSRiQhsPU46NH79HUyPQEn5AcpMj+2gsqMYwtzdw8=
 github.com/aws/aws-sdk-go-v2/service/sso v1.10.0/go.mod h1:m1CRRFX7eH3EE6w0ntdu+lo+Ph9VS7y8qRV/vdym0ZY=
