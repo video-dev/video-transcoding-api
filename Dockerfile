@@ -1,4 +1,4 @@
-FROM golang:1.18rc1-alpine AS build
+FROM golang:1.18.2-alpine AS build
 
 ENV  CGO_ENABLED 0
 WORKDIR /code
