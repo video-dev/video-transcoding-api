@@ -75,7 +75,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3.0.0
 
-      - uses: golangci/golangci-lint-action@v3.1.0
+      - uses: golangci/golangci-lint-action@v3.3.0
 
   build-artifact:
     name: build
